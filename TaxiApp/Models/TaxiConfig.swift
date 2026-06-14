@@ -81,8 +81,9 @@ enum TaxiConfig {
     /// Publishable Key aus Stripe Dashboard (pk_test_…).
     static let stripePublishableKey = "pk_test_PLACEHOLDER"
 
-    /// Cloud-Backend (HTTPS) — nach Render-Deploy eintragen, z. B. https://taxiapp-api.onrender.com
-    /// Leer lassen = Fallback auf deviceBackendURL (Mac im WLAN).
+    /// Cloud-Backend (HTTPS) — nach Render-Deploy eintragen.
+    /// Deploy: github.com/Lucky18pc/Taxi-APP → dashboard.render.com/blueprints
+    /// Beispiel: https://taxiapp-api.onrender.com
     static let cloudBackendURL = ""
 
     /// Mac im gleichen WLAN — nur wenn cloudBackendURL leer ist.

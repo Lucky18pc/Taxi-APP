@@ -97,12 +97,14 @@ Go-Live Checkliste (Schritt für Schritt)
 
 Backend Cloud (Render.com)
 --------------------------
-1. Projekt auf GitHub pushen
-2. https://dashboard.render.com/blueprints → New → Repo wählen (render.yaml)
-3. STRIPE_SECRET_KEY im Render-Dashboard setzen
-4. URL notieren: https://DEIN-NAME.onrender.com
-5. TaxiConfig.swift → cloudBackendURL = "https://DEIN-NAME.onrender.com"
-6. Leitstelle: https://DEIN-NAME.onrender.com/dispatch.html
+GitHub: https://github.com/Lucky18pc/Taxi-APP (Stand ist gepusht)
+
+1. [x] Projekt auf GitHub (Lucky18pc/Taxi-APP)
+2. https://dashboard.render.com/blueprints → New → Repo **Lucky18pc/Taxi-APP** wählen
+3. STRIPE_SECRET_KEY im Render-Dashboard setzen (optional, für Karte)
+4. URL notieren: https://taxiapp-api-xxxx.onrender.com
+5. TaxiConfig.swift → cloudBackendURL = "https://taxiapp-api-xxxx.onrender.com"
+6. Leitstelle: https://taxiapp-api-xxxx.onrender.com/dispatch.html
 7. Hilfe: scripts/deploy-backend-cloud.sh
 
 Neu: Buchungen bleiben nach Backend-Neustart erhalten (backend/data/ lokal, DATA_DIR in Cloud).
