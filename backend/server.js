@@ -21,8 +21,23 @@ const offering = JSON.parse(
   fs.readFileSync(path.join(__dirname, "offering.json"), "utf8")
 );
 
-const dataDir = process.env.DATA_DIR || path.join(__dirname, "data");
-fs.mkdirSync(dataDir, { recursive: true });
+function resolveDataDir() {
+  const preferred = process.env.DATA_DIR || path.join(__dirname, "data");
+  try {
+    fs.mkdirSync(preferred, { recursive: true });
+    fs.accessSync(preferred, fs.constants.W_OK);
+    return preferred;
+  } catch (error) {
+    const fallback = path.join(__dirname, "data");
+    console.warn(
+      `DATA_DIR "${preferred}" nicht nutzbar (${error.code}) — Fallback: ${fallback}`
+    );
+    fs.mkdirSync(fallback, { recursive: true });
+    return fallback;
+  }
+}
+
+const dataDir = resolveDataDir();
 
 function seedDataFile(filename) {
   const target = path.join(dataDir, filename);
