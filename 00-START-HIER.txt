@@ -83,16 +83,16 @@ Web live: siehe web/README.txt und scripts/deploy-web.sh
 
 Go-Live Checkliste (Schritt für Schritt)
 ----------------------------------------
-[ ] 1. Leitstelle: settings.html — Firmenname + echte Zentrale-Nummer
-[ ] 2. Mac-IP in TaxiConfig.swift → deviceBackendURL (iPhone-Tests)
-[ ] 3. Stripe: pk_test in TaxiConfig, sk_test in backend/.env
-[ ] 4. Buchung testen: Bar + Karte, dispatch.html prüfen
+[ ] 1. Leitstelle: settings.html — Firmenname + echte Zentrale-Nummer (Cloud: …/settings.html)
+[ ] 2. Mac-IP in TaxiConfig.swift → deviceBackendURL (nur Fallback ohne cloudBackendURL)
+[ ] 3. Stripe: pk_test in TaxiConfig, sk_test auf Render (scripts/setup-stripe-cloud.sh)
+[ ] 4. Buchung testen: Bar + Karte, dispatch.html prüfen (scripts/test-cloud-e2e.sh)
 [ ] 5. Zieladresse auf Seite 3 testen (optional, erscheint in Leitstelle)
-[ ] 6. Impressum + Datenschutz (web/) mit echten Firmendaten füllen
-[ ] 7. Web live: deploy-web.sh
-[ ] 8. Backend in Cloud — scripts/deploy-backend-cloud.sh + render.yaml
-[ ] 9. cloudBackendURL in TaxiConfig.swift (HTTPS-URL von Render)
-[ ] 10. TestFlight → App Store
+[ ] 6. Impressum + Datenschutz (web/) — Adresse/Inhaber vor Go-Live ergänzen
+[x] 7. Web + Leitstelle live auf Render (index.html, dispatch.html, impressum.html)
+[ ] 8. Optional: eigene Marketing-Domain via scripts/deploy-web.sh (Surge/Netlify)
+[x] 9. cloudBackendURL in TaxiConfig.swift = https://taxiapp-api.onrender.com
+[ ] 10. TestFlight → App Store (docs/TESTFLIGHT.md)
 [ ] 11. Stripe Live + Connect (Provision) — wenn Umsatz startet
 
 Backend Cloud (Render.com)

@@ -15,9 +15,16 @@ Oder mit Mini-Server:
   cd ~/Projects/TaxiApp/web && python3 -m http.server 8080
   → http://127.0.0.1:8080
 
-Live im Internet (kostenlos, ~1 Minute)
----------------------------------------
-Option A — Surge (empfohlen, ein Befehl):
+Live im Internet
+----------------
+Option A — Mit Backend (empfohlen, bereits aktiv):
+
+  Startseite:    https://taxiapp-api.onrender.com/index.html
+  Leitstelle:    https://taxiapp-api.onrender.com/dispatch.html
+  Einstellungen: https://taxiapp-api.onrender.com/settings.html
+  Impressum:     https://taxiapp-api.onrender.com/impressum.html
+
+Option B — Nur statische Seite (Surge, ein Befehl):
 
   chmod +x ~/Projects/TaxiApp/scripts/deploy-web.sh
   ~/Projects/TaxiApp/scripts/deploy-web.sh taxiapp-DEINNAME.surge.sh
