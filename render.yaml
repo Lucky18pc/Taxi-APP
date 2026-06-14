@@ -12,14 +12,10 @@ services:
     runtime: node
     rootDir: backend
     plan: free
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health
     envVars:
-      - key: NODE_VERSION
-        value: "20"
-      - key: DATA_DIR
-        value: /var/data
       - key: STRIPE_SECRET_KEY
         sync: false
     # Persistent Disk (empfohlen ab Starter-Plan — Buchungen bleiben nach Deploy):
@@ -27,3 +23,6 @@ services:
     #   name: taxiapp-data
     #   mountPath: /var/data
     #   sizeGB: 1
+    # envVars:
+    #   - key: DATA_DIR
+    #     value: /var/data
