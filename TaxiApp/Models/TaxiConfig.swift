@@ -84,7 +84,7 @@ enum TaxiConfig {
     /// Cloud-Backend (HTTPS) — nach Render-Deploy eintragen.
     /// Deploy: github.com/Lucky18pc/Taxi-APP → dashboard.render.com/blueprints
     /// Beispiel: https://taxiapp-api.onrender.com
-    static let cloudBackendURL = ""
+    static let cloudBackendURL = "https://taxiapp-api.onrender.com"
 
     /// Mac im gleichen WLAN — nur wenn cloudBackendURL leer ist.
     static let deviceBackendURL = "http://192.168.1.1:4242"
