@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TaxiApp Zentrale — Leitstelle</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .dispatch-wrap { max-width: 960px; margin: 2rem auto 3rem; padding: 0 1.25rem; }
+    .dispatch-panel {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .dispatch-panel h2 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+    .dispatch-panel p { margin: 0.25rem 0; font-size: 0.9rem; color: #374151; }
+    .central-phone { font-size: 1.35rem; font-weight: 700; margin: 0.5rem 0; }
+    .central-phone a { color: var(--accent, #1c304f); text-decoration: none; }
+    .workflow ol { margin: 0.5rem 0 0 1.1rem; padding: 0; font-size: 0.88rem; color: #4b5563; }
+    .workflow li { margin: 0.35rem 0; }
+    .section-title { font-size: 0.95rem; font-weight: 700; margin: 1.5rem 0 0.75rem; color: #1f2937; }
+    .driver-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.65rem;
+    }
+    .driver-chip {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      box-shadow: var(--shadow);
+      font-size: 0.88rem;
+    }
+    .driver-chip strong { display: block; margin-bottom: 0.2rem; }
+    .driver-meta { color: #6b7280; font-size: 0.82rem; }
+    .driver-status-available { color: #065f46; font-weight: 700; }
+    .driver-status-busy { color: #92400e; font-weight: 700; }
+    .driver-status-offline { color: #6b7280; font-weight: 700; }
+    .booking-card, .call-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      box-shadow: var(--shadow);
+    }
+    .booking-card h3, .call-card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+    .booking-meta { font-size: 0.85rem; color: #6b7280; margin: 0.2rem 0; }
+    .status-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      margin-bottom: 0.35rem;
+    }
+    .status-confirmed { background: #fef3c7; color: #92400e; }
+    .status-accepted { background: #dbeafe; color: #1e40af; }
+    .status-assigned { background: #d1fae5; color: #065f46; }
+    .status-completed { background: #e5e7eb; color: #374151; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-ringing { background: #fee2e2; color: #991b1b; }
+    .assign-row {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .assign-row label { font-size: 0.85rem; font-weight: 600; }
+    .assign-row select {
+      flex: 1;
+      min-width: 160px;
+      padding: 0.45rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.88rem;
+    }
+    .assigned-driver {
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.65rem;
+      background: rgba(28, 48, 79, 0.06);
+      border-radius: 8px;
+      font-size: 0.88rem;
+    }
+    .booking-map {
+      margin-top: 0.75rem;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+    }
+    .booking-actions, .call-actions {
+      margin-top: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .booking-actions button, .call-actions button, .booking-actions a {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(28, 48, 79, 0.08);
+      border: none;
+      cursor: pointer;
+      color: inherit;
+    }
+    .empty { color: #6b7280; padding: 1.5rem; text-align: center; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <header class="hero" style="padding-bottom: 2.5rem">
+    <h1 id="company-title">Zentrale / Leitstelle</h1>
+    <p id="company-subtitle">App-Buchungen — Fahrer zuweisen</p>
+  </header>
+
+  <main class="dispatch-wrap">
+    <section class="dispatch-panel" id="config-panel">
+      <h2>Leitstellen-Nummer (Fahrgast ruft an)</h2>
+      <p class="central-phone"><a id="central-phone-link" href="#">…</a></p>
+      <p id="dispatch-hours" class="booking-meta"></p>
+      <p id="dispatch-note" class="booking-meta"></p>
+      <div class="workflow">
+        <strong>Ablauf Leitstelle:</strong>
+        <ol>
+          <li>Neue App-Buchung erscheint unten (oder Anruf oben).</li>
+          <li><strong>Angenommen</strong> → Fahrer wählen → <strong>Fahrer anrufen</strong>.</li>
+          <li>Status <strong>Fahrer unterwegs</strong> / <strong>Erledigt</strong> setzen.</li>
+        </ol>
+      </div>
+    </section>
+
+    <h2 class="section-title">Fahrer</h2>
+    <div id="drivers" class="driver-grid"></div>
+
+    <p class="nav-top" style="text-align:center;margin-bottom:1rem">
+      <a href="settings.html" style="font-weight:600">Einstellungen (Nummer & Fahrer)</a>
+    </p>
+
+    <p class="note">Aktualisiert alle 5 Sekunden. Backend: <code>cd backend && npm start</code></p>
+
+    <h2 class="section-title">Telefon-Anrufe</h2>
+    <div id="calls"></div>
+
+    <h2 class="section-title">App-Buchungen</h2>
+    <div id="bookings"></div>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="dispatch.html">Zentrale</a>
+      <a href="settings.html">Einstellungen</a>
+    </nav>
+  </footer>
+
+  <script>
+    const STATUS_LABELS = {
+      confirmed: "Neu — bestätigt",
+      accepted: "Angenommen",
+      assigned: "Fahrer unterwegs",
+      completed: "Erledigt",
+      cancelled: "Storniert",
+      ringing: "Klingelt",
+      missed: "Verpasst",
+    };
+
+    const DRIVER_STATUS_LABELS = {
+      available: "frei",
+      busy: "beschäftigt",
+      offline: "offline",
+    };
+
+    let cachedDrivers = [];
+
+    function mapsUrl(lat, lon) {
+      return `https://maps.apple.com/?ll=${lat},${lon}&q=Abholung`;
+    }
+
+    function staticMapUrl(lat, lon) {
+      return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=15&size=520x200&markers=${lat},${lon},red`;
+    }
+
+    function telHref(phone) {
+      return `tel:${String(phone).replace(/\s/g, "")}`;
+    }
+
+    function statusBadge(status) {
+      const label = STATUS_LABELS[status] || status;
+      return `<span class="status-badge status-${status}">${label}</span>`;
+    }
+
+    function driverById(id) {
+      return cachedDrivers.find((d) => d.driverId === id);
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch("/api/config");
+        if (!res.ok) return;
+        const cfg = await res.json();
+        document.getElementById("company-title").textContent = cfg.companyName || "Zentrale";
+        const display = cfg.centralPhoneDisplay || cfg.centralPhone || "—";
+        const link = document.getElementById("central-phone-link");
+        link.textContent = display;
+        link.href = telHref(cfg.centralPhone || display);
+        document.getElementById("dispatch-hours").textContent =
+          cfg.dispatchHours ? `Erreichbar: ${cfg.dispatchHours}` : "";
+        document.getElementById("dispatch-note").textContent = cfg.dispatchNote || "";
+      } catch {
+        /* offline */
+      }
+    }
+
+    function renderDrivers(data) {
+      cachedDrivers = data.drivers || [];
+      const root = document.getElementById("drivers");
+      if (!cachedDrivers.length) {
+        root.innerHTML = '<p class="empty">Keine Fahrer in backend/drivers.json</p>';
+        return;
+      }
+      root.innerHTML = cachedDrivers.map((d) => `
+        <article class="driver-chip">
+          <strong>${escapeHtml(d.name)}</strong>
+          <span class="driver-meta driver-status-${d.status}">${DRIVER_STATUS_LABELS[d.status] || d.status}</span>
+          <div class="driver-meta">${escapeHtml(d.vehicle || "")}</div>
+          <div class="driver-meta"><a href="${telHref(d.phone)}">${escapeHtml(d.phone)}</a></div>
+        </article>
+      `).join("");
+    }
+
+    function renderCalls(data) {
+      const root = document.getElementById("calls");
+      const list = data.calls || [];
+      if (!list.length) {
+        root.innerHTML = '<p class="empty">Noch keine Telefon-Anrufe.</p>';
+        return;
+      }
+      root.innerHTML = list.map((c) => `
+        <article class="call-card">
+          ${statusBadge(c.status)}
+          <h3>Anruf von ${escapeHtml(c.from)}</h3>
+          <p class="booking-meta">${new Date(c.receivedAt).toLocaleString("de-DE")}${c.note ? " · " + escapeHtml(c.note) : ""}</p>
+          <div class="call-actions">
+            <a href="${telHref(c.from)}">Zurückrufen</a>
+            <button type="button" data-call-id="${c.callId}" data-status="accepted">Angenommen</button>
+            <button type="button" data-call-id="${c.callId}" data-status="completed">Erledigt</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function driverOptions(selectedId) {
+      const options = ['<option value="">— Fahrer wählen —</option>'];
+      for (const d of cachedDrivers) {
+        const disabled = d.status === "offline" ? " disabled" : "";
+        const selected = d.driverId === selectedId ? " selected" : "";
+        const suffix = d.status === "busy" && d.driverId !== selectedId ? " (beschäftigt)" : "";
+        options.push(
+          `<option value="${d.driverId}"${disabled}${selected}>${escapeHtml(d.name)}${suffix}</option>`
+        );
+      }
+      return options.join("");
+    }
+
+    function assignedDriverBlock(booking) {
+      if (!booking.assignedDriverId) return "";
+      const driver = driverById(booking.assignedDriverId);
+      if (!driver) return "";
+      return `
+        <div class="assigned-driver">
+          <strong>Fahrer:</strong> ${escapeHtml(driver.name)} · ${escapeHtml(driver.vehicle || "")}
+          · <a href="${telHref(driver.phone)}">Anrufen</a>
+        </div>
+      `;
+    }
+
+    function renderBookings(data) {
+      const root = document.getElementById("bookings");
+      const list = data.bookings || [];
+      if (!list.length) {
+        root.innerHTML =
+          '<p class="empty">Noch keine App-Buchungen. In der App bis BESTÄTIGEN durchgehen.</p>';
+        return;
+      }
+      root.innerHTML = list.map((b) => `
+        <article class="booking-card">
+          ${statusBadge(b.status || "confirmed")}
+          <h3>${escapeHtml(b.addressLine)}</h3>
+          ${b.destinationAddressLine ? `<p class="booking-meta"><strong>Ziel:</strong> ${escapeHtml(b.destinationAddressLine)}</p>` : ""}
+          <p class="booking-meta">${new Date(b.pickupDate).toLocaleString("de-DE")} · ${escapeHtml(b.paymentMethod)} · ${Number(b.totalAmount).toFixed(2)} €</p>
+          <p class="booking-meta">ID: ${b.bookingId.slice(0, 8)}…</p>
+          <img class="booking-map" src="${staticMapUrl(b.latitude, b.longitude)}" alt="Karte Abholpunkt" loading="lazy" width="520" height="200">
+          ${assignedDriverBlock(b)}
+          <div class="assign-row">
+            <label for="driver-${b.bookingId}">Zuweisen:</label>
+            <select id="driver-${b.bookingId}" data-assign-select="${b.bookingId}">
+              ${driverOptions(b.assignedDriverId)}
+            </select>
+          </div>
+          <div class="booking-actions">
+            <a href="${mapsUrl(b.latitude, b.longitude)}" target="_blank" rel="noopener">In Karten öffnen</a>
+            <button type="button" data-booking-id="${b.bookingId}" data-status="accepted">Angenommen</button>
+            <button type="button" data-booking-id="${b.bookingId}" data-status="completed">Erledigt</button>
+            <button type="button" data-booking-id="${b.bookingId}" data-status="cancelled">Storniert</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function refresh() {
+      try {
+        const [bookingsRes, callsRes, driversRes] = await Promise.all([
+          fetch("/api/bookings"),
+          fetch("/api/calls"),
+          fetch("/api/drivers"),
+        ]);
+        if (!bookingsRes.ok) throw new Error("offline");
+        if (driversRes.ok) renderDrivers(await driversRes.json());
+        renderBookings(await bookingsRes.json());
+        if (callsRes.ok) renderCalls(await callsRes.json());
+      } catch {
+        document.getElementById("bookings").innerHTML =
+          '<p class="empty">Backend nicht erreichbar. Bitte <code>npm start</code> im Ordner backend.</p>';
+      }
+    }
+
+    async function assignDriver(bookingId, driverId) {
+      await fetch(`/api/bookings/${bookingId}/assign`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ driverId: driverId || null }),
+      });
+      refresh();
+    }
+
+    document.addEventListener("change", async (event) => {
+      const select = event.target.closest("[data-assign-select]");
+      if (!select) return;
+      const bookingId = select.getAttribute("data-assign-select");
+      await assignDriver(bookingId, select.value);
+    });
+
+    document.addEventListener("click", async (event) => {
+      const bookingBtn = event.target.closest("[data-booking-id]");
+      if (bookingBtn) {
+        const id = bookingBtn.getAttribute("data-booking-id");
+        const status = bookingBtn.getAttribute("data-status");
+        await fetch(`/api/bookings/${id}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        });
+        refresh();
+        return;
+      }
+      const callBtn = event.target.closest("[data-call-id]");
+      if (callBtn) {
+        const id = callBtn.getAttribute("data-call-id");
+        const status = callBtn.getAttribute("data-status");
+        await fetch(`/api/calls/${id}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        });
+        refresh();
+      }
+    });
+
+    loadConfig();
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>

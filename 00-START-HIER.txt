@@ -1,0 +1,108 @@
+TaxiApp — eigenständiges iOS-Projekt
+=====================================
+
+Ausgelagert aus CollectionShop am 28.05.2026.
+
+Auf iPhone 17 installieren (Xcode) — WICHTIG
+--------------------------------------------
+Ohne neuen Build siehst du am iPhone immer die alte App-Version.
+
+1. open ~/Projects/TaxiApp/TaxiApp.xcodeproj
+2. iPhone 17 per Kabel verbinden, entsperren, „Diesem Computer vertrauen“
+3. Oben in Xcode dein iPhone 17 wählen (NICHT „iPhone 17 Pro Simulator“)
+4. Target TaxiApp → Signing & Capabilities → Team wählen
+5. Product → Clean Build Folder (Shift+Cmd+K)
+6. Run (Cmd+R)
+7. Am iPhone ggf.: Einstellungen → VPN & Geräteverwaltung → Entwickler vertrauen
+
+Alternativ Terminal (iPhone per USB):
+  ~/Projects/TaxiApp/scripts/deploy-to-iphone.sh
+
+Seite 1 (Abholung): Taxi-Foto als Hintergrund (app_background), kein Logo in der Mitte
+Seite 2 (nach „Weiter“): gleicher Hintergrund + Kalender — Prototyp-Foto ggf. vor Go-Live ersetzen
+
+Shop-Monorepo (separates Projekt):
+  ~/Projects/CollectionShop
+
+Web-Landingpage (HTML, für Kunden)
+----------------------------------
+Lokal sofort:  open web/index.html
+App-Klick-Weg auf der Webseite:  web/index.html#die-app  (welche Buttons in der iOS-App)
+Live (1 Befehl):  ~/Projects/TaxiApp/scripts/deploy-web.sh taxiapp-DEINNAME.surge.sh
+Alternativ: Netlify Drop — web/ hochladen auf https://app.netlify.com/drop
+Details: web/README.txt
+
+Angebot & Preise (Unternehmer + Kunden)
+---------------------------------------
+In der App: Startseite → „Für Unternehmen“ (Tarife, monatlich kündbar)
+Web-Landingpage: web/index.html (lokal oder live — siehe oben)
+Preis-Quelle: backend/offering.json (App: BusinessOffering.swift — gleiche Werte)
+
+Unternehmer-Tarife (Stand Prototyp):
+  Starter   49 €/Monat, kündbar, 2,0 % auf Kartenzahlungen
+  Business  99 €/Monat, kündbar, 1,5 % auf Kartenzahlungen
+Kunden: App kostenlos, zahlen nur Fahrt (+ Trinkgeld), keine Reservierungsgebühr
+
+Stripe Kartenzahlung (Test)
+---------------------------
+1. Keys: Stripe Dashboard → pk_test in TaxiConfig, sk_test in backend/.env
+2. cd backend && npm start
+3. App neu bauen → Zahlung → Karte → Mit Bankkarte bezahlen (Stripe)
+
+Abholpunkt → Zentrale/Fahrer
+----------------------------
+1. App: Karte (Seite 3) → Pin setzen → durch bis BESTÄTIGEN
+2. Backend muss laufen (npm start)
+3. Zentrale im Browser: http://127.0.0.1:4242/dispatch.html
+   Abholadresse + Karte — auch wenn Fahrgast-Handy später aus ist.
+
+Leitstelle / Zentrale anrufen
+-----------------------------
+Systemüberblick: docs/ZENTRALE.md
+
+WICHTIG: URLs mit :4242 funktionieren NUR wenn das Backend läuft!
+(Nicht Doppelklick auf HTML — kein python-Server auf 8080 für Einstellungen.)
+
+Schnellstart (Backend + Browser):
+  chmod +x ~/Projects/TaxiApp/scripts/start-leitstelle.sh
+  ~/Projects/TaxiApp/scripts/start-leitstelle.sh          → Einstellungen
+  ~/Projects/TaxiApp/scripts/start-leitstelle.sh dispatch → Leitstelle
+
+Einstellungen OHNE Code (Browser):
+  http://127.0.0.1:4242/settings.html
+  → Firmenname, Zentrale-Nummer, Anzeige, Fahrer — speichern
+
+Leitstelle (Buchungen):
+  http://127.0.0.1:4242/dispatch.html
+
+Manuell: cd backend && npm start (Terminal offen lassen!)
+
+Alternativ (nur für Entwickler): backend/tenant-config.json, drivers.json
+
+Web live: siehe web/README.txt und scripts/deploy-web.sh
+
+Go-Live Checkliste (Schritt für Schritt)
+----------------------------------------
+[ ] 1. Leitstelle: settings.html — Firmenname + echte Zentrale-Nummer
+[ ] 2. Mac-IP in TaxiConfig.swift → deviceBackendURL (iPhone-Tests)
+[ ] 3. Stripe: pk_test in TaxiConfig, sk_test in backend/.env
+[ ] 4. Buchung testen: Bar + Karte, dispatch.html prüfen
+[ ] 5. Zieladresse auf Seite 3 testen (optional, erscheint in Leitstelle)
+[ ] 6. Impressum + Datenschutz (web/) mit echten Firmendaten füllen
+[ ] 7. Web live: deploy-web.sh
+[ ] 8. Backend in Cloud — scripts/deploy-backend-cloud.sh + render.yaml
+[ ] 9. cloudBackendURL in TaxiConfig.swift (HTTPS-URL von Render)
+[ ] 10. TestFlight → App Store
+[ ] 11. Stripe Live + Connect (Provision) — wenn Umsatz startet
+
+Backend Cloud (Render.com)
+--------------------------
+1. Projekt auf GitHub pushen
+2. https://dashboard.render.com/blueprints → New → Repo wählen (render.yaml)
+3. STRIPE_SECRET_KEY im Render-Dashboard setzen
+4. URL notieren: https://DEIN-NAME.onrender.com
+5. TaxiConfig.swift → cloudBackendURL = "https://DEIN-NAME.onrender.com"
+6. Leitstelle: https://DEIN-NAME.onrender.com/dispatch.html
+7. Hilfe: scripts/deploy-backend-cloud.sh
+
+Neu: Buchungen bleiben nach Backend-Neustart erhalten (backend/data/ lokal, DATA_DIR in Cloud).

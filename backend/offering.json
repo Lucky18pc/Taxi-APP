@@ -1,0 +1,51 @@
+{
+  "productName": "TaxiApp",
+  "tagline": "Taxi buchen. Bezahlen. Fertig.",
+  "billingNote": "Alle Unternehmer-Tarife monatlich kündbar — keine Mindestlaufzeit.",
+  "customers": {
+    "title": "Für Fahrgäste",
+    "priceLabel": "App kostenlos",
+    "highlights": [
+      "Taxi in wenigen Schritten buchen",
+      "Abholzeit wählen oder sofort fahren",
+      "Bezahlen per Bankkarte (Stripe), Bar oder Gutschein",
+      "Trinkgeld frei wählbar",
+      "Keine Reservierungsgebühr in der App"
+    ]
+  },
+  "operators": {
+    "title": "Für Taxi-Unternehmer",
+    "contactEmail": "partner@taxiapp.de",
+    "plans": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "priceEuroPerMonth": 49,
+        "vehicleLimit": "bis 5 Fahrzeuge",
+        "cardPlatformFeePercent": 2.0,
+        "features": [
+          "Eigene App mit Firmenlogo",
+          "Online-Kartenzahlung (Stripe)",
+          "Fahrtenübersicht (Basis)",
+          "E-Mail-Support"
+        ],
+        "highlighted": false
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "priceEuroPerMonth": 99,
+        "vehicleLimit": "unbegrenzt",
+        "cardPlatformFeePercent": 1.5,
+        "features": [
+          "Alles aus Starter",
+          "Mehrere Standorte / Filialen",
+          "Prioritäts-Support",
+          "Monatliche Abrechnungsübersicht"
+        ],
+        "highlighted": true
+      }
+    ]
+  },
+  "platformFeeExplanation": "Die Plattformgebühr gilt nur auf erfolgreiche Kartenzahlungen in der App und wird bei Auszahlung an das Unternehmen einbehalten. Monatspreis und Fahrt-Provision sind getrennt."
+}

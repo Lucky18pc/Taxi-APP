@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TaxiApp — Taxi buchen. Bezahlen. Fertig.</title>
+  <meta name="description" content="Kostenlose Taxi-App: Abholung wählen, Route planen, mit Karte oder Bar bezahlen. Für Taxi-Unternehmer ab 49 €/Monat, jederzeit kündbar.">
+  <meta property="og:title" content="TaxiApp">
+  <meta property="og:description" content="Taxi buchen. Bezahlen. Fertig.">
+  <meta property="og:type" content="website">
+  <!-- App Store Link eintragen, wenn live: href="https://apps.apple.com/..." -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <p class="hero-badge">Für Fahrgäste — App kostenlos</p>
+    <h1>TaxiApp</h1>
+    <p>Taxi buchen. Bezahlen. Fertig. — Abholzeit wählen, Ziel setzen, sicher bezahlen.</p>
+    <div class="hero-ctas">
+      <a class="hero-cta" href="#die-app">Die App</a>
+      <a class="hero-cta hero-cta-outline" href="#so-funktionierts">So funktioniert's</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="die-app">
+      <h2>Die App</h2>
+      <p class="lead">Die TaxiApp läuft auf dem <strong>iPhone</strong> — nicht im Browser. Diese Webseite erklärt das Angebot; buchen und bezahlen geht in der App.</p>
+
+      <div class="app-access">
+        <article class="app-access-card">
+          <h3>Jetzt testen (Entwicklung)</h3>
+          <ol class="access-steps">
+            <li><code>open ~/Projects/TaxiApp/TaxiApp.xcodeproj</code></li>
+            <li>Oben den <strong>iPhone-Simulator</strong> wählen</li>
+            <li><strong>Cmd+R</strong> drücken — App startet</li>
+          </ol>
+          <p class="note">Mehr Details: <code>00-START-HIER.txt</code> im Projektordner</p>
+        </article>
+        <article class="app-access-card">
+          <h3>Später für Kunden</h3>
+          <p>Die App erscheint im App Store / TestFlight, sobald du live gehst.</p>
+          <a class="btn secondary app-store-btn" href="#" title="App-Store-Link eintragen, wenn live">Im App Store (folgt)</a>
+          <p class="note">Link in <code>index.html</code> anpassen, wenn die App veröffentlicht ist.</p>
+        </article>
+      </div>
+
+      <h3 class="app-screens-title">Klick-Weg in der App</h3>
+      <p class="lead">Diese Buttons findest du nacheinander in der iOS-App:</p>
+
+      <div class="app-screens">
+        <article class="app-screen">
+          <div class="app-screen-num">1</div>
+          <div class="app-screen-body">
+            <h4>Abholung <span class="screen-tag">lila Startseite</span></h4>
+            <p>Unten tippen: <span class="btn-label">Weiter</span></p>
+            <p class="screen-extra">Extra oben rechts: <span class="btn-label btn-label-extra">Für Unternehmen</span> — zeigt Tarife, <em>nicht</em> die Fahrtbuchung.</p>
+          </div>
+        </article>
+        <article class="app-screen">
+          <div class="app-screen-num">2</div>
+          <div class="app-screen-body">
+            <h4>Kalender</h4>
+            <p>Abholdatum wählen → <span class="btn-label">Weiter</span></p>
+          </div>
+        </article>
+        <article class="app-screen">
+          <div class="app-screen-num">3</div>
+          <div class="app-screen-body">
+            <h4>Abholort / Karte</h4>
+            <p>Standort festlegen → <span class="btn-label">Weiter</span></p>
+          </div>
+        </article>
+        <article class="app-screen">
+          <div class="app-screen-num">4</div>
+          <div class="app-screen-body">
+            <h4>Zahlung</h4>
+            <p>Zahlungsart: Gutschein · <span class="btn-label">Karte</span> · Bar</p>
+            <p>Dann: <span class="btn-label">Weiter zum Bezahlen</span></p>
+            <p>Bei Karte: <span class="btn-label">Mit Bankkarte bezahlen (Stripe)</span></p>
+          </div>
+        </article>
+        <article class="app-screen">
+          <div class="app-screen-num">5</div>
+          <div class="app-screen-body">
+            <h4>BESTÄTIGEN</h4>
+            <p>Zusammenfassung prüfen und Buchung bestätigen.</p>
+          </div>
+        </article>
+      </div>
+
+      <p class="note stripe-note">
+        <strong>Kartenzahlung (Stripe):</strong> Backend muss laufen — <code>cd backend && npm start</code>. Keys in <code>TaxiConfig.swift</code> und <code>backend/.env</code>. Siehe <code>00-START-HIER.txt</code>.
+      </p>
+    </section>
+
+    <section id="so-funktionierts">
+      <h2>So buchst du dein Taxi</h2>
+      <p class="lead">In wenigen Schritten von der Abholung bis zur Bestätigung.</p>
+      <div class="steps">
+        <article class="step">
+          <div class="step-num">1</div>
+          <h3>Abholung</h3>
+          <p>Startseite öffnen — Taxi ist in wenigen Minuten möglich.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">2</div>
+          <h3>Termin & Ort</h3>
+          <p>Datum wählen und Abholadresse auf der Karte festlegen.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">3</div>
+          <h3>Bezahlen</h3>
+          <p>Bankkarte (Stripe), Bar oder Gutschein — Trinkgeld optional.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">4</div>
+          <h3>Bestätigen</h3>
+          <p>Buchung prüfen und Fahrt verbindlich bestätigen.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="customers">
+      <h2>Für Fahrgäste</h2>
+      <p class="price-tag">0 € — App kostenlos</p>
+      <ul class="checklist">
+        <li>Taxi in wenigen Schritten buchen</li>
+        <li>Abholzeit wählen oder sofort fahren</li>
+        <li>Bezahlen per Bankkarte (Stripe), Bar oder Gutschein</li>
+        <li>Trinkgeld frei wählbar</li>
+        <li>Keine Reservierungsgebühr in der App</li>
+      </ul>
+      <p class="note" style="margin-top:1rem">Die App wird derzeit für iPhone bereitgestellt (TestFlight / App Store folgen).</p>
+    </section>
+
+    <section id="operators">
+      <h2>Für Taxi-Unternehmer</h2>
+      <p class="badge">Alle Tarife monatlich kündbar — keine Mindestlaufzeit</p>
+      <div class="plans">
+        <article class="plan">
+          <h3>Starter</h3>
+          <p class="price">49 € / Monat</p>
+          <p class="meta">Monatlich kündbar · bis 5 Fahrzeuge</p>
+          <p class="meta">2,0 % auf Kartenzahlungen in der App</p>
+          <ul class="checklist">
+            <li>Eigene App mit Firmenlogo</li>
+            <li>Online-Kartenzahlung (Stripe)</li>
+            <li>Fahrtenübersicht (Basis)</li>
+            <li>E-Mail-Support</li>
+          </ul>
+          <a class="btn secondary" href="mailto:partner@taxiapp.de?subject=TaxiApp%20Starter%20%E2%80%94%20Anfrage">Tarif anfragen</a>
+        </article>
+        <article class="plan highlight">
+          <h3>Business <span class="badge">Beliebt</span></h3>
+          <p class="price">99 € / Monat</p>
+          <p class="meta">Monatlich kündbar · unbegrenzt Fahrzeuge</p>
+          <p class="meta">1,5 % auf Kartenzahlungen in der App</p>
+          <ul class="checklist">
+            <li>Alles aus Starter</li>
+            <li>Mehrere Standorte / Filialen</li>
+            <li>Prioritäts-Support</li>
+            <li>Monatliche Abrechnungsübersicht</li>
+          </ul>
+          <a class="btn" href="mailto:partner@taxiapp.de?subject=TaxiApp%20Business%20%E2%80%94%20Anfrage">Tarif anfragen</a>
+        </article>
+      </div>
+      <p class="note" style="margin-top:1rem">
+        Die Plattformgebühr gilt nur auf erfolgreiche Kartenzahlungen in der App und wird bei Auszahlung an das Unternehmen einbehalten. Monatspreis und Fahrt-Provision sind getrennt.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="#die-app">Die App</a>
+      <a href="dispatch.html">Zentrale</a>
+      <a href="settings.html">Einstellungen</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="mailto:partner@taxiapp.de">partner@taxiapp.de</a>
+    </nav>
+    <p>© 2026 TaxiApp</p>
+  </footer>
+</body>
+</html>

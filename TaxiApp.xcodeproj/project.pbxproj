@@ -1,0 +1,439 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* TaxiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* TaxiApp.swift */; };
+		A10000000000000000000003 /* TaxiAppProView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* TaxiAppProView.swift */; };
+		A10000000000000000000004 /* TaxiCompanyHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* TaxiCompanyHeaderView.swift */; };
+		A10000000000000000000005 /* TaxiRouteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* TaxiRouteView.swift */; };
+		A10000000000000000000006 /* MovingTaxiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* MovingTaxiView.swift */; };
+		A10000000000000000000007 /* DriverBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* DriverBottomSheet.swift */; };
+		A10000000000000000000008 /* TaxiFinalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* TaxiFinalView.swift */; };
+		A10000000000000000000009 /* TaxiMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* TaxiMapView.swift */; };
+		A1000000000000000000000A /* DestinationSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* DestinationSearchView.swift */; };
+		A1000000000000000000000B /* PaymentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* PaymentView.swift */; };
+		A1000000000000000000000C /* TaxiBookingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* TaxiBookingView.swift */; };
+		A1000000000000000000000D /* TaxiViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* TaxiViewModel.swift */; };
+		A1000000000000000000000E /* TaxiDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* TaxiDriver.swift */; };
+		A1000000000000000000000F /* TaxiConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* TaxiConfig.swift */; };
+		A10000000000000000000010 /* TaxiPaymentMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* TaxiPaymentMethod.swift */; };
+		A10000000000000000000011 /* VehicleType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* VehicleType.swift */; };
+		A10000000000000000000012 /* FareCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* FareCalculator.swift */; };
+		A10000000000000000000013 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* LocationManager.swift */; };
+		A10000000000000000000014 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* Brand.swift */; };
+		A10000000000000000000016 /* TaxiPickupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* TaxiPickupView.swift */; };
+		A10000000000000000000017 /* TaxiCustomerCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* TaxiCustomerCalendarView.swift */; };
+		A10000000000000000000018 /* TaxiPickupLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* TaxiPickupLocationView.swift */; };
+		A10000000000000000000019 /* StripePaymentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* StripePaymentService.swift */; };
+		A1000000000000000000001A /* BusinessOffering.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* BusinessOffering.swift */; };
+		A1000000000000000000001C /* TaxiBusinessPlansView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* TaxiBusinessPlansView.swift */; };
+		A1000000000000000000001D /* PickupLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001D /* PickupLocation.swift */; };
+		A1000000000000000000001E /* GeocodingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001E /* GeocodingService.swift */; };
+		A1000000000000000000001F /* BookingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001F /* BookingService.swift */; };
+		A10000000000000000000020 /* DriverProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* DriverProfileStore.swift */; };
+		A10000000000000000000021 /* DriverProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* DriverProfileView.swift */; };
+		A10000000000000000000022 /* CameraImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* CameraImagePicker.swift */; };
+		A10000000000000000000023 /* CentralConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* CentralConfigStore.swift */; };
+		A10000000000000000000024 /* CentralCallButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* CentralCallButton.swift */; };
+		A1000000000000000000001B /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = B20000000000000000000001 /* StripePaymentSheet */; };
+		A10000000000000000000015 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000000 /* TaxiApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TaxiApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000001 /* TaxiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* TaxiAppProView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiAppProView.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* TaxiCompanyHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiCompanyHeaderView.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* TaxiRouteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiRouteView.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* MovingTaxiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovingTaxiView.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* DriverBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverBottomSheet.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* TaxiFinalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiFinalView.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* TaxiMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiMapView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* DestinationSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationSearchView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* PaymentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* TaxiBookingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiBookingView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* TaxiViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiViewModel.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* TaxiDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiDriver.swift; sourceTree = "<group>"; };
+		A2000000000000000000000F /* TaxiConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiConfig.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* TaxiPaymentMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiPaymentMethod.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* VehicleType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleType.swift; sourceTree = "<group>"; };
+		A20000000000000000000012 /* FareCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FareCalculator.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		A20000000000000000000014 /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* TaxiPickupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiPickupView.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* TaxiCustomerCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiCustomerCalendarView.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* TaxiPickupLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiPickupLocationView.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* StripePaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripePaymentService.swift; sourceTree = "<group>"; };
+		A2000000000000000000001A /* BusinessOffering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessOffering.swift; sourceTree = "<group>"; };
+		A2000000000000000000001C /* TaxiBusinessPlansView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiBusinessPlansView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001D /* PickupLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickupLocation.swift; sourceTree = "<group>"; };
+		A2000000000000000000001E /* GeocodingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingService.swift; sourceTree = "<group>"; };
+		A2000000000000000000001F /* BookingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingService.swift; sourceTree = "<group>"; };
+		A20000000000000000000020 /* DriverProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverProfileStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000021 /* DriverProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverProfileView.swift; sourceTree = "<group>"; };
+		A20000000000000000000022 /* CameraImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraImagePicker.swift; sourceTree = "<group>"; };
+		A20000000000000000000023 /* CentralConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralConfigStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000024 /* CentralCallButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralCallButton.swift; sourceTree = "<group>"; };
+		A20000000000000000000015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000001B /* StripePaymentSheet in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A30000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000015 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000004 /* TaxiApp */,
+				A40000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000000 /* TaxiApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000004 /* TaxiApp */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* TaxiApp.swift */,
+				A20000000000000000000015 /* Assets.xcassets */,
+				A40000000000000000000005 /* Core */,
+				A40000000000000000000006 /* Models */,
+				A40000000000000000000007 /* State */,
+				A40000000000000000000008 /* Services */,
+				A40000000000000000000009 /* Views */,
+			);
+			path = TaxiApp;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000005 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				A4000000000000000000000A /* Design */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000006 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000E /* TaxiDriver.swift */,
+				A2000000000000000000000F /* TaxiConfig.swift */,
+				A20000000000000000000010 /* TaxiPaymentMethod.swift */,
+				A20000000000000000000011 /* VehicleType.swift */,
+				A20000000000000000000012 /* FareCalculator.swift */,
+				A2000000000000000000001A /* BusinessOffering.swift */,
+				A2000000000000000000001D /* PickupLocation.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000007 /* State */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000D /* TaxiViewModel.swift */,
+			);
+			path = State;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000008 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000013 /* LocationManager.swift */,
+				A20000000000000000000019 /* StripePaymentService.swift */,
+				A2000000000000000000001E /* GeocodingService.swift */,
+				A2000000000000000000001F /* BookingService.swift */,
+				A20000000000000000000020 /* DriverProfileStore.swift */,
+				A20000000000000000000023 /* CentralConfigStore.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000009 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A4000000000000000000000B /* TaxiBooking */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000A /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000014 /* Brand.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000B /* TaxiBooking */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000003 /* TaxiAppProView.swift */,
+				A20000000000000000000004 /* TaxiCompanyHeaderView.swift */,
+				A20000000000000000000005 /* TaxiRouteView.swift */,
+				A20000000000000000000006 /* MovingTaxiView.swift */,
+				A20000000000000000000016 /* TaxiPickupView.swift */,
+				A20000000000000000000017 /* TaxiCustomerCalendarView.swift */,
+				A20000000000000000000018 /* TaxiPickupLocationView.swift */,
+				A2000000000000000000001C /* TaxiBusinessPlansView.swift */,
+				A20000000000000000000021 /* DriverProfileView.swift */,
+				A20000000000000000000022 /* CameraImagePicker.swift */,
+				A20000000000000000000024 /* CentralCallButton.swift */,
+				A20000000000000000000007 /* DriverBottomSheet.swift */,
+				A20000000000000000000008 /* TaxiFinalView.swift */,
+				A20000000000000000000009 /* TaxiMapView.swift */,
+				A2000000000000000000000A /* DestinationSearchView.swift */,
+				A2000000000000000000000B /* PaymentView.swift */,
+				A2000000000000000000000C /* TaxiBookingView.swift */,
+			);
+			path = TaxiBooking;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* TaxiApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000001 /* Build configuration list for PBXNativeTarget "TaxiApp" */;
+			buildPhases = (
+				A60000000000000000000001 /* Sources */,
+				A30000000000000000000002 /* Resources */,
+				A30000000000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TaxiApp;
+			packageProductDependencies = (
+				B20000000000000000000001 /* StripePaymentSheet */,
+			);
+			productName = TaxiApp;
+			productReference = A20000000000000000000000 /* TaxiApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A80000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = A70000000000000000000002 /* Build configuration list for PBXProject "TaxiApp" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = de;
+			knownRegions = (
+				de,
+			);
+			mainGroup = A40000000000000000000001;
+			packageReferences = (
+				B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios" */,
+			);
+			productRefGroup = A40000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000000000000000000001 /* TaxiApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* TaxiApp.swift in Sources */,
+				A10000000000000000000014 /* Brand.swift in Sources */,
+				A10000000000000000000003 /* TaxiAppProView.swift in Sources */,
+				A10000000000000000000004 /* TaxiCompanyHeaderView.swift in Sources */,
+				A10000000000000000000005 /* TaxiRouteView.swift in Sources */,
+				A10000000000000000000006 /* MovingTaxiView.swift in Sources */,
+				A10000000000000000000016 /* TaxiPickupView.swift in Sources */,
+				A10000000000000000000017 /* TaxiCustomerCalendarView.swift in Sources */,
+				A10000000000000000000018 /* TaxiPickupLocationView.swift in Sources */,
+				A10000000000000000000007 /* DriverBottomSheet.swift in Sources */,
+				A10000000000000000000008 /* TaxiFinalView.swift in Sources */,
+				A10000000000000000000009 /* TaxiMapView.swift in Sources */,
+				A1000000000000000000000A /* DestinationSearchView.swift in Sources */,
+				A1000000000000000000000B /* PaymentView.swift in Sources */,
+				A1000000000000000000000C /* TaxiBookingView.swift in Sources */,
+				A1000000000000000000000D /* TaxiViewModel.swift in Sources */,
+				A1000000000000000000000E /* TaxiDriver.swift in Sources */,
+				A1000000000000000000000F /* TaxiConfig.swift in Sources */,
+				A10000000000000000000010 /* TaxiPaymentMethod.swift in Sources */,
+				A10000000000000000000011 /* VehicleType.swift in Sources */,
+				A10000000000000000000012 /* FareCalculator.swift in Sources */,
+				A10000000000000000000013 /* LocationManager.swift in Sources */,
+				A10000000000000000000019 /* StripePaymentService.swift in Sources */,
+				A1000000000000000000001A /* BusinessOffering.swift in Sources */,
+				A1000000000000000000001C /* TaxiBusinessPlansView.swift in Sources */,
+				A1000000000000000000001D /* PickupLocation.swift in Sources */,
+				A1000000000000000000001E /* GeocodingService.swift in Sources */,
+				A1000000000000000000001F /* BookingService.swift in Sources */,
+				A10000000000000000000020 /* DriverProfileStore.swift in Sources */,
+				A10000000000000000000021 /* DriverProfileView.swift in Sources */,
+				A10000000000000000000022 /* CameraImagePicker.swift in Sources */,
+				A10000000000000000000023 /* CentralConfigStore.swift in Sources */,
+				A10000000000000000000024 /* CentralCallButton.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A90000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = L44Z8KQDL5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "TaxiApp";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Dein Standort wird genutzt, um nahe Taxis anzuzeigen und die Fahrt zu planen.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Für dein Fahrerprofilbild.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Um ein Profilfoto aufzunehmen.";
+				INFOPLIST_KEY_NSAppTransportSecurity = "{ NSAllowsLocalNetworking = YES; }";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.collectionshop.taxi";
+				PRODUCT_NAME = TaxiApp;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A90000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = L44Z8KQDL5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "TaxiApp";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Dein Standort wird genutzt, um nahe Taxis anzuzeigen und die Fahrt zu planen.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Für dein Fahrerprofilbild.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Um ein Profilfoto aufzunehmen.";
+				INFOPLIST_KEY_NSAppTransportSecurity = "{ NSAllowsLocalNetworking = YES; }";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.collectionshop.taxi";
+				PRODUCT_NAME = TaxiApp;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A90000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A90000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A70000000000000000000001 /* Build configuration list for PBXNativeTarget "TaxiApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000000000000000000001 /* Debug */,
+				A90000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000002 /* Build configuration list for PBXProject "TaxiApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000000000000000000003 /* Debug */,
+				A90000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 24.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B20000000000000000000001 /* StripePaymentSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios" */;
+			productName = StripePaymentSheet;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A80000000000000000000001 /* Project object */;
+}

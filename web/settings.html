@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TaxiApp — Einstellungen</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .settings-wrap { max-width: 720px; margin: 2rem auto 3rem; padding: 0 1.25rem; }
+    .settings-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .settings-card h2 { margin: 0 0 1rem; font-size: 1.1rem; }
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--secondary);
+    }
+    .field input, .field textarea {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font: inherit;
+      color: var(--primary);
+    }
+    .field textarea { min-height: 72px; resize: vertical; }
+    .field-hint { font-size: 0.78rem; color: #6b7280; margin-top: 0.25rem; }
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 0.65rem 1.1rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      background: rgba(28, 48, 79, 0.08);
+      color: var(--primary);
+      border: none;
+      padding: 0.65rem 1.1rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-danger {
+      background: #fee2e2;
+      color: #991b1b;
+      border: none;
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .driver-edit {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .driver-edit h3 { margin: 0 0 0.75rem; font-size: 0.95rem; }
+    .toast {
+      display: none;
+      background: #d1fae5;
+      color: #065f46;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .toast.error { background: #fee2e2; color: #991b1b; display: block; }
+    .toast.ok { display: block; }
+    .nav-top { text-align: center; margin-bottom: 1rem; }
+    .nav-top a { margin: 0 0.5rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="hero" style="padding-bottom: 2.5rem">
+    <h1>Einstellungen</h1>
+    <p>Taxi-Betrieb, Zentrale-Nummer und Fahrer — ohne Code, im Browser.</p>
+  </header>
+
+  <main class="settings-wrap">
+    <p class="nav-top">
+      <a href="dispatch.html">← Leitstelle</a>
+      <a href="index.html">Startseite</a>
+    </p>
+
+    <div id="toast" class="toast" role="status"></div>
+
+    <div id="offline-banner" class="settings-card" style="display:none;background:#fee2e2;border:1px solid #fecaca">
+      <h2 style="margin:0 0 0.5rem;color:#991b1b">Backend nicht erreichbar</h2>
+      <p style="margin:0 0 0.75rem;font-size:0.9rem;color:#7f1d1d">
+        Diese Seite funktioniert nur mit laufendem Server auf Port <strong>4242</strong>
+        (nicht als Datei im Finder öffnen).
+      </p>
+      <p style="margin:0;font-size:0.88rem;color:#7f1d1d">
+        Terminal:<br>
+        <code>cd ~/Projects/TaxiApp/backend && npm start</code><br>
+        Oder ein Befehl:<br>
+        <code>~/Projects/TaxiApp/scripts/start-leitstelle.sh</code>
+      </p>
+    </div>
+
+    <section class="settings-card">
+      <h2>Taxi-Betrieb & Zentrale</h2>
+      <form id="config-form">
+        <div class="field">
+          <label for="companyName">Firmenname (Leitstelle)</label>
+          <input id="companyName" name="companyName" required placeholder="z. B. Taxi Mannheim">
+        </div>
+        <div class="field">
+          <label for="centralPhone">Zentrale Telefonnummer (für Anruf)</label>
+          <input id="centralPhone" name="centralPhone" required placeholder="+496211234567">
+          <p class="field-hint">Format mit Ländervorwahl — die App wählt diese Nummer bei „Zentrale anrufen“.</p>
+        </div>
+        <div class="field">
+          <label for="centralPhoneDisplay">Anzeige in App (optional)</label>
+          <input id="centralPhoneDisplay" name="centralPhoneDisplay" placeholder="0621 1234567">
+          <p class="field-hint">Schön formatiert unter dem Button, z. B. „0621 123 456“.</p>
+        </div>
+        <div class="field">
+          <label for="dispatchHours">Erreichbarkeit</label>
+          <input id="dispatchHours" name="dispatchHours" placeholder="24/7">
+        </div>
+        <div class="field">
+          <label for="dispatchNote">Hinweis für Disponenten</label>
+          <textarea id="dispatchNote" name="dispatchNote" placeholder="Interner Hinweis…"></textarea>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="settings-card">
+      <h2>Fahrer</h2>
+      <p class="field-hint" style="margin-top:0">Name, Handy und Kennzeichen — erscheinen in der Leitstelle zum Zuweisen.</p>
+      <div id="drivers-list"></div>
+      <div class="btn-row">
+        <button type="button" class="btn-secondary" id="add-driver">+ Fahrer hinzufügen</button>
+      </div>
+    </section>
+
+    <p class="note">Backend muss laufen. Schnellstart: <code>~/Projects/TaxiApp/scripts/start-leitstelle.sh</code></p>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="dispatch.html">Zentrale</a>
+      <a href="settings.html">Einstellungen</a>
+    </nav>
+  </footer>
+
+  <script>
+    const toast = document.getElementById("toast");
+
+    function showToast(message, isError) {
+      toast.textContent = message;
+      toast.className = "toast " + (isError ? "error" : "ok");
+      setTimeout(() => { toast.className = "toast"; }, 3500);
+    }
+
+    async function loadConfig() {
+      const res = await fetch("/api/config");
+      if (!res.ok) throw new Error("Backend nicht erreichbar");
+      const cfg = await res.json();
+      for (const key of ["companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote"]) {
+        const el = document.getElementById(key);
+        if (el) el.value = cfg[key] || "";
+      }
+    }
+
+    document.getElementById("config-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        const res = await fetch("/api/config", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Speichern fehlgeschlagen");
+        }
+        showToast("Betrieb & Zentrale gespeichert.", false);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function driverForm(driver) {
+      const isNew = !driver.driverId;
+      const id = driver.driverId || "new-" + Date.now();
+      return `
+        <article class="driver-edit" data-driver-id="${isNew ? "" : driver.driverId}">
+          <h3>${isNew ? "Neuer Fahrer" : driver.name}</h3>
+          <div class="field">
+            <label>Name</label>
+            <input data-field="name" value="${escapeAttr(driver.name || "")}" required>
+          </div>
+          <div class="field">
+            <label>Handy</label>
+            <input data-field="phone" value="${escapeAttr(driver.phone || "")}" required placeholder="+49170…">
+          </div>
+          <div class="field">
+            <label>Kennzeichen</label>
+            <input data-field="vehicle" value="${escapeAttr(driver.vehicle || "")}" placeholder="B-TX 2026">
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn-primary" data-save-driver>${isNew ? "Anlegen" : "Speichern"}</button>
+            ${isNew ? `<button type="button" class="btn-secondary" data-cancel-new>Abbrechen</button>` : `<button type="button" class="btn-danger" data-delete-driver>Löschen</button>`}
+          </div>
+        </article>
+      `;
+    }
+
+    function escapeAttr(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    async function loadDrivers() {
+      const res = await fetch("/api/drivers");
+      if (!res.ok) throw new Error("Fahrer konnten nicht geladen werden");
+      const data = await res.json();
+      document.getElementById("drivers-list").innerHTML =
+        (data.drivers || []).map((d) => driverForm(d)).join("") ||
+        '<p class="field-hint">Noch keine Fahrer — unten hinzufügen.</p>';
+    }
+
+    document.getElementById("add-driver").addEventListener("click", () => {
+      const root = document.getElementById("drivers-list");
+      if (root.querySelector("[data-driver-id='']")) return;
+      root.insertAdjacentHTML("beforeend", driverForm({ name: "", phone: "", vehicle: "" }));
+    });
+
+    document.getElementById("drivers-list").addEventListener("click", async (e) => {
+      const card = e.target.closest(".driver-edit");
+      if (!card) return;
+
+      if (e.target.matches("[data-cancel-new]")) {
+        card.remove();
+        return;
+      }
+
+      const payload = {
+        name: card.querySelector('[data-field="name"]').value.trim(),
+        phone: card.querySelector('[data-field="phone"]').value.trim(),
+        vehicle: card.querySelector('[data-field="vehicle"]').value.trim(),
+      };
+
+      if (e.target.matches("[data-save-driver]")) {
+        const driverId = card.getAttribute("data-driver-id");
+        try {
+          const res = await fetch(driverId ? `/api/drivers/${driverId}` : "/api/drivers", {
+            method: driverId ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || "Speichern fehlgeschlagen");
+          }
+          showToast(driverId ? "Fahrer gespeichert." : "Fahrer angelegt.", false);
+          await loadDrivers();
+        } catch (err) {
+          showToast(err.message, true);
+        }
+        return;
+      }
+
+      if (e.target.matches("[data-delete-driver]")) {
+        const driverId = card.getAttribute("data-driver-id");
+        if (!driverId || !confirm("Fahrer wirklich löschen?")) return;
+        try {
+          const res = await fetch(`/api/drivers/${driverId}`, { method: "DELETE" });
+          if (!res.ok) throw new Error("Löschen fehlgeschlagen");
+          showToast("Fahrer gelöscht.", false);
+          await loadDrivers();
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      }
+    });
+
+    Promise.all([loadConfig(), loadDrivers()]).catch(() => {
+      document.getElementById("offline-banner").style.display = "block";
+      showToast("Backend nicht erreichbar — siehe Hinweis oben.", true);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Datenschutz — TaxiApp</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="legal-page">
+    <h1>Datenschutzerklärung</h1>
+    <p class="note">Stand: Juni 2026. Vor Live-Gang die Verantwortlichen-Daten im Impressum ergänzen und bei Bedarf rechtlich prüfen lassen.</p>
+
+    <section class="legal-card">
+      <h2>1. Verantwortlicher</h2>
+      <p>
+        Verantwortlich für die Datenverarbeitung im Rahmen der Plattform <strong>TaxiApp</strong> (Website und beschriebene App-Funktionen):<br>
+        <em class="legal-hint">[Name und vollständige Anschrift — siehe Impressum]</em><br>
+        E-Mail: <a href="mailto:partner@taxiapp.de">partner@taxiapp.de</a>
+      </p>
+
+      <h2>2. Kurzüberblick</h2>
+      <ul>
+        <li><strong>Fahrgast-App (iOS):</strong> Standort für Abholung/Karte, Buchungsdaten, optional Profilbild/Name lokal auf dem Gerät, Kartenzahlung über Stripe.</li>
+        <li><strong>Leitstelle (Web):</strong> Buchungen, Fahrerzuweisung, Betriebseinstellungen — nur wenn das Backend läuft.</li>
+        <li><strong>Diese Website:</strong> technisch notwendige Zugriffsdaten beim Aufruf; keine Werbe-Cookies eingebunden.</li>
+      </ul>
+
+      <h2>3. Taxi-App für Fahrgäste (iOS)</h2>
+
+      <h3>3.1 Standortdaten</h3>
+      <p>
+        Die App kann Ihren Standort nutzen, um Abholorte auf der Karte anzuzeigen und Fahrten zu planen.
+        Dafür ist Ihre Einwilligung in der iOS-Systemabfrage erforderlich („Standort beim Verwenden der App“).
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. a DSGVO (Einwilligung) und Art. 6 Abs. 1 lit. b DSGVO (Durchführung der Buchung).
+      </p>
+
+      <h3>3.2 Buchungsdaten</h3>
+      <p>
+        Bei einer Bestätigung können u. a. übermittelt werden: Abholadresse, Koordinaten, gewünschte Abholzeit,
+        Zahlungsart, Fahrtpreis und Trinkgeld. Diese Daten werden an den konfigurierten Backend-Server übertragen
+        und in der Leitstellen-Ansicht für Disponenten angezeigt.
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.
+      </p>
+
+      <h3>3.3 Profil (Fahrerbild / Anzeigename)</h3>
+      <p>
+        In der App können optional ein Fahrerbild und ein Anzeigename hinterlegt werden.
+        Diese Angaben werden <strong>primär lokal auf Ihrem Gerät</strong> gespeichert (Prototyp).
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. a DSGVO (freiwillige Nutzung).
+      </p>
+
+      <h3>3.4 Kartenzahlung (Stripe)</h3>
+      <p>
+        Bei Zahlung per Bankkarte werden Zahlungsdaten durch <strong>Stripe Payments Europe Ltd.</strong> verarbeitet.
+        Kartennummern werden nicht auf unseren eigenen Servern gespeichert.
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.
+        Datenschutzhinweise von Stripe: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener noreferrer">stripe.com/de/privacy</a>
+      </p>
+
+      <h3>3.5 Telefon (Zentrale anrufen)</h3>
+      <p>
+        Wenn Sie „Zentrale anrufen“ nutzen, öffnet die App die Telefon-App Ihres Geräts.
+        Dabei verlassen Sie die TaxiApp; für das Telefonat gilt die Datenschutzerklärung des jeweiligen Netzbetreibers bzw. Taxi-Unternehmers.
+      </p>
+
+      <h2>4. Leitstelle &amp; Backend</h2>
+      <p>
+        Betreiber und Disponenten können über <code>dispatch.html</code> und <code>settings.html</code> Buchungen einsehen,
+        Fahrer zuweisen und Betriebseinstellungen (z. B. Leitstellen-Telefonnummer) pflegen.
+        Verarbeitete Daten: Buchungsliste, Fahrerstammdaten (Name, Telefon, Kennzeichen), ggf. Telefon-Anrufprotokolle (VoIP-Vorbereitung).
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. b und lit. f DSGVO (Betrieb der Leitstelle).
+      </p>
+
+      <h2>5. Diese Website</h2>
+      <p>
+        Beim Aufruf unserer Webseiten können Server-Logdateien anfallen (z. B. gekürzte IP-Adresse, Datum/Uhrzeit, aufgerufene URL, Browser-Typ).
+        Dies dient der technischen Bereitstellung und Sicherheit.
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.
+      </p>
+      <p>
+        Beim Hosting über externe Anbieter (z. B. Netlify, Surge) gelten deren Datenschutzbestimmungen zusätzlich.
+      </p>
+
+      <h2>6. Speicherdauer</h2>
+      <ul>
+        <li>Buchungsdaten im Backend: bis zur Erledigung der Fahrt bzw. Löschung durch den Betreiber (Prototyp: flüchtiger Speicher beim Server-Neustart).</li>
+        <li>Server-Logs: in der Regel wenige Tage bis Wochen, je nach Hosting.</li>
+        <li>Lokale App-Daten: bis zur Deinstallation oder „Standard wiederherstellen“ in der App.</li>
+      </ul>
+
+      <h2>7. Weitergabe an Dritte</h2>
+      <p>
+        Eine Weitergabe erfolgt nur, soweit dies zur Vertragserfüllung nötig ist (z. B. Stripe, Hosting-Provider)
+        oder wir gesetzlich dazu verpflichtet sind.
+      </p>
+
+      <h2>8. Taxi-Unternehmer (White-Label)</h2>
+      <p>
+        Nutzt ein unabhängiger Taxi-Betrieb die Plattform, ist er für die Verarbeitung personenbezogener Daten
+        im Zusammenhang mit der konkreten Fahrt (Fahrer, Fahrgast, Abrechnung) mitverantwortlich oder allein verantwortlich.
+        Fahrgäste wenden sich für fahrtbezogene Anfragen auch an den jeweiligen Taxi-Betrieb.
+      </p>
+
+      <h2>9. Ihre Rechte</h2>
+      <p>Sie haben gegenüber dem Verantwortlichen u. a. folgende Rechte:</p>
+      <ul>
+        <li>Auskunft (Art. 15 DSGVO)</li>
+        <li>Berichtigung (Art. 16 DSGVO)</li>
+        <li>Löschung (Art. 17 DSGVO)</li>
+        <li>Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
+        <li>Datenübertragbarkeit (Art. 20 DSGVO)</li>
+        <li>Widerspruch (Art. 21 DSGVO)</li>
+        <li>Widerruf erteilter Einwilligungen (Art. 7 Abs. 3 DSGVO)</li>
+      </ul>
+      <p>
+        Anfragen an: <a href="mailto:partner@taxiapp.de">partner@taxiapp.de</a>
+      </p>
+
+      <h2>10. Beschwerde bei einer Aufsichtsbehörde</h2>
+      <p>
+        Sie haben das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren, z. B. bei der für Ihren Wohnsitz zuständigen Behörde.
+        In Baden-Württemberg: Der Landesbeauftragte für den Datenschutz und die Informationsfreiheit (LfDI BW).
+      </p>
+
+      <h2>11. Änderungen</h2>
+      <p>
+        Wir passen diese Datenschutzerklärung an, wenn sich Funktionen der App oder der Website ändern.
+        Die jeweils aktuelle Version finden Sie auf dieser Seite.
+      </p>
+    </section>
+
+    <p class="legal-back"><a href="index.html">← Zurück zur Startseite</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </nav>
+  </footer>
+</body>
+</html>
