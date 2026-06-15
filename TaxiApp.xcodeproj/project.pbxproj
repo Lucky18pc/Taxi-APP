@@ -42,6 +42,7 @@
 		A10000000000000000000024 /* CentralCallButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* CentralCallButton.swift */; };
 		A10000000000000000000025 /* NightSurcharge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* NightSurcharge.swift */; };
 		A10000000000000000000026 /* PhoneDialer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* PhoneDialer.swift */; };
+		A10000000000000000000027 /* LegalLinksSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* LegalLinksSection.swift */; };
 		A1000000000000000000001B /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = B20000000000000000000001 /* StripePaymentSheet */; };
 		A10000000000000000000015 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -83,6 +84,7 @@
 		A20000000000000000000024 /* CentralCallButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralCallButton.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* NightSurcharge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightSurcharge.swift; sourceTree = "<group>"; };
 		A20000000000000000000026 /* PhoneDialer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneDialer.swift; sourceTree = "<group>"; };
+		A20000000000000000000027 /* LegalLinksSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalLinksSection.swift; sourceTree = "<group>"; };
 		A20000000000000000000015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -214,6 +216,7 @@
 				A20000000000000000000021 /* DriverProfileView.swift */,
 				A20000000000000000000022 /* CameraImagePicker.swift */,
 				A20000000000000000000024 /* CentralCallButton.swift */,
+				A20000000000000000000027 /* LegalLinksSection.swift */,
 				A20000000000000000000007 /* DriverBottomSheet.swift */,
 				A20000000000000000000008 /* TaxiFinalView.swift */,
 				A20000000000000000000009 /* TaxiMapView.swift */,
@@ -320,6 +323,7 @@
 				A10000000000000000000024 /* CentralCallButton.swift in Sources */,
 				A10000000000000000000025 /* NightSurcharge.swift in Sources */,
 				A10000000000000000000026 /* PhoneDialer.swift in Sources */,
+				A10000000000000000000027 /* LegalLinksSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

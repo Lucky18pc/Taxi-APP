@@ -23,7 +23,8 @@ struct DriverProfileView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
                 DriverAvatarView(
                     profileImage: store.profileImage,
                     fallbackImageName: store.fallbackImageName,
@@ -143,7 +144,11 @@ struct DriverProfileView: View {
                 }
                 .padding(.horizontal, 20)
 
-                Spacer()
+                LegalLinksSection()
+                    .brandCard()
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 24)
+                }
             }
             .background(Brand.background)
             .navigationTitle("Profil & Zentrale")

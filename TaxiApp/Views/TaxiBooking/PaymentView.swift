@@ -816,6 +816,8 @@ struct TaxiConfirmationView: View {
                 .background(Brand.primary.opacity(0.92))
             }
 
+            BookingLegalFootnote()
+
             BookingBottomBar(
                 forwardTitle: confirmButtonTitle,
                 forwardDisabled: isSubmitting,

@@ -11,6 +11,8 @@ struct TaxiBusinessPlansView: View {
                 customerSection
                 operatorSection
                 platformFeeSection
+                LegalLinksSection(links: [.agb, .widerruf, .kuendigung, .impressum, .datenschutz])
+                    .padding(.top, 4)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)

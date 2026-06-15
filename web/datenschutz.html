@@ -14,11 +14,12 @@
     <section class="legal-card">
       <h2>1. Verantwortlicher</h2>
       <p>
-        Verantwortlich für die Datenverarbeitung im Rahmen der Plattform <strong>TaxiApp Leitstelle</strong> (Website und App):<br>
-        TaxiApp Leitstelle<br>
-        <em class="legal-hint">Vollständige Anschrift — siehe Impressum, vor Go-Live ergänzen</em><br>
-        E-Mail: <a href="mailto:partner@taxiapp.de">partner@taxiapp.de</a><br>
-        Telefon: <a href="tel:+493012345678">030 12345678</a>
+        Verantwortlich für die Datenverarbeitung im Rahmen der Plattform <strong data-legal-company>TaxiApp Leitstelle</strong> (Website und App):<br>
+        <span data-legal-company>TaxiApp Leitstelle</span><br>
+        <span id="legal-street" class="legal-hint">Straße — in Einstellungen eintragen</span><br>
+        <span id="legal-city" class="legal-hint">PLZ Ort — in Einstellungen eintragen</span><br>
+        E-Mail: <a id="legal-email" href="mailto:partner@taxiapp.de">partner@taxiapp.de</a><br>
+        Telefon: <a id="legal-phone" href="tel:+493012345678">030 12345678</a>
       </p>
 
       <h2>2. Kurzüberblick</h2>
@@ -82,7 +83,7 @@
         Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.
       </p>
       <p>
-        Beim Hosting über externe Anbieter (z. B. Netlify, Surge) gelten deren Datenschutzbestimmungen zusätzlich.
+        Beim Hosting über Render.com gelten deren Datenschutzbestimmungen zusätzlich.
       </p>
 
       <h2>6. Speicherdauer</h2>
@@ -117,7 +118,7 @@
         <li>Widerruf erteilter Einwilligungen (Art. 7 Abs. 3 DSGVO)</li>
       </ul>
       <p>
-        Anfragen an: <a href="mailto:partner@taxiapp.de">partner@taxiapp.de</a>
+        Anfragen an: <a id="legal-email-rights" href="mailto:partner@taxiapp.de">partner@taxiapp.de</a>
       </p>
 
       <h2>10. Beschwerde bei einer Aufsichtsbehörde</h2>
@@ -141,7 +142,22 @@
       <a href="index.html">Start</a>
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
+      <a href="agb.html">AGB</a>
+      <a href="widerruf.html">Widerruf</a>
+      <a href="kuendigung.html">Kündigung</a>
     </nav>
   </footer>
+
+  <script src="legal-config.js"></script>
+  <script>
+    TaxiAppLegal.loadConfig().then((cfg) => {
+      const email = (cfg.legalEmail || "partner@taxiapp.de").trim();
+      const rights = document.getElementById("legal-email-rights");
+      if (rights) {
+        rights.textContent = email;
+        rights.href = `mailto:${email}`;
+      }
+    });
+  </script>
 </body>
 </html>

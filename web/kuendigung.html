@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vertrag kündigen — TaxiApp</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="legal-page">
+    <h1>Vertrag kündigen</h1>
+    <p class="note">Stand: Juni 2026. Gilt für Taxi-Unternehmer mit monatlichem Plattform-Abo. Mustertext — rechtlich prüfen lassen.</p>
+
+    <section class="legal-card">
+      <h2>1. Für wen gilt diese Seite?</h2>
+      <p>
+        Diese Hinweise gelten für <strong>Taxi-Unternehmer und Gewerbetreibende</strong>, die die Plattform
+        <span data-legal-company>TaxiApp Leitstelle</span> als kostenpflichtigen Monatsdienst nutzen (Leitstelle, App-Anbindung, Fahrerverwaltung).
+      </p>
+      <p>
+        <strong>Fahrgäste</strong> nutzen die Bestell-App in der Regel unentgeltlich; ein laufender Abo-Vertrag mit uns besteht dafür nicht.
+        Einzelne Fahrten kündigen Sie beim ausführenden Taxi-Betrieb bzw. durch Stornierung vor Abholung.
+      </p>
+
+      <h2>2. Ordentliche Kündigung (Monatsabo)</h2>
+      <p>
+        Monatliche Tarife sind, sofern im Angebot nicht anders beschrieben, <strong>monatlich kündbar</strong>.
+        Die Kündigung wird zum Ende des laufenden Abrechnungsmonats wirksam, sofern sie uns spätestens
+        <strong>7 Tage vor Monatsende</strong> zugeht (sofern im individuellen Vertrag keine andere Frist vereinbart wurde).
+      </p>
+
+      <h2>3. So kündigen Sie</h2>
+      <p>Die Kündigung muss in Textform erfolgen, z. B. per E-Mail an:</p>
+      <p>
+        <span data-legal-company>TaxiApp Leitstelle</span><br>
+        <span id="legal-owner" class="legal-hint">Inhaber — in Einstellungen eintragen</span><br>
+        <span id="legal-street" class="legal-hint">Straße — in Einstellungen eintragen</span><br>
+        <span id="legal-city" class="legal-hint">PLZ Ort — in Einstellungen eintragen</span><br>
+        E-Mail: <a id="legal-email" href="mailto:partner@taxiapp.de">partner@taxiapp.de</a>
+      </p>
+      <p>Bitte angeben:</p>
+      <ul>
+        <li>Firmenname und Anschrift</li>
+        <li>Genutzter Tarif (z. B. Starter / Pro)</li>
+        <li>Gewünschtes Kündigungsdatum</li>
+        <li>Ansprechpartner und Rückrufnummer</li>
+      </ul>
+
+      <h2>4. Muster-Kündigung (freiwillig)</h2>
+      <p style="font-size:0.9rem;background:#f3f4f6;padding:1rem;border-radius:8px">
+        An <span data-legal-company>TaxiApp Leitstelle</span><br><br>
+        Hiermit kündige ich meinen Vertrag über die Nutzung der TaxiApp-Plattform zum nächstmöglichen Zeitpunkt / zum ________.<br><br>
+        Firma: ___________<br>
+        Kunde-Nr. / Leitstelle: ___________<br>
+        Datum, Unterschrift: ___________
+      </p>
+
+      <h2>5. Außerordentliche Kündigung</h2>
+      <p>
+        Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt (z. B. bei schwerwiegenden Vertragsverletzungen).
+      </p>
+
+      <h2>6. Folgen der Kündigung</h2>
+      <ul>
+        <li>Zugang zur Leitstelle (dispatch.html) und geschützten Einstellungen endet mit Vertragsende.</li>
+        <li>Buchungsdaten werden nach gesetzlichen Aufbewahrungsfristen gelöscht oder anonymisiert, sofern keine gesonderte Vereinbarung besteht.</li>
+        <li>Bereits gezahlte Monatsentgelte werden nicht anteilig erstattet, sofern nicht gesetzlich zwingend anders.</li>
+        <li>Plattformgebühren auf Kartenzahlungen laufen bis Vertragsende nach den vereinbarten Konditionen.</li>
+      </ul>
+
+      <h2>7. Fragen</h2>
+      <p>
+        Tarifwechsel oder Pause statt Kündigung: <a id="legal-email-2" href="mailto:partner@taxiapp.de">partner@taxiapp.de</a><br>
+        Rechtliches: <a href="agb.html">AGB</a> · <a href="widerruf.html">Widerruf</a> · <a href="impressum.html">Impressum</a>
+      </p>
+    </section>
+
+    <p class="legal-back"><a href="index.html">← Zurück zur Startseite</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="agb.html">AGB</a>
+      <a href="widerruf.html">Widerruf</a>
+      <a href="kuendigung.html">Kündigung</a>
+    </nav>
+  </footer>
+
+  <script src="legal-config.js"></script>
+  <script>
+    TaxiAppLegal.loadConfig().then((cfg) => {
+      const email = (cfg.legalEmail || "partner@taxiapp.de").trim();
+      const el = document.getElementById("legal-email-2");
+      if (el) {
+        el.textContent = email;
+        el.href = `mailto:${email}`;
+      }
+    });
+  </script>
+</body>
+</html>

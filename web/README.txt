@@ -3,8 +3,12 @@ TaxiApp — Webseite live stellen
 
 Ordner web/ enthält die öffentliche Kunden-Seite:
   index.html       Startseite (Ablauf, Preise)
-  impressum.html   Impressum (TMG — Firmendaten noch eintragen)
-  datenschutz.html Datenschutzerklärung (vollständiger Text)
+  impressum.html   Impressum (Firmendaten aus settings.html)
+  datenschutz.html Datenschutzerklärung
+  agb.html         Allgemeine Geschäftsbedingungen
+  widerruf.html    Widerrufsbelehrung
+  kuendigung.html  Kündigung (Taxi-Unternehmer-Abo)
+  legal-config.js  Gemeinsame Firmendaten aus /api/config
   styles.css       Design
 
 Lokal ansehen (sofort, ohne Internet)
@@ -39,8 +43,8 @@ Option B — Netlify Drop (ohne Terminal):
 Option C — Mit Backend (Preise aus API):
   Backend deployen → liefert web/ unter / mit
 
-Impressum & Datenschutz
+Impressum & Rechtliches
 -----------------------
-Dateien: web/impressum.html, web/datenschutz.html
-Vor Go-Live: gelb markierte Felder im Impressum mit echten Firmendaten ersetzen
-(Kontakt partner@taxiapp.de ist bereits eingetragen).
+Dateien: impressum.html, datenschutz.html, agb.html, widerruf.html, kuendigung.html
+Firmendaten: settings.html → Impressum (Web) — erscheinen auf allen Rechtseiten
+Vor Go-Live: Mustertexte rechtlich prüfen lassen
