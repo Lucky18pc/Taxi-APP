@@ -55,7 +55,7 @@
     overlay.innerHTML = `
       <div class="leitstelle-login-card">
         <h2>Leitstellen-Zugang</h2>
-        <p>Bitte PIN eingeben (vom Betreiber / Render ADMIN_PIN).</p>
+        <p>Bitte PIN eingeben (ADMIN_PIN — im Render-Dashboard unter Environment).</p>
         <form id="leitstelle-login-form">
           <input type="password" id="leitstelle-pin" inputmode="numeric" autocomplete="current-password" placeholder="PIN" required>
           <button type="submit" class="btn-primary">Anmelden</button>

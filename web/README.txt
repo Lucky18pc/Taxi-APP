@@ -17,7 +17,7 @@ Oder mit Mini-Server:
 
 Live im Internet
 ----------------
-Option A — Mit Backend (empfohlen, bereits aktiv):
+Option A — Render (Go-Live, empfohlen — Backend + Web zusammen):
 
   Startseite:    https://taxiapp-api.onrender.com/index.html
   Leitstelle:    https://taxiapp-api.onrender.com/dispatch.html

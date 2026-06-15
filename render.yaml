@@ -1,10 +1,12 @@
-# TaxiApp Backend — Deploy auf Render.com
+# TaxiApp Backend — Deploy auf Render.com (Go-Live-Plattform)
+# Firebase: nicht verwendet — CollectionShop läuft separat auf Firebase.
 # https://render.com/docs/blueprint-spec
 #
-# 1. Repo auf GitHub pushen
-# 2. render.com → New → Blueprint → dieses Repo wählen
-# 3. STRIPE_SECRET_KEY im Dashboard setzen (Environment)
-# 4. Nach Deploy: HTTPS-URL in TaxiConfig.swift → cloudBackendURL
+# 1. Repo auf GitHub pushen → Render deployt automatisch
+# 2. Dashboard → taxiapp-api → Environment:
+#    ADMIN_PIN=deine-pin          (Leitstelle schützen)
+#    STRIPE_SECRET_KEY=sk_test_…  (optional, Kartenzahlung später)
+# 3. iOS: TaxiConfig.cloudBackendURL = https://taxiapp-api.onrender.com
 
 services:
   - type: web

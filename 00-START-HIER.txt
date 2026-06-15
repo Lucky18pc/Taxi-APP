@@ -1,6 +1,11 @@
 TaxiApp — eigenständiges iOS-Projekt
 =====================================
 
+Cloud / Go-Live: **Render.com** (nicht Firebase — das ist CollectionShop).
+Live-URL: https://taxiapp-api.onrender.com
+Anleitung: docs/RENDER-GO-LIVE.md
+Prüfen:   scripts/render-go-live.sh
+
 Ausgelagert aus CollectionShop am 28.05.2026.
 
 Auf iPhone 17 installieren (Xcode) — WICHTIG
