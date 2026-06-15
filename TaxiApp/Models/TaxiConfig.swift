@@ -26,26 +26,27 @@ enum TaxiConfig {
     /// Telefonnummer der Taxi-Zentrale („Zentrale Anrufen“).
     static let centralPhoneNumber = "03012345678"
 
-    /// Geografische Mitte Deutschlands — Standard für Abholort-Karte.
+    /// Geografische Mitte Europas — Standard für Abholort-Karte.
     static let defaultMapCenter = CLLocationCoordinate2D(latitude: 51.1657, longitude: 10.4515)
 
     /// Straßen-Zoom beim Abholpunkt setzen.
     static let defaultMapSpanDelta: CLLocationDegrees = 0.012
 
-    /// Europa-Übersicht (Deutschland sichtbar) — Startansicht der Abholort-Karte.
+    /// Europa-Übersicht — Startansicht der Abholort-Karte.
     static var europeOverviewRegion: MKCoordinateRegion {
         MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 51.0, longitude: 10.5),
-            span: MKCoordinateSpan(latitudeDelta: 16, longitudeDelta: 22)
+            center: CLLocationCoordinate2D(latitude: 50.0, longitude: 12.0),
+            span: MKCoordinateSpan(latitudeDelta: 28, longitudeDelta: 38)
         )
     }
 
-    /// Deutschland-Übersicht — Fallback ohne GPS.
+    /// Fallback ohne GPS — zentrale Europa-Ansicht.
+    static var regionOverviewFallback: MKCoordinateRegion {
+        europeOverviewRegion
+    }
+
     static var germanyOverviewRegion: MKCoordinateRegion {
-        MKCoordinateRegion(
-            center: defaultMapCenter,
-            span: MKCoordinateSpan(latitudeDelta: 7.5, longitudeDelta: 9.0)
-        )
+        regionOverviewFallback
     }
 
     /// Straßen-Ansicht um einen Punkt.
@@ -59,16 +60,16 @@ enum TaxiConfig {
         )
     }
 
-    /// Grobe Europa-Bounding-Box — schließt Simulator-Standorte in den USA aus.
-    static func isInEurope(_ coordinate: CLLocationCoordinate2D) -> Bool {
-        coordinate.latitude >= 35 && coordinate.latitude <= 72
-            && coordinate.longitude >= -12 && coordinate.longitude <= 45
-    }
-
-    /// Deutschland — für GPS-Zentrierung und Geocoding.
+    /// Deutschland — Legacy-Hilfsfunktion.
     static func isInGermany(_ coordinate: CLLocationCoordinate2D) -> Bool {
         coordinate.latitude >= 47.2 && coordinate.latitude <= 55.2
             && coordinate.longitude >= 5.7 && coordinate.longitude <= 15.1
+    }
+
+    /// Europa-Bounding-Box — GPS-Zentrierung und Standortprüfung.
+    static func isInEurope(_ coordinate: CLLocationCoordinate2D) -> Bool {
+        coordinate.latitude >= 35 && coordinate.latitude <= 72
+            && coordinate.longitude >= -12 && coordinate.longitude <= 45
     }
 
     /// Formatierte Nummer für tel:-Links (ohne Leerzeichen).

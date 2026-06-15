@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import UIKit
 
 /// Seite 3: Abholort — Karte mit Standort + Adresse manuell eingeben.
 struct TaxiPickupLocationView: View {
@@ -39,21 +40,26 @@ struct TaxiPickupLocationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            VStack(spacing: 2) {
+                Text("Abholort")
+                    .font(BookingScreenStyle.titleFont)
+                    .foregroundStyle(.white)
+                Text("Bitte holen Sie mich hier ab")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 8) {
-                    Text("Bitte holen Sie mich hier ab")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(Brand.primary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 2)
-
                     mapCard
                         .padding(.horizontal, 16)
 
-                    Text("Deutschland · Blauer Punkt = Ihr Standort · Karte wischen für Abholpunkt")
+                    Text("Europa · Blauer Punkt = Ihr Standort · Karte wischen für Abholpunkt")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.75))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 16)
 
@@ -64,17 +70,18 @@ struct TaxiPickupLocationView: View {
                         .padding(.horizontal, 16)
                         .padding(.bottom, 8)
                 }
+                .padding(.top, 8)
             }
             .scrollDismissesKeyboard(.interactively)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Brand.background)
 
             BookingBottomBar(
-                forwardTitle: "Weiter",
+                forwardTitle: "Zur Zahlung",
                 onBack: { dismiss() },
                 onForward: continueToPayment
             )
         }
+        .bookingFlowBackground()
         .navigationBarBackButtonHidden(true)
         .safeAreaPadding(.top, 8)
         .toolbar {
@@ -89,11 +96,11 @@ struct TaxiPickupLocationView: View {
         .onReceive(locationManager.$location) { location in
             guard let location else { return }
             let coordinate = location.coordinate
-            guard TaxiConfig.isInGermany(coordinate) else {
+            guard TaxiConfig.isInEurope(coordinate) else {
                 if !didCenterOnUser {
                     withAnimation(.easeInOut(duration: 0.4)) {
-                        cameraPosition = .region(TaxiConfig.germanyOverviewRegion)
-                        mapRegion = TaxiConfig.germanyOverviewRegion
+                        cameraPosition = .region(TaxiConfig.regionOverviewFallback)
+                        mapRegion = TaxiConfig.regionOverviewFallback
                     }
                     didCenterOnUser = true
                 }
@@ -135,29 +142,45 @@ struct TaxiPickupLocationView: View {
 
             if locationManager.authorizationStatus == .denied
                 || locationManager.authorizationStatus == .restricted {
-                VStack(spacing: 4) {
+                VStack(spacing: 10) {
                     Image(systemName: "location.slash")
-                        .font(.title3)
-                    Text("Standort in Einstellungen erlauben")
-                        .font(.caption2.weight(.semibold))
+                        .font(.title2)
+                    Text("Standort nicht erlaubt")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Pin auf der Karte setzen oder Standort in den iPhone-Einstellungen aktivieren.")
+                        .font(.caption2)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Text("Einstellungen öffnen")
+                            .font(.caption.weight(.bold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Brand.primary)
+                            .foregroundStyle(.white)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .foregroundStyle(.white)
-                .padding(10)
-                .background(Color.black.opacity(0.55))
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .padding(8)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .allowsHitTesting(false)
+                .foregroundStyle(Brand.primary)
+                .padding(16)
+                .frame(maxWidth: .infinity)
+                .background(Color.white.opacity(0.94))
+                .clipShape(RoundedRectangle(cornerRadius: Brand.cornerRadius, style: .continuous))
+                .padding(12)
             }
         }
         .frame(height: 280)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: Brand.cornerRadius, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color(.systemGray4), lineWidth: 1)
+            RoundedRectangle(cornerRadius: Brand.cornerRadius, style: .continuous)
+                .stroke(Color.white.opacity(0.35), lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
-        .lightShimmer(cornerRadius: 16, tone: .onLight, intensity: 0.85)
+        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
+        .lightShimmer(cornerRadius: Brand.cornerRadius, tone: .onLight, intensity: 0.85)
     }
 
     private var abholpunktField: some View {
@@ -227,7 +250,7 @@ struct TaxiPickupLocationView: View {
     private func centerMap(on coordinate: CLLocationCoordinate2D, streetLevel: Bool = true) {
         let region = streetLevel
             ? TaxiConfig.streetLevelRegion(center: coordinate)
-            : TaxiConfig.germanyOverviewRegion
+            : TaxiConfig.regionOverviewFallback
         mapRegion = region
         withAnimation(.easeInOut(duration: 0.45)) {
             cameraPosition = .region(region)

@@ -8,7 +8,7 @@ enum GeocodingService {
         do {
             let places = try await geocoder.reverseGeocodeLocation(
                 location,
-                preferredLocale: Locale(identifier: "de_DE")
+                preferredLocale: Locale.current
             )
             if let place = places.first {
                 let street = [place.thoroughfare, place.subThoroughfare]

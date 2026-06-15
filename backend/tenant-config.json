@@ -3,5 +3,11 @@
   "centralPhone": "+493012345678",
   "centralPhoneDisplay": "030 12345678",
   "dispatchHours": "24/7",
-  "dispatchNote": "Anrufe werden von der Leitstelle angenommen und an Fahrer weitergegeben."
+  "dispatchNote": "Anrufe werden von der Leitstelle angenommen und an Fahrer weitergegeben.",
+  "country": "DE",
+  "timeZone": "Europe/Berlin",
+  "currency": "eur",
+  "nightSurchargeEnabled": false,
+  "nightSurchargeFromHour": 22,
+  "nightSurchargeToHour": 6
 }

@@ -40,6 +40,7 @@
 		A10000000000000000000022 /* CameraImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* CameraImagePicker.swift */; };
 		A10000000000000000000023 /* CentralConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* CentralConfigStore.swift */; };
 		A10000000000000000000024 /* CentralCallButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* CentralCallButton.swift */; };
+		A10000000000000000000025 /* NightSurcharge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* NightSurcharge.swift */; };
 		A1000000000000000000001B /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = B20000000000000000000001 /* StripePaymentSheet */; };
 		A10000000000000000000015 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -79,6 +80,7 @@
 		A20000000000000000000022 /* CameraImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraImagePicker.swift; sourceTree = "<group>"; };
 		A20000000000000000000023 /* CentralConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralConfigStore.swift; sourceTree = "<group>"; };
 		A20000000000000000000024 /* CentralCallButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralCallButton.swift; sourceTree = "<group>"; };
+		A20000000000000000000025 /* NightSurcharge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightSurcharge.swift; sourceTree = "<group>"; };
 		A20000000000000000000015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -153,6 +155,7 @@
 				A20000000000000000000012 /* FareCalculator.swift */,
 				A2000000000000000000001A /* BusinessOffering.swift */,
 				A2000000000000000000001D /* PickupLocation.swift */,
+				A20000000000000000000025 /* NightSurcharge.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -312,6 +315,7 @@
 				A10000000000000000000022 /* CameraImagePicker.swift in Sources */,
 				A10000000000000000000023 /* CentralConfigStore.swift in Sources */,
 				A10000000000000000000024 /* CentralCallButton.swift in Sources */,
+				A10000000000000000000025 /* NightSurcharge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

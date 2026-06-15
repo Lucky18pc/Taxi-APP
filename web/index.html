@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TaxiApp — Taxi buchen. Bezahlen. Fertig.</title>
-  <meta name="description" content="Kostenlose Taxi-App: Abholung wählen, Route planen, mit Karte oder Bar bezahlen. Für Taxi-Unternehmer ab 49 €/Monat, jederzeit kündbar.">
+  <title>TaxiApp — Taxi bestellen. Fahren. Bezahlen.</title>
+  <meta name="description" content="Kostenlose Taxi-App: Abholung wählen, Taxi bestellen, Preis nach Taxameter — bar beim Fahrer. Für Taxi-Unternehmer ab 49 €/Monat, jederzeit kündbar.">
   <meta property="og:title" content="TaxiApp">
-  <meta property="og:description" content="Taxi buchen. Bezahlen. Fertig.">
+  <meta property="og:description" content="Taxi bestellen. Fahren. Bezahlen. Preis nach Taxameter.">
   <meta property="og:type" content="website">
   <!-- App Store Link eintragen, wenn live: href="https://apps.apple.com/..." -->
   <link rel="stylesheet" href="styles.css">
@@ -15,7 +15,7 @@
   <header class="hero">
     <p class="hero-badge">Für Fahrgäste — App kostenlos</p>
     <h1>TaxiApp</h1>
-    <p>Taxi buchen. Bezahlen. Fertig. — Abholzeit wählen, Ziel setzen, sicher bezahlen.</p>
+    <p>Taxi bestellen. Fahren. Bezahlen. — Abholzeit wählen, Ziel setzen, Preis nach Taxameter.</p>
     <div class="hero-ctas">
       <a class="hero-cta" href="#die-app">Die App</a>
       <a class="hero-cta hero-cta-outline" href="#so-funktionierts">So funktioniert's</a>
@@ -53,7 +53,7 @@
           <div class="app-screen-num">1</div>
           <div class="app-screen-body">
             <h4>Abholung <span class="screen-tag">lila Startseite</span></h4>
-            <p>Unten tippen: <span class="btn-label">Weiter</span></p>
+            <p>Unten tippen: <span class="btn-label">Taxi bestellen</span></p>
             <p class="screen-extra">Extra oben rechts: <span class="btn-label btn-label-extra">Für Unternehmen</span> — zeigt Tarife, <em>nicht</em> die Fahrtbuchung.</p>
           </div>
         </article>
@@ -61,36 +61,39 @@
           <div class="app-screen-num">2</div>
           <div class="app-screen-body">
             <h4>Kalender</h4>
-            <p>Abholdatum wählen → <span class="btn-label">Weiter</span></p>
+            <p>Abholdatum wählen → <span class="btn-label">Weiter zum Abholort</span></p>
           </div>
         </article>
         <article class="app-screen">
           <div class="app-screen-num">3</div>
           <div class="app-screen-body">
             <h4>Abholort / Karte</h4>
-            <p>Standort festlegen → <span class="btn-label">Weiter</span></p>
+            <p>Standort festlegen → <span class="btn-label">Zur Zahlung</span></p>
           </div>
         </article>
         <article class="app-screen">
           <div class="app-screen-num">4</div>
           <div class="app-screen-body">
             <h4>Zahlung</h4>
-            <p>Zahlungsart: Gutschein · <span class="btn-label">Karte</span> · Bar</p>
-            <p>Dann: <span class="btn-label">Weiter zum Bezahlen</span></p>
-            <p>Bei Karte: <span class="btn-label">Mit Bankkarte bezahlen (Stripe)</span></p>
+            <p>Fahrtpreis: <strong>nach Taxameter</strong> (0 € bei Buchung)</p>
+            <p>Zahlungsart: Bar · Karte (nach Fahrt, folgt) · optional Trinkgeld-Wunsch</p>
+            <p>Dann: <span class="btn-label">Jetzt buchen</span> → <span class="btn-label">Taxi bestellen</span></p>
           </div>
         </article>
         <article class="app-screen">
           <div class="app-screen-num">5</div>
           <div class="app-screen-body">
-            <h4>BESTÄTIGEN</h4>
-            <p>Zusammenfassung prüfen und Buchung bestätigen.</p>
+            <h4>Bestätigung</h4>
+            <p>Zusammenfassung prüfen und mit <span class="btn-label">Taxi bestellen</span> abschließen.</p>
           </div>
         </article>
       </div>
 
       <p class="note stripe-note">
-        <strong>Kartenzahlung (Stripe):</strong> Backend muss laufen — <code>cd backend && npm start</code>. Keys in <code>TaxiConfig.swift</code> und <code>backend/.env</code>. Siehe <code>00-START-HIER.txt</code>.
+        <strong>Cloud-Leitstelle:</strong>
+        <a href="https://taxiapp-api.onrender.com/dispatch.html">dispatch.html</a> ·
+        <a href="https://taxiapp-api.onrender.com/settings.html">settings.html</a>.
+        Kartenzahlung (Stripe) optional später — Bar funktioniert ohne Stripe.
       </p>
     </section>
 
@@ -111,12 +114,12 @@
         <article class="step">
           <div class="step-num">3</div>
           <h3>Bezahlen</h3>
-          <p>Bankkarte (Stripe), Bar oder Gutschein — Trinkgeld optional.</p>
+          <p>Preis nach Taxameter am Ende der Fahrt — bar beim Fahrer oder später Karte in der App.</p>
         </article>
         <article class="step">
           <div class="step-num">4</div>
           <h3>Bestätigen</h3>
-          <p>Buchung prüfen und Fahrt verbindlich bestätigen.</p>
+          <p>Mit <strong>Taxi bestellen</strong> abschließen — die Leitstelle sieht die Fahrt sofort.</p>
         </article>
       </div>
     </section>
@@ -124,11 +127,13 @@
     <section id="customers">
       <h2>Für Fahrgäste</h2>
       <p class="price-tag">0 € — App kostenlos</p>
+      <p class="note">Kein Festpreis in der App — der Fahrtbetrag steht nach der Fahrt auf dem Taxameter.</p>
       <ul class="checklist">
-        <li>Taxi in wenigen Schritten buchen</li>
-        <li>Abholzeit wählen oder sofort fahren</li>
-        <li>Bezahlen per Bankkarte (Stripe), Bar oder Gutschein</li>
-        <li>Trinkgeld frei wählbar</li>
+        <li>Taxi in wenigen Schritten bestellen</li>
+        <li>Abholzeit und Abholort festlegen</li>
+        <li>Fahrtpreis nach Taxameter — bar beim Fahrer</li>
+        <li>Kartenzahlung in der App nach der Fahrt (folgt)</li>
+        <li>Trinkgeld optional als Wunsch mitteilen</li>
         <li>Keine Reservierungsgebühr in der App</li>
       </ul>
       <p class="note" style="margin-top:1rem">Die App wird derzeit für iPhone bereitgestellt (TestFlight / App Store folgen).</p>

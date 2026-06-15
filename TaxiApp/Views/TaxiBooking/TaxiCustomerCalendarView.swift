@@ -24,7 +24,7 @@ struct TaxiCustomerCalendarView: View {
         .navigationBarBackButtonHidden(true)
         .safeAreaPadding(.top, 8)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            BookingBottomBar(forwardTitle: "Weiter", onBack: { dismiss() }, onForward: { showNextScreen = true })
+            BookingBottomBar(forwardTitle: "Weiter zum Abholort", onBack: { dismiss() }, onForward: { showNextScreen = true })
         }
         .navigationDestination(isPresented: $showNextScreen) {
             TaxiPickupLocationView(pickupDate: pickupDate)
@@ -35,7 +35,7 @@ struct TaxiCustomerCalendarView: View {
 
     private var titleBlock: some View {
         VStack(spacing: 2) {
-            Text("Kunde Kalender")
+            Text("Kundenkalender")
                 .font(BookingScreenStyle.titleFont)
                 .foregroundStyle(.white)
 

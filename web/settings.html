@@ -33,6 +33,55 @@
     }
     .field textarea { min-height: 72px; resize: vertical; }
     .field-hint { font-size: 0.78rem; color: #6b7280; margin-top: 0.25rem; }
+    .toggle-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #f9fafb;
+    }
+    .toggle-row strong { display: block; margin-bottom: 0.25rem; }
+    .toggle-switch {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #d1d5db;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--accent, #7c3aed);
+    }
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(22px);
+    }
     .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
     .btn-primary {
       background: var(--primary);
@@ -137,6 +186,100 @@
           <label for="dispatchNote">Hinweis für Disponenten</label>
           <textarea id="dispatchNote" name="dispatchNote" placeholder="Interner Hinweis…"></textarea>
         </div>
+        <div class="field">
+          <label for="country">Land</label>
+          <select id="country" name="country">
+            <option value="DE">Deutschland</option>
+            <option value="AT">Österreich</option>
+            <option value="CH">Schweiz</option>
+            <option value="FR">Frankreich</option>
+            <option value="IT">Italien</option>
+            <option value="ES">Spanien</option>
+            <option value="PT">Portugal</option>
+            <option value="NL">Niederlande</option>
+            <option value="BE">Belgien</option>
+            <option value="LU">Luxemburg</option>
+            <option value="PL">Polen</option>
+            <option value="CZ">Tschechien</option>
+            <option value="SK">Slowakei</option>
+            <option value="HU">Ungarn</option>
+            <option value="RO">Rumänien</option>
+            <option value="BG">Bulgarien</option>
+            <option value="HR">Kroatien</option>
+            <option value="SI">Slowenien</option>
+            <option value="GR">Griechenland</option>
+            <option value="SE">Schweden</option>
+            <option value="NO">Norwegen</option>
+            <option value="DK">Dänemark</option>
+            <option value="FI">Finnland</option>
+            <option value="IE">Irland</option>
+            <option value="GB">Vereinigtes Königreich</option>
+            <option value="EE">Estland</option>
+            <option value="LV">Lettland</option>
+            <option value="LT">Litauen</option>
+            <option value="MT">Malta</option>
+            <option value="CY">Zypern</option>
+          </select>
+          <p class="field-hint">Für App, Zahlungen und Telefon-Ländervorwahl.</p>
+        </div>
+        <div class="field">
+          <label for="timeZone">Zeitzone</label>
+          <select id="timeZone" name="timeZone">
+            <option value="Europe/Berlin">Mitteleuropa (Berlin, Rom, Paris, Madrid)</option>
+            <option value="Europe/Vienna">Österreich (Wien)</option>
+            <option value="Europe/Zurich">Schweiz (Zürich)</option>
+            <option value="Europe/London">Vereinigtes Königreich (London)</option>
+            <option value="Europe/Dublin">Irland (Dublin)</option>
+            <option value="Europe/Lisbon">Portugal (Lissabon)</option>
+            <option value="Europe/Amsterdam">Niederlande (Amsterdam)</option>
+            <option value="Europe/Brussels">Belgien (Brüssel)</option>
+            <option value="Europe/Warsaw">Polen (Warschau)</option>
+            <option value="Europe/Prague">Tschechien (Prag)</option>
+            <option value="Europe/Budapest">Ungarn (Budapest)</option>
+            <option value="Europe/Bucharest">Rumänien (Bukarest)</option>
+            <option value="Europe/Athens">Griechenland (Athen)</option>
+            <option value="Europe/Stockholm">Schweden (Stockholm)</option>
+            <option value="Europe/Oslo">Norwegen (Oslo)</option>
+            <option value="Europe/Copenhagen">Dänemark (Kopenhagen)</option>
+            <option value="Europe/Helsinki">Finnland (Helsinki)</option>
+            <option value="Europe/Riga">Lettland (Riga)</option>
+            <option value="Europe/Tallinn">Estland (Tallinn)</option>
+          </select>
+          <p class="field-hint">Für Abholzeit und Nachtzuschlag-Fenster (22–6 Uhr in dieser Zeitzone).</p>
+        </div>
+        <div class="field">
+          <label for="currency">Währung</label>
+          <select id="currency" name="currency">
+            <option value="eur">EUR — Euro</option>
+            <option value="gbp">GBP — Britisches Pfund</option>
+            <option value="chf">CHF — Schweizer Franken</option>
+            <option value="pln">PLN — Polnischer Złoty</option>
+            <option value="czk">CZK — Tschechische Krone</option>
+            <option value="sek">SEK — Schwedische Krone</option>
+            <option value="nok">NOK — Norwegische Krone</option>
+            <option value="dkk">DKK — Dänische Krone</option>
+            <option value="huf">HUF — Ungarischer Forint</option>
+            <option value="ron">RON — Rumänischer Leu</option>
+            <option value="bgn">BGN — Bulgarischer Lew</option>
+            <option value="hrk">HRK — Kroatische Kuna</option>
+          </select>
+          <p class="field-hint">Für spätere Kartenzahlung (Stripe) — Buchung selbst bleibt ohne Festpreis.</p>
+        </div>
+        <div class="field">
+          <div class="toggle-row">
+            <div>
+              <strong>Nachtzuschlag (22:00 – 06:00 Uhr)</strong>
+              <p class="field-hint" style="margin:0">
+                Ein: Taxameter kann Nachttarif in diesem Zeitraum — Fahrgäste werden bei passender Abholzeit informiert.
+                Aus: Kein Nachtzuschlag bei Ihrem Betrieb (häufig so eingestellt).
+              </p>
+            </div>
+            <label class="toggle-switch" title="Nachtzuschlag ein/aus">
+              <input type="checkbox" id="nightSurchargeEnabled" name="nightSurchargeEnabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
         <div class="btn-row">
           <button type="submit" class="btn-primary">Speichern</button>
         </div>
@@ -176,15 +319,18 @@
       const res = await fetch("/api/config");
       if (!res.ok) throw new Error("Backend nicht erreichbar");
       const cfg = await res.json();
-      for (const key of ["companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote"]) {
+      for (const key of ["companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote", "country", "timeZone", "currency"]) {
         const el = document.getElementById(key);
-        if (el) el.value = cfg[key] || "";
+        if (el) el.value = cfg[key] || el.value || "";
       }
+      const nightToggle = document.getElementById("nightSurchargeEnabled");
+      if (nightToggle) nightToggle.checked = Boolean(cfg.nightSurchargeEnabled);
     }
 
     document.getElementById("config-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const payload = Object.fromEntries(new FormData(e.target).entries());
+      payload.nightSurchargeEnabled = document.getElementById("nightSurchargeEnabled").checked;
       try {
         const res = await fetch("/api/config", {
           method: "PATCH",

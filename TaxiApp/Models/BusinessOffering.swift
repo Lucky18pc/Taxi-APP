@@ -3,15 +3,19 @@ import Foundation
 /// Angebot & Preise — synchron halten mit `backend/offering.json`.
 enum BusinessOffering {
     static let productName = "TaxiApp"
-    static let tagline = "Taxi buchen. Bezahlen. Fertig."
+    static let tagline = "Taxi bestellen. Fahren. Bezahlen."
     static let billingNote = "Alle Unternehmer-Tarife monatlich kündbar — keine Mindestlaufzeit."
     static let partnerEmail = "partner@taxiapp.de"
 
+    static let customerPriceNote =
+        "Kein Festpreis in der App — der Fahrtbetrag steht nach der Fahrt auf dem Taxameter."
+
     static let customerHighlights: [String] = [
-        "Taxi in wenigen Schritten buchen",
-        "Abholzeit wählen oder sofort fahren",
-        "Bezahlen per Bankkarte (Stripe), Bar oder Gutschein",
-        "Trinkgeld frei wählbar",
+        "Taxi in wenigen Schritten bestellen",
+        "Abholzeit und Abholort festlegen",
+        "Fahrtpreis nach Taxameter — bar beim Fahrer",
+        "Kartenzahlung in der App nach der Fahrt (folgt)",
+        "Trinkgeld optional als Wunsch mitteilen",
         "Keine Reservierungsgebühr in der App"
     ]
 

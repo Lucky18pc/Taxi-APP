@@ -5,6 +5,9 @@ enum Brand {
     /// Editorial / Premium-Retail: tiefes Navy, kühles Slate — ohne Orange-/Pink-Kindergarten-Akzente.
     static let primary = Color(red: 0.11, green: 0.19, blue: 0.31)
     static let secondary = Color(red: 0.22, green: 0.30, blue: 0.38)
+    /// Web-Marketing-Akzent (styles.css --accent), sparsam in der App.
+    static let accent = Color(red: 0.58, green: 0.38, blue: 0.88)
+    static let accentDark = Color(red: 0.38, green: 0.18, blue: 0.72)
     static let background = Color(red: 0.96, green: 0.96, blue: 0.97)
     static let card = Color.white
     /// Produktkacheln & Warenkorb-Thumbnails (warmes Greige statt „schwarzes Loch“).
@@ -305,7 +308,24 @@ struct BrandButtonStyle: ButtonStyle {
             .padding(.vertical, 8)
             .background(Brand.primary.opacity(configuration.isPressed ? 0.75 : 1.0))
             .foregroundStyle(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .clipShape(RoundedRectangle(cornerRadius: Brand.cornerRadius))
+    }
+}
+
+private struct BrandCardModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(12)
+            .background(Brand.card)
+            .clipShape(RoundedRectangle(cornerRadius: Brand.cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
+    }
+}
+
+extension View {
+    /// Helle Karte mit einheitlichem Radius und Schatten.
+    func brandCard() -> some View {
+        modifier(BrandCardModifier())
     }
 }
 

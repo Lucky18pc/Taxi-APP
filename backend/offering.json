@@ -1,15 +1,17 @@
 {
   "productName": "TaxiApp",
-  "tagline": "Taxi buchen. Bezahlen. Fertig.",
+  "tagline": "Taxi bestellen. Fahren. Bezahlen.",
   "billingNote": "Alle Unternehmer-Tarife monatlich kündbar — keine Mindestlaufzeit.",
   "customers": {
     "title": "Für Fahrgäste",
     "priceLabel": "App kostenlos",
+    "priceNote": "Kein Festpreis in der App — der Fahrtbetrag steht nach der Fahrt auf dem Taxameter.",
     "highlights": [
-      "Taxi in wenigen Schritten buchen",
-      "Abholzeit wählen oder sofort fahren",
-      "Bezahlen per Bankkarte (Stripe), Bar oder Gutschein",
-      "Trinkgeld frei wählbar",
+      "Taxi in wenigen Schritten bestellen",
+      "Abholzeit und Abholort festlegen",
+      "Fahrtpreis nach Taxameter — bar beim Fahrer",
+      "Kartenzahlung in der App nach der Fahrt (folgt)",
+      "Trinkgeld optional als Wunsch mitteilen",
       "Keine Reservierungsgebühr in der App"
     ]
   },

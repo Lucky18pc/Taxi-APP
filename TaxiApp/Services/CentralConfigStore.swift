@@ -6,6 +6,12 @@ struct TenantConfigResponse: Decodable {
     let centralPhoneDisplay: String?
     let dispatchHours: String?
     let dispatchNote: String?
+    let country: String?
+    let timeZone: String?
+    let currency: String?
+    let nightSurchargeEnabled: Bool?
+    let nightSurchargeFromHour: Int?
+    let nightSurchargeToHour: Int?
 }
 
 @MainActor
@@ -41,6 +47,52 @@ final class CentralConfigStore: ObservableObject {
 
     var companyName: String {
         remoteConfig?.companyName ?? "TaxiApp"
+    }
+
+    var regionCountryCode: String {
+        let code = remoteConfig?.country?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() ?? ""
+        return code.count == 2 ? code : "DE"
+    }
+
+    var regionTimeZone: TimeZone {
+        if let id = remoteConfig?.timeZone?.trimmingCharacters(in: .whitespacesAndNewlines),
+           let timeZone = TimeZone(identifier: id) {
+            return timeZone
+        }
+        return TimeZone(identifier: "Europe/Berlin") ?? .current
+    }
+
+    /// ISO-4217 für Apple Pay (z. B. EUR).
+    var paymentCurrencyCode: String {
+        let code = (remoteConfig?.currency ?? "eur").uppercased()
+        return code.count == 3 ? code : "EUR"
+    }
+
+    /// Kleinbuchstaben für Stripe (z. B. eur).
+    var stripeCurrencyCode: String {
+        (remoteConfig?.currency ?? "eur").lowercased()
+    }
+
+    var nightSurchargeEnabled: Bool {
+        remoteConfig?.nightSurchargeEnabled ?? false
+    }
+
+    var nightSurchargeFromHour: Int {
+        remoteConfig?.nightSurchargeFromHour ?? NightSurcharge.defaultFromHour
+    }
+
+    var nightSurchargeToHour: Int {
+        remoteConfig?.nightSurchargeToHour ?? NightSurcharge.defaultToHour
+    }
+
+    func nightSurchargeApplies(for pickupDate: Date) -> Bool {
+        NightSurcharge.applies(
+            pickupDate: pickupDate,
+            enabled: nightSurchargeEnabled,
+            fromHour: nightSurchargeFromHour,
+            toHour: nightSurchargeToHour,
+            timeZone: regionTimeZone
+        )
     }
 
     var telURLString: String {
@@ -80,11 +132,9 @@ final class CentralConfigStore: ObservableObject {
 
     private static func formatForDisplay(_ raw: String) -> String {
         let normalized = normalizePhone(raw)
-        guard normalized.hasPrefix("+49"), normalized.count >= 12 else { return raw }
-        let rest = String(normalized.dropFirst(3))
-        if rest.hasPrefix("30"), rest.count >= 10 {
-            return "030 \(rest.dropFirst(2))"
+        if normalized.hasPrefix("+") {
+            return normalized
         }
-        return "+\(rest)"
+        return raw
     }
 }

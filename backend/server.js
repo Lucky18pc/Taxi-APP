@@ -56,6 +56,44 @@ const callsFilePath = path.join(dataDir, "calls.json");
 const tenantConfig = JSON.parse(fs.readFileSync(tenantConfigPath, "utf8"));
 const driversSeed = JSON.parse(fs.readFileSync(driversConfigPath, "utf8"));
 
+function isValidTimeZone(timeZone) {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function ensureTenantDefaults() {
+  let changed = false;
+  if (!tenantConfig.country) {
+    tenantConfig.country = "DE";
+    changed = true;
+  }
+  if (!tenantConfig.timeZone || !isValidTimeZone(tenantConfig.timeZone)) {
+    tenantConfig.timeZone = "Europe/Berlin";
+    changed = true;
+  }
+  if (!tenantConfig.currency) {
+    tenantConfig.currency = "eur";
+    changed = true;
+  }
+  if (tenantConfig.nightSurchargeFromHour === undefined) {
+    tenantConfig.nightSurchargeFromHour = 22;
+    changed = true;
+  }
+  if (tenantConfig.nightSurchargeToHour === undefined) {
+    tenantConfig.nightSurchargeToHour = 6;
+    changed = true;
+  }
+  if (tenantConfig.nightSurchargeEnabled === undefined) {
+    tenantConfig.nightSurchargeEnabled = false;
+    changed = true;
+  }
+  if (changed) saveTenantConfig();
+}
+
 /** @type {Array<{driverId:string,name:string,phone:string,vehicle:string,status:string}>} */
 const drivers = driversSeed.drivers.map((d) => ({ ...d }));
 
@@ -123,6 +161,8 @@ function saveTenantConfig() {
   fs.writeFileSync(tenantConfigPath, `${JSON.stringify(tenantConfig, null, 2)}\n`, "utf8");
 }
 
+ensureTenantDefaults();
+
 function saveDriversConfig() {
   const payload = {
     drivers: drivers.map(({ driverId, name, phone, vehicle, status }) => ({
@@ -169,6 +209,46 @@ app.patch("/api/config", (req, res) => {
   for (const key of allowed) {
     if (req.body[key] !== undefined) {
       tenantConfig[key] = String(req.body[key]).trim();
+    }
+  }
+
+  if (req.body.nightSurchargeEnabled !== undefined) {
+    tenantConfig.nightSurchargeEnabled = Boolean(
+      req.body.nightSurchargeEnabled === true ||
+        req.body.nightSurchargeEnabled === "true" ||
+        req.body.nightSurchargeEnabled === "on"
+    );
+  }
+  if (req.body.nightSurchargeFromHour !== undefined) {
+    const h = Number(req.body.nightSurchargeFromHour);
+    if (Number.isInteger(h) && h >= 0 && h <= 23) {
+      tenantConfig.nightSurchargeFromHour = h;
+    }
+  }
+  if (req.body.nightSurchargeToHour !== undefined) {
+    const h = Number(req.body.nightSurchargeToHour);
+    if (Number.isInteger(h) && h >= 0 && h <= 23) {
+      tenantConfig.nightSurchargeToHour = h;
+    }
+  }
+
+  if (req.body.country !== undefined) {
+    const country = String(req.body.country).trim().toUpperCase();
+    if (/^[A-Z]{2}$/.test(country)) {
+      tenantConfig.country = country;
+    }
+  }
+  if (req.body.timeZone !== undefined) {
+    const timeZone = String(req.body.timeZone).trim();
+    if (!isValidTimeZone(timeZone)) {
+      return res.status(400).json({ error: "Invalid timeZone" });
+    }
+    tenantConfig.timeZone = timeZone;
+  }
+  if (req.body.currency !== undefined) {
+    const currency = String(req.body.currency).trim().toLowerCase();
+    if (/^[a-z]{3}$/.test(currency)) {
+      tenantConfig.currency = currency;
     }
   }
 
@@ -275,6 +355,24 @@ app.post("/api/bookings", (req, res) => {
 
   const destinationAddressLine = String(req.body.destinationAddressLine || "").trim();
 
+  const nightEnabled = Boolean(tenantConfig.nightSurchargeEnabled);
+  const fromHour = Number(tenantConfig.nightSurchargeFromHour ?? 22);
+  const toHour = Number(tenantConfig.nightSurchargeToHour ?? 6);
+  const timeZone = tenantConfig.timeZone || "Europe/Berlin";
+  const pickup = new Date(req.body.pickupDate || Date.now());
+  const pickupHour = Number(
+    new Intl.DateTimeFormat("en-GB", {
+      hour: "numeric",
+      hour12: false,
+      timeZone,
+    }).format(pickup)
+  );
+  const nightSurchargeApplies =
+    nightEnabled &&
+    (fromHour > toHour
+      ? pickupHour >= fromHour || pickupHour < toHour
+      : pickupHour >= fromHour && pickupHour < toHour);
+
   const booking = {
     bookingId: crypto.randomUUID(),
     pickupDate: req.body.pickupDate || new Date().toISOString(),
@@ -286,6 +384,7 @@ app.post("/api/bookings", (req, res) => {
     totalAmount: Number(req.body.totalAmount) || 0,
     tariffAmount: Number(req.body.tariffAmount) || 0,
     tipAmount: Number(req.body.tipAmount) || 0,
+    nightSurchargeApplies,
     status: "confirmed",
     assignedDriverId: null,
     createdAt: new Date().toISOString(),

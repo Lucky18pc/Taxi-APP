@@ -32,14 +32,19 @@ struct DriverProfileView: View {
                 )
                 .padding(.top, 8)
 
+                if store.resolvedDisplayName.isEmpty {
+                    Text("Name und Foto für die Startseite")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Fahrername")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Brand.secondary)
 
                     HStack(spacing: 8) {
                         TextField("Name eingeben", text: $nameDraft)
-                            .textFieldStyle(.roundedBorder)
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
                             .focused($focusedField, equals: .name)
@@ -59,17 +64,18 @@ struct DriverProfileView: View {
                             .accessibilityLabel("Name löschen")
                         }
                     }
+                    .brandTextField()
                 }
-                .padding(.horizontal, 24)
+                .brandCard()
+                .padding(.horizontal, 20)
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Leitstellen-Nummer")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Brand.secondary)
 
                     HStack(spacing: 8) {
                         TextField("z. B. 030 12345678", text: $centralPhoneDraft)
-                            .textFieldStyle(.roundedBorder)
                             .keyboardType(.phonePad)
                             .textContentType(.telephoneNumber)
                             .focused($focusedField, equals: .centralPhone)
@@ -89,12 +95,14 @@ struct DriverProfileView: View {
                             .accessibilityLabel("Nummer löschen")
                         }
                     }
+                    .brandTextField()
 
-                    Text("Leer = Nummer aus Einstellungen (Browser → settings.html)")
+                    Text("Leer = Nummer aus der Cloud-Leitstelle (settings.html)")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
-                .padding(.horizontal, 24)
+                .brandCard()
+                .padding(.horizontal, 20)
 
                 VStack(spacing: 12) {
                     PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
@@ -133,10 +141,11 @@ struct DriverProfileView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 20)
 
                 Spacer()
             }
+            .background(Brand.background)
             .navigationTitle("Fahrer-Profil")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -174,6 +183,27 @@ struct DriverProfileView: View {
                 .ignoresSafeArea()
             }
         }
+    }
+}
+
+private struct BrandTextFieldModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.body)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Brand.background)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Brand.primary.opacity(0.15), lineWidth: 1)
+            }
+    }
+}
+
+private extension View {
+    func brandTextField() -> some View {
+        modifier(BrandTextFieldModifier())
     }
 }
 

@@ -112,31 +112,39 @@ private enum CheckoutPaymentMethod: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Farbakzent pro Zahlungsart — dezent, erkennbar.
+    /// Marken-Akzent pro Zahlungsart.
     var accentColor: Color {
         switch self {
-        case .card:
-            return Color(red: 0.87, green: 0.11, blue: 0.18)
-        case .cash:
-            return Color(red: 0.76, green: 0.58, blue: 0.22)
+        case .card: return Brand.accent
+        case .cash: return Brand.primary
         }
     }
 }
 
-private let voucherToggleGreen = Color(red: 0.22, green: 0.72, blue: 0.45)
+private let voucherToggleGreen = Brand.accent
 
 struct TaxiBookingSummary: Hashable {
     var pickupDate: Date
     var pickupLocation: PickupLocation
+    /// Fahrtpreis bei Buchung immer 0 — Endbetrag kommt vom Taxameter (Fahrer).
     var tariffAmount: Double
+    /// Optionaler Trinkgeld-Wunsch (wird an Leitstelle übermittelt, nicht in App berechnet).
     var tipAmount: Double
     var voucherAmount: Double
     var useVoucher: Bool
     var paymentMethodLabel: String
+    var nightSurchargeApplies: Bool
 
-    var totalAmount: Double {
-        max(0, tariffAmount + tipAmount - (useVoucher ? voucherAmount : 0))
+    /// Bei Buchung kein fester Gesamtpreis — Zahlung nach Fahrt (Taxameter / Fahrer).
+    var totalAmount: Double { 0 }
+
+    static let taximeterFareLabel = "Nach Taxameter"
+
+    var fareDisplayText: String {
+        tariffAmount > 0 ? String(format: "%.2f €", tariffAmount) : Self.taximeterFareLabel
     }
+
+    var totalDisplayText: String { "0,00 €" }
 }
 
 // MARK: - Payment View
@@ -144,19 +152,20 @@ struct TaxiBookingSummary: Hashable {
 /// Seite 4: Zahlung — Tarif, Trinkgeld, Gutschein, ZahlungsArt.
 struct PaymentView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var centralStore: CentralConfigStore
     @State private var showConfirmation = false
     @State private var showCardPayment = false
 
     let pickupDate: Date
     let pickupLocation: PickupLocation
-    let tariffAmount: Double = 18.00
-    @State private var selectedTip: TipSelection = .fixed(1.50)
-    @State private var useVoucher = true
-    @State private var voucherText = "5,00"
+    /// Kein Demo-Festpreis — Betrag kommt vom Taxameter am Ende der Fahrt.
+    private let tariffAmount: Double = 0
+    @State private var selectedTip: TipSelection = .fixed(0)
+    @State private var useVoucher = false
+    @State private var voucherText = ""
     @State private var selectedMethod: CheckoutPaymentMethod = .cash
 
-    private let percentTips: [TipSelection] = [.percent(5), .percent(10), .percent(15)]
-    private let fixedTips: [TipSelection] = [.fixed(1.50), .fixed(2.00), .fixed(3.00)]
+    private let fixedTips: [TipSelection] = [.fixed(0), .fixed(1.50), .fixed(2.00), .fixed(3.00), .fixed(5.00)]
 
     init(pickupDate: Date = Date(), pickupLocation: PickupLocation = .defaultPlaceholder) {
         self.pickupDate = pickupDate
@@ -165,29 +174,24 @@ struct PaymentView: View {
 
     private var tipAmount: Double {
         switch selectedTip {
-        case .percent(let pct):
-            return (tariffAmount * Double(pct)) / 100
+        case .percent:
+            return 0
         case .fixed(let amount):
             return amount
         }
     }
 
     private var voucherAmount: Double {
+        guard useVoucher else { return 0 }
         let normalized = voucherText.replacingOccurrences(of: ",", with: ".")
         return Double(normalized) ?? 0
     }
 
-    private var totalAmount: Double {
-        max(0, tariffAmount + tipAmount - (useVoucher ? voucherAmount : 0))
-    }
-
     private var tipSummaryText: String {
-        switch selectedTip {
-        case .percent:
-            return String(format: "mit %.2f € Trinkgeld", tipAmount)
-        case .fixed(let amount):
-            return String(format: "mit %.2f € Trinkgeld", amount)
+        if tipAmount <= 0 {
+            return "Kein Trinkgeld-Wunsch — optional beim Fahrer"
         }
+        return String(format: "Trinkgeld-Wunsch: %.2f € (beim Fahrer)", tipAmount)
     }
 
     var body: some View {
@@ -200,6 +204,7 @@ struct PaymentView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 8) {
                     tariffCard
+                    nightSurchargeSection
                     tipCard
                     voucherCard
                     totalBar
@@ -214,7 +219,7 @@ struct PaymentView: View {
         .navigationBarBackButtonHidden(true)
         .safeAreaPadding(.top, 8)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            BookingBottomBar(forwardTitle: "Weiter zum Bezahlen", onBack: { dismiss() }, onForward: payTapped)
+            BookingBottomBar(forwardTitle: "Jetzt buchen", onBack: { dismiss() }, onForward: payTapped)
         }
         .navigationDestination(isPresented: $showConfirmation) {
             TaxiConfirmationView(summary: buildSummary())
@@ -232,17 +237,21 @@ struct PaymentView: View {
     private var tariffCard: some View {
         VStack(spacing: 6) {
             HStack {
-                Text("Tarif")
+                Text("Fahrtpreis")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
                 Spacer()
-                Text(String(format: "%.2f €", tariffAmount))
+                Text("0,00 €")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.white)
             }
-            Text("Taxi betrieb")
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.85))
+            Text(TaxiBookingSummary.taximeterFareLabel)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.9))
+            Text("Der Betrag steht erst am Ende der Fahrt auf dem Taxameter — der Fahrer kassiert.")
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.8))
+                .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -253,14 +262,38 @@ struct PaymentView: View {
         .lightShimmer(cornerRadius: 18, tone: .onDark, intensity: 1.1)
     }
 
+    @ViewBuilder
+    private var nightSurchargeSection: some View {
+        if centralStore.nightSurchargeApplies(for: pickupDate) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Image(systemName: "moon.stars.fill")
+                    Text("Nachtzuschlag-Zeitraum")
+                        .font(.subheadline.weight(.semibold))
+                }
+                .foregroundStyle(.white)
+                Text("Abholung zwischen \(NightSurcharge.windowLabel). Ihr Taxi-Betrieb kann am Taxameter einen Nachttarif berechnen.")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.88))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Brand.accentDark.opacity(0.92))
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+            .lightShimmer(cornerRadius: 18, tone: .onDark, intensity: 1.0)
+        }
+    }
+
     private var tipCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Trinkgeld:")
+            Text("Trinkgeld (optional)")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.white)
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                ForEach(percentTips + fixedTips, id: \.self) { tip in
+                ForEach(fixedTips, id: \.self) { tip in
                     tipButton(tip)
                 }
             }
@@ -287,8 +320,9 @@ struct PaymentView: View {
         let selected = selectedTip == tip
         let title: String = {
             switch tip {
-            case .percent(let pct): return "\(pct)%"
-            case .fixed(let amount): return String(format: "%.2f €", amount)
+            case .percent: return "—"
+            case .fixed(let amount):
+                return amount == 0 ? "Keins" : String(format: "%.2f €", amount)
             }
         }()
 
@@ -344,6 +378,9 @@ struct PaymentView: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white.opacity(0.9))
                 }
+                Text("Hinweis für Fahrer/Leitstelle — kein Abzug bei der Buchung.")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.8))
             }
         }
         .padding(.horizontal, 16)
@@ -356,14 +393,20 @@ struct PaymentView: View {
     }
 
     private var totalBar: some View {
-        HStack {
-            Text("Gesamt")
-                .font(.headline.weight(.bold))
-                .foregroundStyle(.white)
-            Spacer()
-            Text(String(format: "%.2f €", totalAmount))
-                .font(.headline.weight(.bold))
-                .foregroundStyle(.white)
+        VStack(spacing: 4) {
+            HStack {
+                Text("Jetzt in der App")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+                Spacer()
+                Text("0,00 €")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+            }
+            Text("Zahlung nach der Fahrt — Betrag laut Taxameter beim Fahrer")
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.85))
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
@@ -375,7 +418,7 @@ struct PaymentView: View {
 
     private var paymentMethodCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("ZahlungsArt")
+            Text("Zahlungsart")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Brand.primary)
 
@@ -386,7 +429,13 @@ struct PaymentView: View {
             }
 
             if selectedMethod == .cash {
-                Text("Betrag am Ende der Fahrt bar beim Fahrer — jetzt nur Fahrt vormerken, nicht vorab bezahlen.")
+                Text("Bar am Ende der Fahrt beim Fahrer — jetzt nur die Fahrt buchen.")
+                    .font(.caption)
+                    .foregroundStyle(Brand.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+            } else {
+                Text("Kartenzahlung in der App folgt nach der Fahrt (Taxameter-Betrag). Bis dahin bitte Bar wählen.")
                     .font(.caption)
                     .foregroundStyle(Brand.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -439,7 +488,8 @@ struct PaymentView: View {
     private func payTapped() {
         switch selectedMethod {
         case .card:
-            showCardPayment = true
+            // Kein Vorab-Betrag — Kartenzahlung erst nach Taxameter (später).
+            showConfirmation = true
         case .cash:
             showConfirmation = true
         }
@@ -453,7 +503,8 @@ struct PaymentView: View {
             tipAmount: tipAmount,
             voucherAmount: voucherAmount,
             useVoucher: useVoucher,
-            paymentMethodLabel: selectedMethod.rawValue
+            paymentMethodLabel: selectedMethod.rawValue,
+            nightSurchargeApplies: centralStore.nightSurchargeApplies(for: pickupDate)
         )
     }
 }
@@ -470,6 +521,7 @@ private enum BankCardPaymentMode: String, CaseIterable, Identifiable {
 /// Bankkarten-Zahlung — Stripe Payment Sheet oder Kontaktlos.
 struct CardTapPaymentView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var centralStore: CentralConfigStore
     @StateObject private var applePayHandler = ApplePayHandler()
     @State private var paymentMode: BankCardPaymentMode = .cardEntry
     @State private var isProcessing = false
@@ -658,7 +710,10 @@ struct CardTapPaymentView: View {
 
         Task { @MainActor in
             do {
-                let clientSecret = try await stripeService.fetchClientSecret(amountInCents: amountInCents)
+                let clientSecret = try await stripeService.fetchClientSecret(
+                    amountInCents: amountInCents,
+                    currency: centralStore.stripeCurrencyCode
+                )
                 isProcessing = false
                 stripeService.presentPaymentSheet(clientSecret: clientSecret) { success in
                     if success {
@@ -690,7 +745,11 @@ struct CardTapPaymentView: View {
             PKPaymentSummaryItem(label: "TaxiApp", amount: total)
         ]
 
-        applePayHandler.startPayment(summaryItems: items) { success, _ in
+        applePayHandler.startPayment(
+            countryCode: centralStore.regionCountryCode,
+            currencyCode: centralStore.paymentCurrencyCode,
+            summaryItems: items
+        ) { success, _ in
             DispatchQueue.main.async {
                 if success {
                     onSuccess()
@@ -705,6 +764,7 @@ struct CardTapPaymentView: View {
 /// Seite 5: Buchungsbestätigung — Zusammenfassung vor finaler Bestätigung.
 struct TaxiConfirmationView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var centralStore: CentralConfigStore
     @State private var showConfirmedAlert = false
     @State private var isSubmitting = false
     @State private var submitError: String?
@@ -716,7 +776,7 @@ struct TaxiConfirmationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Buchung prüfen")
+            Text("Taxi bestellen")
                 .font(BookingScreenStyle.titleFont)
                 .foregroundStyle(.white)
                 .padding(.top, 10)
@@ -728,7 +788,7 @@ struct TaxiConfirmationView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
                     .padding(.top, 4)
-                Text("Der Betrag wird nach der Fahrt bar bezahlt — unten nur die Buchung bestätigen, kein Zahlvorgang in der App.")
+                Text("Preis nach Taxameter — unten Taxi bestellen, kein Zahlvorgang in der App.")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
@@ -766,7 +826,7 @@ struct TaxiConfirmationView: View {
         .bookingFlowBackground()
         .navigationBarBackButtonHidden(true)
         .safeAreaPadding(.top, 8)
-        .alert("Buchung bestätigt", isPresented: $showConfirmedAlert) {
+        .alert("Taxi bestellt", isPresented: $showConfirmedAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(confirmedMessage)
@@ -783,8 +843,7 @@ struct TaxiConfirmationView: View {
 
     private var confirmButtonTitle: String {
         if isSubmitting { return "Bitte warten…" }
-        if summary.paymentMethodLabel == "Bar" { return "Bar buchen" }
-        return "Bestätigen"
+        return "Taxi bestellen"
     }
 
     private var summaryCard: some View {
@@ -797,13 +856,26 @@ struct TaxiConfirmationView: View {
             }
             summaryRow(label: "Abholzeit", value: pickupTimeText)
             summaryRow(label: "Datum", value: pickupDateText)
-            summaryRow(label: "Tarif", value: String(format: "%.2f €", summary.tariffAmount))
-            summaryRow(label: "Trinkgeld", value: String(format: "%.2f €", summary.tipAmount))
+            summaryRow(label: "Fahrtpreis", value: summary.fareDisplayText)
 
-            if summary.useVoucher {
+            if summary.nightSurchargeApplies {
                 summaryRow(
-                    label: "Gutschein",
-                    value: String(format: "-%.2f €", summary.voucherAmount)
+                    label: "Nachtzuschlag",
+                    value: "Möglich (\(NightSurcharge.windowLabel))"
+                )
+            }
+
+            if summary.tipAmount > 0 {
+                summaryRow(
+                    label: "Trinkgeld-Wunsch",
+                    value: String(format: "%.2f €", summary.tipAmount)
+                )
+            }
+
+            if summary.useVoucher, summary.voucherAmount > 0 {
+                summaryRow(
+                    label: "Gutschein-Hinweis",
+                    value: String(format: "%.2f €", summary.voucherAmount)
                 )
             }
 
@@ -813,14 +885,19 @@ struct TaxiConfirmationView: View {
                 .padding(.vertical, 4)
 
             HStack {
-                Text("Gesamt")
+                Text("Jetzt fällig")
                     .font(.headline.weight(.bold))
                     .foregroundStyle(Brand.primary)
                 Spacer()
-                Text(String(format: "%.2f €", summary.totalAmount))
+                Text(summary.totalDisplayText)
                     .font(.headline.weight(.bold))
                     .foregroundStyle(Brand.primary)
             }
+
+            Text("Endbetrag nach Taxameter — Zahlung beim Fahrer bzw. nach der Fahrt in der App.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
@@ -864,14 +941,16 @@ struct TaxiConfirmationView: View {
 
     private var pickupTimeText: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US")
-        formatter.dateFormat = "h:mm a"
+        formatter.locale = Locale.current
+        formatter.timeZone = centralStore.regionTimeZone
+        formatter.dateFormat = "HH:mm"
         return formatter.string(from: summary.pickupDate)
     }
 
     private var pickupDateText: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "de_DE")
+        formatter.locale = Locale.current
+        formatter.timeZone = centralStore.regionTimeZone
         formatter.dateFormat = "dd.MM.yyyy"
         return formatter.string(from: summary.pickupDate)
     }
@@ -886,13 +965,13 @@ struct TaxiConfirmationView: View {
                 isSubmitting = false
                 if result.savedLocallyOnly {
                     confirmedMessage =
-                        "Ihr Taxi wurde vorgemerkt (lokal gespeichert). Die Zentrale ist gerade offline — starte das Backend auf dem Mac für Live-Buchungen."
+                        "Ihr Taxi wurde lokal gespeichert. Die Zentrale ist gerade offline — bitte später erneut buchen oder Backend prüfen."
                 } else if summary.paymentMethodLabel == "Bar" {
                     confirmedMessage =
-                        "Ihr Taxi wurde erfolgreich vorgemerkt. Der Betrag wird am Ende der Fahrt bar beim Fahrer bezahlt. Der Fahrer sieht den Abholpunkt — auch wenn Ihr Handy später aus ist."
+                        "Ihr Taxi ist bestellt. Der Fahrtpreis steht nach der Fahrt auf dem Taxameter — bar beim Fahrer bezahlen."
                 } else {
                     confirmedMessage =
-                        "Ihr Taxi wurde erfolgreich vorgemerkt. Der Fahrer sieht den Abholpunkt — auch wenn Ihr Handy später aus ist."
+                        "Ihr Taxi ist bestellt. Kartenzahlung in der App folgt nach der Fahrt, sobald der Taxameter-Betrag feststeht."
                 }
                 showConfirmedAlert = true
             }
@@ -903,5 +982,6 @@ struct TaxiConfirmationView: View {
 #Preview {
     NavigationStack {
         PaymentView()
+            .environmentObject(CentralConfigStore())
     }
 }

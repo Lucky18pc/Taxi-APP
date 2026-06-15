@@ -47,6 +47,7 @@
     }
     .booking-card h3, .call-card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
     .booking-meta { font-size: 0.85rem; color: #6b7280; margin: 0.2rem 0; }
+    .night-badge { color: #5b21b6; font-weight: 600; }
     .status-badge {
       display: inline-block;
       font-size: 0.75rem;
@@ -287,6 +288,14 @@
       `;
     }
 
+    function formatBookingAmount(b) {
+      const total = Number(b.totalAmount);
+      if (!total || total <= 0) {
+        return "Taxameter (nach Fahrt)";
+      }
+      return total.toFixed(2) + " €";
+    }
+
     function renderBookings(data) {
       const root = document.getElementById("bookings");
       const list = data.bookings || [];
@@ -300,7 +309,8 @@
           ${statusBadge(b.status || "confirmed")}
           <h3>${escapeHtml(b.addressLine)}</h3>
           ${b.destinationAddressLine ? `<p class="booking-meta"><strong>Ziel:</strong> ${escapeHtml(b.destinationAddressLine)}</p>` : ""}
-          <p class="booking-meta">${new Date(b.pickupDate).toLocaleString("de-DE")} · ${escapeHtml(b.paymentMethod)} · ${Number(b.totalAmount).toFixed(2)} €</p>
+          ${b.nightSurchargeApplies ? `<p class="booking-meta night-badge">🌙 Nachtzuschlag-Zeitraum (22–6 Uhr) — Hinweis für Fahrer</p>` : ""}
+          <p class="booking-meta">${new Date(b.pickupDate).toLocaleString("de-DE")} · ${escapeHtml(b.paymentMethod)} · ${formatBookingAmount(b)}${b.tipAmount > 0 ? ` · Trinkgeld-Wunsch ${Number(b.tipAmount).toFixed(2)} €` : ""}</p>
           <p class="booking-meta">ID: ${b.bookingId.slice(0, 8)}…</p>
           <img class="booking-map" src="${staticMapUrl(b.latitude, b.longitude)}" alt="Karte Abholpunkt" loading="lazy" width="520" height="200">
           ${assignedDriverBlock(b)}

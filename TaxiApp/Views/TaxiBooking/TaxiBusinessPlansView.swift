@@ -46,6 +46,11 @@ struct TaxiBusinessPlansView: View {
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(Brand.primary)
 
+            Text(BusinessOffering.customerPriceNote)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
             ForEach(BusinessOffering.customerHighlights, id: \.self) { item in
                 Label(item, systemImage: "checkmark.circle.fill")
                     .font(.subheadline)

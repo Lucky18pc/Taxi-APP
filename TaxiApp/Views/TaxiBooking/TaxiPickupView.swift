@@ -41,6 +41,14 @@ struct TaxiPickupView: View {
                             Text("Für Unternehmen")
                                 .font(.subheadline.weight(.bold))
                                 .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.white.opacity(0.12))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .stroke(Brand.accent.opacity(0.9), lineWidth: 1.5)
+                                }
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
                         .buttonStyle(.plain)
                     }
@@ -75,7 +83,7 @@ struct TaxiPickupView: View {
                     )
 
                     Button(action: { showNextScreen = true }) {
-                        Text("Weiter")
+                        Text("Taxi bestellen")
                             .font(.headline.weight(.semibold))
                             .foregroundStyle(Brand.primary)
                             .frame(maxWidth: .infinity)
