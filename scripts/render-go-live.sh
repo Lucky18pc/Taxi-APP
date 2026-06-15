@@ -42,7 +42,7 @@ fi
 
 echo ""
 echo "3) Web-Seiten …"
-for path in index.html dispatch.html settings.html impressum.html datenschutz.html agb.html widerruf.html kuendigung.html; do
+for path in index.html book.html dispatch.html settings.html impressum.html datenschutz.html agb.html widerruf.html kuendigung.html; do
   CODE=$(curl -sS -o /dev/null -w "%{http_code}" "$BASE/$path")
   if [[ "$CODE" == "200" ]]; then
     echo "   ✓ $path"

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffcc00">
+  <title>Taxi bestellen — Luckys Taxi App</title>
+  <meta name="description" content="Taxi im Browser bestellen — ohne App-Installation. Barzahlung nach Taxameter.">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .book-wrap { max-width: 520px; margin: 0 auto 3rem; padding: 0 1.25rem; }
+    .book-hero {
+      background: #ffcc00;
+      color: #0c1c34;
+      padding: 1.75rem 1.25rem 2rem;
+      text-align: center;
+    }
+    .book-hero h1 { margin: 0 0 0.35rem; font-size: 1.6rem; }
+    .book-hero p { margin: 0; font-size: 0.95rem; opacity: 0.9; }
+    .book-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.35rem;
+      margin-top: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .book-card h2 { margin: 0 0 1rem; font-size: 1.05rem; }
+    .book-field { margin-bottom: 1rem; }
+    .book-field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--secondary);
+    }
+    .book-field input, .book-field textarea, .book-field select {
+      width: 100%;
+      padding: 0.7rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font: inherit;
+      color: var(--primary);
+    }
+    .book-field textarea { min-height: 4rem; resize: vertical; }
+    .book-hint { font-size: 0.8rem; color: var(--secondary); margin-top: 0.35rem; }
+    .book-actions { display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.5rem; }
+    .btn-book {
+      display: block;
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+    }
+    .btn-book-primary { background: #0c1c34; color: #ffcc00; }
+    .btn-book-secondary { background: #eef2f7; color: var(--primary); }
+    .btn-book:disabled { opacity: 0.55; cursor: not-allowed; }
+    .location-status {
+      font-size: 0.85rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 10px;
+      background: #f0fdf4;
+      color: #166534;
+      margin-bottom: 1rem;
+    }
+    .location-status.error { background: #fef2f2; color: #991b1b; }
+    .location-status.pending { background: #fffbeb; color: #92400e; }
+    .success-box {
+      text-align: center;
+      padding: 1.5rem 0.5rem;
+    }
+    .success-box h2 { color: #166534; }
+    #book-form[hidden], #book-success[hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header class="book-hero">
+    <h1 id="book-title">Luckys Taxi App</h1>
+    <p>Taxi bestellen — im Browser, ohne Installation</p>
+  </header>
+
+  <main class="book-wrap">
+    <div id="book-success" class="book-card success-box" hidden>
+      <h2>Taxi bestellt</h2>
+      <p id="success-message">Die Leitstelle hat Ihre Anfrage erhalten.</p>
+      <div class="book-actions">
+        <a id="call-central" class="btn-book btn-book-primary" href="#">Zentrale anrufen</a>
+        <a class="btn-book btn-book-secondary" href="book.html">Weitere Fahrt</a>
+      </div>
+    </div>
+
+    <form id="book-form" class="book-card">
+      <h2>Abholung</h2>
+      <div id="location-status" class="location-status pending">
+        Tippen Sie auf „Standort nutzen“, wenn Sie keine Adresse haben.
+      </div>
+      <div class="book-actions" style="margin-bottom:1rem">
+        <button type="button" class="btn-book btn-book-secondary" id="btn-gps">Standort nutzen (GPS)</button>
+      </div>
+      <div class="book-field">
+        <label for="addressLine">Abholadresse</label>
+        <textarea id="addressLine" name="addressLine" placeholder="Straße, Hausnummer — oder GPS-Standort" required></textarea>
+      </div>
+      <div class="book-field">
+        <label for="destination">Ziel (optional)</label>
+        <input id="destination" name="destination" placeholder="Wohin soll es gehen?">
+      </div>
+      <div class="book-field">
+        <label for="pickupDate">Abholzeit</label>
+        <input id="pickupDate" name="pickupDate" type="datetime-local" required>
+      </div>
+      <div class="book-field">
+        <label for="paymentMethod">Zahlung</label>
+        <select id="paymentMethod" name="paymentMethod">
+          <option value="Bar" selected>Bar — Preis nach Taxameter beim Fahrer</option>
+        </select>
+        <p class="book-hint">Kein Festpreis in der App. Kartenzahlung folgt später.</p>
+      </div>
+      <div class="book-actions">
+        <button type="submit" class="btn-book btn-book-primary" id="btn-submit">Taxi bestellen</button>
+        <a id="call-fallback" class="btn-book btn-book-secondary" href="#">Lieber anrufen</a>
+      </div>
+      <p class="book-hint" style="margin-top:1rem">
+        Mit „Taxi bestellen“ senden Sie eine Fahrtanfrage an die Leitstelle.
+        <a href="agb.html">AGB</a> · <a href="datenschutz.html">Datenschutz</a>
+      </p>
+    </form>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="book.html">Taxi bestellen</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </nav>
+  </footer>
+
+  <script>
+    const state = { latitude: null, longitude: null, centralPhone: "" };
+
+    function setStatus(text, kind) {
+      const el = document.getElementById("location-status");
+      el.textContent = text;
+      el.className = "location-status" + (kind ? " " + kind : "");
+    }
+
+    function defaultPickupTime() {
+      const input = document.getElementById("pickupDate");
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      input.value = now.toISOString().slice(0, 16);
+    }
+
+    async function reverseGeocode(lat, lon) {
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=de`;
+        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!res.ok) throw new Error("reverse failed");
+        const data = await res.json();
+        return data.display_name || `GPS ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      } catch {
+        return `GPS-Standort (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+      }
+    }
+
+    async function geocodeAddress(query) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!res.ok) throw new Error("Geocoding fehlgeschlagen");
+      const data = await res.json();
+      if (!data.length) throw new Error("Adresse nicht gefunden — bitte genauer eingeben oder GPS nutzen.");
+      return { latitude: Number(data[0].lat), longitude: Number(data[0].lon) };
+    }
+
+    document.getElementById("btn-gps").addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        setStatus("GPS wird von diesem Browser nicht unterstützt.", "error");
+        return;
+      }
+      setStatus("Standort wird ermittelt…", "pending");
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          state.latitude = pos.coords.latitude;
+          state.longitude = pos.coords.longitude;
+          const address = await reverseGeocode(state.latitude, state.longitude);
+          document.getElementById("addressLine").value = address;
+          setStatus("Standort übernommen.", "");
+        },
+        () => setStatus("Standort verweigert — bitte Adresse eintippen.", "error"),
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    });
+
+    function phoneHref(phone) {
+      const digits = String(phone || "").replace(/\s/g, "");
+      return digits ? `tel:${digits}` : "#";
+    }
+
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((cfg) => {
+        if (cfg.companyName) {
+          document.getElementById("book-title").textContent = cfg.companyName;
+          document.title = `Taxi bestellen — ${cfg.companyName}`;
+        }
+        state.centralPhone = cfg.centralPhone || "";
+        const call = phoneHref(state.centralPhone);
+        document.getElementById("call-fallback").href = call;
+        document.getElementById("call-central").href = call;
+      })
+      .catch(() => {});
+
+    document.getElementById("book-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("btn-submit");
+      btn.disabled = true;
+      btn.textContent = "Wird gesendet…";
+
+      try {
+        const addressLine = document.getElementById("addressLine").value.trim();
+        let latitude = state.latitude;
+        let longitude = state.longitude;
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          const geo = await geocodeAddress(addressLine);
+          latitude = geo.latitude;
+          longitude = geo.longitude;
+        }
+
+        const payload = {
+          pickupDate: new Date(document.getElementById("pickupDate").value).toISOString(),
+          latitude,
+          longitude,
+          addressLine,
+          destinationAddressLine: document.getElementById("destination").value.trim() || null,
+          paymentMethod: document.getElementById("paymentMethod").value,
+          totalAmount: 0,
+          tariffAmount: 0,
+          tipAmount: 0,
+        };
+
+        const res = await fetch("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Buchung fehlgeschlagen");
+
+        document.getElementById("book-form").hidden = true;
+        document.getElementById("book-success").hidden = false;
+        document.getElementById("success-message").textContent =
+          `Buchung ${data.bookingId ? "("+ data.bookingId.slice(0, 8) + "…) " : ""}ist bei der Leitstelle.`;
+      } catch (err) {
+        setStatus(err.message || "Fehler beim Senden", "error");
+        btn.disabled = false;
+        btn.textContent = "Taxi bestellen";
+      }
+    });
+
+    defaultPickupTime();
+  </script>
+</body>
+</html>
