@@ -177,6 +177,45 @@ ul.checklist li::before {
   font-weight: 600;
 }
 
+.sales-pitch { margin-top: 2.5rem; }
+.sales-pitch h2 { margin-bottom: 0.5rem; }
+.sales-sub { margin: 1.5rem 0 0.75rem; font-size: 1.05rem; }
+
+.sales-grid {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .sales-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.sales-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  box-shadow: var(--shadow);
+  border-left: 4px solid #ffcc00;
+}
+
+.sales-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.sales-card p { margin: 0; font-size: 0.95rem; color: var(--secondary); }
+
+.sales-quote {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.15rem;
+  background: #fffbeb;
+  border-left: 4px solid #ffcc00;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 1rem;
+  color: var(--primary);
+}
+
 .plans {
   display: grid;
   gap: 1rem;

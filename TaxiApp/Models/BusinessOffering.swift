@@ -2,7 +2,7 @@ import Foundation
 
 /// Angebot & Preise — synchron halten mit `backend/offering.json`.
 enum BusinessOffering {
-    static let productName = "TaxiApp"
+    static let productName = "Luckys Taxi App"
     static let tagline = "Taxi bestellen. Fahren. Bezahlen."
     static let billingNote = "Alle Unternehmer-Tarife monatlich kündbar — keine Mindestlaufzeit."
     static let partnerEmail = "partner@taxiapp.de"
@@ -78,7 +78,7 @@ struct OperatorPlan: Identifiable, Hashable {
     }
 
     var mailtoPartnerURL: URL? {
-        let subject = "TaxiApp \(name) — Anfrage"
+        let subject = "Luckys Taxi App \(name) — Anfrage"
         let body = """
         Hallo TaxiApp-Team,
 
