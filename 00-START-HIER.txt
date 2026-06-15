@@ -83,12 +83,13 @@ Web live: siehe web/README.txt und scripts/deploy-web.sh
 
 Go-Live Checkliste (Schritt für Schritt)
 ----------------------------------------
-[ ] 1. Leitstelle: settings.html — Firmenname + echte Zentrale-Nummer (Cloud: …/settings.html)
+[ ] 1. Leitstelle: settings.html — Firmenname + echte Zentrale-Nummer + Impressum-Felder
+[ ] 1b. Render: ADMIN_PIN setzen (Leitstelle/Einstellungen PIN-Schutz)
 [ ] 2. Mac-IP in TaxiConfig.swift → deviceBackendURL (nur Fallback ohne cloudBackendURL)
 [ ] 3. Stripe: pk_test in TaxiConfig, sk_test auf Render (scripts/setup-stripe-cloud.sh)
 [ ] 4. Buchung testen: Bar + Karte, dispatch.html prüfen (scripts/test-cloud-e2e.sh)
 [ ] 5. Zieladresse auf Seite 3 testen (optional, erscheint in Leitstelle)
-[ ] 6. Impressum + Datenschutz (web/) — Adresse/Inhaber vor Go-Live ergänzen
+[ ] 6. Impressum + Datenschutz — Adresse/Inhaber in settings.html → Impressum (Web)
 [x] 7. Web + Leitstelle live auf Render (index.html, dispatch.html, impressum.html)
 [ ] 8. Optional: eigene Marketing-Domain via scripts/deploy-web.sh (Surge/Netlify)
 [x] 9. cloudBackendURL in TaxiConfig.swift = https://taxiapp-api.onrender.com

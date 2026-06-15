@@ -91,6 +91,21 @@ function ensureTenantDefaults() {
     tenantConfig.nightSurchargeEnabled = false;
     changed = true;
   }
+  if (!tenantConfig.legalStreet) {
+    tenantConfig.legalStreet = "";
+  }
+  if (!tenantConfig.legalCity) {
+    tenantConfig.legalCity = "";
+  }
+  if (!tenantConfig.legalOwner) {
+    tenantConfig.legalOwner = "";
+  }
+  if (!tenantConfig.legalEmail) {
+    tenantConfig.legalEmail = "partner@taxiapp.de";
+  }
+  if (!tenantConfig.vatId) {
+    tenantConfig.vatId = "";
+  }
   if (changed) saveTenantConfig();
 }
 
@@ -126,6 +141,11 @@ function savePhoneCalls() {
 }
 
 console.log(`Datenverzeichnis: ${dataDir} · ${bookings.length} Buchung(en), ${phoneCalls.length} Anruf(e)`);
+if (adminPin) {
+  console.log("Leitstellen-Schutz aktiv (ADMIN_PIN gesetzt).");
+} else {
+  console.warn("Hinweis: ADMIN_PIN fehlt — settings/dispatch ohne PIN erreichbar.");
+}
 
 const BOOKING_STATUSES = new Set([
   "confirmed",
@@ -176,6 +196,17 @@ function saveDriversConfig() {
   fs.writeFileSync(driversConfigPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
+const adminPin = String(process.env.ADMIN_PIN || "").trim();
+
+function requireAdmin(req, res, next) {
+  if (!adminPin) return next();
+  const header = String(req.headers.authorization || "");
+  const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  const pinHeader = String(req.headers["x-admin-pin"] || "").trim();
+  if (bearer === adminPin || pinHeader === adminPin) return next();
+  return res.status(401).json({ error: "Unauthorized — ADMIN_PIN required" });
+}
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "..", "web")));
@@ -186,7 +217,19 @@ app.get("/health", (_req, res) => {
     stripe: Boolean(stripe),
     dataDir,
     bookings: bookings.length,
+    authRequired: Boolean(adminPin),
   });
+});
+
+app.get("/api/auth/required", (_req, res) => {
+  res.json({ required: Boolean(adminPin) });
+});
+
+app.post("/api/auth/verify", (req, res) => {
+  if (!adminPin) return res.json({ ok: true });
+  const pin = String(req.body.pin || "").trim();
+  if (pin === adminPin) return res.json({ ok: true });
+  return res.status(401).json({ error: "PIN ungültig" });
 });
 
 app.get("/api/offering", (_req, res) => {
@@ -197,13 +240,18 @@ app.get("/api/config", (_req, res) => {
   res.json(tenantConfig);
 });
 
-app.patch("/api/config", (req, res) => {
+app.patch("/api/config", requireAdmin, (req, res) => {
   const allowed = [
     "companyName",
     "centralPhone",
     "centralPhoneDisplay",
     "dispatchHours",
     "dispatchNote",
+    "legalStreet",
+    "legalCity",
+    "legalOwner",
+    "legalEmail",
+    "vatId",
   ];
 
   for (const key of allowed) {
@@ -264,11 +312,11 @@ app.patch("/api/config", (req, res) => {
   res.json(tenantConfig);
 });
 
-app.get("/api/drivers", (_req, res) => {
+app.get("/api/drivers", requireAdmin, (_req, res) => {
   res.json({ drivers });
 });
 
-app.post("/api/drivers", (req, res) => {
+app.post("/api/drivers", requireAdmin, (req, res) => {
   const name = String(req.body.name || "").trim();
   const phone = String(req.body.phone || "").trim();
   const vehicle = String(req.body.vehicle || "").trim();
@@ -290,7 +338,7 @@ app.post("/api/drivers", (req, res) => {
   res.status(201).json(driver);
 });
 
-app.put("/api/drivers/:id", (req, res) => {
+app.put("/api/drivers/:id", requireAdmin, (req, res) => {
   const driver = findDriver(req.params.id);
   if (!driver) {
     return res.status(404).json({ error: "Driver not found" });
@@ -314,7 +362,7 @@ app.put("/api/drivers/:id", (req, res) => {
   res.json(driver);
 });
 
-app.delete("/api/drivers/:id", (req, res) => {
+app.delete("/api/drivers/:id", requireAdmin, (req, res) => {
   const index = drivers.findIndex((d) => d.driverId === req.params.id);
   if (index === -1) {
     return res.status(404).json({ error: "Driver not found" });
@@ -325,7 +373,7 @@ app.delete("/api/drivers/:id", (req, res) => {
   res.json(removed);
 });
 
-app.patch("/api/drivers/:id/status", (req, res) => {
+app.patch("/api/drivers/:id/status", requireAdmin, (req, res) => {
   const driver = findDriver(req.params.id);
   if (!driver) {
     return res.status(404).json({ error: "Driver not found" });
@@ -396,11 +444,11 @@ app.post("/api/bookings", (req, res) => {
   res.status(201).json({ bookingId: booking.bookingId });
 });
 
-app.get("/api/bookings", (_req, res) => {
+app.get("/api/bookings", requireAdmin, (_req, res) => {
   res.json({ bookings });
 });
 
-app.get("/api/bookings/:id", (req, res) => {
+app.get("/api/bookings/:id", requireAdmin, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });
@@ -408,7 +456,7 @@ app.get("/api/bookings/:id", (req, res) => {
   res.json(booking);
 });
 
-app.patch("/api/bookings/:id/status", (req, res) => {
+app.patch("/api/bookings/:id/status", requireAdmin, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });
@@ -430,7 +478,7 @@ app.patch("/api/bookings/:id/status", (req, res) => {
   res.json(booking);
 });
 
-app.patch("/api/bookings/:id/assign", (req, res) => {
+app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });
@@ -488,11 +536,11 @@ app.post("/api/calls/incoming", (req, res) => {
   res.status(201).json(call);
 });
 
-app.get("/api/calls", (_req, res) => {
+app.get("/api/calls", requireAdmin, (_req, res) => {
   res.json({ calls: phoneCalls });
 });
 
-app.patch("/api/calls/:id/status", (req, res) => {
+app.patch("/api/calls/:id/status", requireAdmin, (req, res) => {
   const call = phoneCalls.find((item) => item.callId === req.params.id);
   if (!call) {
     return res.status(404).json({ error: "Call not found" });

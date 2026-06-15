@@ -287,6 +287,36 @@
     </section>
 
     <section class="settings-card">
+      <h2>Impressum (Web)</h2>
+      <p class="field-hint" style="margin-top:0">Erscheint auf impressum.html — Adresse und Inhaber für Go-Live ausfüllen.</p>
+      <form id="legal-form">
+        <div class="field">
+          <label for="legalStreet">Straße & Hausnummer</label>
+          <input id="legalStreet" name="legalStreet" placeholder="Musterstraße 1">
+        </div>
+        <div class="field">
+          <label for="legalCity">PLZ & Ort</label>
+          <input id="legalCity" name="legalCity" placeholder="68159 Mannheim">
+        </div>
+        <div class="field">
+          <label for="legalOwner">Inhaber / Geschäftsführung</label>
+          <input id="legalOwner" name="legalOwner" placeholder="Max Mustermann">
+        </div>
+        <div class="field">
+          <label for="legalEmail">E-Mail (Impressum)</label>
+          <input id="legalEmail" name="legalEmail" type="email" placeholder="kontakt@taxi-betrieb.de">
+        </div>
+        <div class="field">
+          <label for="vatId">USt-IdNr. oder Hinweis</label>
+          <input id="vatId" name="vatId" placeholder="DE123456789 oder Kleinunternehmer §19 UStG">
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Impressum speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="settings-card">
       <h2>Fahrer</h2>
       <p class="field-hint" style="margin-top:0">Name, Handy und Kennzeichen — erscheinen in der Leitstelle zum Zuweisen.</p>
       <div id="drivers-list"></div>
@@ -306,6 +336,7 @@
     </nav>
   </footer>
 
+  <script src="leitstelle-auth.js"></script>
   <script>
     const toast = document.getElementById("toast");
 
@@ -319,7 +350,7 @@
       const res = await fetch("/api/config");
       if (!res.ok) throw new Error("Backend nicht erreichbar");
       const cfg = await res.json();
-      for (const key of ["companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote", "country", "timeZone", "currency"]) {
+      for (const key of ["companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote", "country", "timeZone", "currency", "legalStreet", "legalCity", "legalOwner", "legalEmail", "vatId"]) {
         const el = document.getElementById(key);
         if (el) el.value = cfg[key] || el.value || "";
       }
@@ -332,7 +363,7 @@
       const payload = Object.fromEntries(new FormData(e.target).entries());
       payload.nightSurchargeEnabled = document.getElementById("nightSurchargeEnabled").checked;
       try {
-        const res = await fetch("/api/config", {
+        const res = await LeitstelleAuth.apiFetch("/api/config", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -342,6 +373,25 @@
           throw new Error(err.error || "Speichern fehlgeschlagen");
         }
         showToast("Betrieb & Zentrale gespeichert.", false);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    document.getElementById("legal-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        const res = await LeitstelleAuth.apiFetch("/api/config", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Speichern fehlgeschlagen");
+        }
+        showToast("Impressum-Daten gespeichert.", false);
       } catch (err) {
         showToast(err.message, true);
       }
@@ -378,7 +428,7 @@
     }
 
     async function loadDrivers() {
-      const res = await fetch("/api/drivers");
+      const res = await LeitstelleAuth.apiFetch("/api/drivers");
       if (!res.ok) throw new Error("Fahrer konnten nicht geladen werden");
       const data = await res.json();
       document.getElementById("drivers-list").innerHTML =
@@ -410,7 +460,7 @@
       if (e.target.matches("[data-save-driver]")) {
         const driverId = card.getAttribute("data-driver-id");
         try {
-          const res = await fetch(driverId ? `/api/drivers/${driverId}` : "/api/drivers", {
+          const res = await LeitstelleAuth.apiFetch(driverId ? `/api/drivers/${driverId}` : "/api/drivers", {
             method: driverId ? "PUT" : "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -431,7 +481,7 @@
         const driverId = card.getAttribute("data-driver-id");
         if (!driverId || !confirm("Fahrer wirklich löschen?")) return;
         try {
-          const res = await fetch(`/api/drivers/${driverId}`, { method: "DELETE" });
+          const res = await LeitstelleAuth.apiFetch(`/api/drivers/${driverId}`, { method: "DELETE" });
           if (!res.ok) throw new Error("Löschen fehlgeschlagen");
           showToast("Fahrer gelöscht.", false);
           await loadDrivers();
@@ -441,7 +491,9 @@
       }
     });
 
-    Promise.all([loadConfig(), loadDrivers()]).catch(() => {
+    LeitstelleAuth.init().then(() =>
+      Promise.all([loadConfig(), loadDrivers()])
+    ).catch(() => {
       document.getElementById("offline-banner").style.display = "block";
       showToast("Backend nicht erreichbar — siehe Hinweis oben.", true);
     });

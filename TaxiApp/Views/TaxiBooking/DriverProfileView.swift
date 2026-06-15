@@ -146,7 +146,7 @@ struct DriverProfileView: View {
                 Spacer()
             }
             .background(Brand.background)
-            .navigationTitle("Fahrer-Profil")
+            .navigationTitle("Profil & Zentrale")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

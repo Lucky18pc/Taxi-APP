@@ -159,6 +159,7 @@
     </nav>
   </footer>
 
+  <script src="leitstelle-auth.js"></script>
   <script>
     const STATUS_LABELS = {
       confirmed: "Neu — bestätigt",
@@ -333,9 +334,9 @@
     async function refresh() {
       try {
         const [bookingsRes, callsRes, driversRes] = await Promise.all([
-          fetch("/api/bookings"),
-          fetch("/api/calls"),
-          fetch("/api/drivers"),
+          LeitstelleAuth.apiFetch("/api/bookings"),
+          LeitstelleAuth.apiFetch("/api/calls"),
+          LeitstelleAuth.apiFetch("/api/drivers"),
         ]);
         if (!bookingsRes.ok) throw new Error("offline");
         if (driversRes.ok) renderDrivers(await driversRes.json());
@@ -348,7 +349,7 @@
     }
 
     async function assignDriver(bookingId, driverId) {
-      await fetch(`/api/bookings/${bookingId}/assign`, {
+      await LeitstelleAuth.apiFetch(`/api/bookings/${bookingId}/assign`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ driverId: driverId || null }),
@@ -368,7 +369,7 @@
       if (bookingBtn) {
         const id = bookingBtn.getAttribute("data-booking-id");
         const status = bookingBtn.getAttribute("data-status");
-        await fetch(`/api/bookings/${id}/status`, {
+        await LeitstelleAuth.apiFetch(`/api/bookings/${id}/status`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status }),
@@ -380,7 +381,7 @@
       if (callBtn) {
         const id = callBtn.getAttribute("data-call-id");
         const status = callBtn.getAttribute("data-status");
-        await fetch(`/api/calls/${id}/status`, {
+        await LeitstelleAuth.apiFetch(`/api/calls/${id}/status`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status }),
@@ -389,9 +390,11 @@
       }
     });
 
-    loadConfig();
-    refresh();
-    setInterval(refresh, 5000);
+    LeitstelleAuth.init().then(() => {
+      loadConfig();
+      refresh();
+      setInterval(refresh, 5000);
+    });
   </script>
 </body>
 </html>

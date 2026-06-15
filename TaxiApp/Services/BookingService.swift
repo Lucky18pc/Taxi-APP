@@ -17,33 +17,9 @@ enum BookingServiceError: LocalizedError {
     }
 }
 
-struct BookingSubmitResult {
-    let bookingId: String
-    /// true = Zentrale offline, Buchung nur lokal zwischengespeichert.
-    let savedLocallyOnly: Bool
-}
-
-/// Zwischenspeicher, wenn die Zentrale nicht erreichbar ist (z. B. iPhone ohne Mac-Backend).
-enum LocalBookingStore {
-    private static let key = "local_pending_bookings"
-
-    static func save(summary: TaxiBookingSummary, bookingId: String) {
-        var entries = loadRaw()
-        let entry: [String: Any] = [
-            "bookingId": bookingId,
-            "addressLine": summary.pickupLocation.addressLine,
-            "destinationAddressLine": summary.pickupLocation.destinationAddressLine,
-            "paymentMethod": summary.paymentMethodLabel,
-            "totalAmount": summary.totalAmount,
-            "createdAt": ISO8601DateFormatter().string(from: Date())
-        ]
-        entries.insert(entry, at: 0)
-        UserDefaults.standard.set(entries, forKey: key)
-    }
-
-    private static func loadRaw() -> [[String: Any]] {
-        UserDefaults.standard.array(forKey: key) as? [[String: Any]] ?? []
-    }
+enum BookingSubmitResult {
+    case success(bookingId: String)
+    case failure(String)
 }
 
 struct BookingService {
@@ -70,15 +46,17 @@ struct BookingService {
         let bookingId: String
     }
 
-    /// Sendet an die Zentrale; bei Netzwerkfehler speichert lokal (Demo), damit „Bestätigen“ am iPhone funktioniert.
+    /// Sendet an die Zentrale — bei Fehler keine Schein-Bestätigung.
     func submitBooking(summary: TaxiBookingSummary) async -> BookingSubmitResult {
         do {
             let bookingId = try await submitToServer(summary: summary)
-            return BookingSubmitResult(bookingId: bookingId, savedLocallyOnly: false)
+            return .success(bookingId: bookingId)
+        } catch let error as BookingServiceError {
+            return .failure(error.localizedDescription)
         } catch {
-            let bookingId = UUID().uuidString
-            LocalBookingStore.save(summary: summary, bookingId: bookingId)
-            return BookingSubmitResult(bookingId: bookingId, savedLocallyOnly: true)
+            return .failure(
+                "Die Zentrale ist nicht erreichbar. Bitte Internet prüfen oder die Zentrale anrufen."
+            )
         }
     }
 
@@ -120,7 +98,7 @@ struct BookingService {
                 throw BookingServiceError.serverError(message)
             }
             throw BookingServiceError.serverError(
-                "Zentrale nicht erreichbar (Port 4242). Backend starten: cd backend && npm start"
+                "Zentrale nicht erreichbar. Bitte später erneut versuchen oder anrufen."
             )
         }
 

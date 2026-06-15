@@ -334,6 +334,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L44Z8KQDL5;
 				GENERATE_INFOPLIST_FILE = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_KEY_CFBundleDisplayName = "TaxiApp";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Dein Standort wird genutzt, um nahe Taxis anzuzeigen und die Fahrt zu planen.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Für dein Fahrerprofilbild.";
@@ -362,6 +363,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L44Z8KQDL5;
 				GENERATE_INFOPLIST_FILE = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_KEY_CFBundleDisplayName = "TaxiApp";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Dein Standort wird genutzt, um nahe Taxis anzuzeigen und die Fahrt zu planen.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Für dein Fahrerprofilbild.";

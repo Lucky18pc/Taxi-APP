@@ -7,6 +7,11 @@
   "country": "DE",
   "timeZone": "Europe/Berlin",
   "currency": "eur",
+  "legalStreet": "",
+  "legalCity": "",
+  "legalOwner": "",
+  "legalEmail": "partner@taxiapp.de",
+  "vatId": "",
   "nightSurchargeEnabled": false,
   "nightSurchargeFromHour": 22,
   "nightSurchargeToHour": 6

@@ -18,6 +18,8 @@ services:
     envVars:
       - key: STRIPE_SECRET_KEY
         sync: false
+      - key: ADMIN_PIN
+        sync: false
     # Persistent Disk (empfohlen ab Starter-Plan — Buchungen bleiben nach Deploy):
     # disk:
     #   name: taxiapp-data

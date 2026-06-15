@@ -963,17 +963,19 @@ struct TaxiConfirmationView: View {
             let result = await bookingService.submitBooking(summary: summary)
             await MainActor.run {
                 isSubmitting = false
-                if result.savedLocallyOnly {
-                    confirmedMessage =
-                        "Ihr Taxi wurde lokal gespeichert. Die Zentrale ist gerade offline — bitte später erneut buchen oder Backend prüfen."
-                } else if summary.paymentMethodLabel == "Bar" {
-                    confirmedMessage =
-                        "Ihr Taxi ist bestellt. Der Fahrtpreis steht nach der Fahrt auf dem Taxameter — bar beim Fahrer bezahlen."
-                } else {
-                    confirmedMessage =
-                        "Ihr Taxi ist bestellt. Kartenzahlung in der App folgt nach der Fahrt, sobald der Taxameter-Betrag feststeht."
+                switch result {
+                case .failure(let message):
+                    submitError = message
+                case .success:
+                    if summary.paymentMethodLabel == "Bar" {
+                        confirmedMessage =
+                            "Ihr Taxi ist bestellt. Der Fahrtpreis steht nach der Fahrt auf dem Taxameter — bar beim Fahrer bezahlen."
+                    } else {
+                        confirmedMessage =
+                            "Ihr Taxi ist bestellt. Kartenzahlung in der App folgt nach der Fahrt, sobald der Taxameter-Betrag feststeht."
+                    }
+                    showConfirmedAlert = true
                 }
-                showConfirmedAlert = true
             }
         }
     }

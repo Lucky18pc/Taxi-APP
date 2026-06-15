@@ -36,7 +36,7 @@ struct TaxiPickupView: View {
                             }
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Fahrer-Profil")
+                        .accessibilityLabel("Profil und Zentrale-Nummer")
 
                         Button(action: { showBusinessPlans = true }) {
                             Text("Für Unternehmen")
@@ -120,10 +120,12 @@ struct TaxiPickupView: View {
                     .environmentObject(centralStore)
             }
             .alert("Taxi abbestellen?", isPresented: $showCancelAlert) {
-                Button("Ja, abbrechen", role: .destructive) { }
-                Button("Behalten", role: .cancel) { }
+                Button("Zentrale anrufen") {
+                    Task { await centralStore.callCentral() }
+                }
+                Button("Schließen", role: .cancel) { }
             } message: {
-                Text("Möchtest du die Abholung wirklich stornieren?")
+                Text("Es ist noch keine Fahrt aus dieser Sitzung gebucht. Bei einer laufenden Fahrt bitte die Zentrale anrufen.")
             }
             .onAppear {
                 estimatedMinutes = Int.random(in: 5...12)

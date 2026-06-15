@@ -9,34 +9,31 @@
 <body>
   <main class="legal-page">
     <h1>Impressum</h1>
-    <p class="note">Angaben gemäß § 5 TMG. Adresse und Inhaber vor öffentlichem Go-Live durch den Betreiber ergänzen.</p>
+    <p class="note">Angaben gemäß § 5 TMG — Daten aus den Einstellungen (settings.html → Impressum).</p>
 
     <section class="legal-card">
       <h2>Anbieter</h2>
       <p>
-        <strong>TaxiApp Leitstelle</strong> — Plattform für Taxi-Buchung und Leitstelle<br>
-        <em class="legal-hint">Straße und Hausnummer — vor Go-Live eintragen</em><br>
-        <em class="legal-hint">PLZ Ort — vor Go-Live eintragen</em><br>
+        <strong id="legal-company">TaxiApp Leitstelle</strong><br>
+        <span id="legal-street" class="legal-hint">Straße — in Einstellungen eintragen</span><br>
+        <span id="legal-city" class="legal-hint">PLZ Ort — in Einstellungen eintragen</span><br>
         Deutschland
       </p>
 
       <h2>Kontakt</h2>
       <p>
-        E-Mail: <a href="mailto:partner@taxiapp.de">partner@taxiapp.de</a><br>
-        Telefon: <a href="tel:+493012345678">030 12345678</a>
+        E-Mail: <a id="legal-email" href="mailto:partner@taxiapp.de">partner@taxiapp.de</a><br>
+        Telefon: <a id="legal-phone" href="tel:+493012345678">030 12345678</a>
       </p>
 
       <h2>Vertretungsberechtigt</h2>
-      <p><em class="legal-hint">Name des Inhabers / Geschäftsführers — vor Go-Live eintragen</em></p>
+      <p id="legal-owner" class="legal-hint">Inhaber — in Einstellungen eintragen</p>
 
       <h2>Umsatzsteuer</h2>
-      <p>
-        Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG:<br>
-        <em class="legal-hint">USt-IdNr. eintragen — oder: „Kleinunternehmer gemäß § 19 UStG“</em>
-      </p>
+      <p id="legal-vat" class="legal-hint">USt-IdNr. — in Einstellungen eintragen</p>
 
       <h2>Verantwortlich für den Inhalt (§ 55 Abs. 2 RStV)</h2>
-      <p><em class="legal-hint">Name und Anschrift wie oben — vor Go-Live eintragen</em></p>
+      <p id="legal-responsible" class="legal-hint">Wie oben — Inhaber und Anschrift</p>
 
       <h2>Haftung für Inhalte</h2>
       <p>
@@ -77,5 +74,41 @@
       <a href="datenschutz.html">Datenschutz</a>
     </nav>
   </footer>
+
+  <script>
+    function setText(id, value, fallback) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const text = (value || "").trim() || fallback;
+      el.textContent = text;
+      el.classList.toggle("legal-hint", !((value || "").trim()));
+    }
+
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((cfg) => {
+        setText("legal-company", cfg.companyName, "TaxiApp Leitstelle");
+        setText("legal-street", cfg.legalStreet, "Straße — in Einstellungen eintragen");
+        setText("legal-city", cfg.legalCity, "PLZ Ort — in Einstellungen eintragen");
+        setText("legal-owner", cfg.legalOwner, "Inhaber — in Einstellungen eintragen");
+        setText("legal-vat", cfg.vatId, "USt-IdNr. — in Einstellungen eintragen");
+
+        const email = (cfg.legalEmail || "partner@taxiapp.de").trim();
+        const emailEl = document.getElementById("legal-email");
+        emailEl.textContent = email;
+        emailEl.href = `mailto:${email}`;
+
+        const phoneDisplay = cfg.centralPhoneDisplay || cfg.centralPhone || "—";
+        const phoneEl = document.getElementById("legal-phone");
+        phoneEl.textContent = phoneDisplay;
+        phoneEl.href = `tel:${String(cfg.centralPhone || "").replace(/\s/g, "")}`;
+
+        const responsible = [cfg.legalOwner, cfg.legalStreet, cfg.legalCity]
+          .filter((x) => (x || "").trim())
+          .join(", ");
+        setText("legal-responsible", responsible, "Wie oben — Inhaber und Anschrift");
+      })
+      .catch(() => {});
+  </script>
 </body>
 </html>
