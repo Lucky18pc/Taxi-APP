@@ -38,6 +38,7 @@ function resolveDataDir() {
 }
 
 const dataDir = resolveDataDir();
+const adminPin = String(process.env.ADMIN_PIN || "").trim();
 
 function seedDataFile(filename) {
   const target = path.join(dataDir, filename);
@@ -195,8 +196,6 @@ function saveDriversConfig() {
   };
   fs.writeFileSync(driversConfigPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
-
-const adminPin = String(process.env.ADMIN_PIN || "").trim();
 
 function requireAdmin(req, res, next) {
   if (!adminPin) return next();
