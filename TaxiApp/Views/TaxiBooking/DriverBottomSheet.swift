@@ -49,11 +49,8 @@ struct DriverBottomSheet: View {
             }
 
             Button(action: {
-                guard let phone = driver.phoneNumber,
-                      !phone.isEmpty,
-                      let url = URL(string: "tel:\(phone)"),
-                      UIApplication.shared.canOpenURL(url) else { return }
-                UIApplication.shared.open(url)
+                guard let phone = driver.phoneNumber, !phone.isEmpty else { return }
+                Task { await PhoneDialer.call(rawPhone: phone, regionCountryCode: "DE") }
             }) {
                 Label("Fahrer kontaktieren", systemImage: "phone.fill")
                     .font(.headline)

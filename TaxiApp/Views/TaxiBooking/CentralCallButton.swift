@@ -6,6 +6,8 @@ struct CentralCallButton: View {
     @EnvironmentObject private var centralStore: CentralConfigStore
     var style: Style = .outline
 
+    @State private var showCallError = false
+
     enum Style {
         case outline
         case filled
@@ -16,7 +18,7 @@ struct CentralCallButton: View {
             Button(action: callCentral) {
                 Label("Zentrale Anrufen", systemImage: "phone.fill")
                     .font(.headline)
-                    .foregroundStyle(style == .outline ? .white : .white)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(buttonBackground)
@@ -26,10 +28,22 @@ struct CentralCallButton: View {
             }
             .buttonStyle(.plain)
 
-            Text("Zentrale: \(centralStore.formattedDisplayPhone)")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(captionColor)
-                .multilineTextAlignment(.center)
+            Button(action: callCentral) {
+                Text("Zentrale: \(centralStore.formattedDisplayPhone)")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(captionColor)
+                    .multilineTextAlignment(.center)
+            }
+            .buttonStyle(.plain)
+        }
+        .alert("Anruf nicht möglich", isPresented: $showCallError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(
+                centralStore.dialablePhoneForCall.isEmpty
+                    ? "Bitte unter Einstellungen (settings.html) oder im Fahrer-Profil eine gültige Zentrale-Nummer mit Ländervorwahl eintragen (z. B. +49…)."
+                    : "Nummer \(centralStore.dialablePhoneForCall) konnte nicht geöffnet werden. Bitte auf einem echten iPhone testen (nicht Simulator) und Nummer in settings.html speichern."
+            )
         }
     }
 
@@ -56,9 +70,12 @@ struct CentralCallButton: View {
     }
 
     private func callCentral() {
-        guard let url = URL(string: centralStore.telURLString),
-              UIApplication.shared.canOpenURL(url) else { return }
-        UIApplication.shared.open(url)
+        Task {
+            let started = await centralStore.callCentral()
+            if !started {
+                showCallError = true
+            }
+        }
     }
 }
 

@@ -96,7 +96,26 @@ final class CentralConfigStore: ObservableObject {
     }
 
     var telURLString: String {
-        "tel:\(resolvedPhone.replacingOccurrences(of: " ", with: ""))"
+        let dialable = dialablePhoneForCall
+        guard !dialable.isEmpty else { return "" }
+        return "tel:\(dialable)"
+    }
+
+    /// Nummer, die beim Anruf wirklich gewählt wird (E.164).
+    var dialablePhoneForCall: String {
+        PhoneDialer.dialableNumber(
+            rawPhone: resolvedPhone,
+            regionCountryCode: regionCountryCode
+        )
+    }
+
+    var usesLocalPhoneOverride: Bool {
+        !localPhoneOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// Startet Anruf zur Zentrale.
+    func callCentral() async -> Bool {
+        await PhoneDialer.call(rawPhone: resolvedPhone, regionCountryCode: regionCountryCode)
     }
 
     func updateLocalPhone(_ phone: String) {

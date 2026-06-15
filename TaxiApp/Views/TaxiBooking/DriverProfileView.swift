@@ -35,7 +35,7 @@ struct DriverProfileView: View {
                 if store.resolvedDisplayName.isEmpty {
                     Text("Name und Foto für die Startseite")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Brand.secondary)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -99,7 +99,7 @@ struct DriverProfileView: View {
 
                     Text("Leer = Nummer aus der Cloud-Leitstelle (settings.html)")
                         .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(Brand.secondary.opacity(0.9))
                 }
                 .brandCard()
                 .padding(.horizontal, 20)
@@ -189,14 +189,16 @@ struct DriverProfileView: View {
 private struct BrandTextFieldModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.body)
+            .font(.body.weight(.medium))
+            .foregroundStyle(Brand.primary)
+            .tint(Brand.accent)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .background(Brand.background)
+            .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Brand.primary.opacity(0.15), lineWidth: 1)
+                    .stroke(Brand.primary.opacity(0.22), lineWidth: 1)
             }
     }
 }

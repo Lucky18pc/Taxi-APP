@@ -30,6 +30,7 @@ struct TaxiPickupView: View {
                                     Text(profileStore.resolvedDisplayName)
                                         .font(.caption2.weight(.semibold))
                                         .foregroundStyle(.white)
+                                        .shadow(color: .black.opacity(0.55), radius: 3, y: 1)
                                         .lineLimit(1)
                                 }
                             }
@@ -126,6 +127,9 @@ struct TaxiPickupView: View {
             }
             .onAppear {
                 estimatedMinutes = Int.random(in: 5...12)
+            }
+            .task {
+                await centralStore.refreshFromBackend()
             }
         }
     }
