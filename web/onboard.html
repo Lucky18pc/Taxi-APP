@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taxi-Betrieb registrieren — Luckys Taxi App</title>
+  <meta name="description" content="Taxi-Unternehmer: Leitstelle und Online-Buchung in wenigen Minuten einrichten.">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .onboard-wrap { max-width: 640px; margin: 0 auto 3rem; padding: 0 1.25rem; }
+    .onboard-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.5rem;
+      box-shadow: var(--shadow);
+      margin-top: 1rem;
+    }
+    .onboard-card h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .field input, .field textarea {
+      width: 100%; padding: 0.7rem 0.75rem; border: 1px solid #d1d5db;
+      border-radius: 10px; font: inherit;
+    }
+    .field-hint { font-size: 0.8rem; color: #6b7280; margin-top: 0.35rem; }
+    .result-box {
+      display: none;
+      margin-top: 1.25rem;
+      padding: 1rem 1.15rem;
+      background: #ecfdf5;
+      border: 1px solid #6ee7b7;
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+    .result-box.visible { display: block; }
+    .result-box a { font-weight: 600; word-break: break-all; }
+    .status-error { color: #991b1b; font-weight: 600; margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <header class="hero" style="padding-bottom: 2.5rem">
+    <p class="hero-badge">Für Taxi-Unternehmer</p>
+    <h1>Betrieb registrieren</h1>
+    <p>Leitstelle, Browser-Buchung und QR — sofort nutzbar. PLZ-Gebiet statt manueller JSON-Datei.</p>
+  </header>
+
+  <main class="onboard-wrap">
+    <div class="onboard-card">
+      <h2>Ihre Daten</h2>
+      <form id="onboard-form">
+        <div class="field">
+          <label for="companyName">Firmenname *</label>
+          <input id="companyName" name="companyName" required placeholder="Mustermann Taxi GmbH">
+        </div>
+        <div class="field">
+          <label for="email">E-Mail *</label>
+          <input id="email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de">
+          <p class="field-hint">Zugangslinks werden an diese Adresse gesendet (wenn E-Mail-Versand aktiv).</p>
+        </div>
+        <div class="field">
+          <label for="centralPhone">Zentrale (E.164) *</label>
+          <input id="centralPhone" name="centralPhone" required placeholder="+49621123456">
+        </div>
+        <div class="field">
+          <label for="centralPhoneDisplay">Zentrale (Anzeige)</label>
+          <input id="centralPhoneDisplay" name="centralPhoneDisplay" placeholder="0621 123456">
+        </div>
+        <div class="field">
+          <label for="city">Stadt / Sitz *</label>
+          <input id="city" name="city" required placeholder="Mannheim">
+          <p class="field-hint">Für Karten-Mittelpunkt (Geocoding), falls kein GPS-Radius greift.</p>
+        </div>
+        <div class="field">
+          <label for="postalPrefixes">PLZ-Präfixe (Region) *</label>
+          <input id="postalPrefixes" name="postalPrefixes" required placeholder="68">
+          <p class="field-hint">z. B. <code>68</code> für Mannheim, <code>10, 12, 13, 14</code> für Berlin — kommagetrennt.</p>
+        </div>
+        <div class="field">
+          <label for="postalCodes">Einzelne PLZ (optional)</label>
+          <input id="postalCodes" name="postalCodes" placeholder="68159, 68161">
+        </div>
+        <div class="field">
+          <label for="radiusKm">GPS-Radius (km, Fallback)</label>
+          <input id="radiusKm" name="radiusKm" type="number" min="10" max="120" value="30">
+        </div>
+        <div class="field">
+          <label for="dispatchPin">Leitstellen-PIN (optional)</label>
+          <input id="dispatchPin" name="dispatchPin" inputmode="numeric" placeholder="6-stellig">
+        </div>
+        <button type="submit" class="btn" id="submit-btn">Betrieb anlegen</button>
+        <p id="form-error" class="status-error" hidden></p>
+      </form>
+
+      <div id="result-box" class="result-box">
+        <p><strong>Fertig!</strong> Ihr Betrieb ist aktiv.</p>
+        <p>Slug: <code id="result-slug"></code></p>
+        <ul style="margin:0.5rem 0 0 1rem;padding:0">
+          <li><a id="link-dispatch" href="#">Leitstelle</a></li>
+          <li><a id="link-settings" href="#">Einstellungen</a></li>
+          <li><a id="link-book" href="#">Online-Buchung</a></li>
+          <li><a id="link-qr" href="#">QR-Code</a></li>
+        </ul>
+        <p class="field-hint" style="margin-top:0.75rem">Als Nächstes: Fahrer anlegen, PIN merken, QR drucken.</p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:1.25rem">
+      <a href="index.html#operators">Tarife &amp; Infos</a> ·
+      Bereits registriert? <a href="dispatch.html">Zur Leitstelle</a> (mit <code>?o=ihr-slug</code>)
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="onboard.html">Registrieren</a>
+      <a href="impressum.html">Impressum</a>
+    </nav>
+  </footer>
+
+  <script>
+    const form = document.getElementById("onboard-form");
+    const errorEl = document.getElementById("form-error");
+    const resultBox = document.getElementById("result-box");
+    const submitBtn = document.getElementById("submit-btn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorEl.hidden = true;
+      resultBox.classList.remove("visible");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Wird angelegt…";
+
+      const payload = Object.fromEntries(new FormData(form).entries());
+
+      try {
+        const res = await fetch("/api/fleet/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Registrierung fehlgeschlagen");
+
+        document.getElementById("result-slug").textContent = data.operator.slug;
+        document.getElementById("link-dispatch").href = data.links.dispatch;
+        document.getElementById("link-settings").href = data.links.settings;
+        document.getElementById("link-book").href = data.links.book;
+        document.getElementById("link-qr").href = data.links.qr;
+        resultBox.classList.add("visible");
+        form.reset();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Betrieb anlegen";
+      }
+    });
+  </script>
+</body>
+</html>

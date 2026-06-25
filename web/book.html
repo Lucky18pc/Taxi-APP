@@ -42,6 +42,7 @@
       color: var(--primary);
     }
     .book-field textarea { min-height: 4rem; resize: vertical; }
+    .book-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
     .book-hint { font-size: 0.8rem; color: var(--secondary); margin-top: 0.35rem; }
     .book-actions { display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.5rem; }
     .btn-book {
@@ -101,9 +102,24 @@
       <div class="book-actions" style="margin-bottom:1rem">
         <button type="button" class="btn-book btn-book-secondary" id="btn-gps">Standort nutzen (GPS)</button>
       </div>
+      <p class="book-hint" style="margin-bottom:0.75rem">Adresse eingeben — oder GPS nutzen und Felder werden ausgefüllt.</p>
       <div class="book-field">
-        <label for="addressLine">Abholadresse</label>
-        <textarea id="addressLine" name="addressLine" placeholder="Straße, Hausnummer — oder GPS-Standort" required></textarea>
+        <label for="street">Straße</label>
+        <input id="street" name="street" placeholder="Musterstraße" required>
+      </div>
+      <div class="book-field">
+        <label for="houseNumber">Hausnummer</label>
+        <input id="houseNumber" name="houseNumber" placeholder="12a">
+      </div>
+      <div class="book-row">
+        <div class="book-field">
+          <label for="postalCode">PLZ</label>
+          <input id="postalCode" name="postalCode" placeholder="10115" inputmode="numeric">
+        </div>
+        <div class="book-field">
+          <label for="city">Ort</label>
+          <input id="city" name="city" placeholder="Berlin" required>
+        </div>
       </div>
       <div class="book-field">
         <label for="destination">Ziel (optional)</label>
@@ -141,7 +157,9 @@
   </footer>
 
   <script>
-    const state = { latitude: null, longitude: null, centralPhone: "" };
+    const pageParams = new URLSearchParams(window.location.search);
+    const operatorSlug = String(pageParams.get("o") || pageParams.get("operator") || "").trim().toLowerCase();
+    const state = { latitude: null, longitude: null, centralPhone: "", operatorSlug: operatorSlug };
 
     function setStatus(text, kind) {
       const el = document.getElementById("location-status");
@@ -156,15 +174,45 @@
       input.value = now.toISOString().slice(0, 16);
     }
 
+    function composeAddressLine() {
+      const street = document.getElementById("street").value.trim();
+      const houseNumber = document.getElementById("houseNumber").value.trim();
+      const postalCode = document.getElementById("postalCode").value.trim();
+      const city = document.getElementById("city").value.trim();
+      const streetPart = [street, houseNumber].filter(Boolean).join(" ");
+      const cityPart = [postalCode, city].filter(Boolean).join(" ");
+      return [streetPart, cityPart].filter(Boolean).join(", ");
+    }
+
+    function applyParsedAddress(parts) {
+      document.getElementById("street").value = parts.street || "";
+      document.getElementById("houseNumber").value = parts.houseNumber || "";
+      document.getElementById("postalCode").value = parts.postalCode || "";
+      document.getElementById("city").value = parts.city || "";
+    }
+
     async function reverseGeocode(lat, lon) {
       try {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=de`;
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1&accept-language=de`;
         const res = await fetch(url, { headers: { Accept: "application/json" } });
         if (!res.ok) throw new Error("reverse failed");
         const data = await res.json();
-        return data.display_name || `GPS ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+        const addr = data.address || {};
+        return {
+          street: addr.road || addr.pedestrian || addr.footway || "",
+          houseNumber: addr.house_number || "",
+          postalCode: addr.postcode || "",
+          city: addr.city || addr.town || addr.village || addr.municipality || "",
+          formatted: data.display_name || composeAddressLine(),
+        };
       } catch {
-        return `GPS-Standort (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+        return {
+          street: "",
+          houseNumber: "",
+          postalCode: "",
+          city: "",
+          formatted: `GPS-Standort (${lat.toFixed(5)}, ${lon.toFixed(5)})`,
+        };
       }
     }
 
@@ -187,9 +235,14 @@
         async (pos) => {
           state.latitude = pos.coords.latitude;
           state.longitude = pos.coords.longitude;
-          const address = await reverseGeocode(state.latitude, state.longitude);
-          document.getElementById("addressLine").value = address;
-          setStatus("Standort übernommen.", "");
+          const parsed = await reverseGeocode(state.latitude, state.longitude);
+          applyParsedAddress(parsed);
+          try {
+            await resolveOperator(state.latitude, state.longitude);
+            setStatus("Standort übernommen.", "");
+          } catch (err) {
+            setStatus(err.message, "error");
+          }
         },
         () => setStatus("Standort verweigert — bitte Adresse eintippen.", "error"),
         { enableHighAccuracy: true, timeout: 15000 }
@@ -201,19 +254,55 @@
       return digits ? `tel:${digits}` : "#";
     }
 
+    async function applyOperatorConfig(cfg) {
+      if (cfg.companyName) {
+        document.getElementById("book-title").textContent = cfg.companyName;
+        document.title = `Taxi bestellen — ${cfg.companyName}`;
+      }
+      if (cfg.slug) state.operatorSlug = cfg.slug;
+      state.centralPhone = cfg.centralPhone || "";
+      const call = phoneHref(state.centralPhone);
+      document.getElementById("call-fallback").href = call;
+      document.getElementById("call-central").href = call;
+    }
+
+    async function loadConfigForSlug(slug) {
+      if (!slug) return;
+      const res = await fetch(`/api/config?operator=${encodeURIComponent(slug)}`);
+      if (!res.ok) return;
+      await applyOperatorConfig(await res.json());
+    }
+
+    async function resolveOperator(lat, lng) {
+      const params = new URLSearchParams();
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        params.set("lat", String(lat));
+        params.set("lng", String(lng));
+      }
+      const plz = document.getElementById("postalCode").value.trim();
+      if (plz) params.set("postalCode", plz);
+      if (state.operatorSlug) params.set("operator", state.operatorSlug);
+      const res = await fetch(`/api/operators/resolve?${params}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Kein Taxi-Betrieb in Ihrer Nähe.");
+      }
+      const data = await res.json();
+      if (data.config) await applyOperatorConfig(data.config);
+      else if (data.slug) state.operatorSlug = data.slug;
+      return data;
+    }
+
     fetch("/api/config")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : null))
       .then((cfg) => {
-        if (cfg.companyName) {
-          document.getElementById("book-title").textContent = cfg.companyName;
-          document.title = `Taxi bestellen — ${cfg.companyName}`;
-        }
-        state.centralPhone = cfg.centralPhone || "";
-        const call = phoneHref(state.centralPhone);
-        document.getElementById("call-fallback").href = call;
-        document.getElementById("call-central").href = call;
+        if (cfg && !operatorSlug) applyOperatorConfig(cfg);
       })
       .catch(() => {});
+
+    if (operatorSlug) {
+      loadConfigForSlug(operatorSlug).catch(() => {});
+    }
 
     document.getElementById("book-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -222,7 +311,10 @@
       btn.textContent = "Wird gesendet…";
 
       try {
-        const addressLine = document.getElementById("addressLine").value.trim();
+        const addressLine = composeAddressLine();
+        if (!addressLine) {
+          throw new Error("Bitte Straße und Ort eingeben — oder GPS nutzen.");
+        }
         let latitude = state.latitude;
         let longitude = state.longitude;
 
@@ -232,16 +324,20 @@
           longitude = geo.longitude;
         }
 
+        await resolveOperator(latitude, longitude);
+
         const payload = {
           pickupDate: new Date(document.getElementById("pickupDate").value).toISOString(),
           latitude,
           longitude,
           addressLine,
+          postalCode: document.getElementById("postalCode").value.trim() || null,
           destinationAddressLine: document.getElementById("destination").value.trim() || null,
           paymentMethod: document.getElementById("paymentMethod").value,
           totalAmount: 0,
           tariffAmount: 0,
           tipAmount: 0,
+          ...(state.operatorSlug ? { operatorSlug: state.operatorSlug } : {}),
         };
 
         const res = await fetch("/api/bookings", {

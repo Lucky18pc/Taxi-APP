@@ -60,31 +60,30 @@
         <article class="app-screen">
           <div class="app-screen-num">2</div>
           <div class="app-screen-body">
-            <h4>Kalender</h4>
-            <p>Abholdatum wählen → <span class="btn-label">Weiter zum Abholort</span></p>
+            <h4>Abholort / Karte</h4>
+            <p>Standort festlegen → <span class="btn-label">Weiter zur Abholzeit</span></p>
           </div>
         </article>
         <article class="app-screen">
           <div class="app-screen-num">3</div>
           <div class="app-screen-body">
-            <h4>Abholort / Karte</h4>
-            <p>Standort festlegen → <span class="btn-label">Zur Zahlung</span></p>
+            <h4>Jetzt oder später?</h4>
+            <p><span class="btn-label">Sofort</span> oder Termin wählen → <span class="btn-label">Fahrt prüfen</span></p>
           </div>
         </article>
         <article class="app-screen">
           <div class="app-screen-num">4</div>
           <div class="app-screen-body">
-            <h4>Zahlung</h4>
-            <p>Fahrtpreis: <strong>nach Taxameter</strong> (0 € bei Buchung)</p>
-            <p>Zahlungsart: Bar · Karte (nach Fahrt, folgt) · optional Trinkgeld-Wunsch</p>
-            <p>Dann: <span class="btn-label">Jetzt buchen</span> → <span class="btn-label">Taxi bestellen</span></p>
+            <h4>Fahrt prüfen</h4>
+            <p>Adresse, Karte, Abholzeit — dann <span class="btn-label">Zur Kasse</span></p>
           </div>
         </article>
         <article class="app-screen">
           <div class="app-screen-num">5</div>
           <div class="app-screen-body">
-            <h4>Bestätigung</h4>
-            <p>Zusammenfassung prüfen und mit <span class="btn-label">Taxi bestellen</span> abschließen.</p>
+            <h4>Kasse</h4>
+            <p>Trinkgeld-Wunsch — Zahlung <strong>bar beim Fahrer</strong> (Taxameter), jetzt 0 € in der App.</p>
+            <p>Mit <span class="btn-label">Taxi bestellen</span> abschließen — die Leitstelle sieht die Fahrt.</p>
           </div>
         </article>
       </div>
@@ -95,6 +94,49 @@
         <a href="https://taxiapp-api.onrender.com/settings.html">settings.html</a>.
         Kartenzahlung (Stripe) optional später — Bar funktioniert ohne Stripe.
       </p>
+    </section>
+
+    <section id="zentrale-vs-app" class="sales-pitch">
+      <h2>Große Taxizentrale — und trotzdem Ihre App?</h2>
+      <p class="lead">
+        In Mannheim (und vielen Städten) gibt es eine <strong>städtische oder regionale Taxizentrale</strong>:
+        Kunden rufen an, Anrufe gehen an Taxistände — wer frei ist, fährt. Das funktioniert.
+        <strong>Luckys Taxi App ersetzt das nicht.</strong> Sie gibt <em>Ihrem</em> Betrieb einen <strong>eigenen digitalen Kanal</strong>.
+      </p>
+
+      <div class="sales-grid">
+        <article class="sales-card">
+          <h3>Was die Zentrale macht</h3>
+          <ul class="checklist">
+            <li>Gemeinsame Funk-/Telefonnummer für viele Betriebe</li>
+            <li>Verteilung an freie Fahrer / Stände</li>
+            <li>Für den Kunden oft: „Ich rufe Taxi an“ — ohne Namen Ihres Betriebs</li>
+          </ul>
+        </article>
+        <article class="sales-card">
+          <h3>Was <em>Ihre</em> App macht</h3>
+          <ul class="checklist">
+            <li><strong>Ihre Marke</strong> — App und Link mit <em>Ihrem</em> Namen</li>
+            <li><strong>Ihre direkten Kunden</strong> — Stammkunden, Hotel, Praxis, Firmenkunden</li>
+            <li><strong>Adresse auf der Karte</strong> — kein Missverständnis am Telefon</li>
+            <li><strong>Ihre Leitstellen-Ansicht</strong> — Sie sehen App-Buchungen und weisen <em>Ihre</em> Fahrer zu</li>
+            <li><strong>Ihr Umsatz</strong> — Fahrt geht an Sie, nicht anonym über das Portal</li>
+          </ul>
+        </article>
+      </div>
+
+      <h3 class="sales-sub">Sinn für Fahrer — auch wenn die Zentrale schon Fahrten bringt</h3>
+      <ul class="checklist">
+        <li><strong>Zusatzaufträge</strong> von Kunden, die <em>Sie</em> kennen (QR im Auto, Visitenkarte, Website)</li>
+        <li><strong>Weniger Leerfahrten</strong> durch planbare App-Termine („später abholen“)</li>
+        <li><strong>Klare Abholadresse</strong> vor der Fahrt — weniger Suche, weniger Streit</li>
+        <li><strong>Stammkunden binden</strong> — die buchen bei Ihnen, nicht nur „irgendein Taxi“</li>
+        <li>Zentrale bleibt parallel möglich — viele Betriebe nutzen <strong>beides</strong></li>
+      </ul>
+
+      <blockquote class="sales-quote">
+        Die Zentrale verteilt Anrufe für die Stadt. Ihre App holt <strong>Ihre</strong> Kunden zu <strong>Ihrem</strong> Betrieb — digital, mit Namen und Adresse.
+      </blockquote>
     </section>
 
     <section id="so-funktionierts">
@@ -114,7 +156,7 @@
         <article class="step">
           <div class="step-num">3</div>
           <h3>Bezahlen</h3>
-          <p>Preis nach Taxameter am Ende der Fahrt — bar beim Fahrer oder später Karte in der App.</p>
+          <p>Preis nach Taxameter am Ende der Fahrt — bar beim Fahrer.</p>
         </article>
         <article class="step">
           <div class="step-num">4</div>
@@ -132,7 +174,6 @@
         <li>Taxi in wenigen Schritten bestellen</li>
         <li>Abholzeit und Abholort festlegen</li>
         <li>Fahrtpreis nach Taxameter — bar beim Fahrer</li>
-        <li>Kartenzahlung in der App nach der Fahrt (folgt)</li>
         <li>Trinkgeld optional als Wunsch mitteilen</li>
         <li>Keine Reservierungsgebühr in der App</li>
       </ul>
@@ -168,7 +209,7 @@
 
       <h3 class="sales-sub">So gewinnen Sie Fahrgäste (Ihre Aufgabe — unsere Werkzeuge)</h3>
       <ul class="checklist">
-        <li>QR-Code oder Link zu <code>book.html</code> auf Visitenkarte, im Fahrzeug, auf der Website</li>
+        <li>QR-Code zu <a href="book.html">book.html</a> — fertig erzeugen unter <a href="qr.html">qr.html</a> (Aufkleber, Visitenkarte)</li>
         <li>Ihre bekannte Leitstellen-Nummer — in der App und im Browser erreichbar</li>
         <li>Google-Eintrag Ihres Betriebs mit Link zur Online-Buchung</li>
         <li>Optional: Luckys Taxi App im App Store, wenn Sie live gehen</li>
@@ -179,6 +220,43 @@
       <h2>Für Taxi-Unternehmer</h2>
       <p class="lead">Starten Sie mit Luckys Taxi App — Technik auf Render, Support per E-Mail. Keine Mindestlaufzeit.</p>
       <p class="badge">Alle Tarife monatlich kündbar — keine Mindestlaufzeit</p>
+      <p style="margin:1rem 0">
+        <a class="hero-cta hero-cta-outline" href="onboard.html" style="display:inline-block;color:#fff;border-color:#fff">Jetzt Betrieb registrieren</a>
+      </p>
+
+      <h3 class="sales-sub" id="operators-roles">Was wir liefern — was Sie werben</h3>
+      <p class="lead" style="margin-bottom:1rem">
+        Das Monatsabo ist <strong>Software</strong>, keine Werbeagentur. Sie bekommen die Werkstatt — neue Fahrgäste bringen <strong>Sie</strong> über Ihre Marke vor Ort.
+      </p>
+      <div class="sales-grid">
+        <article class="sales-card">
+          <h3>Das liefern wir (Plattform)</h3>
+          <ul class="checklist">
+            <li>iPhone-App und <a href="book.html">Browser-Buchung</a> angebunden an <strong>Ihre</strong> Leitstelle</li>
+            <li><a href="dispatch.html">Leitstelle</a> und <a href="settings.html">Einstellungen</a> (Name, Zentrale, Fahrer, Impressum)</li>
+            <li><a href="qr.html">QR-Code als PNG</a> — druckfertig für Aufkleber und Karten</li>
+            <li>Hosting, Updates, E-Mail-Support</li>
+            <li>App Store / TestFlight, sobald die Plattform-App live ist</li>
+          </ul>
+        </article>
+        <article class="sales-card">
+          <h3>Das machen Sie (Ihr Betrieb)</h3>
+          <ul class="checklist">
+            <li><strong>Werbung vor Ort:</strong> QR-Aufkleber im Fahrzeug, an der Theke, auf Visitenkarten</li>
+            <li>PNG von <a href="qr.html">qr.html</a> speichern und beim <strong>Drucker Ihrer Wahl</strong> bestellen — wir drucken nicht mit</li>
+            <li>Auf der Karte: <strong>Ihr</strong> Firmenname und Ihre Nummer — nicht „Luckys“ als Taxi-Marke</li>
+            <li>Stammkunden, Hotels, Praxen: Link oder App empfehlen</li>
+            <li>Google-Eintrag mit Link zur Online-Buchung</li>
+          </ul>
+        </article>
+      </div>
+      <p class="note" style="margin-top:1rem">
+        <strong>App Store:</strong> Eine Plattform-App („Luckys Taxi App“) — darin erscheint <em>Ihr</em> Betriebsname aus den Einstellungen.
+        Separate App pro Betrieb im Store (eigenes Icon „Taxi Müller“) ist möglich, aber aufwendig und nicht Standard-Tarif.
+        Ohne Werbung kommen wenig Buchungen — wie ohne Telefonnummer auf der Visitenkarte.
+      </p>
+
+      <p id="billing-status" class="billing-status" hidden></p>
       <div class="plans">
         <article class="plan">
           <h3>Starter</h3>
@@ -191,7 +269,16 @@
             <li>Fahrtenübersicht (Basis)</li>
             <li>E-Mail-Support</li>
           </ul>
-          <a class="btn secondary" href="mailto:partner@taxiapp.de?subject=Luckys%20Taxi%20App%20Starter%20%E2%80%94%20Anfrage">Tarif anfragen</a>
+          <form class="billing-form" data-billing-form data-plan-id="starter">
+            <label for="starter-company">Firma</label>
+            <input id="starter-company" name="companyName" required placeholder="Mustermann Taxi GmbH">
+            <label for="starter-email">E-Mail (für Rechnung &amp; Kontakt)</label>
+            <input id="starter-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de">
+            <label for="starter-message">Nachricht (optional)</label>
+            <textarea id="starter-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …"></textarea>
+            <button type="submit" class="btn secondary" data-checkout-btn hidden>Jetzt abonnieren</button>
+            <button type="submit" class="btn secondary" data-inquiry-btn>Tarif anfragen</button>
+          </form>
         </article>
         <article class="plan highlight">
           <h3>Business <span class="badge">Beliebt</span></h3>
@@ -204,11 +291,21 @@
             <li>Prioritäts-Support</li>
             <li>Monatliche Abrechnungsübersicht</li>
           </ul>
-          <a class="btn" href="mailto:partner@taxiapp.de?subject=Luckys%20Taxi%20App%20Business%20%E2%80%94%20Anfrage">Tarif anfragen</a>
+          <form class="billing-form" data-billing-form data-plan-id="business">
+            <label for="business-company">Firma</label>
+            <input id="business-company" name="companyName" required placeholder="Mustermann Taxi GmbH">
+            <label for="business-email">E-Mail (für Rechnung &amp; Kontakt)</label>
+            <input id="business-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de">
+            <label for="business-message">Nachricht (optional)</label>
+            <textarea id="business-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …"></textarea>
+            <button type="submit" class="btn" data-checkout-btn hidden>Jetzt abonnieren</button>
+            <button type="submit" class="btn" data-inquiry-btn>Tarif anfragen</button>
+          </form>
         </article>
       </div>
       <p class="note" style="margin-top:1rem">
         Die Plattformgebühr gilt nur auf erfolgreiche Kartenzahlungen in der App und wird bei Auszahlung an das Unternehmen einbehalten. Monatspreis und Fahrt-Provision sind getrennt.
+        Rechnungen: automatisch per Stripe (Online-Abo) oder manuell über Lexoffice/sevDesk — <a href="rechnungen.html">Details</a>.
       </p>
     </section>
   </main>
@@ -216,9 +313,11 @@
   <footer class="site-footer">
     <nav>
       <a href="book.html">Taxi bestellen</a>
+      <a href="qr.html">QR-Code</a>
       <a href="index.html">Start</a>
       <a href="#operators">Für Unternehmer</a>
       <a href="#warum-luckys">Warum Luckys?</a>
+      <a href="#zentrale-vs-app">Zentrale vs. App</a>
       <a href="dispatch.html">Zentrale</a>
       <a href="settings.html">Einstellungen</a>
       <a href="impressum.html">Impressum</a>
@@ -230,5 +329,6 @@
     </nav>
     <p>© 2026 Luckys Taxi App</p>
   </footer>
+  <script src="billing.js"></script>
 </body>
 </html>

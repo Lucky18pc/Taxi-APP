@@ -1,0 +1,60 @@
+{
+  "operators": [
+    {
+      "operatorId": "op-mannheim",
+      "slug": "mannheim",
+      "companyName": "Mustermann Taxi Mannheim",
+      "centralPhone": "+49621123456",
+      "centralPhoneDisplay": "0621 123456",
+      "dispatchHours": "24/7",
+      "dispatchNote": "App-Buchungen Mannheim und Umgebung.",
+      "country": "DE",
+      "timeZone": "Europe/Berlin",
+      "currency": "eur",
+      "legalStreet": "",
+      "legalCity": "68159 Mannheim",
+      "legalOwner": "",
+      "legalEmail": "partner@taxiapp.de",
+      "vatId": "",
+      "nightSurchargeEnabled": false,
+      "nightSurchargeFromHour": 22,
+      "nightSurchargeToHour": 6,
+      "serviceArea": {
+        "centerLat": 49.4875,
+        "centerLng": 8.466,
+        "radiusKm": 35,
+        "postalPrefixes": ["68"]
+      },
+      "status": "active",
+      "dispatchPin": ""
+    },
+    {
+      "operatorId": "op-berlin",
+      "slug": "berlin",
+      "companyName": "Beispiel Taxi Berlin",
+      "centralPhone": "+493012345678",
+      "centralPhoneDisplay": "030 12345678",
+      "dispatchHours": "24/7",
+      "dispatchNote": "App-Buchungen Berlin und Umgebung.",
+      "country": "DE",
+      "timeZone": "Europe/Berlin",
+      "currency": "eur",
+      "legalStreet": "",
+      "legalCity": "10115 Berlin",
+      "legalOwner": "",
+      "legalEmail": "partner@taxiapp.de",
+      "vatId": "",
+      "nightSurchargeEnabled": false,
+      "nightSurchargeFromHour": 22,
+      "nightSurchargeToHour": 6,
+      "serviceArea": {
+        "centerLat": 52.52,
+        "centerLng": 13.405,
+        "radiusKm": 40,
+        "postalPrefixes": ["10", "12", "13", "14"]
+      },
+      "status": "active",
+      "dispatchPin": ""
+    }
+  ]
+}

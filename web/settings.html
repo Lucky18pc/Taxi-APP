@@ -161,6 +161,18 @@
       </p>
     </div>
 
+    <section class="settings-card settings-intro-card">
+      <h2>Wofür ist diese App?</h2>
+      <p class="field-hint" style="margin-top:0">
+        In vielen Städten gibt es eine <strong>große Taxizentrale</strong> (Anrufe werden an freie Fahrer verteilt).
+        Diese Einstellungen gelten <strong>Ihrem Taxi-Betrieb</strong> — nicht der städtischen Zentrale.
+        Mit der App gewinnen <strong>Sie</strong> eigene Kunden (Marke, Link, App): Adresse auf der Karte,
+        Buchung in <a href="dispatch.html">Ihrer Leitstelle</a>, Fahrer von <strong>Ihnen</strong> zuweisen.
+        Die Funkzentrale kann parallel weiterlaufen.
+        <strong>QR für Kunden:</strong> <a href="qr.html">PNG speichern</a> und bei Copyshop oder Online-Druckerei bestellen.
+      </p>
+    </section>
+
     <section class="settings-card">
       <h2>Taxi-Betrieb & Zentrale</h2>
       <form id="config-form">
@@ -287,31 +299,100 @@
     </section>
 
     <section class="settings-card">
-      <h2>Impressum (Web)</h2>
-      <p class="field-hint" style="margin-top:0">Erscheint auf impressum.html, datenschutz.html, AGB und Widerruf — Adresse und Inhaber für Go-Live ausfüllen.</p>
-      <form id="legal-form">
+      <h2>Plattform-Anbieter (Website, Datenschutz, AGB)</h2>
+      <p class="field-hint" style="margin-top:0">
+        <strong>Ihre Daten als Software-/Plattform-Anbieter</strong> (Luckys Taxi App) — erscheinen in
+        Datenschutzerklärung, Impressum (Plattform), AGB und Kündigung. Nicht die Adresse des Taxi-Unternehmers.
+      </p>
+      <form id="platform-legal-form">
         <div class="field">
-          <label for="legalStreet">Straße & Hausnummer</label>
-          <input id="legalStreet" name="legalStreet" placeholder="Musterstraße 1">
+          <label for="platformCompanyName">Firma / Name (Plattform)</label>
+          <input id="platformCompanyName" name="platformCompanyName" placeholder="z. B. Luckys Taxi App">
         </div>
         <div class="field">
-          <label for="legalCity">PLZ & Ort</label>
+          <label for="platformStreet">Straße & Hausnummer</label>
+          <input id="platformStreet" name="platformStreet" placeholder="Ihre Geschäftsadresse">
+        </div>
+        <div class="field">
+          <label for="platformCity">PLZ & Ort</label>
+          <input id="platformCity" name="platformCity" placeholder="68159 Mannheim">
+        </div>
+        <div class="field">
+          <label for="platformOwner">Inhaber / Geschäftsführung</label>
+          <input id="platformOwner" name="platformOwner" placeholder="Ihr Name">
+        </div>
+        <div class="field">
+          <label for="platformEmail">E-Mail (Plattform, Datenschutz)</label>
+          <input id="platformEmail" name="platformEmail" type="email" placeholder="kontakt@ihre-plattform.de">
+        </div>
+        <div class="field">
+          <label for="platformPhone">Telefon (Plattform)</label>
+          <input id="platformPhone" name="platformPhone" placeholder="+49…">
+        </div>
+        <div class="field">
+          <label for="platformVatId">USt-IdNr. oder Hinweis</label>
+          <input id="platformVatId" name="platformVatId" placeholder="DE… oder Kleinunternehmer §19 UStG">
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Plattform-Daten speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="settings-card">
+      <h2>Taxi-Betrieb (Leitstelle &amp; Fahrten)</h2>
+      <p class="field-hint" style="margin-top:0">
+        <strong>Daten des Taxi-Unternehmers</strong> — Firmenname und Zentrale oben; hier optional Anschrift für
+        Impressum-Abschnitt „Taxi-Betrieb“ und Fahrgast-Kontakt.
+      </p>
+      <form id="operator-legal-form">
+        <div class="field">
+          <label for="legalStreet">Straße & Hausnummer (Betrieb)</label>
+          <input id="legalStreet" name="legalStreet" placeholder="Betriebssitz des Taxi-Unternehmers">
+        </div>
+        <div class="field">
+          <label for="legalCity">PLZ & Ort (Betrieb)</label>
           <input id="legalCity" name="legalCity" placeholder="68159 Mannheim">
         </div>
         <div class="field">
-          <label for="legalOwner">Inhaber / Geschäftsführung</label>
-          <input id="legalOwner" name="legalOwner" placeholder="Max Mustermann">
+          <label for="legalOwner">Inhaber / Geschäftsführung (Betrieb)</label>
+          <input id="legalOwner" name="legalOwner" placeholder="Name des Taxi-Unternehmers">
         </div>
         <div class="field">
-          <label for="legalEmail">E-Mail (Impressum)</label>
-          <input id="legalEmail" name="legalEmail" type="email" placeholder="kontakt@taxi-betrieb.de">
+          <label for="legalEmail">E-Mail (Betrieb, optional)</label>
+          <input id="legalEmail" name="legalEmail" type="email" placeholder="info@taxi-betrieb.de">
         </div>
         <div class="field">
-          <label for="vatId">USt-IdNr. oder Hinweis</label>
-          <input id="vatId" name="vatId" placeholder="DE123456789 oder Kleinunternehmer §19 UStG">
+          <label for="vatId">USt-IdNr. Betrieb (optional)</label>
+          <input id="vatId" name="vatId" placeholder="DE…">
+          <p class="field-hint">Leitstellen-Telefon: Feld „Zentrale Telefonnummer“ im Abschnitt Taxi-Betrieb &amp; Zentrale.</p>
         </div>
         <div class="btn-row">
-          <button type="submit" class="btn-primary">Impressum speichern</button>
+          <button type="submit" class="btn-primary">Taxi-Betrieb speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="settings-card">
+      <h2>Servicegebiet (PLZ)</h2>
+      <p class="field-hint" style="margin-top:0">
+        Fahrgäste werden diesem Betrieb zugeordnet, wenn ihre <strong>PLZ</strong> passt — oder GPS im Radius.
+      </p>
+      <form id="service-area-form">
+        <div class="field">
+          <label for="postalCodes">PLZ exakt (kommagetrennt)</label>
+          <input id="postalCodes" name="postalCodes" placeholder="68159, 68161">
+        </div>
+        <div class="field">
+          <label for="postalPrefixes">PLZ-Präfixe / Region</label>
+          <input id="postalPrefixes" name="postalPrefixes" placeholder="68">
+        </div>
+        <div class="field">
+          <label for="radiusKm">GPS-Radius (km, Fallback)</label>
+          <input id="radiusKm" name="radiusKm" type="number" min="5" max="200" step="1" placeholder="30">
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Servicegebiet speichern</button>
         </div>
       </form>
     </section>
@@ -347,15 +428,32 @@
     }
 
     async function loadConfig() {
-      const res = await fetch("/api/config");
+      const slug = window.LeitstelleAuth?.getOperatorSlug?.() || "";
+      const configUrl = slug
+        ? `/api/config?operator=${encodeURIComponent(slug)}`
+        : "/api/config";
+      const res = await fetch(configUrl);
       if (!res.ok) throw new Error("Backend nicht erreichbar");
       const cfg = await res.json();
-      for (const key of ["companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote", "country", "timeZone", "currency", "legalStreet", "legalCity", "legalOwner", "legalEmail", "vatId"]) {
+      for (const key of [
+        "companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote",
+        "country", "timeZone", "currency",
+        "platformCompanyName", "platformStreet", "platformCity", "platformOwner", "platformEmail", "platformPhone", "platformVatId",
+        "legalStreet", "legalCity", "legalOwner", "legalEmail", "vatId",
+      ]) {
         const el = document.getElementById(key);
         if (el) el.value = cfg[key] || el.value || "";
       }
       const nightToggle = document.getElementById("nightSurchargeEnabled");
       if (nightToggle) nightToggle.checked = Boolean(cfg.nightSurchargeEnabled);
+      if (cfg.serviceArea) {
+        const plzEl = document.getElementById("postalCodes");
+        const prefixEl = document.getElementById("postalPrefixes");
+        const radiusEl = document.getElementById("radiusKm");
+        if (plzEl) plzEl.value = (cfg.serviceArea.postalCodes || []).join(", ");
+        if (prefixEl) prefixEl.value = (cfg.serviceArea.postalPrefixes || []).join(", ");
+        if (radiusEl && cfg.serviceArea.radiusKm) radiusEl.value = cfg.serviceArea.radiusKm;
+      }
     }
 
     document.getElementById("config-form").addEventListener("submit", async (e) => {
@@ -378,7 +476,7 @@
       }
     });
 
-    document.getElementById("legal-form").addEventListener("submit", async (e) => {
+    document.getElementById("platform-legal-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const payload = Object.fromEntries(new FormData(e.target).entries());
       try {
@@ -391,7 +489,45 @@
           const err = await res.json().catch(() => ({}));
           throw new Error(err.error || "Speichern fehlgeschlagen");
         }
-        showToast("Impressum-Daten gespeichert.", false);
+        showToast("Plattform-Daten gespeichert.", false);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    document.getElementById("operator-legal-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        const res = await LeitstelleAuth.apiFetch("/api/config", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Speichern fehlgeschlagen");
+        }
+        showToast("Taxi-Betrieb gespeichert.", false);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    document.getElementById("service-area-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        const res = await LeitstelleAuth.apiFetch("/api/config", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Speichern fehlgeschlagen");
+        }
+        showToast("Servicegebiet gespeichert.", false);
       } catch (err) {
         showToast(err.message, true);
       }
@@ -491,9 +627,13 @@
       }
     });
 
-    LeitstelleAuth.init().then(() =>
-      Promise.all([loadConfig(), loadDrivers()])
-    ).catch(() => {
+    LeitstelleAuth.init().then(() => {
+      const dispatchHref = LeitstelleAuth.operatorLink("dispatch.html");
+      for (const el of document.querySelectorAll('a[href="dispatch.html"]')) {
+        el.href = dispatchHref;
+      }
+      return Promise.all([loadConfig(), loadDrivers()]);
+    }).catch(() => {
       document.getElementById("offline-banner").style.display = "block";
       showToast("Backend nicht erreichbar — siehe Hinweis oben.", true);
     });

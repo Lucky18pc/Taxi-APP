@@ -5,9 +5,23 @@ const cors = require("cors");
 const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
+const { createFleetOperatorsStore } = require("./fleet-operators");
 
 const port = process.env.PORT || 4242;
 const secretKey = process.env.STRIPE_SECRET_KEY;
+const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
+const publicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
+const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
+const contactNotifyEmail = String(process.env.CONTACT_NOTIFY_EMAIL || "partner@taxiapp.de").trim();
+
+const billingPriceIds = {
+  starter: String(process.env.STRIPE_PRICE_STARTER || "").trim(),
+  business: String(process.env.STRIPE_PRICE_BUSINESS || "").trim(),
+};
+
+function isBillingConfigured() {
+  return Boolean(stripe && billingPriceIds.starter && billingPriceIds.business);
+}
 
 let stripe = null;
 if (secretKey) {
@@ -53,9 +67,16 @@ const tenantConfigPath = seedDataFile("tenant-config.json");
 const driversConfigPath = seedDataFile("drivers.json");
 const bookingsFilePath = path.join(dataDir, "bookings.json");
 const callsFilePath = path.join(dataDir, "calls.json");
+const operatorsFilePath = path.join(dataDir, "operators.json");
+const inquiriesFilePath = path.join(dataDir, "inquiries.json");
 
 const tenantConfig = JSON.parse(fs.readFileSync(tenantConfigPath, "utf8"));
 const driversSeed = JSON.parse(fs.readFileSync(driversConfigPath, "utf8"));
+
+const fleet = createFleetOperatorsStore({
+  dataDir,
+  seedFilePath: path.join(__dirname, "fleet-operators.json"),
+});
 
 function isValidTimeZone(timeZone) {
   try {
@@ -102,15 +123,36 @@ function ensureTenantDefaults() {
     tenantConfig.legalOwner = "";
   }
   if (!tenantConfig.legalEmail) {
-    tenantConfig.legalEmail = "partner@taxiapp.de";
+    tenantConfig.legalEmail = "";
   }
   if (!tenantConfig.vatId) {
     tenantConfig.vatId = "";
   }
+  if (!tenantConfig.platformCompanyName) {
+    tenantConfig.platformCompanyName = "Luckys Taxi App";
+  }
+  if (!tenantConfig.platformStreet) {
+    tenantConfig.platformStreet = "";
+  }
+  if (!tenantConfig.platformCity) {
+    tenantConfig.platformCity = "";
+  }
+  if (!tenantConfig.platformOwner) {
+    tenantConfig.platformOwner = "";
+  }
+  if (!tenantConfig.platformEmail) {
+    tenantConfig.platformEmail = "partner@taxiapp.de";
+  }
+  if (!tenantConfig.platformPhone) {
+    tenantConfig.platformPhone = "";
+  }
+  if (!tenantConfig.platformVatId) {
+    tenantConfig.platformVatId = "";
+  }
   if (changed) saveTenantConfig();
 }
 
-/** @type {Array<{driverId:string,name:string,phone:string,vehicle:string,status:string}>} */
+/** @type {Array<{driverId:string,name:string,phone:string,vehicle:string,status:string,operatorId?:string}>} */
 const drivers = driversSeed.drivers.map((d) => ({ ...d }));
 
 function loadJsonArray(filePath) {
@@ -132,6 +174,142 @@ function saveJsonArray(filePath, data) {
 
 const bookings = loadJsonArray(bookingsFilePath);
 const phoneCalls = loadJsonArray(callsFilePath);
+/** @type {Array<{operatorId:string,planId:string,email:string,companyName:string,stripeCustomerId:string|null,stripeSubscriptionId:string|null,status:string,createdAt:string,updatedAt:string}>} */
+let operators = loadJsonArray(operatorsFilePath);
+/** @type {Array<{inquiryId:string,planId:string,email:string,companyName:string,message:string,createdAt:string}>} */
+let inquiries = loadJsonArray(inquiriesFilePath);
+
+function saveOperators() {
+  saveJsonArray(operatorsFilePath, operators);
+}
+
+function saveInquiries() {
+  saveJsonArray(inquiriesFilePath, inquiries);
+}
+
+function findOperatorBySubscription(subscriptionId) {
+  return operators.find((op) => op.stripeSubscriptionId === subscriptionId);
+}
+
+function findOperatorByCustomer(customerId) {
+  return operators.find((op) => op.stripeCustomerId === customerId);
+}
+
+function upsertOperator(record) {
+  const index = operators.findIndex(
+    (op) =>
+      (record.stripeSubscriptionId && op.stripeSubscriptionId === record.stripeSubscriptionId) ||
+      (record.stripeCustomerId && op.stripeCustomerId === record.stripeCustomerId && op.planId === record.planId)
+  );
+  const now = new Date().toISOString();
+  if (index === -1) {
+    operators.unshift({
+      operatorId: crypto.randomUUID(),
+      createdAt: now,
+      ...record,
+      updatedAt: now,
+    });
+  } else {
+    operators[index] = { ...operators[index], ...record, updatedAt: now };
+  }
+  saveOperators();
+}
+
+function resolvePublicBaseUrl(req) {
+  if (publicBaseUrl) return publicBaseUrl;
+  const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "http");
+  const host = req.get("host");
+  return host ? `${proto}://${host}` : `http://127.0.0.1:${port}`;
+}
+
+async function geocodePlace(query, country = "DE") {
+  const q = String(query || "").trim();
+  if (!q) return null;
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("countrycodes", String(country || "DE").toLowerCase());
+  url.searchParams.set("q", q);
+  const response = await fetch(url, {
+    headers: { "User-Agent": "LuckysTaxiApp/1.0 (fleet-onboarding)" },
+  });
+  if (!response.ok) return null;
+  const data = await response.json();
+  if (!Array.isArray(data) || !data.length) return null;
+  return { lat: Number(data[0].lat), lng: Number(data[0].lon) };
+}
+
+async function sendFleetOnboardingNotification(operator, links) {
+  console.log(
+    `Neuer Taxi-Betrieb: ${operator.companyName} (${operator.slug}) · ${operator.legalEmail || "keine E-Mail"}`
+  );
+  console.log(`  Leitstelle: ${links.dispatch}`);
+
+  if (!resendApiKey || !operator.legalEmail) return;
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Luckys Taxi App <onboarding@resend.dev>",
+      to: [operator.legalEmail],
+      subject: `Ihr Zugang — ${operator.companyName}`,
+      text: [
+        `Willkommen bei Luckys Taxi App, ${operator.companyName}!`,
+        "",
+        "Ihre Links:",
+        `Leitstelle: ${links.dispatch}`,
+        `Einstellungen: ${links.settings}`,
+        `Online-Buchung: ${links.book}`,
+        `QR-Code: ${links.qr}`,
+        "",
+        "Bitte dispatchPin in den Einstellungen setzen und Fahrer anlegen.",
+      ].join("\n"),
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    console.warn(`Onboarding-Mail fehlgeschlagen (${response.status}): ${body}`);
+  }
+}
+
+async function sendContactNotification(inquiry) {
+  if (!resendApiKey) {
+    console.log(
+      `Tarif-Anfrage ${inquiry.inquiryId}: ${inquiry.planId} · ${inquiry.email} · ${inquiry.companyName}`
+    );
+    return;
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Luckys Taxi App <onboarding@resend.dev>",
+      to: [contactNotifyEmail],
+      subject: `Tarif-Anfrage: ${inquiry.planId} — ${inquiry.companyName}`,
+      text: [
+        `Plan: ${inquiry.planId}`,
+        `Firma: ${inquiry.companyName}`,
+        `E-Mail: ${inquiry.email}`,
+        "",
+        inquiry.message || "(keine Nachricht)",
+      ].join("\n"),
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    console.warn(`Resend fehlgeschlagen (${response.status}): ${body}`);
+  }
+}
 
 function saveBookings() {
   saveJsonArray(bookingsFilePath, bookings);
@@ -157,9 +335,114 @@ const BOOKING_STATUSES = new Set([
 ]);
 const DRIVER_STATUSES = new Set(["available", "busy", "offline"]);
 
+function operatorSlugFromRequest(req) {
+  const querySlug = String(req.query.operator || req.query.o || "").trim().toLowerCase();
+  if (querySlug) return querySlug;
+  const headerSlug = String(req.headers["x-operator-slug"] || "").trim().toLowerCase();
+  if (headerSlug) return headerSlug;
+  const bodySlug = String(req.body?.operator || req.body?.operatorSlug || "").trim().toLowerCase();
+  return bodySlug || "";
+}
+
+function resolveFleetOperatorFromRequest(req) {
+  const slug = operatorSlugFromRequest(req);
+  if (!slug) return null;
+  return fleet.findBySlug(slug);
+}
+
+function defaultFleetOperator() {
+  return fleet.list()[0] || null;
+}
+
+function migrateLegacyBookings() {
+  if (!fleet.enabled()) return;
+  const fallback = defaultFleetOperator();
+  if (!fallback) return;
+  let changed = false;
+  for (const booking of bookings) {
+    if (!booking.operatorId) {
+      booking.operatorId = fallback.operatorId;
+      changed = true;
+    }
+  }
+  if (changed) saveBookings();
+}
+
+function migrateLegacyDrivers() {
+  if (!fleet.enabled()) return;
+  const fallback = defaultFleetOperator();
+  if (!fallback) return;
+  let changed = false;
+  for (const driver of drivers) {
+    if (!driver.operatorId) {
+      driver.operatorId = fallback.operatorId;
+      changed = true;
+    }
+  }
+  if (changed) saveDriversConfig();
+}
+
+function authRequiredForRequest(req) {
+  if (adminPin) return true;
+  const operator = resolveFleetOperatorFromRequest(req);
+  if (operator && fleet.pinRequiredForOperator(operator)) return true;
+  if (!operator && fleet.anyOperatorPinRequired()) return true;
+  return false;
+}
+
+function verifyRequestPin(req, pin) {
+  const operatorSlug = operatorSlugFromRequest(req);
+  return fleet.verifyPin(pin, operatorSlug, adminPin);
+}
+
+function filterBookingsForRequest(req) {
+  const operator = resolveFleetOperatorFromRequest(req);
+  if (operator) {
+    return bookings.filter((b) => b.operatorId === operator.operatorId);
+  }
+  if (fleet.enabled()) return [];
+  return bookings;
+}
+
+function filterDriversForRequest(req) {
+  const operator = resolveFleetOperatorFromRequest(req);
+  if (operator) {
+    return drivers.filter((d) => d.operatorId === operator.operatorId);
+  }
+  if (fleet.enabled()) return [];
+  return drivers;
+}
+
+function bookingMatchesRequest(req, booking) {
+  const operator = resolveFleetOperatorFromRequest(req);
+  if (!operator) return !fleet.enabled();
+  return booking.operatorId === operator.operatorId;
+}
+
+function driverMatchesRequest(req, driver) {
+  const operator = resolveFleetOperatorFromRequest(req);
+  if (!operator) return !fleet.enabled();
+  return driver.operatorId === operator.operatorId;
+}
+
+function configForRequest(req) {
+  const operator = resolveFleetOperatorFromRequest(req);
+  if (operator) return fleet.toPublicConfig(operator);
+  if (fleet.enabled()) return null;
+  return tenantConfig;
+}
+
+function operatorConfigForNightSurcharge(operatorOrNull) {
+  if (operatorOrNull) return operatorOrNull;
+  return tenantConfig;
+}
+
 function findDriver(driverId) {
   return drivers.find((d) => d.driverId === driverId);
 }
+
+migrateLegacyBookings();
+migrateLegacyDrivers();
 
 function findBooking(bookingId) {
   return bookings.find((b) => b.bookingId === bookingId);
@@ -186,27 +469,99 @@ ensureTenantDefaults();
 
 function saveDriversConfig() {
   const payload = {
-    drivers: drivers.map(({ driverId, name, phone, vehicle, status }) => ({
+    drivers: drivers.map(({ driverId, name, phone, vehicle, status, operatorId }) => ({
       driverId,
       name,
       phone,
       vehicle,
       status,
+      ...(operatorId ? { operatorId } : {}),
     })),
   };
   fs.writeFileSync(driversConfigPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
 function requireAdmin(req, res, next) {
-  if (!adminPin) return next();
+  if (!authRequiredForRequest(req)) return next();
   const header = String(req.headers.authorization || "");
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   const pinHeader = String(req.headers["x-admin-pin"] || "").trim();
-  if (bearer === adminPin || pinHeader === adminPin) return next();
-  return res.status(401).json({ error: "Unauthorized — ADMIN_PIN required" });
+  const pin = bearer || pinHeader;
+  if (verifyRequestPin(req, pin)) return next();
+  return res.status(401).json({ error: "Unauthorized — PIN required" });
 }
 
 app.use(cors());
+
+app.post("/api/billing/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  if (!stripe || !webhookSecret) {
+    return res.status(503).json({ error: "Billing webhook not configured" });
+  }
+
+  const signature = req.headers["stripe-signature"];
+  if (!signature) {
+    return res.status(400).json({ error: "Missing stripe-signature" });
+  }
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
+  } catch (error) {
+    console.warn("Webhook-Signatur ungültig:", error.message);
+    return res.status(400).json({ error: "Invalid signature" });
+  }
+
+  try {
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object;
+        if (session.mode !== "subscription") break;
+        const planId = String(session.metadata?.planId || "").trim();
+        const companyName = String(session.metadata?.companyName || "").trim();
+        const email = String(session.customer_details?.email || session.customer_email || "").trim();
+        upsertOperator({
+          planId: planId || "unknown",
+          email,
+          companyName,
+          stripeCustomerId: session.customer ? String(session.customer) : null,
+          stripeSubscriptionId: session.subscription ? String(session.subscription) : null,
+          status: "active",
+        });
+        console.log(`Abo gestartet: ${planId} · ${email}`);
+        break;
+      }
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object;
+        const existing =
+          findOperatorBySubscription(subscription.id) ||
+          findOperatorByCustomer(String(subscription.customer || ""));
+        upsertOperator({
+          planId: existing?.planId || String(subscription.metadata?.planId || "unknown"),
+          email: existing?.email || "",
+          companyName: existing?.companyName || "",
+          stripeCustomerId: String(subscription.customer || existing?.stripeCustomerId || ""),
+          stripeSubscriptionId: subscription.id,
+          status: subscription.status || "unknown",
+        });
+        break;
+      }
+      case "invoice.paid":
+      case "invoice.payment_failed": {
+        const invoice = event.data.object;
+        console.log(`Rechnung ${event.type}: ${invoice.id} · ${invoice.customer_email || "—"}`);
+        break;
+      }
+      default:
+        break;
+    }
+    res.json({ received: true });
+  } catch (error) {
+    console.error("Webhook-Fehler:", error);
+    res.status(500).json({ error: "Webhook handler failed" });
+  }
+});
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "..", "web")));
 
@@ -214,20 +569,24 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     stripe: Boolean(stripe),
+    billing: isBillingConfigured(),
     dataDir,
     bookings: bookings.length,
-    authRequired: Boolean(adminPin),
+    operators: operators.length,
+    fleetOperators: fleet.list().length,
+    multiTenant: fleet.enabled(),
+    authRequired: Boolean(adminPin) || fleet.anyOperatorPinRequired(),
   });
 });
 
-app.get("/api/auth/required", (_req, res) => {
-  res.json({ required: Boolean(adminPin) });
+app.get("/api/auth/required", (req, res) => {
+  res.json({ required: authRequiredForRequest(req) });
 });
 
 app.post("/api/auth/verify", (req, res) => {
-  if (!adminPin) return res.json({ ok: true });
+  if (!authRequiredForRequest(req)) return res.json({ ok: true });
   const pin = String(req.body.pin || "").trim();
-  if (pin === adminPin) return res.json({ ok: true });
+  if (verifyRequestPin(req, pin)) return res.json({ ok: true });
   return res.status(401).json({ error: "PIN ungültig" });
 });
 
@@ -235,11 +594,302 @@ app.get("/api/offering", (_req, res) => {
   res.json(offering);
 });
 
-app.get("/api/config", (_req, res) => {
-  res.json(tenantConfig);
+app.get("/api/billing/config", (_req, res) => {
+  res.json({
+    enabled: isBillingConfigured(),
+    plans: offering.operators?.plans?.map((plan) => ({
+      id: plan.id,
+      name: plan.name,
+      priceEuroPerMonth: plan.priceEuroPerMonth,
+      checkoutAvailable: Boolean(billingPriceIds[plan.id]),
+    })) || [],
+    contactEmail: offering.operators?.contactEmail || contactNotifyEmail,
+  });
+});
+
+app.post("/api/billing/checkout", async (req, res) => {
+  if (!isBillingConfigured()) {
+    return res.status(503).json({ error: "Stripe Billing not configured" });
+  }
+
+  const planId = String(req.body.planId || "").trim();
+  const email = String(req.body.email || "").trim();
+  const companyName = String(req.body.companyName || "").trim();
+  const priceId = billingPriceIds[planId];
+
+  if (!priceId) {
+    return res.status(400).json({ error: "Invalid planId" });
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Valid email required" });
+  }
+  if (!companyName) {
+    return res.status(400).json({ error: "companyName required" });
+  }
+
+  try {
+    const baseUrl = resolvePublicBaseUrl(req);
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer_email: email,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${baseUrl}/billing-success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/index.html#operators`,
+      metadata: { planId, companyName },
+      subscription_data: {
+        metadata: { planId, companyName },
+      },
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Checkout failed" });
+  }
+});
+
+app.get("/api/billing/operators", requireAdmin, (_req, res) => {
+  res.json({ operators });
+});
+
+app.post("/api/contact", async (req, res) => {
+  const planId = String(req.body.planId || "general").trim();
+  const email = String(req.body.email || "").trim();
+  const companyName = String(req.body.companyName || "").trim();
+  const message = String(req.body.message || "").trim();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Valid email required" });
+  }
+  if (!companyName) {
+    return res.status(400).json({ error: "companyName required" });
+  }
+
+  const inquiry = {
+    inquiryId: crypto.randomUUID(),
+    planId,
+    email,
+    companyName,
+    message,
+    createdAt: new Date().toISOString(),
+  };
+
+  inquiries.unshift(inquiry);
+  saveInquiries();
+
+  try {
+    await sendContactNotification(inquiry);
+    res.status(201).json({ ok: true, inquiryId: inquiry.inquiryId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Inquiry saved but notification failed" });
+  }
+});
+
+app.get("/api/contact/inquiries", requireAdmin, (_req, res) => {
+  res.json({ inquiries });
+});
+
+app.get("/api/operators/resolve", (req, res) => {
+  const latitude = Number(req.query.lat ?? req.query.latitude);
+  const longitude = Number(req.query.lng ?? req.query.longitude);
+  const postalCode = String(req.query.postalCode || req.query.plz || "").trim();
+  const hasCoords = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const hasPlz = Boolean(fleet.normalizePostalCode(postalCode));
+
+  if (!fleet.enabled()) {
+    return res.json({
+      operatorId: null,
+      slug: null,
+      companyName: tenantConfig.companyName,
+      config: tenantConfig,
+    });
+  }
+
+  if (!hasCoords && !hasPlz) {
+    return res.status(400).json({ error: "lat/lng or postalCode required" });
+  }
+
+  const hintSlug = String(req.query.operator || req.query.o || "").trim();
+  const operator = fleet.resolveForBooking(
+    hasCoords ? latitude : Number.NaN,
+    hasCoords ? longitude : Number.NaN,
+    hintSlug,
+    postalCode
+  );
+  if (!operator) {
+    return res.status(404).json({
+      error: "Kein Taxi-Betrieb in Ihrer Nähe — bitte Zentrale anrufen.",
+    });
+  }
+
+  res.json({
+    operatorId: operator.operatorId,
+    slug: operator.slug,
+    companyName: operator.companyName,
+    config: fleet.toPublicConfig(operator),
+  });
+});
+
+app.get("/api/operators", (_req, res) => {
+  if (!fleet.enabled()) {
+    return res.json({ operators: [] });
+  }
+  res.json({ operators: fleet.list().map((op) => fleet.toPublicSummary(op)) });
+});
+
+app.get("/api/fleet/operators", requireAdmin, (_req, res) => {
+  res.json({ operators: fleet.list(true).map((op) => fleet.toPublicSummary(op)) });
+});
+
+app.post("/api/fleet/register", async (req, res) => {
+  try {
+    const companyName = String(req.body.companyName || "").trim();
+    const centralPhone = String(req.body.centralPhone || "").trim();
+    const city = String(req.body.city || "").trim();
+    const country = String(req.body.country || "DE").trim().toUpperCase();
+    const email = String(req.body.email || req.body.legalEmail || "").trim();
+
+    let centerLat = Number(req.body.centerLat);
+    let centerLng = Number(req.body.centerLng);
+    if (!Number.isFinite(centerLat) || !Number.isFinite(centerLng)) {
+      const geo = await geocodePlace(city || companyName, country);
+      if (geo) {
+        centerLat = geo.lat;
+        centerLng = geo.lng;
+      }
+    }
+
+    const operator = fleet.createOperator({
+      companyName,
+      centralPhone,
+      centralPhoneDisplay: req.body.centralPhoneDisplay,
+      email,
+      legalEmail: email,
+      legalCity: city,
+      city,
+      country,
+      dispatchHours: req.body.dispatchHours,
+      dispatchNote: req.body.dispatchNote,
+      dispatchPin: req.body.dispatchPin,
+      postalCodes: req.body.postalCodes,
+      postalPrefixes: req.body.postalPrefixes,
+      centerLat,
+      centerLng,
+      radiusKm: req.body.radiusKm,
+      status: "active",
+    });
+
+    const links = fleet.onboardingLinks(operator.slug, resolvePublicBaseUrl(req));
+    await sendFleetOnboardingNotification(operator, links);
+
+    res.status(201).json({
+      operator: fleet.toPublicSummary(operator),
+      config: fleet.toPublicConfig(operator),
+      links,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Registration failed" });
+  }
+});
+
+app.get("/api/config", (req, res) => {
+  const config = configForRequest(req);
+  if (!config) {
+    return res.status(400).json({
+      error: "operator query required (z. B. ?operator=mannheim)",
+    });
+  }
+  res.json(config);
 });
 
 app.patch("/api/config", requireAdmin, (req, res) => {
+  const slug = operatorSlugFromRequest(req);
+  if (fleet.enabled()) {
+    if (!slug) {
+      return res.status(400).json({ error: "operator query required" });
+    }
+
+    const patch = {};
+    const allowed = [
+      "companyName",
+      "centralPhone",
+      "centralPhoneDisplay",
+      "dispatchHours",
+      "dispatchNote",
+      "legalStreet",
+      "legalCity",
+      "legalOwner",
+      "legalEmail",
+      "vatId",
+    ];
+
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) {
+        patch[key] = String(req.body[key]).trim();
+      }
+    }
+
+    if (req.body.nightSurchargeEnabled !== undefined) {
+      patch.nightSurchargeEnabled = Boolean(
+        req.body.nightSurchargeEnabled === true ||
+          req.body.nightSurchargeEnabled === "true" ||
+          req.body.nightSurchargeEnabled === "on"
+      );
+    }
+    if (req.body.nightSurchargeFromHour !== undefined) {
+      const h = Number(req.body.nightSurchargeFromHour);
+      if (Number.isInteger(h) && h >= 0 && h <= 23) {
+        patch.nightSurchargeFromHour = h;
+      }
+    }
+    if (req.body.nightSurchargeToHour !== undefined) {
+      const h = Number(req.body.nightSurchargeToHour);
+      if (Number.isInteger(h) && h >= 0 && h <= 23) {
+        patch.nightSurchargeToHour = h;
+      }
+    }
+    if (req.body.country !== undefined) {
+      const country = String(req.body.country).trim().toUpperCase();
+      if (/^[A-Z]{2}$/.test(country)) patch.country = country;
+    }
+    if (req.body.timeZone !== undefined) {
+      const timeZone = String(req.body.timeZone).trim();
+      try {
+        Intl.DateTimeFormat(undefined, { timeZone });
+        patch.timeZone = timeZone;
+      } catch {
+        return res.status(400).json({ error: "Invalid timeZone" });
+      }
+    }
+    if (req.body.currency !== undefined) {
+      const currency = String(req.body.currency).trim().toLowerCase();
+      if (/^[a-z]{3}$/.test(currency)) patch.currency = currency;
+    }
+    if (req.body.dispatchPin !== undefined) {
+      patch.dispatchPin = String(req.body.dispatchPin).trim();
+    }
+    if (
+      req.body.postalCodes !== undefined ||
+      req.body.postalPrefixes !== undefined ||
+      req.body.radiusKm !== undefined
+    ) {
+      patch.postalCodes = req.body.postalCodes;
+      patch.postalPrefixes = req.body.postalPrefixes;
+      patch.radiusKm = req.body.radiusKm;
+    }
+
+    try {
+      const updated = fleet.updateOperator(slug, patch);
+      console.log(`Fleet-Config aktualisiert: ${updated.companyName} (${slug})`);
+      return res.json(fleet.toPublicConfig(updated));
+    } catch (error) {
+      return res.status(400).json({ error: error.message || "Update failed" });
+    }
+  }
+
   const allowed = [
     "companyName",
     "centralPhone",
@@ -251,6 +901,13 @@ app.patch("/api/config", requireAdmin, (req, res) => {
     "legalOwner",
     "legalEmail",
     "vatId",
+    "platformCompanyName",
+    "platformStreet",
+    "platformCity",
+    "platformOwner",
+    "platformEmail",
+    "platformPhone",
+    "platformVatId",
   ];
 
   for (const key of allowed) {
@@ -311,8 +968,8 @@ app.patch("/api/config", requireAdmin, (req, res) => {
   res.json(tenantConfig);
 });
 
-app.get("/api/drivers", requireAdmin, (_req, res) => {
-  res.json({ drivers });
+app.get("/api/drivers", requireAdmin, (req, res) => {
+  res.json({ drivers: filterDriversForRequest(req) });
 });
 
 app.post("/api/drivers", requireAdmin, (req, res) => {
@@ -324,12 +981,18 @@ app.post("/api/drivers", requireAdmin, (req, res) => {
     return res.status(400).json({ error: "name and phone required" });
   }
 
+  const operator = resolveFleetOperatorFromRequest(req) || defaultFleetOperator();
+  if (fleet.enabled() && !operator) {
+    return res.status(400).json({ error: "operator query required" });
+  }
+
   const driver = {
     driverId: crypto.randomUUID(),
     name,
     phone,
     vehicle,
     status: "available",
+    ...(operator ? { operatorId: operator.operatorId } : {}),
   };
 
   drivers.push(driver);
@@ -340,6 +1003,9 @@ app.post("/api/drivers", requireAdmin, (req, res) => {
 app.put("/api/drivers/:id", requireAdmin, (req, res) => {
   const driver = findDriver(req.params.id);
   if (!driver) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+  if (!driverMatchesRequest(req, driver)) {
     return res.status(404).json({ error: "Driver not found" });
   }
 
@@ -366,6 +1032,9 @@ app.delete("/api/drivers/:id", requireAdmin, (req, res) => {
   if (index === -1) {
     return res.status(404).json({ error: "Driver not found" });
   }
+  if (!driverMatchesRequest(req, drivers[index])) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
 
   const removed = drivers.splice(index, 1)[0];
   saveDriversConfig();
@@ -375,6 +1044,9 @@ app.delete("/api/drivers/:id", requireAdmin, (req, res) => {
 app.patch("/api/drivers/:id/status", requireAdmin, (req, res) => {
   const driver = findDriver(req.params.id);
   if (!driver) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+  if (!driverMatchesRequest(req, driver)) {
     return res.status(404).json({ error: "Driver not found" });
   }
 
@@ -400,12 +1072,28 @@ app.post("/api/bookings", (req, res) => {
     return res.status(400).json({ error: "addressLine required" });
   }
 
-  const destinationAddressLine = String(req.body.destinationAddressLine || "").trim();
+  const hintSlug = String(
+    req.body.operatorSlug || req.body.operator || req.query.operator || req.query.o || ""
+  ).trim();
+  const postalCode = String(req.body.postalCode || req.body.postalCodes || "").trim();
 
-  const nightEnabled = Boolean(tenantConfig.nightSurchargeEnabled);
-  const fromHour = Number(tenantConfig.nightSurchargeFromHour ?? 22);
-  const toHour = Number(tenantConfig.nightSurchargeToHour ?? 6);
-  const timeZone = tenantConfig.timeZone || "Europe/Berlin";
+  let fleetOperator = null;
+  if (fleet.enabled()) {
+    fleetOperator = fleet.resolveForBooking(latitude, longitude, hintSlug, postalCode);
+    if (!fleetOperator) {
+      return res.status(404).json({
+        error: "Kein Taxi-Betrieb in Ihrer Nähe — bitte Zentrale anrufen.",
+      });
+    }
+  }
+
+  const destinationAddressLine = String(req.body.destinationAddressLine || "").trim();
+  const configSource = operatorConfigForNightSurcharge(fleetOperator);
+
+  const nightEnabled = Boolean(configSource.nightSurchargeEnabled);
+  const fromHour = Number(configSource.nightSurchargeFromHour ?? 22);
+  const toHour = Number(configSource.nightSurchargeToHour ?? 6);
+  const timeZone = configSource.timeZone || "Europe/Berlin";
   const pickup = new Date(req.body.pickupDate || Date.now());
   const pickupHour = Number(
     new Intl.DateTimeFormat("en-GB", {
@@ -422,12 +1110,14 @@ app.post("/api/bookings", (req, res) => {
 
   const booking = {
     bookingId: crypto.randomUUID(),
+    ...(fleetOperator ? { operatorId: fleetOperator.operatorId } : {}),
     pickupDate: req.body.pickupDate || new Date().toISOString(),
     latitude,
     longitude,
     addressLine,
     destinationAddressLine: destinationAddressLine || null,
     paymentMethod: req.body.paymentMethod || "Unbekannt",
+    passengerEmail: String(req.body.passengerEmail || req.body.receiptEmail || "").trim() || null,
     totalAmount: Number(req.body.totalAmount) || 0,
     tariffAmount: Number(req.body.tariffAmount) || 0,
     tipAmount: Number(req.body.tipAmount) || 0,
@@ -439,17 +1129,25 @@ app.post("/api/bookings", (req, res) => {
 
   bookings.unshift(booking);
   saveBookings();
-  console.log(`Buchung ${booking.bookingId}: ${addressLine}${destinationAddressLine ? ` → ${destinationAddressLine}` : ""}`);
-  res.status(201).json({ bookingId: booking.bookingId });
+  const operatorLabel = fleetOperator ? ` [${fleetOperator.slug}]` : "";
+  console.log(`Buchung ${booking.bookingId}${operatorLabel}: ${addressLine}${destinationAddressLine ? ` → ${destinationAddressLine}` : ""}`);
+  res.status(201).json({
+    bookingId: booking.bookingId,
+    operatorId: booking.operatorId || null,
+    operatorSlug: fleetOperator?.slug || null,
+  });
 });
 
-app.get("/api/bookings", requireAdmin, (_req, res) => {
-  res.json({ bookings });
+app.get("/api/bookings", requireAdmin, (req, res) => {
+  res.json({ bookings: filterBookingsForRequest(req) });
 });
 
 app.get("/api/bookings/:id", requireAdmin, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+  if (!bookingMatchesRequest(req, booking)) {
     return res.status(404).json({ error: "Booking not found" });
   }
   res.json(booking);
@@ -458,6 +1156,9 @@ app.get("/api/bookings/:id", requireAdmin, (req, res) => {
 app.patch("/api/bookings/:id/status", requireAdmin, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+  if (!bookingMatchesRequest(req, booking)) {
     return res.status(404).json({ error: "Booking not found" });
   }
 
@@ -482,6 +1183,9 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });
   }
+  if (!bookingMatchesRequest(req, booking)) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
 
   const driverId = req.body.driverId ? String(req.body.driverId).trim() : null;
 
@@ -495,6 +1199,9 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
 
   const driver = findDriver(driverId);
   if (!driver) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+  if (!driverMatchesRequest(req, driver)) {
     return res.status(404).json({ error: "Driver not found" });
   }
   if (driver.status === "offline") {
@@ -564,16 +1271,23 @@ app.post("/create-payment-intent", async (req, res) => {
   try {
     const amount = Number(req.body.amount);
     const currency = (req.body.currency || "eur").toLowerCase();
+    const receiptEmail = String(req.body.receiptEmail || req.body.passengerEmail || "").trim();
 
     if (!Number.isInteger(amount) || amount < 50) {
       return res.status(400).json({ error: "amount must be an integer >= 50 (cents)" });
     }
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    const params = {
       amount,
       currency,
       automatic_payment_methods: { enabled: true },
-    });
+    };
+
+    if (receiptEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiptEmail)) {
+      params.receipt_email = receiptEmail;
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create(params);
 
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (error) {

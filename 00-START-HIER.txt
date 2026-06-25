@@ -1,6 +1,29 @@
 TaxiApp — eigenständiges iOS-Projekt
 =====================================
 
+WICHTIG: Marke vs. App-Rollen (Fahrgast / Fahrer)
+-------------------------------------------------
+Lucky's Taxi = Markenname (Logo, Farben, „Luckys Taxi App“).
+Dieses Projekt (TaxiApp.xcodeproj) = **Fahrgast-App** (Kunde bestellt Taxi).
+
+| Begriff              | Was es ist                          | Pfad / Hinweis |
+|----------------------|-------------------------------------|----------------|
+| Lucky's Taxi         | Marke (gemeinsam für alle Apps)     | Brand.swift, luckys_taxi_logo |
+| TaxiApp              | **Referenz** + Leitstelle (Render)  | TaxiApp.xcodeproj — keine Store-App |
+| FahrgastApp (Firebase)| **Offizielle Kunden-App** (Store)  | ~/CollectionApp/FahrgastApp |
+| Fahrer-App           | **Noch nicht gebaut**               | Roadmap: docs/FAHRER-APP-ROADMAP.md |
+| TaxiApp-Duplikat.xcodeproj | Ehemals irreführend „FahrerApp“ genannt — **ist die Fahrgast-App** | Umbenannt, siehe docs/FAHRERAPP-XCODEPROJ-HINWEIS.md |
+
+Verwirrend im Code (trotzdem Kunden-App):
+  DriverProfileView / DriverProfileStore = Profil des **Fahrgasts** (Foto, Zentrale)
+  DriverBottomSheet = „Dein Fahrer ist unterwegs“ — Info für den **Kunden**
+
+Fahrgast-Strategie: docs/FAHRGAST-STRATEGIE.md (FahrgastApp = App Store)
+Fahrgast Go-Live:   ~/CollectionApp/FahrgastApp/docs/GO-LIVE.md
+Multi-Mandant:      docs/MULTI-TENANT.md (2+ Betriebe, GPS-Routing)
+Pilot-Betrieb:      docs/PILOT-START.md (E-Mail + Leitstelle an Taxi-Unternehmer)
+Betrieb registrieren: web/onboard.html (Self-Service)
+
 Cloud / Go-Live: **Render.com** (nicht Firebase — das ist CollectionShop).
 Live-URL: https://taxiapp-api.onrender.com
 Anleitung: docs/RENDER-GO-LIVE.md
@@ -44,15 +67,24 @@ Web-Landingpage: web/index.html (lokal oder live — siehe oben)
 Preis-Quelle: backend/offering.json (App: BusinessOffering.swift — gleiche Werte)
 
 Unternehmer-Tarife (Stand Prototyp):
-  Starter   49 €/Monat, kündbar, 2,0 % auf Kartenzahlungen
-  Business  99 €/Monat, kündbar, 1,5 % auf Kartenzahlungen
-Kunden: App kostenlos, zahlen nur Fahrt (+ Trinkgeld), keine Reservierungsgebühr
+  Starter   49 €/Monat, kündbar
+  Business  99 €/Monat, kündbar
+  (Provision auf Kartenzahlungen in der App nur relevant, falls Fahrgast-Karte später wieder aktiv wird)
+Fahrgäste: App kostenlos — Zahlung bar beim Fahrer (Taxameter), keine Reservierungsgebühr
 
-Stripe Kartenzahlung (Test)
----------------------------
-1. Keys: Stripe Dashboard → pk_test in TaxiConfig, sk_test in backend/.env
-2. cd backend && npm start
-3. App neu bauen → Zahlung → Karte → Mit Bankkarte bezahlen (Stripe)
+Stripe — nur Abo für Unternehmer (optional)
+--------------------------------------------
+Fahrgäste zahlen bar — dafür brauchen Sie kein Stripe.
+Stripe nur, wenn Taxi-Betriebe auf der Webseite automatisch abonnieren sollen (49/99 €/Monat).
+
+1. Stripe Dashboard → Products: Starter + Business (monatlich wiederkehrend)
+2. Render Environment:
+   STRIPE_SECRET_KEY, STRIPE_PRICE_STARTER, STRIPE_PRICE_BUSINESS,
+   STRIPE_WEBHOOK_SECRET, PUBLIC_BASE_URL
+3. Deploy → index.html zeigt „Jetzt abonnieren“ statt nur „Tarif anfragen“
+4. Details: docs/RECHNUNGEN-ABRECHNUNG.md · Hilfe: scripts/setup-stripe-cloud.sh
+
+Ohne Stripe: „Tarif anfragen“ auf index.html — Rechnung manuell (Lexoffice/sevDesk).
 
 Abholpunkt → Zentrale/Fahrer
 ----------------------------
@@ -91,15 +123,15 @@ Go-Live Checkliste (Schritt für Schritt)
 [ ] 1. Leitstelle: settings.html — Firmenname + echte Zentrale-Nummer + Impressum-Felder
 [ ] 1b. Render: ADMIN_PIN setzen (Leitstelle/Einstellungen PIN-Schutz)
 [ ] 2. Mac-IP in TaxiConfig.swift → deviceBackendURL (nur Fallback ohne cloudBackendURL)
-[ ] 3. Stripe: pk_test in TaxiConfig, sk_test auf Render (scripts/setup-stripe-cloud.sh)
-[ ] 4. Buchung testen: Bar + Karte, dispatch.html prüfen (scripts/test-cloud-e2e.sh)
+[ ] 3. Buchung testen: Bar, dispatch.html prüfen (scripts/test-cloud-e2e.sh)
+[ ] 4. Optional — Stripe Abo Unternehmer: sk_test + Price-IDs auf Render (siehe oben)
 [ ] 5. Zieladresse auf Seite 3 testen (optional, erscheint in Leitstelle)
 [ ] 6. Impressum + Datenschutz — Adresse/Inhaber in settings.html → Impressum (Web)
 [x] 7. Web + Leitstelle live auf Render (index.html, dispatch.html, impressum.html)
 [ ] 8. Optional: eigene Marketing-Domain via scripts/deploy-web.sh (Surge/Netlify)
 [x] 9. cloudBackendURL in TaxiConfig.swift = https://taxiapp-api.onrender.com
 [ ] 10. TestFlight → App Store (docs/TESTFLIGHT.md)
-[ ] 11. Stripe Live + Connect (Provision) — wenn Umsatz startet
+[ ] 11. Optional — Stripe Live für Unternehmer-Abo, wenn erste Kunden zahlen sollen
 
 Backend Cloud (Render.com)
 --------------------------
@@ -107,7 +139,7 @@ GitHub: https://github.com/Lucky18pc/Taxi-APP (Stand ist gepusht)
 
 1. [x] Projekt auf GitHub (Lucky18pc/Taxi-APP)
 2. https://dashboard.render.com/blueprints → New → Repo **Lucky18pc/Taxi-APP** wählen
-3. STRIPE_SECRET_KEY im Render-Dashboard setzen (optional, für Karte)
+3. Stripe auf Render (optional, nur Unternehmer-Abo — siehe Abschnitt oben)
 4. URL notieren: https://taxiapp-api-xxxx.onrender.com
 5. TaxiConfig.swift → cloudBackendURL = "https://taxiapp-api-xxxx.onrender.com"
 6. Leitstelle: https://taxiapp-api-xxxx.onrender.com/dispatch.html

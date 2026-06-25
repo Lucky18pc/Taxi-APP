@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR-Code — Taxi online bestellen</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .qr-wrap { max-width: 28rem; margin: 2rem auto 3rem; padding: 0 1.25rem; text-align: center; }
+    .qr-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .qr-card img {
+      width: 280px;
+      height: 280px;
+      max-width: 100%;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .qr-url {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      word-break: break-all;
+      color: #4b5563;
+    }
+    .qr-url a { font-weight: 600; }
+    .qr-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 1.25rem; }
+    .qr-hint { font-size: 0.9rem; color: #6b7280; margin-top: 1.25rem; text-align: left; }
+    .qr-hint li { margin: 0.35rem 0; }
+    .qr-print-box {
+      margin-top: 2rem;
+      text-align: left;
+      background: #f9fafb;
+      border-radius: var(--radius);
+      padding: 1rem 1.15rem;
+      font-size: 0.9rem;
+    }
+    .qr-print-box h2 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+    @media print {
+      .no-print { display: none !important; }
+      .qr-wrap { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="qr-wrap">
+    <h1 id="qr-title">Taxi bestellen</h1>
+    <p class="lead" id="qr-subtitle">QR-Code scannen → Buchung im Browser (ohne App-Installation)</p>
+
+    <div class="qr-card">
+      <img id="qr-image" width="280" height="280" alt="QR-Code zur Online-Buchung">
+      <p class="qr-url">Link: <a id="qr-link" href="#"></a></p>
+      <p class="note" style="margin-top:0.75rem">PNG speichern und bei einem Drucker oder Online-Shop hochladen — kein Spezialdienst nötig.</p>
+      <div class="qr-actions no-print">
+        <button type="button" class="btn" id="qr-download">PNG speichern (druckfertig)</button>
+        <button type="button" class="btn secondary" onclick="window.print()">Seite drucken</button>
+      </div>
+    </div>
+
+    <ul class="qr-hint">
+      <li><strong>Jetzt:</strong> QR zeigt auf <code>book.html</code> (Browser-Buchung).</li>
+      <li><strong>Später mit iPhone-App:</strong> Neuen QR mit App-Store-Link erstellen (siehe unten).</li>
+      <li>Vor dem Druck: einmal selbst scannen und testen.</li>
+    </ul>
+
+    <section class="qr-print-box no-print">
+      <h2>Drucken lassen — wer macht das?</h2>
+      <p><strong>Sie</strong> — es gibt keinen offiziellen „QR-Druck-Service“ für die App. Ablauf:</p>
+      <ol style="margin:0.5rem 0 0 1.1rem;padding:0">
+        <li>Hier <strong>PNG speichern</strong> (ca. 1200×1200 px, gut für Druck).</li>
+        <li>Datei an einen Anbieter Ihrer Wahl — z. B. <strong>Copyshop vor Ort</strong>, <strong>Vistaprint</strong>, <strong>FLYERALARM</strong>, <strong>Avery</strong> (Aufkleber), oder <strong>eigener Drucker</strong> auf A4.</li>
+        <li>Größe im Auto: QR mindestens <strong>4×4 cm</strong>, besser 6×6 cm; daneben kurz „Taxi scannen &amp; bestellen“.</li>
+      </ol>
+      <p style="margin:0.75rem 0 0">Visitenkarten: PNG beim Karten-Drucker hochladen. Aufkleber: „Wetterfester Aufkleber“ oder Folie wählen.</p>
+    </section>
+
+    <p class="no-print" style="margin-top:1.25rem">
+      <a class="btn secondary" href="settings.html">Einstellungen</a>
+    </p>
+
+    <section class="no-print" style="margin-top:2rem;text-align:left">
+      <h2 style="font-size:1.05rem">App Store / TestFlight</h2>
+      <p class="field-hint">Wenn die iOS-App live ist, neuen QR mit App-Store-Link erzeugen (nicht book.html):</p>
+      <p><code>https://apps.apple.com/app/idXXXXXXXX</code> oder TestFlight-Einladungslink.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer no-print">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="book.html">Taxi bestellen</a>
+      <a href="dispatch.html">Zentrale</a>
+    </nav>
+  </footer>
+
+  <script>
+    (function () {
+      const pageParams = new URLSearchParams(window.location.search);
+      const operatorSlug = String(pageParams.get("o") || pageParams.get("operator") || "").trim().toLowerCase();
+      const bookPath = operatorSlug ? `book.html?o=${encodeURIComponent(operatorSlug)}` : "book.html";
+      const bookUrl = new URL(bookPath, window.location.href).href;
+      const linkEl = document.getElementById("qr-link");
+      const imgEl = document.getElementById("qr-image");
+      const downloadBtn = document.getElementById("qr-download");
+      let companySlug = "taxi";
+
+      function qrPngUrl(size) {
+        return (
+          "https://api.qrserver.com/v1/create-qr-code/?size=" +
+          size +
+          "x" +
+          size +
+          "&margin=2&format=png&data=" +
+          encodeURIComponent(bookUrl)
+        );
+      }
+
+      linkEl.href = bookUrl;
+      linkEl.textContent = bookUrl;
+      imgEl.src = qrPngUrl(280);
+
+      downloadBtn.addEventListener("click", function () {
+        const hiRes = qrPngUrl(1200);
+        const filename = companySlug + "-qr-taxi-bestellen.png";
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = "Wird gespeichert…";
+
+        fetch(hiRes)
+          .then(function (r) {
+            if (!r.ok) throw new Error("download failed");
+            return r.blob();
+          })
+          .then(function (blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+          })
+          .catch(function () {
+            window.open(hiRes, "_blank", "noopener");
+          })
+          .finally(function () {
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = "PNG speichern (druckfertig)";
+          });
+      });
+
+      fetch(operatorSlug ? `/api/config?operator=${encodeURIComponent(operatorSlug)}` : "/api/config")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((cfg) => {
+          if (!cfg || !cfg.companyName) return;
+          document.getElementById("qr-title").textContent = cfg.companyName;
+          document.getElementById("qr-subtitle").textContent =
+            "QR scannen — Taxi bei " + cfg.companyName + " bestellen";
+          document.title = "QR-Code — " + cfg.companyName;
+          companySlug = cfg.slug || cfg.companyName
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "") || "taxi";
+        })
+        .catch(() => {});
+    })();
+  </script>
+</body>
+</html>

@@ -111,6 +111,44 @@
       color: inherit;
     }
     .empty { color: #6b7280; padding: 1.5rem; text-align: center; font-size: 0.9rem; }
+    .driver-setup-banner {
+      display: none;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: #9a3412;
+    }
+    .driver-setup-banner.is-visible { display: block; }
+    .driver-setup-banner strong { display: block; margin-bottom: 0.35rem; font-size: 1rem; }
+    .driver-setup-banner a { color: #c2410c; font-weight: 700; }
+    .driver-setup-empty {
+      grid-column: 1 / -1;
+      background: #f9fafb;
+      border: 1px dashed #d1d5db;
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+    .driver-setup-empty a { font-weight: 700; color: var(--accent, #1c304f); }
+    .assign-hint {
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.75rem;
+      background: #fff7ed;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #9a3412;
+      line-height: 1.45;
+    }
+    .assign-hint a { font-weight: 700; color: #c2410c; }
+    .assign-row select:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -135,11 +173,17 @@
       </div>
     </section>
 
+    <div id="no-drivers-banner" class="driver-setup-banner" role="status">
+      <strong>Noch keine Fahrer angelegt</strong>
+      Unter <a id="settings-link" href="settings.html">Einstellungen → Fahrer</a> Name, Handy und Kennzeichen eintragen —
+      danach können Sie hier bei jeder Buchung einen Fahrer zuweisen.
+    </div>
+
     <h2 class="section-title">Fahrer</h2>
     <div id="drivers" class="driver-grid"></div>
 
     <p class="nav-top" style="text-align:center;margin-bottom:1rem">
-      <a href="settings.html" style="font-weight:600">Einstellungen (Nummer & Fahrer)</a>
+      <a id="settings-nav-link" href="settings.html" style="font-weight:600">Einstellungen (Nummer & Fahrer)</a>
     </p>
 
     <p class="note">Aktualisiert alle 5 Sekunden. Backend: <code>cd backend && npm start</code></p>
@@ -179,6 +223,27 @@
 
     let cachedDrivers = [];
 
+    function hasAssignableDrivers() {
+      return cachedDrivers.some((d) => d.status !== "offline");
+    }
+
+    function updateNoDriversBanner() {
+      const banner = document.getElementById("no-drivers-banner");
+      if (!banner) return;
+      banner.classList.toggle("is-visible", cachedDrivers.length === 0);
+    }
+
+    function driverSetupEmptyHtml() {
+      return `
+        <div class="driver-setup-empty">
+          <p><strong>Noch keine Fahrer.</strong></p>
+          <p style="margin:0.5rem 0 0">Legen Sie Fahrer unter
+            <a href="settings.html">Einstellungen</a> an (Name, Handy, Kennzeichen).
+            Danach erscheinen sie hier und im Dropdown „Fahrer wählen“ bei jeder Buchung.</p>
+        </div>
+      `;
+    }
+
     function mapsUrl(lat, lon) {
       return `https://maps.apple.com/?ll=${lat},${lon}&q=Abholung`;
     }
@@ -210,7 +275,11 @@
 
     async function loadConfig() {
       try {
-        const res = await fetch("/api/config");
+        const slug = window.LeitstelleAuth?.getOperatorSlug?.() || "";
+        const configUrl = slug
+          ? `/api/config?operator=${encodeURIComponent(slug)}`
+          : "/api/config";
+        const res = await fetch(configUrl);
         if (!res.ok) return;
         const cfg = await res.json();
         document.getElementById("company-title").textContent = cfg.companyName || "Zentrale";
@@ -221,6 +290,10 @@
         document.getElementById("dispatch-hours").textContent =
           cfg.dispatchHours ? `Erreichbar: ${cfg.dispatchHours}` : "";
         document.getElementById("dispatch-note").textContent = cfg.dispatchNote || "";
+        if (slug) {
+          document.getElementById("company-subtitle").textContent =
+            `Leitstelle · ${slug}`;
+        }
       } catch {
         /* offline */
       }
@@ -228,9 +301,10 @@
 
     function renderDrivers(data) {
       cachedDrivers = data.drivers || [];
+      updateNoDriversBanner();
       const root = document.getElementById("drivers");
       if (!cachedDrivers.length) {
-        root.innerHTML = '<p class="empty">Keine Fahrer in backend/drivers.json</p>';
+        root.innerHTML = driverSetupEmptyHtml();
         return;
       }
       root.innerHTML = cachedDrivers.map((d) => `
@@ -277,6 +351,34 @@
       return options.join("");
     }
 
+    function assignRowHtml(booking) {
+      if (!cachedDrivers.length) {
+        return `
+          <div class="assign-hint">
+            <strong>Fahrer zuweisen:</strong> Zuerst unter
+            <a href="settings.html">Einstellungen → Fahrer</a> mindestens einen Fahrer anlegen.
+            Dann hier im Dropdown wählen, wer zur Abholung fährt.
+          </div>
+        `;
+      }
+
+      const allOffline = !hasAssignableDrivers();
+      const selectDisabled = allOffline ? " disabled" : "";
+      const offlineHint = allOffline
+        ? `<p class="assign-hint" style="margin-top:0.5rem;margin-bottom:0">Alle Fahrer sind <strong>offline</strong> — in den Einstellungen Status auf „frei“ setzen.</p>`
+        : "";
+
+      return `
+        <div class="assign-row">
+          <label for="driver-${booking.bookingId}">Fahrer zuweisen:</label>
+          <select id="driver-${booking.bookingId}" data-assign-select="${booking.bookingId}"${selectDisabled} title="Welcher Fahrer soll diese Fahrt übernehmen?">
+            ${driverOptions(booking.assignedDriverId)}
+          </select>
+        </div>
+        ${offlineHint}
+      `;
+    }
+
     function assignedDriverBlock(booking) {
       if (!booking.assignedDriverId) return "";
       const driver = driverById(booking.assignedDriverId);
@@ -302,9 +404,10 @@
       const list = data.bookings || [];
       if (!list.length) {
         root.innerHTML =
-          '<p class="empty">Noch keine App-Buchungen. In der App bis BESTÄTIGEN durchgehen.</p>';
+          '<p class="empty">Noch keine App-Buchungen. In der App bis „Taxi bestellen“ durchgehen.</p>';
         return;
       }
+      updateNoDriversBanner();
       root.innerHTML = list.map((b) => `
         <article class="booking-card">
           ${statusBadge(b.status || "confirmed")}
@@ -315,12 +418,7 @@
           <p class="booking-meta">ID: ${b.bookingId.slice(0, 8)}…</p>
           <img class="booking-map" src="${staticMapUrl(b.latitude, b.longitude)}" alt="Karte Abholpunkt" loading="lazy" width="520" height="200">
           ${assignedDriverBlock(b)}
-          <div class="assign-row">
-            <label for="driver-${b.bookingId}">Zuweisen:</label>
-            <select id="driver-${b.bookingId}" data-assign-select="${b.bookingId}">
-              ${driverOptions(b.assignedDriverId)}
-            </select>
-          </div>
+          ${assignRowHtml(b)}
           <div class="booking-actions">
             <a href="${mapsUrl(b.latitude, b.longitude)}" target="_blank" rel="noopener">In Karten öffnen</a>
             <button type="button" data-booking-id="${b.bookingId}" data-status="accepted">Angenommen</button>
@@ -339,7 +437,13 @@
           LeitstelleAuth.apiFetch("/api/drivers"),
         ]);
         if (!bookingsRes.ok) throw new Error("offline");
-        if (driversRes.ok) renderDrivers(await driversRes.json());
+        if (driversRes.ok) {
+          renderDrivers(await driversRes.json());
+        } else {
+          cachedDrivers = [];
+          updateNoDriversBanner();
+          document.getElementById("drivers").innerHTML = driverSetupEmptyHtml();
+        }
         renderBookings(await bookingsRes.json());
         if (callsRes.ok) renderCalls(await callsRes.json());
       } catch {
@@ -349,11 +453,17 @@
     }
 
     async function assignDriver(bookingId, driverId) {
-      await LeitstelleAuth.apiFetch(`/api/bookings/${bookingId}/assign`, {
+      if (!driverId) return;
+      if (!cachedDrivers.length) return;
+      const res = await LeitstelleAuth.apiFetch(`/api/bookings/${bookingId}/assign`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ driverId: driverId || null }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Fahrer konnte nicht zugewiesen werden.");
+      }
       refresh();
     }
 
@@ -391,6 +501,11 @@
     });
 
     LeitstelleAuth.init().then(() => {
+      const settingsHref = LeitstelleAuth.operatorLink("settings.html");
+      const settingsLink = document.getElementById("settings-link");
+      const settingsNav = document.getElementById("settings-nav-link");
+      if (settingsLink) settingsLink.href = settingsHref;
+      if (settingsNav) settingsNav.href = settingsHref;
       loadConfig();
       refresh();
       setInterval(refresh, 5000);

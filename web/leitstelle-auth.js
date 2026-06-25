@@ -1,8 +1,28 @@
 /**
- * Einfacher PIN-Schutz für Leitstelle & Einstellungen (ADMIN_PIN auf dem Server).
+ * PIN-Schutz für Leitstelle & Einstellungen (ADMIN_PIN oder Betriebs-dispatchPin).
+ * Multi-Mandant: ?o=mannheim oder ?operator=mannheim in der URL.
  */
 (function () {
   const STORAGE_KEY = "taxiapp_admin_pin";
+  const OPERATOR_KEY = "taxiapp_operator_slug";
+
+  function operatorSlugFromPage() {
+    const params = new URLSearchParams(window.location.search);
+    return String(params.get("o") || params.get("operator") || "").trim().toLowerCase();
+  }
+
+  function getOperatorSlug() {
+    return sessionStorage.getItem(OPERATOR_KEY) || operatorSlugFromPage() || "";
+  }
+
+  function setOperatorSlug(slug) {
+    const normalized = String(slug || "").trim().toLowerCase();
+    if (normalized) {
+      sessionStorage.setItem(OPERATOR_KEY, normalized);
+    } else {
+      sessionStorage.removeItem(OPERATOR_KEY);
+    }
+  }
 
   function getPin() {
     return sessionStorage.getItem(STORAGE_KEY) || "";
@@ -16,15 +36,25 @@
     sessionStorage.removeItem(STORAGE_KEY);
   }
 
+  function withOperatorQuery(url) {
+    const slug = getOperatorSlug();
+    if (!slug) return url;
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}operator=${encodeURIComponent(slug)}`;
+  }
+
   function authHeaders() {
     const pin = getPin();
-    if (!pin) return {};
-    return { Authorization: `Bearer ${pin}` };
+    const headers = {};
+    if (pin) headers.Authorization = `Bearer ${pin}`;
+    const slug = getOperatorSlug();
+    if (slug) headers["X-Operator-Slug"] = slug;
+    return headers;
   }
 
   async function authRequired() {
     try {
-      const res = await fetch("/api/auth/required");
+      const res = await fetch(withOperatorQuery("/api/auth/required"));
       if (!res.ok) return false;
       const data = await res.json();
       return Boolean(data.required);
@@ -34,10 +64,11 @@
   }
 
   async function verifyPin(pin) {
+    const slug = getOperatorSlug();
     const res = await fetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin }),
+      body: JSON.stringify({ pin, operator: slug || undefined }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -55,7 +86,7 @@
     overlay.innerHTML = `
       <div class="leitstelle-login-card">
         <h2>Leitstellen-Zugang</h2>
-        <p>Bitte PIN eingeben (ADMIN_PIN — im Render-Dashboard unter Environment).</p>
+        <p id="leitstelle-login-hint">Bitte PIN eingeben.</p>
         <form id="leitstelle-login-form">
           <input type="password" id="leitstelle-pin" inputmode="numeric" autocomplete="current-password" placeholder="PIN" required>
           <button type="submit" class="btn-primary">Anmelden</button>
@@ -106,10 +137,20 @@
 
   function showLogin() {
     ensureLoginOverlay();
+    const slug = getOperatorSlug();
+    const hint = document.getElementById("leitstelle-login-hint");
+    if (hint) {
+      hint.textContent = slug
+        ? `PIN für Betrieb „${slug}“ (dispatchPin oder ADMIN_PIN).`
+        : "Bitte PIN eingeben (ADMIN_PIN auf Render oder Betriebs-PIN).";
+    }
     document.getElementById("leitstelle-login").classList.add("visible");
   }
 
   async function init() {
+    const slug = operatorSlugFromPage();
+    if (slug) setOperatorSlug(slug);
+
     ensureLoginOverlay();
     const required = await authRequired();
     if (!required) return true;
@@ -136,7 +177,7 @@
       ...(options.headers || {}),
       ...authHeaders(),
     };
-    const res = await fetch(url, { ...options, headers });
+    const res = await fetch(withOperatorQuery(url), { ...options, headers });
     if (res.status === 401) {
       clearPin();
       showLogin();
@@ -145,11 +186,21 @@
     return res;
   }
 
+  function operatorLink(path) {
+    const slug = getOperatorSlug();
+    if (!slug) return path;
+    const separator = path.includes("?") ? "&" : "?";
+    return `${path}${separator}o=${encodeURIComponent(slug)}`;
+  }
+
   window.LeitstelleAuth = {
     init,
     apiFetch,
     authHeaders,
     showLogin,
     clearPin,
+    getOperatorSlug,
+    operatorLink,
+    withOperatorQuery,
   };
 })();
