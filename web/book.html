@@ -93,13 +93,23 @@
     }
     .success-box h2 { color: #166534; }
     #book-form[hidden], #book-success[hidden] { display: none !important; }
+    .assigned-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .assigned-box strong { display: block; margin-bottom: 0.2rem; }
+    .club-note { font-size: 0.88rem; color: var(--secondary); margin: 0 0 1rem; }
   </style>
 </head>
 <body>
   <header class="book-hero" id="book-hero">
     <img id="home-screen-icon" src="icon-taxi-192.png" width="72" height="72" alt="Luckys Taxi App" style="display:block;margin:0 auto 0.75rem;border-radius:16px">
     <h1 id="book-title">Luckys Taxi App</h1>
-    <p id="book-subtitle">Aufs Handy legen — dann wie eine App öffnen</p>
+    <p id="book-subtitle">Deutschlandweit bestellen — ein Knopf, Taxi vor Ort</p>
     <p style="margin:1rem 0 0">
       <button type="button" class="btn-book btn-book-download" id="btn-install-hero">Luckys Taxi App aufs Handy</button>
     </p>
@@ -116,6 +126,13 @@
     </div>
 
     <form id="book-form" class="book-card">
+      <p class="club-note" id="club-note">
+        Luckys Taxi App gilt in ganz Deutschland. Nach PLZ oder GPS übernimmt ein Partner-Taxi vor Ort die Fahrt.
+      </p>
+      <div id="assigned-operator" class="assigned-box" hidden>
+        <strong id="assigned-name">Partner-Taxi</strong>
+        <span id="assigned-text">Die Leitstelle vor Ort bekommt Ihre Bestellung.</span>
+      </div>
       <h2>Abholung</h2>
       <div id="location-status" class="location-status pending">
         Tippen Sie auf „Standort nutzen“, wenn Sie keine Adresse haben.
@@ -185,7 +202,9 @@
   <script>
     const pageParams = new URLSearchParams(window.location.search);
     const operatorSlug = String(pageParams.get("o") || pageParams.get("operator") || "").trim().toLowerCase();
-    const state = { latitude: null, longitude: null, centralPhone: "", operatorSlug: operatorSlug };
+    const isNationalClub = !operatorSlug;
+    const state = { latitude: null, longitude: null, centralPhone: "", operatorSlug: operatorSlug, companyName: "" };
+    window.passengerBrandName = "Luckys Taxi App";
 
     function setStatus(text, kind) {
       const el = document.getElementById("location-status");
@@ -309,12 +328,27 @@
       }
     }
 
+    function showAssignedOperator(cfg) {
+      const box = document.getElementById("assigned-operator");
+      const nameEl = document.getElementById("assigned-name");
+      const textEl = document.getElementById("assigned-text");
+      if (!box || !cfg?.companyName) return;
+      nameEl.textContent = cfg.companyName;
+      textEl.textContent = isNationalClub
+        ? "Partner vor Ort — die Bestellung geht an diese Leitstelle."
+        : "Ihre Bestellung geht an diese Leitstelle.";
+      box.hidden = false;
+    }
+
     async function applyOperatorConfig(cfg) {
       if (cfg.slug) state.operatorSlug = cfg.slug;
+      if (cfg.companyName) state.companyName = cfg.companyName;
       state.centralPhone = cfg.centralPhone || "";
       const call = phoneHref(state.centralPhone);
       document.getElementById("call-fallback").href = call;
       document.getElementById("call-central").href = call;
+      showAssignedOperator(cfg);
+      if (isNationalClub) return;
       applyHomeScreenBrand(cfg);
       TenantBranding.applyTenantBranding(cfg, {
         titleId: "book-title",
@@ -325,6 +359,8 @@
         titlePrefix: "",
         titleSuffix: "",
       });
+      const clubNote = document.getElementById("club-note");
+      if (clubNote) clubNote.hidden = true;
     }
 
     async function loadConfigForSlug(slug) {
@@ -342,7 +378,7 @@
       }
       const plz = document.getElementById("postalCode").value.trim();
       if (plz) params.set("postalCode", plz);
-      if (state.operatorSlug) params.set("operator", state.operatorSlug);
+      if (!isNationalClub && state.operatorSlug) params.set("operator", state.operatorSlug);
       const res = await fetch(`/api/operators/resolve?${params}`);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -357,11 +393,13 @@
     fetch("/api/config")
       .then((r) => (r.ok ? r.json() : null))
       .then((cfg) => {
-        if (cfg && !operatorSlug) applyOperatorConfig(cfg);
+        if (cfg && !isNationalClub) applyOperatorConfig(cfg);
       })
       .catch(() => {});
 
     if (operatorSlug) {
+      const clubNote = document.getElementById("club-note");
+      if (clubNote) clubNote.hidden = true;
       loadConfigForSlug(operatorSlug).catch(() => {});
     }
 
@@ -413,7 +451,9 @@
         document.getElementById("book-form").hidden = true;
         document.getElementById("book-success").hidden = false;
         document.getElementById("success-message").textContent =
-          `Buchung ${data.bookingId ? "("+ data.bookingId.slice(0, 8) + "…) " : ""}ist bei der Leitstelle.`;
+          state.companyName
+            ? `Luckys Taxi App hat ${state.companyName} benachrichtigt.`
+            : `Buchung ${data.bookingId ? "("+ data.bookingId.slice(0, 8) + "…) " : ""}ist bei der Leitstelle.`;
       } catch (err) {
         setStatus(err.message || "Fehler beim Senden", "error");
         btn.disabled = false;

@@ -226,9 +226,9 @@
     <section class="settings-card">
       <h2>Das schicken Sie Fahrgästen</h2>
       <p class="field-hint" style="margin-top:0">
-        Diesen Link teilen. Der Fahrgast legt den Button aufs Handy —
-        mit <strong>Ihrem Firmennamen und Ihrem Symbol</strong>, nicht „Taxi“.
-        Name und Logo stellen Sie unten unter Erscheinungsbild ein.
+        Diesen Link teilen: der Fahrgast bekommt <strong>Ihren</strong> Button (Firmenname und Symbol).
+        Zusätzlich gibt es die bundesweite <a href="book.html">Luckys Taxi App</a> —
+        wenn die PLZ in Ihr Gebiet fällt, kommt die Buchung trotzdem zu Ihnen.
       </p>
       <div class="customer-example" aria-label="Beispiel für Fahrgäste">
         <p class="customer-example-title">Beispiel: so sieht es der Fahrgast</p>
@@ -245,7 +245,11 @@
         <button type="button" class="btn-primary" id="guest-copy-link">Link kopieren</button>
         <a class="btn-secondary" id="guest-qr-link" href="qr.html" style="display:inline-block;text-decoration:none">QR speichern und hochladen (PNG)</a>
       </div>
-      <p class="field-hint">QR: speichern, dann beim Drucker oder Aufkleber-Shop hochladen.</p>
+      <p class="field-hint">
+        Ihr Link (Betrieb): oben kopieren.
+        Deutschland-App für alle Fahrgäste:
+        <a href="https://luckystaxiapp.de/book.html">luckystaxiapp.de/book.html</a>
+      </p>
     </section>
 
     <div id="offline-banner" class="settings-card" style="display:none;background:#fee2e2;border:1px solid #fecaca">
@@ -712,7 +716,8 @@
       const name = cfg?.companyName || document.getElementById("companyName")?.value || "Luckys Taxi App";
       const primary = document.getElementById("brandPrimaryColor")?.value || "#0c1c34";
       const accent = document.getElementById("brandAccentColor")?.value || "#ffcc00";
-      const logo = document.getElementById("logoUrl")?.value || cfg?.logoUrl || "";
+      const logoRaw = document.getElementById("logoUrl")?.value || cfg?.logoUrl || "";
+      const logo = /^https:\/\//i.test(String(logoRaw).trim()) ? String(logoRaw).trim() : "";
       const homeLabel = shortHomeLabel(name);
       const pageLabel = `${name} aufs Handy`;
 
