@@ -9,21 +9,17 @@
   <title>Luckys Taxi App</title>
   <meta name="description" content="Luckys Taxi App aufs Handy legen und Taxi bestellen. Barzahlung nach Taxameter.">
   <link rel="manifest" href="book-manifest.json">
-  <link rel="apple-touch-icon" href="icon-taxi-192.png">
+  <link rel="apple-touch-icon" id="apple-touch-icon" href="icon-taxi-192.png">
   <script>
     (function () {
-      var link = document.querySelector('link[rel="manifest"]');
-      if (!link) return;
-      fetch(link.href)
-        .then(function (r) { return r.json(); })
-        .then(function (m) {
-          m.name = "Luckys Taxi App";
-          m.short_name = "Luckys Taxi";
-          m.start_url = location.pathname + location.search;
-          var blob = new Blob([JSON.stringify(m)], { type: "application/manifest+json" });
-          link.href = URL.createObjectURL(blob);
-        })
-        .catch(function () {});
+      var params = new URLSearchParams(location.search);
+      var slug = (params.get("o") || params.get("operator") || "").trim().toLowerCase();
+      if (!slug) return;
+      var manifest = document.querySelector('link[rel="manifest"]');
+      var appleIcon = document.getElementById("apple-touch-icon");
+      var q = encodeURIComponent(slug);
+      if (manifest) manifest.href = "/api/pwa-manifest?operator=" + q;
+      if (appleIcon) appleIcon.href = "/api/pwa-icon?operator=" + q + "&size=180";
     })();
   </script>
   <link rel="stylesheet" href="styles.css">
@@ -101,8 +97,7 @@
 </head>
 <body>
   <header class="book-hero" id="book-hero">
-    <div id="book-logo" style="display:none;width:56px;height:56px;border-radius:12px;margin:0 auto 0.75rem;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem"></div>
-    <img src="icon-taxi-192.png" width="72" height="72" alt="Luckys Taxi App" style="display:block;margin:0 auto 0.75rem;border-radius:16px">
+    <img id="home-screen-icon" src="icon-taxi-192.png" width="72" height="72" alt="Luckys Taxi App" style="display:block;margin:0 auto 0.75rem;border-radius:16px">
     <h1 id="book-title">Luckys Taxi App</h1>
     <p id="book-subtitle">Aufs Handy legen — dann wie eine App öffnen</p>
     <p style="margin:1rem 0 0">
@@ -285,21 +280,50 @@
       return digits ? `tel:${digits}` : "#";
     }
 
+    function applyHomeScreenBrand(cfg) {
+      const name = String(cfg?.companyName || "Luckys Taxi App").trim() || "Luckys Taxi App";
+      window.passengerBrandName = name;
+      const slug = String(cfg?.slug || operatorSlug || "").trim().toLowerCase();
+      const icon = slug
+        ? `/api/pwa-icon?operator=${encodeURIComponent(slug)}&size=192`
+        : (cfg?.logoUrl || "icon-taxi-192.png");
+      const preview = document.getElementById("home-screen-icon");
+      if (preview) {
+        preview.src = icon;
+        preview.alt = name;
+      }
+      const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+      if (appleTitle) appleTitle.setAttribute("content", name);
+      const appleIcon = document.getElementById("apple-touch-icon");
+      if (appleIcon && slug) appleIcon.href = `/api/pwa-icon?operator=${encodeURIComponent(slug)}&size=180`;
+      const manifest = document.querySelector('link[rel="manifest"]');
+      if (manifest && slug) manifest.href = `/api/pwa-manifest?operator=${encodeURIComponent(slug)}`;
+      const label = `${name} aufs Handy`;
+      const hero = document.getElementById("btn-install-hero");
+      const extra = document.getElementById("btn-install");
+      if (hero) hero.textContent = label;
+      if (extra) extra.textContent = label;
+      const hint = document.getElementById("install-hint");
+      if (hint && !window.matchMedia("(display-mode: standalone)").matches) {
+        hint.textContent = `Tippen: ${name} erscheint auf dem Home-Bildschirm.`;
+      }
+    }
+
     async function applyOperatorConfig(cfg) {
       if (cfg.slug) state.operatorSlug = cfg.slug;
       state.centralPhone = cfg.centralPhone || "";
       const call = phoneHref(state.centralPhone);
       document.getElementById("call-fallback").href = call;
       document.getElementById("call-central").href = call;
+      applyHomeScreenBrand(cfg);
       TenantBranding.applyTenantBranding(cfg, {
         titleId: "book-title",
         subtitleId: "book-subtitle",
-        subtitleText: "{company} — Luckys Taxi App aufs Handy legen",
-        logoId: "book-logo",
+        subtitleText: "{company} — aufs Handy legen",
         heroSelector: "#book-hero",
         primaryButtonSelector: ".btn-book-primary",
         titlePrefix: "",
-        titleSuffix: " — Luckys Taxi App",
+        titleSuffix: "",
       });
     }
 
@@ -407,10 +431,11 @@
       let deferredPrompt = null;
       const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
       const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      const brandName = () => window.passengerBrandName || "Luckys Taxi App";
       if (isStandalone) {
         if (btn) btn.hidden = true;
         if (btnHero) btnHero.hidden = true;
-        hint.textContent = "Luckys Taxi App ist auf dem Handy.";
+        hint.textContent = `${brandName()} ist auf dem Handy.`;
       }
 
       window.addEventListener("beforeinstallprompt", (e) => {
@@ -420,39 +445,45 @@
 
       function downloadShortcut() {
         const url = window.location.href;
+        const name = brandName();
         const html =
           "<!DOCTYPE html><html lang=\"de\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0;url=" +
           url.replace(/"/g, "") +
-          "\"><title>Luckys Taxi App</title></head><body style=\"font-family:sans-serif;padding:2rem;text-align:center\">" +
+          "\"><title>" +
+          name.replace(/</g, "") +
+          "</title></head><body style=\"font-family:sans-serif;padding:2rem;text-align:center\">" +
           "<p><a href=\"" +
           url.replace(/"/g, "&quot;") +
-          "\">Luckys Taxi App</a></p></body></html>";
+          "\">" +
+          name.replace(/</g, "") +
+          "</a></p></body></html>";
         const blob = new Blob([html], { type: "text/html" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "Luckys-Taxi-App.html";
+        a.download = name.replace(/\s+/g, "-") + ".html";
         a.click();
         URL.revokeObjectURL(a.href);
       }
 
       async function onInstallClick() {
+        const name = brandName();
         if (isStandalone) {
-          hint.textContent = "Luckys Taxi App ist schon auf dem Handy.";
+          hint.textContent = `${name} ist schon auf dem Handy.`;
           return;
         }
         if (deferredPrompt) {
           deferredPrompt.prompt();
           await deferredPrompt.userChoice;
           deferredPrompt = null;
-          hint.textContent = "Fertig — Luckys Taxi App liegt auf dem Home-Bildschirm.";
+          hint.textContent = `Fertig — ${name} liegt auf dem Home-Bildschirm.`;
           return;
         }
         if (isIos) {
-          hint.textContent = "iPhone: Teilen (Quadrat mit Pfeil unten) → „Zum Home-Bildschirm“. Dann erscheint Luckys Taxi App.";
+          hint.textContent = `iPhone: Teilen (Quadrat mit Pfeil unten) → „Zum Home-Bildschirm“. Dann erscheint ${name}.`;
           return;
         }
         downloadShortcut();
-        hint.textContent = "Oder in Chrome: Menü → Luckys Taxi App hinzufügen.";
+        hint.textContent = `Oder in Chrome: Menü → ${name} hinzufügen.`;
       }
 
       btn?.addEventListener("click", () => void onInstallClick());

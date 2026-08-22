@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
 const { createFleetOperatorsStore } = require("./fleet-operators");
+const { mountPwaBrandRoutes } = require("./pwa-brand");
 
 const port = process.env.PORT || 4242;
 const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -804,6 +805,8 @@ app.get("/api/config", (req, res) => {
   }
   res.json(config);
 });
+
+mountPwaBrandRoutes(app, { configForRequest });
 
 app.patch("/api/config", requireAdmin, (req, res) => {
   const slug = operatorSlugFromRequest(req);

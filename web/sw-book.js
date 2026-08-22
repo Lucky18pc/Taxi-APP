@@ -1,4 +1,4 @@
-const CACHE = "luckys-taxi-book-v3";
+const CACHE = "luckys-taxi-book-v4";
 const ASSETS = [
   "./book.html",
   "./styles.css",
