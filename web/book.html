@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffcc00">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Taxi bestellen">
-  <title>Taxi bestellen — Luckys Taxi App</title>
-  <meta name="description" content="Taxi im Browser bestellen und aufs Handy installieren. Barzahlung nach Taxameter.">
+  <meta name="apple-mobile-web-app-title" content="Luckys Taxi App">
+  <title>Luckys Taxi App</title>
+  <meta name="description" content="Luckys Taxi App aufs Handy legen und Taxi bestellen. Barzahlung nach Taxameter.">
   <link rel="manifest" href="book-manifest.json">
   <link rel="apple-touch-icon" href="icon-taxi-192.png">
   <script>
@@ -17,6 +17,8 @@
       fetch(link.href)
         .then(function (r) { return r.json(); })
         .then(function (m) {
+          m.name = "Luckys Taxi App";
+          m.short_name = "Luckys Taxi";
           m.start_url = location.pathname + location.search;
           var blob = new Blob([JSON.stringify(m)], { type: "application/manifest+json" });
           link.href = URL.createObjectURL(blob);
@@ -100,10 +102,11 @@
 <body>
   <header class="book-hero" id="book-hero">
     <div id="book-logo" style="display:none;width:56px;height:56px;border-radius:12px;margin:0 auto 0.75rem;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem"></div>
+    <img src="icon-taxi-192.png" width="72" height="72" alt="Luckys Taxi App" style="display:block;margin:0 auto 0.75rem;border-radius:16px">
     <h1 id="book-title">Luckys Taxi App</h1>
-    <p id="book-subtitle">Im Browser — einmal installieren, dann wie eine App</p>
+    <p id="book-subtitle">Aufs Handy legen — dann wie eine App öffnen</p>
     <p style="margin:1rem 0 0">
-      <button type="button" class="btn-book btn-book-download" id="btn-install-hero" style="display:inline-block;width:auto;min-width:16rem">Jetzt im Browser installieren</button>
+      <button type="button" class="btn-book btn-book-download" id="btn-install-hero">Luckys Taxi App aufs Handy</button>
     </p>
   </header>
 
@@ -161,11 +164,11 @@
       </div>
       <div class="book-actions">
         <button type="submit" class="btn-book btn-book-primary" id="btn-submit">Taxi bestellen</button>
-        <button type="button" class="btn-book btn-book-download" id="btn-install">Im Browser installieren</button>
+        <button type="button" class="btn-book btn-book-download" id="btn-install">Luckys Taxi App aufs Handy</button>
         <a id="call-fallback" class="btn-book btn-book-secondary" href="#">Lieber anrufen</a>
       </div>
       <p class="book-hint" id="install-hint">
-        Einmal installieren: Icon auf dem Home-Bildschirm, danach wie eine App öffnen.
+        Tippen: Luckys Taxi App erscheint auf dem Home-Bildschirm.
       </p>
       <p class="book-hint" style="margin-top:1rem">
         Mit „Taxi bestellen“ senden Sie eine Fahrtanfrage an die Leitstelle.
@@ -291,12 +294,12 @@
       TenantBranding.applyTenantBranding(cfg, {
         titleId: "book-title",
         subtitleId: "book-subtitle",
-        subtitleText: "Bei {company} — im Browser installieren, dann wie eine App",
+        subtitleText: "{company} — Luckys Taxi App aufs Handy legen",
         logoId: "book-logo",
         heroSelector: "#book-hero",
         primaryButtonSelector: ".btn-book-primary",
-        titlePrefix: "Taxi bestellen — ",
-        titleSuffix: "",
+        titlePrefix: "",
+        titleSuffix: " — Luckys Taxi App",
       });
     }
 
@@ -407,7 +410,7 @@
       if (isStandalone) {
         if (btn) btn.hidden = true;
         if (btnHero) btnHero.hidden = true;
-        hint.textContent = "Installiert — Taxi bestellen wie eine App.";
+        hint.textContent = "Luckys Taxi App ist auf dem Handy.";
       }
 
       window.addEventListener("beforeinstallprompt", (e) => {
@@ -420,36 +423,36 @@
         const html =
           "<!DOCTYPE html><html lang=\"de\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0;url=" +
           url.replace(/"/g, "") +
-          "\"><title>Taxi bestellen</title></head><body style=\"font-family:sans-serif;padding:2rem;text-align:center\">" +
+          "\"><title>Luckys Taxi App</title></head><body style=\"font-family:sans-serif;padding:2rem;text-align:center\">" +
           "<p><a href=\"" +
           url.replace(/"/g, "&quot;") +
-          "\">Taxi bestellen</a></p></body></html>";
+          "\">Luckys Taxi App</a></p></body></html>";
         const blob = new Blob([html], { type: "text/html" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "Taxi-bestellen.html";
+        a.download = "Luckys-Taxi-App.html";
         a.click();
         URL.revokeObjectURL(a.href);
       }
 
       async function onInstallClick() {
         if (isStandalone) {
-          hint.textContent = "Die Bestellung ist schon als App auf dem Handy.";
+          hint.textContent = "Luckys Taxi App ist schon auf dem Handy.";
           return;
         }
         if (deferredPrompt) {
           deferredPrompt.prompt();
           await deferredPrompt.userChoice;
           deferredPrompt = null;
-          hint.textContent = "Fertig — Icon auf dem Home-Bildschirm.";
+          hint.textContent = "Fertig — Luckys Taxi App liegt auf dem Home-Bildschirm.";
           return;
         }
         if (isIos) {
-          hint.textContent = "iPhone: Teilen (Quadrat mit Pfeil unten) → „Zum Home-Bildschirm“ → Fertig.";
+          hint.textContent = "iPhone: Teilen (Quadrat mit Pfeil unten) → „Zum Home-Bildschirm“. Dann erscheint Luckys Taxi App.";
           return;
         }
         downloadShortcut();
-        hint.textContent = "Datei gespeichert. Oder in Chrome: Menü → App installieren.";
+        hint.textContent = "Oder in Chrome: Menü → Luckys Taxi App hinzufügen.";
       }
 
       btn?.addEventListener("click", () => void onInstallClick());

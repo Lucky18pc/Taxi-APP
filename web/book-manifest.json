@@ -1,6 +1,6 @@
 {
-  "name": "Taxi bestellen",
-  "short_name": "Taxi",
+  "name": "Luckys Taxi App",
+  "short_name": "Luckys Taxi",
   "start_url": "./book.html",
   "scope": "./",
   "display": "standalone",
