@@ -147,6 +147,20 @@
 
     <div id="toast" class="toast" role="status"></div>
 
+    <section class="settings-card">
+      <h2>Das schicken Sie Fahrgästen</h2>
+      <p class="field-hint" style="margin-top:0">
+        Diesen Link teilen. Auf der Bestellseite liegt der Button
+        <strong>Jetzt im Browser installieren</strong> — dann liegt Taxi bestellen auf dem Home-Bildschirm.
+      </p>
+      <p><code id="guest-book-url">https://luckystaxiapp.de/book.html</code></p>
+      <div class="btn-row">
+        <button type="button" class="btn-primary" id="guest-copy-link">Link kopieren</button>
+        <a class="btn-secondary" id="guest-qr-link" href="qr.html" style="display:inline-block;text-decoration:none">QR speichern und hochladen (PNG)</a>
+      </div>
+      <p class="field-hint">QR: speichern, dann beim Drucker oder Aufkleber-Shop hochladen.</p>
+    </section>
+
     <div id="offline-banner" class="settings-card" style="display:none;background:#fee2e2;border:1px solid #fecaca">
       <h2 style="margin:0 0 0.5rem;color:#991b1b">Backend nicht erreichbar</h2>
       <p style="margin:0 0 0.75rem;font-size:0.9rem;color:#7f1d1d">
@@ -197,6 +211,11 @@
         <div class="field">
           <label for="dispatchNote">Hinweis für Disponenten</label>
           <textarea id="dispatchNote" name="dispatchNote" placeholder="Interner Hinweis…"></textarea>
+        </div>
+        <div class="field">
+          <label for="dispatchPin">Leitstellen-PIN</label>
+          <input id="dispatchPin" name="dispatchPin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Neu setzen (6+ Ziffern empfohlen)">
+          <p class="field-hint"><strong>Pflicht für Vermietung:</strong> Schützt Leitstelle und Einstellungen. Leer lassen = PIN unverändert.</p>
         </div>
         <div class="field">
           <label for="country">Land</label>
@@ -374,6 +393,36 @@
     </section>
 
     <section class="settings-card">
+      <h2>Erscheinungsbild (App &amp; Browser)</h2>
+      <p class="field-hint" style="margin-top:0">Logo und Farben erscheinen in der Fahrgast-App und auf <a href="book.html">book.html</a>.</p>
+      <form id="branding-form">
+        <div class="field">
+          <label for="logoUrl">Logo-URL (HTTPS)</label>
+          <input id="logoUrl" name="logoUrl" type="url" placeholder="https://ihre-domain.de/logo.png">
+          <p class="field-hint">Quadratisch, min. 128×128 px. Leer = Initialen/Firmenname.</p>
+        </div>
+        <div class="field">
+          <label for="brandPrimaryColor">Primärfarbe</label>
+          <input id="brandPrimaryColor" name="brandPrimaryColor" type="color" value="#1c304f">
+        </div>
+        <div class="field">
+          <label for="brandAccentColor">Akzentfarbe</label>
+          <input id="brandAccentColor" name="brandAccentColor" type="color" value="#f5c400">
+        </div>
+        <div id="brand-preview" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:1rem">
+          <div id="brand-preview-logo" style="width:48px;height:48px;border-radius:10px;background:#1c304f;color:#f5c400;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem">TX</div>
+          <div>
+            <strong id="brand-preview-name">Vorschau</strong>
+            <p class="field-hint" style="margin:0">So sieht es Fahrgästen aus.</p>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Erscheinungsbild speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="settings-card">
       <h2>Servicegebiet (PLZ)</h2>
       <p class="field-hint" style="margin-top:0">
         Fahrgäste werden diesem Betrieb zugeordnet, wenn ihre <strong>PLZ</strong> passt — oder GPS im Radius.
@@ -427,8 +476,37 @@
       setTimeout(() => { toast.className = "toast"; }, 3500);
     }
 
+    function refreshGuestShareLinks(slug) {
+      const origin = window.location.origin;
+      const bookUrl = slug
+        ? `${origin}/book.html?o=${encodeURIComponent(slug)}`
+        : `${origin}/book.html`;
+      const qrUrl = slug
+        ? `qr.html?o=${encodeURIComponent(slug)}`
+        : "qr.html";
+      const urlEl = document.getElementById("guest-book-url");
+      const qrEl = document.getElementById("guest-qr-link");
+      if (urlEl) urlEl.textContent = bookUrl;
+      if (qrEl) qrEl.href = qrUrl;
+    }
+
+    document.getElementById("guest-copy-link")?.addEventListener("click", async () => {
+      const text = document.getElementById("guest-book-url")?.textContent || "";
+      try {
+        await navigator.clipboard.writeText(text);
+        const toast = document.getElementById("toast");
+        if (toast) {
+          toast.textContent = "Fahrgast-Link kopiert.";
+          toast.className = "toast ok";
+        }
+      } catch {
+        window.prompt("Link kopieren:", text);
+      }
+    });
+
     async function loadConfig() {
       const slug = window.LeitstelleAuth?.getOperatorSlug?.() || "";
+      refreshGuestShareLinks(slug);
       const configUrl = slug
         ? `/api/config?operator=${encodeURIComponent(slug)}`
         : "/api/config";
@@ -440,10 +518,18 @@
         "country", "timeZone", "currency",
         "platformCompanyName", "platformStreet", "platformCity", "platformOwner", "platformEmail", "platformPhone", "platformVatId",
         "legalStreet", "legalCity", "legalOwner", "legalEmail", "vatId",
+        "logoUrl", "brandPrimaryColor", "brandAccentColor",
       ]) {
         const el = document.getElementById(key);
         if (el) el.value = cfg[key] || el.value || "";
       }
+      if (cfg.brandPrimaryColor) {
+        document.getElementById("brandPrimaryColor").value = cfg.brandPrimaryColor;
+      }
+      if (cfg.brandAccentColor) {
+        document.getElementById("brandAccentColor").value = cfg.brandAccentColor;
+      }
+      updateBrandPreview(cfg);
       const nightToggle = document.getElementById("nightSurchargeEnabled");
       if (nightToggle) nightToggle.checked = Boolean(cfg.nightSurchargeEnabled);
       if (cfg.serviceArea) {
@@ -460,6 +546,7 @@
       e.preventDefault();
       const payload = Object.fromEntries(new FormData(e.target).entries());
       payload.nightSurchargeEnabled = document.getElementById("nightSurchargeEnabled").checked;
+      if (!payload.dispatchPin) delete payload.dispatchPin;
       try {
         const res = await LeitstelleAuth.apiFetch("/api/config", {
           method: "PATCH",
@@ -490,6 +577,50 @@
           throw new Error(err.error || "Speichern fehlgeschlagen");
         }
         showToast("Plattform-Daten gespeichert.", false);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function updateBrandPreview(cfg) {
+      const name = cfg?.companyName || document.getElementById("companyName")?.value || "Taxi";
+      const primary = document.getElementById("brandPrimaryColor")?.value || "#1c304f";
+      const accent = document.getElementById("brandAccentColor")?.value || "#f5c400";
+      const logo = document.getElementById("logoUrl")?.value || cfg?.logoUrl || "";
+      const previewLogo = document.getElementById("brand-preview-logo");
+      const previewName = document.getElementById("brand-preview-name");
+      if (previewName) previewName.textContent = name;
+      if (previewLogo) {
+        previewLogo.style.background = primary;
+        previewLogo.style.color = accent;
+        if (logo) {
+          previewLogo.innerHTML = `<img src="${logo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.parentElement.textContent='${name.slice(0,2).toUpperCase()}'">`;
+        } else {
+          previewLogo.textContent = name.slice(0, 2).toUpperCase();
+        }
+      }
+    }
+
+    ["brandPrimaryColor", "brandAccentColor", "logoUrl", "companyName"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("input", () => updateBrandPreview());
+    });
+
+    document.getElementById("branding-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        const res = await LeitstelleAuth.apiFetch("/api/config", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Speichern fehlgeschlagen");
+        }
+        const cfg = await res.json();
+        updateBrandPreview(cfg);
+        showToast("Erscheinungsbild gespeichert.", false);
       } catch (err) {
         showToast(err.message, true);
       }

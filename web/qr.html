@@ -49,7 +49,7 @@
 <body>
   <main class="qr-wrap">
     <h1 id="qr-title">Taxi bestellen</h1>
-    <p class="lead" id="qr-subtitle">QR-Code scannen → Buchung im Browser (ohne App-Installation)</p>
+    <p class="lead" id="qr-subtitle">QR scannen → Bestellseite → im Browser aufs Handy installieren</p>
 
     <div class="qr-card">
       <img id="qr-image" width="280" height="280" alt="QR-Code zur Online-Buchung">
@@ -97,6 +97,7 @@
     </nav>
   </footer>
 
+  <script src="tenant-branding.js"></script>
   <script>
     (function () {
       const pageParams = new URLSearchParams(window.location.search);
@@ -159,6 +160,9 @@
           document.getElementById("qr-subtitle").textContent =
             "QR scannen — Taxi bei " + cfg.companyName + " bestellen";
           document.title = "QR-Code — " + cfg.companyName;
+          if (window.TenantBranding) {
+            TenantBranding.applyTenantBranding(cfg, { titleId: "qr-title" });
+          }
           companySlug = cfg.slug || cfg.companyName
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")
