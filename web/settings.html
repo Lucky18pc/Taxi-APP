@@ -131,6 +131,82 @@
     .toast.ok { display: block; }
     .nav-top { text-align: center; margin-bottom: 1rem; }
     .nav-top a { margin: 0 0.5rem; font-weight: 600; }
+    .customer-example {
+      margin: 1rem 0;
+      padding: 1rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      background: #f8fafc;
+    }
+    .customer-example-title {
+      margin: 0 0 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .phone-home {
+      background: linear-gradient(180deg, #1e3a5f 0%, #0c1c34 100%);
+      border-radius: 22px;
+      padding: 1.25rem 1rem 1.1rem;
+      text-align: center;
+      margin-bottom: 0.85rem;
+    }
+    .phone-home-caption {
+      color: #93c5fd;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 0 0 0.85rem;
+    }
+    .app-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      margin: 0 auto 0.45rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.05rem;
+      overflow: hidden;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    }
+    .app-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .app-icon-label {
+      display: block;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.2;
+      max-width: 7.5rem;
+      margin: 0 auto;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .customer-page-btn {
+      display: block;
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      font: inherit;
+      font-weight: 800;
+      background: #ffcc00;
+      color: #0c1c34;
+      cursor: default;
+      text-align: center;
+    }
+    .customer-page-caption {
+      margin: 0.45rem 0 0;
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -154,6 +230,16 @@
         mit <strong>Ihrem Firmennamen und Ihrem Symbol</strong>, nicht „Taxi“.
         Name und Logo stellen Sie unten unter Erscheinungsbild ein.
       </p>
+      <div class="customer-example" aria-label="Beispiel für Fahrgäste">
+        <p class="customer-example-title">Beispiel: so sieht es der Fahrgast</p>
+        <div class="phone-home">
+          <p class="phone-home-caption">Home-Bildschirm</p>
+          <div class="app-icon" id="example-home-icon">TX</div>
+          <span class="app-icon-label" id="example-home-label">Luckys Taxi</span>
+        </div>
+        <button type="button" class="customer-page-btn" id="example-page-btn" disabled>Luckys Taxi App aufs Handy</button>
+        <p class="customer-page-caption">Gelber Knopf auf der Bestellseite — nur Vorschau, nicht zum Tippen.</p>
+      </div>
       <p><code id="guest-book-url">https://luckystaxiapp.de/book.html</code></p>
       <div class="btn-row">
         <button type="button" class="btn-primary" id="guest-copy-link">Link kopieren</button>
@@ -413,12 +499,15 @@
           <label for="brandAccentColor">Akzentfarbe</label>
           <input id="brandAccentColor" name="brandAccentColor" type="color" value="#f5c400">
         </div>
-        <div id="brand-preview" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:1rem">
-          <div id="brand-preview-logo" style="width:48px;height:48px;border-radius:10px;background:#1c304f;color:#f5c400;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem">TX</div>
-          <div>
-            <strong id="brand-preview-name">Vorschau</strong>
-            <p class="field-hint" style="margin:0">So liegt der Button auf dem Home-Bildschirm der Fahrgäste.</p>
+        <div class="customer-example" id="brand-preview">
+          <p class="customer-example-title">Beispiel-Button für Ihre Fahrgäste</p>
+          <div class="phone-home">
+            <p class="phone-home-caption">Home-Bildschirm</p>
+            <div class="app-icon" id="brand-preview-logo">TX</div>
+            <span class="app-icon-label" id="brand-preview-name">Vorschau</span>
           </div>
+          <button type="button" class="customer-page-btn" id="brand-example-btn" disabled>Taxi aufs Handy</button>
+          <p class="customer-page-caption">Ändern Sie Name, Logo und Farben — die Vorschau folgt sofort.</p>
         </div>
         <div class="btn-row">
           <button type="submit" class="btn-primary">Erscheinungsbild speichern</button>
@@ -586,22 +675,64 @@
       }
     });
 
+    function initialsFromName(name) {
+      const parts = String(name || "Taxi")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      const letters = parts
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
+      return (letters || "TX").slice(0, 2);
+    }
+
+    function shortHomeLabel(name) {
+      const full = String(name || "Luckys Taxi").trim() || "Luckys Taxi";
+      if (full.length <= 12) return full;
+      const first = full.split(/\s+/)[0];
+      if (first.length >= 4 && first.length <= 12) return first;
+      return `${full.slice(0, 11)}…`;
+    }
+
+    function fillAppIcon(el, name, primary, accent, logo) {
+      if (!el) return;
+      const initials = initialsFromName(name);
+      el.style.background = accent || "#ffcc00";
+      el.style.color = primary || "#0c1c34";
+      if (logo) {
+        el.innerHTML = `<img src="${logo.replace(/"/g, "")}" alt="" onerror="this.parentElement.textContent='${initials.replace(/'/g, "")}'">`;
+      } else {
+        el.textContent = initials;
+      }
+    }
+
     function updateBrandPreview(cfg) {
-      const name = cfg?.companyName || document.getElementById("companyName")?.value || "Taxi";
-      const primary = document.getElementById("brandPrimaryColor")?.value || "#1c304f";
-      const accent = document.getElementById("brandAccentColor")?.value || "#f5c400";
+      const name = cfg?.companyName || document.getElementById("companyName")?.value || "Luckys Taxi App";
+      const primary = document.getElementById("brandPrimaryColor")?.value || "#0c1c34";
+      const accent = document.getElementById("brandAccentColor")?.value || "#ffcc00";
       const logo = document.getElementById("logoUrl")?.value || cfg?.logoUrl || "";
-      const previewLogo = document.getElementById("brand-preview-logo");
+      const homeLabel = shortHomeLabel(name);
+      const pageLabel = `${name} aufs Handy`;
+
+      fillAppIcon(document.getElementById("brand-preview-logo"), name, primary, accent, logo);
+      fillAppIcon(document.getElementById("example-home-icon"), name, primary, accent, logo);
       const previewName = document.getElementById("brand-preview-name");
-      if (previewName) previewName.textContent = name;
-      if (previewLogo) {
-        previewLogo.style.background = primary;
-        previewLogo.style.color = accent;
-        if (logo) {
-          previewLogo.innerHTML = `<img src="${logo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.parentElement.textContent='${name.slice(0,2).toUpperCase()}'">`;
-        } else {
-          previewLogo.textContent = name.slice(0, 2).toUpperCase();
-        }
+      const exampleLabel = document.getElementById("example-home-label");
+      if (previewName) previewName.textContent = homeLabel;
+      if (exampleLabel) exampleLabel.textContent = homeLabel;
+      const brandBtn = document.getElementById("brand-example-btn");
+      const exampleBtn = document.getElementById("example-page-btn");
+      if (brandBtn) {
+        brandBtn.textContent = pageLabel;
+        brandBtn.style.background = accent;
+        brandBtn.style.color = primary;
+      }
+      if (exampleBtn) {
+        exampleBtn.textContent = pageLabel;
+        exampleBtn.style.background = accent;
+        exampleBtn.style.color = primary;
       }
     }
 
