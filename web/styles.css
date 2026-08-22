@@ -19,6 +19,46 @@ body {
   line-height: 1.55;
 }
 
+.lang-bar {
+  background: #0c1c34;
+  padding: 0.45rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 80;
+}
+
+.lang-switch {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.lang-switch button {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.32rem 0.55rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.lang-switch button[aria-pressed="true"] {
+  background: #ffcc00;
+  color: #0c1c34;
+  border-color: #ffcc00;
+}
+
+html[dir="rtl"] .lang-switch {
+  justify-content: flex-start;
+}
+
 a { color: var(--primary); }
 
 .hero {
@@ -263,6 +303,66 @@ ul.checklist li::before {
 .btn.secondary {
   background: rgba(28, 48, 79, 0.1);
   color: var(--primary) !important;
+}
+
+.billing-status {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.billing-status.ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+}
+
+.billing-status.error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+}
+
+.billing-form {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.billing-form label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.billing-form input,
+.billing-form textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(28, 48, 79, 0.15);
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.billing-form textarea {
+  min-height: 4rem;
+  resize: vertical;
+}
+
+.billing-form button[type="submit"] {
+  margin-top: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.billing-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.billing-form [hidden] {
+  display: none !important;
 }
 
 .note {

@@ -23,6 +23,7 @@
     })();
   </script>
   <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js" defer></script>
   <style>
     .book-wrap { max-width: 520px; margin: 0 auto 3rem; padding: 0 1.25rem; }
     .book-hero {
@@ -105,101 +106,104 @@
     .club-note { font-size: 0.88rem; color: var(--secondary); margin: 0 0 1rem; }
   </style>
 </head>
-<body>
+<body data-i18n-title="meta.bookTitle">
   <header class="book-hero" id="book-hero">
     <img id="home-screen-icon" src="icon-taxi-192.png" width="72" height="72" alt="Luckys Taxi App" style="display:block;margin:0 auto 0.75rem;border-radius:16px">
     <h1 id="book-title">Luckys Taxi App</h1>
-    <p id="book-subtitle">Deutschlandweit bestellen — ein Knopf, Taxi vor Ort</p>
+    <p id="book-subtitle" data-i18n="book.subtitle">Deutschlandweit bestellen — ein Knopf, Taxi vor Ort</p>
     <p style="margin:1rem 0 0">
-      <button type="button" class="btn-book btn-book-download" id="btn-install-hero">Luckys Taxi App aufs Handy</button>
+      <button type="button" class="btn-book btn-book-download" id="btn-install-hero" data-i18n="book.install">Luckys Taxi App aufs Handy</button>
     </p>
   </header>
 
   <main class="book-wrap">
     <div id="book-success" class="book-card success-box" hidden>
-      <h2>Taxi bestellt</h2>
-      <p id="success-message">Die Leitstelle hat Ihre Anfrage erhalten.</p>
+      <h2 data-i18n="book.successTitle">Taxi bestellt</h2>
+      <p id="success-message" data-i18n="book.successMsg">Die Leitstelle hat Ihre Anfrage erhalten.</p>
       <div class="book-actions">
-        <a id="call-central" class="btn-book btn-book-primary" href="#">Zentrale anrufen</a>
-        <a class="btn-book btn-book-secondary" href="book.html">Weitere Fahrt</a>
+        <a id="call-central" class="btn-book btn-book-primary" href="#" data-i18n="book.callCentral">Zentrale anrufen</a>
+        <a class="btn-book btn-book-secondary" href="book.html" data-i18n="book.anotherRide">Weitere Fahrt</a>
       </div>
     </div>
 
     <form id="book-form" class="book-card">
-      <p class="club-note" id="club-note">
+      <p class="club-note" id="club-note" data-i18n="book.clubNote">
         Luckys Taxi App gilt in ganz Deutschland. Nach PLZ oder GPS übernimmt ein Partner-Taxi vor Ort die Fahrt.
       </p>
       <div id="assigned-operator" class="assigned-box" hidden>
         <strong id="assigned-name">Partner-Taxi</strong>
         <span id="assigned-text">Die Leitstelle vor Ort bekommt Ihre Bestellung.</span>
       </div>
-      <h2>Abholung</h2>
-      <div id="location-status" class="location-status pending">
+      <h2 data-i18n="book.pickup">Abholung</h2>
+      <div id="location-status" class="location-status pending" data-i18n="book.gpsHint">
         Tippen Sie auf „Standort nutzen“, wenn Sie keine Adresse haben.
       </div>
       <div class="book-actions" style="margin-bottom:1rem">
-        <button type="button" class="btn-book btn-book-secondary" id="btn-gps">Standort nutzen (GPS)</button>
+        <button type="button" class="btn-book btn-book-secondary" id="btn-gps" data-i18n="book.useGps">Standort nutzen (GPS)</button>
       </div>
-      <p class="book-hint" style="margin-bottom:0.75rem">Adresse eingeben — oder GPS nutzen und Felder werden ausgefüllt.</p>
+      <p class="book-hint" style="margin-bottom:0.75rem" data-i18n="book.addressOrGps">Adresse eingeben — oder GPS nutzen und Felder werden ausgefüllt.</p>
       <div class="book-field">
-        <label for="street">Straße</label>
+        <label for="street" data-i18n="book.street">Straße</label>
         <input id="street" name="street" placeholder="Musterstraße" required>
       </div>
       <div class="book-field">
-        <label for="houseNumber">Hausnummer</label>
+        <label for="houseNumber" data-i18n="book.houseNumber">Hausnummer</label>
         <input id="houseNumber" name="houseNumber" placeholder="12a">
       </div>
       <div class="book-row">
         <div class="book-field">
-          <label for="postalCode">PLZ</label>
+          <label for="postalCode" data-i18n="book.postalCode">PLZ</label>
           <input id="postalCode" name="postalCode" placeholder="10115" inputmode="numeric">
         </div>
         <div class="book-field">
-          <label for="city">Ort</label>
+          <label for="city" data-i18n="book.city">Ort</label>
           <input id="city" name="city" placeholder="Berlin" required>
         </div>
       </div>
       <div class="book-field">
-        <label for="destination">Ziel (optional)</label>
-        <input id="destination" name="destination" placeholder="Wohin soll es gehen?">
+        <label for="destination" data-i18n="book.destination">Ziel (optional)</label>
+        <input id="destination" name="destination" placeholder="Wohin soll es gehen?" data-i18n-placeholder="book.phDestination">
       </div>
       <div class="book-field">
-        <label for="pickupDate">Abholzeit</label>
+        <label for="pickupDate" data-i18n="book.pickupTime">Abholzeit</label>
         <input id="pickupDate" name="pickupDate" type="datetime-local" required>
       </div>
       <div class="book-field">
-        <label for="paymentMethod">Zahlung</label>
+        <label for="paymentMethod" data-i18n="book.payment">Zahlung</label>
         <select id="paymentMethod" name="paymentMethod">
-          <option value="Bar" selected>Bar — Preis nach Taxameter beim Fahrer</option>
+          <option value="Bar" selected data-i18n="book.payCash">Bar — Preis nach Taxameter beim Fahrer</option>
         </select>
-        <p class="book-hint">Kein Festpreis in der App. Kartenzahlung folgt später.</p>
+        <p class="book-hint" data-i18n="book.payHint">Kein Festpreis in der App. Kartenzahlung folgt später.</p>
       </div>
       <div class="book-actions">
-        <button type="submit" class="btn-book btn-book-primary" id="btn-submit">Taxi bestellen</button>
-        <button type="button" class="btn-book btn-book-download" id="btn-install">Luckys Taxi App aufs Handy</button>
-        <a id="call-fallback" class="btn-book btn-book-secondary" href="#">Lieber anrufen</a>
+        <button type="submit" class="btn-book btn-book-primary" id="btn-submit" data-i18n="book.submit">Taxi bestellen</button>
+        <button type="button" class="btn-book btn-book-download" id="btn-install" data-i18n="book.install">Luckys Taxi App aufs Handy</button>
+        <a id="call-fallback" class="btn-book btn-book-secondary" href="#" data-i18n="book.callInstead">Lieber anrufen</a>
       </div>
-      <p class="book-hint" id="install-hint">
+      <p class="book-hint" id="install-hint" data-i18n="book.installHint">
         Tippen: Luckys Taxi App erscheint auf dem Home-Bildschirm.
       </p>
       <p class="book-hint" style="margin-top:1rem">
-        Mit „Taxi bestellen“ senden Sie eine Fahrtanfrage an die Leitstelle.
-        <a href="agb.html">AGB</a> · <a href="datenschutz.html">Datenschutz</a>
+        <span data-i18n="book.legalNote">Mit „Taxi bestellen“ senden Sie eine Fahrtanfrage an die Leitstelle.</span>
+        <a href="agb.html" data-i18n="nav.terms">AGB</a> · <a href="datenschutz.html" data-i18n="nav.privacy">Datenschutz</a>
       </p>
     </form>
   </main>
 
   <footer class="site-footer">
     <nav>
-      <a href="index.html">Start</a>
-      <a href="book.html">Taxi bestellen</a>
-      <a href="impressum.html">Impressum</a>
-      <a href="datenschutz.html">Datenschutz</a>
+      <a href="index.html" data-i18n="nav.start">Start</a>
+      <a href="book.html" data-i18n="nav.book">Taxi bestellen</a>
+      <a href="impressum.html" data-i18n="nav.imprint">Impressum</a>
+      <a href="datenschutz.html" data-i18n="nav.privacy">Datenschutz</a>
     </nav>
   </footer>
 
   <script src="tenant-branding.js"></script>
   <script>
+    function tx(key, vars) {
+      return (window.LuckysI18n && window.LuckysI18n.t(key, vars)) || key;
+    }
     const pageParams = new URLSearchParams(window.location.search);
     const operatorSlug = String(pageParams.get("o") || pageParams.get("operator") || "").trim().toLowerCase();
     const isNationalClub = !operatorSlug;
@@ -266,16 +270,16 @@
       const res = await fetch(url, { headers: { Accept: "application/json" } });
       if (!res.ok) throw new Error("Geocoding fehlgeschlagen");
       const data = await res.json();
-      if (!data.length) throw new Error("Adresse nicht gefunden — bitte genauer eingeben oder GPS nutzen.");
+      if (!data.length) throw new Error(tx("book.addressNotFound"));
       return { latitude: Number(data[0].lat), longitude: Number(data[0].lon) };
     }
 
     document.getElementById("btn-gps").addEventListener("click", () => {
       if (!navigator.geolocation) {
-        setStatus("GPS wird von diesem Browser nicht unterstützt.", "error");
+        setStatus(tx("book.gpsUnsupported"), "error");
         return;
       }
-      setStatus("Standort wird ermittelt…", "pending");
+      setStatus(tx("book.gpsPending"), "pending");
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           state.latitude = pos.coords.latitude;
@@ -284,12 +288,12 @@
           applyParsedAddress(parsed);
           try {
             await resolveOperator(state.latitude, state.longitude);
-            setStatus("Standort übernommen.", "");
+            setStatus(tx("book.gpsOk"), "");
           } catch (err) {
             setStatus(err.message, "error");
           }
         },
-        () => setStatus("Standort verweigert — bitte Adresse eintippen.", "error"),
+        () => setStatus(tx("book.gpsDenied"), "error"),
         { enableHighAccuracy: true, timeout: 15000 }
       );
     });
@@ -317,14 +321,14 @@
       if (appleIcon && slug) appleIcon.href = `/api/pwa-icon?operator=${encodeURIComponent(slug)}&size=180`;
       const manifest = document.querySelector('link[rel="manifest"]');
       if (manifest && slug) manifest.href = `/api/pwa-manifest?operator=${encodeURIComponent(slug)}`;
-      const label = `${name} aufs Handy`;
+      const label = tx("book.installNamed", { name });
       const hero = document.getElementById("btn-install-hero");
       const extra = document.getElementById("btn-install");
       if (hero) hero.textContent = label;
       if (extra) extra.textContent = label;
       const hint = document.getElementById("install-hint");
       if (hint && !window.matchMedia("(display-mode: standalone)").matches) {
-        hint.textContent = `Tippen: ${name} erscheint auf dem Home-Bildschirm.`;
+        hint.textContent = tx("book.installHintNamed", { name });
       }
     }
 
@@ -335,8 +339,8 @@
       if (!box || !cfg?.companyName) return;
       nameEl.textContent = cfg.companyName;
       textEl.textContent = isNationalClub
-        ? "Partner vor Ort — die Bestellung geht an diese Leitstelle."
-        : "Ihre Bestellung geht an diese Leitstelle.";
+        ? tx("book.assignedTextNational")
+        : tx("book.assignedText");
       box.hidden = false;
     }
 
@@ -382,7 +386,7 @@
       const res = await fetch(`/api/operators/resolve?${params}`);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Kein Taxi-Betrieb in Ihrer Nähe.");
+        throw new Error(err.error || tx("book.noOperator"));
       }
       const data = await res.json();
       if (data.config) await applyOperatorConfig(data.config);
@@ -407,12 +411,12 @@
       e.preventDefault();
       const btn = document.getElementById("btn-submit");
       btn.disabled = true;
-      btn.textContent = "Wird gesendet…";
+      btn.textContent = tx("book.sending");
 
       try {
         const addressLine = composeAddressLine();
         if (!addressLine) {
-          throw new Error("Bitte Straße und Ort eingeben — oder GPS nutzen.");
+          throw new Error(tx("book.needAddress"));
         }
         let latitude = state.latitude;
         let longitude = state.longitude;
@@ -446,18 +450,18 @@
         });
 
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Buchung fehlgeschlagen");
+        if (!res.ok) throw new Error(data.error || tx("book.bookingFail"));
 
         document.getElementById("book-form").hidden = true;
         document.getElementById("book-success").hidden = false;
         document.getElementById("success-message").textContent =
           state.companyName
             ? `Luckys Taxi App hat ${state.companyName} benachrichtigt.`
-            : `Buchung ${data.bookingId ? "("+ data.bookingId.slice(0, 8) + "…) " : ""}ist bei der Leitstelle.`;
+            : tx("book.successMsg");
       } catch (err) {
-        setStatus(err.message || "Fehler beim Senden", "error");
+        setStatus(err.message || tx("book.sendError"), "error");
         btn.disabled = false;
-        btn.textContent = "Taxi bestellen";
+        btn.textContent = tx("book.submit");
       }
     });
 
@@ -475,7 +479,7 @@
       if (isStandalone) {
         if (btn) btn.hidden = true;
         if (btnHero) btnHero.hidden = true;
-        hint.textContent = `${brandName()} ist auf dem Handy.`;
+        hint.textContent = tx("book.alreadyOnPhone", { name: brandName() });
       }
 
       window.addEventListener("beforeinstallprompt", (e) => {
@@ -508,22 +512,22 @@
       async function onInstallClick() {
         const name = brandName();
         if (isStandalone) {
-          hint.textContent = `${name} ist schon auf dem Handy.`;
+          hint.textContent = tx("book.alreadyInstalled", { name });
           return;
         }
         if (deferredPrompt) {
           deferredPrompt.prompt();
           await deferredPrompt.userChoice;
           deferredPrompt = null;
-          hint.textContent = `Fertig — ${name} liegt auf dem Home-Bildschirm.`;
+          hint.textContent = tx("book.installDone", { name });
           return;
         }
         if (isIos) {
-          hint.textContent = `iPhone: Teilen (Quadrat mit Pfeil unten) → „Zum Home-Bildschirm“. Dann erscheint ${name}.`;
+          hint.textContent = tx("book.iosHint", { name });
           return;
         }
         downloadShortcut();
-        hint.textContent = `Oder in Chrome: Menü → ${name} hinzufügen.`;
+        hint.textContent = tx("book.chromeHint", { name });
       }
 
       btn?.addEventListener("click", () => void onInstallClick());
@@ -533,6 +537,21 @@
         navigator.serviceWorker.register("./sw-book.js").catch(() => {});
       }
     })();
+
+    document.addEventListener("luckys-lang", () => {
+      const nameEl = document.getElementById("assigned-name");
+      const textEl = document.getElementById("assigned-text");
+      if (textEl && !document.getElementById("assigned-operator")?.hidden) {
+        textEl.textContent = isNationalClub
+          ? tx("book.assignedTextNational")
+          : tx("book.assignedText");
+      }
+      if (nameEl && !nameEl.textContent) nameEl.textContent = tx("book.partnerTaxi");
+      applyHomeScreenBrand({
+        companyName: window.passengerBrandName,
+        slug: state.operatorSlug,
+      });
+    });
   </script>
 </body>
 </html>

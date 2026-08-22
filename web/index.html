@@ -10,22 +10,23 @@
   <meta property="og:type" content="website">
   <!-- App Store Link eintragen, wenn live: href="https://apps.apple.com/..." -->
   <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js" defer></script>
 </head>
-<body>
+<body data-i18n-title="meta.indexTitle">
   <header class="hero">
-    <p class="hero-badge">Plattform für Taxi-Unternehmer — Fahrgast-App inklusive</p>
+    <p class="hero-badge" data-i18n="hero.badge">Plattform für Taxi-Unternehmer — Fahrgast-App inklusive</p>
     <h1>Luckys Taxi App</h1>
-    <p>Sie betreiben das Taxi — wir liefern App, Browser-Buchung und Leitstelle. Ihre Kunden bestellen bei <strong>Ihnen</strong>, nicht bei einem anonymen Portal.</p>
+    <p data-i18n="hero.lead">Sie betreiben das Taxi — wir liefern App, Browser-Buchung und Leitstelle. Ihre Kunden bestellen bei Ihnen, nicht bei einem anonymen Portal.</p>
     <div class="hero-ctas">
-      <a class="hero-cta" href="book.html">Fahrgäste: deutschlandweit bestellen</a>
-      <a class="hero-cta hero-cta-outline" href="#operators">Für Unternehmer</a>
+      <a class="hero-cta" href="book.html" data-i18n="hero.ctaGuests">Fahrgäste: deutschlandweit bestellen</a>
+      <a class="hero-cta hero-cta-outline" href="#operators" data-i18n="hero.ctaOps">Für Unternehmer</a>
     </div>
   </header>
 
   <main class="wrap">
     <section id="die-app">
-      <h2>Die App</h2>
-      <p class="lead">Die <strong>iPhone-App</strong> bietet den vollen Ablauf. Fahrgäste können <strong><a href="book.html">Luckys Taxi App deutschlandweit aufs Handy legen</a></strong> — ein Knopf, Taxi vor Ort per PLZ. Zusätzlich hat jeder Betrieb seinen eigenen Button für Stammkunden.</p>
+      <h2 data-i18n="sec.app">Die App</h2>
+      <p class="lead" data-i18n="sec.appLead">Die iPhone-App bietet den vollen Ablauf. Fahrgäste können Luckys Taxi App deutschlandweit aufs Handy legen — ein Knopf, Taxi vor Ort per PLZ. Zusätzlich hat jeder Betrieb seinen eigenen Button für Stammkunden.</p>
 
       <div class="app-access">
         <article class="app-access-card">
@@ -167,22 +168,22 @@
     </section>
 
     <section id="customers">
-      <h2>Für Fahrgäste</h2>
-      <p class="price-tag">0 € — App kostenlos</p>
-      <p class="note">Kein Festpreis in der App — der Fahrtbetrag steht nach der Fahrt auf dem Taxameter.</p>
+      <h2 data-i18n="sec.guests">Für Fahrgäste</h2>
+      <p class="price-tag" data-i18n="sec.guestPrice">0 € — App kostenlos</p>
+      <p class="note" data-i18n="sec.guestNote">Kein Festpreis in der App — der Fahrtbetrag steht nach der Fahrt auf dem Taxameter.</p>
       <ul class="checklist">
-        <li>Taxi in wenigen Schritten bestellen</li>
-        <li>Abholzeit und Abholort festlegen</li>
-        <li>Fahrtpreis nach Taxameter — bar beim Fahrer</li>
-        <li>Trinkgeld optional als Wunsch mitteilen</li>
-        <li>Keine Reservierungsgebühr in der App</li>
+        <li data-i18n="sec.guest1">Taxi in wenigen Schritten bestellen</li>
+        <li data-i18n="sec.guest2">Abholzeit und Abholort festlegen</li>
+        <li data-i18n="sec.guest3">Fahrtpreis nach Taxameter — bar beim Fahrer</li>
+        <li data-i18n="sec.guest4">Trinkgeld optional als Wunsch mitteilen</li>
+        <li data-i18n="sec.guest5">Keine Reservierungsgebühr in der App</li>
       </ul>
-      <p class="note" style="margin-top:1rem">Die App wird derzeit für iPhone bereitgestellt (TestFlight / App Store folgen).</p>
+      <p class="note" style="margin-top:1rem" data-i18n="sec.guestIos">Die App wird derzeit für iPhone bereitgestellt (TestFlight / App Store folgen).</p>
     </section>
 
     <section id="warum-luckys" class="sales-pitch">
-      <h2>Warum Luckys Taxi App?</h2>
-      <p class="lead">Sie haben kein eigenes IT-Team? Brauchen trotzdem eine moderne Bestell-App für <strong>Ihre</strong> Fahrgäste? Genau dafür ist Luckys Taxi App da — Sie bleiben der Taxi-Betrieb, wir sind die Technik dahinter.</p>
+      <h2 data-i18n="sec.why">Warum Luckys Taxi App?</h2>
+      <p class="lead" data-i18n="sec.whyLead">Sie haben kein eigenes IT-Team? Brauchen trotzdem eine moderne Bestell-App für Ihre Fahrgäste? Genau dafür ist Luckys Taxi App da — Sie bleiben der Taxi-Betrieb, wir sind die Technik dahinter.</p>
 
       <div class="sales-grid">
         <article class="sales-card">
@@ -217,11 +218,11 @@
     </section>
 
     <section id="operators">
-      <h2>Für Taxi-Unternehmer</h2>
-      <p class="lead">Starten Sie mit Luckys Taxi App — Technik auf Render, Support per E-Mail. Keine Mindestlaufzeit.</p>
-      <p class="badge">Alle Tarife monatlich kündbar — keine Mindestlaufzeit</p>
+      <h2 data-i18n="sec.ops">Für Taxi-Unternehmer</h2>
+      <p class="lead" data-i18n="sec.opsLead">Starten Sie mit Luckys Taxi App — Technik auf Render, Support per E-Mail. Keine Mindestlaufzeit.</p>
+      <p class="badge" data-i18n="sec.opsBadge">Alle Tarife monatlich kündbar — keine Mindestlaufzeit</p>
       <p style="margin:1rem 0">
-        <a class="hero-cta hero-cta-outline" href="onboard.html" style="display:inline-block;color:#fff;border-color:#fff">Partner werden — Anfrage stellen</a>
+        <a class="hero-cta hero-cta-outline" href="onboard.html" style="display:inline-block;color:#fff;border-color:#fff" data-i18n="sec.partnerCta">Partner werden — Anfrage stellen</a>
       </p>
 
       <h3 class="sales-sub" id="operators-roles">Was wir liefern — was Sie werben</h3>
@@ -259,47 +260,47 @@
       <p id="billing-status" class="billing-status" hidden></p>
       <div class="plans">
         <article class="plan">
-          <h3>Starter</h3>
+          <h3 data-i18n="plan.starter">Starter</h3>
           <p class="price">49 € / Monat</p>
-          <p class="meta">Monatlich kündbar · bis 5 Fahrzeuge</p>
-          <p class="meta">2,0 % auf Kartenzahlungen in der App</p>
+          <p class="meta" data-i18n="plan.starterMeta">Monatlich kündbar · bis 5 Fahrzeuge</p>
+          <p class="meta" data-i18n="plan.fee2">2,0 % auf Kartenzahlungen in der App</p>
           <ul class="checklist">
-            <li>Eigene App mit Firmenlogo</li>
-            <li>Online-Kartenzahlung (Stripe)</li>
-            <li>Fahrtenübersicht (Basis)</li>
-            <li>E-Mail-Support</li>
+            <li data-i18n="plan.f1">Eigene App mit Firmenlogo</li>
+            <li data-i18n="plan.f2">Online-Kartenzahlung (Stripe)</li>
+            <li data-i18n="plan.f3">Fahrtenübersicht (Basis)</li>
+            <li data-i18n="plan.f4">E-Mail-Support</li>
           </ul>
           <form class="billing-form" data-billing-form data-plan-id="starter">
-            <label for="starter-company">Firma</label>
-            <input id="starter-company" name="companyName" required placeholder="Mustermann Taxi GmbH">
-            <label for="starter-email">E-Mail (für Rechnung &amp; Kontakt)</label>
-            <input id="starter-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de">
-            <label for="starter-message">Nachricht (optional)</label>
-            <textarea id="starter-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …"></textarea>
-            <button type="submit" class="btn secondary" data-checkout-btn hidden>Jetzt abonnieren</button>
-            <button type="submit" class="btn secondary" data-inquiry-btn>Tarif anfragen</button>
+            <label for="starter-company" data-i18n="form.company">Firma</label>
+            <input id="starter-company" name="companyName" required placeholder="Mustermann Taxi GmbH" data-i18n-placeholder="form.phCompany">
+            <label for="starter-email" data-i18n="form.email">E-Mail (für Rechnung &amp; Kontakt)</label>
+            <input id="starter-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de" data-i18n-placeholder="form.phEmail">
+            <label for="starter-message" data-i18n="form.message">Nachricht (optional)</label>
+            <textarea id="starter-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …" data-i18n-placeholder="form.phMessage"></textarea>
+            <button type="submit" class="btn secondary" data-checkout-btn hidden data-i18n="btn.subscribe">Jetzt abonnieren</button>
+            <button type="submit" class="btn secondary" data-inquiry-btn data-i18n="btn.inquire">Tarif anfragen</button>
           </form>
         </article>
         <article class="plan highlight">
-          <h3>Business <span class="badge">Beliebt</span></h3>
+          <h3>Business <span class="badge" data-i18n="plan.popular">Beliebt</span></h3>
           <p class="price">99 € / Monat</p>
-          <p class="meta">Monatlich kündbar · unbegrenzt Fahrzeuge</p>
-          <p class="meta">1,5 % auf Kartenzahlungen in der App</p>
+          <p class="meta" data-i18n="plan.businessMeta">Monatlich kündbar · unbegrenzt Fahrzeuge</p>
+          <p class="meta" data-i18n="plan.fee15">1,5 % auf Kartenzahlungen in der App</p>
           <ul class="checklist">
-            <li>Alles aus Starter</li>
-            <li>Mehrere Standorte / Filialen</li>
-            <li>Prioritäts-Support</li>
-            <li>Monatliche Abrechnungsübersicht</li>
+            <li data-i18n="plan.f5">Alles aus Starter</li>
+            <li data-i18n="plan.f6">Mehrere Standorte / Filialen</li>
+            <li data-i18n="plan.f7">Prioritäts-Support</li>
+            <li data-i18n="plan.f8">Monatliche Abrechnungsübersicht</li>
           </ul>
           <form class="billing-form" data-billing-form data-plan-id="business">
-            <label for="business-company">Firma</label>
-            <input id="business-company" name="companyName" required placeholder="Mustermann Taxi GmbH">
-            <label for="business-email">E-Mail (für Rechnung &amp; Kontakt)</label>
-            <input id="business-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de">
-            <label for="business-message">Nachricht (optional)</label>
-            <textarea id="business-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …"></textarea>
-            <button type="submit" class="btn" data-checkout-btn hidden>Jetzt abonnieren</button>
-            <button type="submit" class="btn" data-inquiry-btn>Tarif anfragen</button>
+            <label for="business-company" data-i18n="form.company">Firma</label>
+            <input id="business-company" name="companyName" required placeholder="Mustermann Taxi GmbH" data-i18n-placeholder="form.phCompany">
+            <label for="business-email" data-i18n="form.email">E-Mail (für Rechnung &amp; Kontakt)</label>
+            <input id="business-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de" data-i18n-placeholder="form.phEmail">
+            <label for="business-message" data-i18n="form.message">Nachricht (optional)</label>
+            <textarea id="business-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …" data-i18n-placeholder="form.phMessage"></textarea>
+            <button type="submit" class="btn" data-checkout-btn hidden data-i18n="btn.subscribe">Jetzt abonnieren</button>
+            <button type="submit" class="btn" data-inquiry-btn data-i18n="btn.inquire">Tarif anfragen</button>
           </form>
         </article>
       </div>
@@ -312,19 +313,19 @@
 
   <footer class="site-footer">
     <nav>
-      <a href="book.html">Taxi bestellen</a>
-      <a href="qr.html">QR-Code</a>
-      <a href="index.html">Start</a>
-      <a href="#operators">Für Unternehmer</a>
-      <a href="#warum-luckys">Warum Luckys?</a>
-      <a href="#zentrale-vs-app">Zentrale vs. App</a>
-      <a href="dispatch.html">Zentrale</a>
-      <a href="settings.html">Einstellungen</a>
-      <a href="impressum.html">Impressum</a>
-      <a href="datenschutz.html">Datenschutz</a>
-      <a href="agb.html">AGB</a>
-      <a href="widerruf.html">Widerruf</a>
-      <a href="kuendigung.html">Kündigung</a>
+      <a href="book.html" data-i18n="nav.book">Taxi bestellen</a>
+      <a href="qr.html" data-i18n="nav.qr">QR-Code</a>
+      <a href="index.html" data-i18n="nav.start">Start</a>
+      <a href="#operators" data-i18n="nav.operators">Für Unternehmer</a>
+      <a href="#warum-luckys" data-i18n="nav.why">Warum Luckys?</a>
+      <a href="#zentrale-vs-app" data-i18n="nav.vs">Zentrale vs. App</a>
+      <a href="dispatch.html" data-i18n="nav.dispatch">Zentrale</a>
+      <a href="settings.html" data-i18n="nav.settings">Einstellungen</a>
+      <a href="impressum.html" data-i18n="nav.imprint">Impressum</a>
+      <a href="datenschutz.html" data-i18n="nav.privacy">Datenschutz</a>
+      <a href="agb.html" data-i18n="nav.terms">AGB</a>
+      <a href="widerruf.html" data-i18n="nav.withdraw">Widerruf</a>
+      <a href="kuendigung.html" data-i18n="nav.cancel">Kündigung</a>
       <a href="mailto:partner@taxiapp.de">partner@taxiapp.de</a>
     </nav>
     <p>© 2026 Luckys Taxi App</p>
