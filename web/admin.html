@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plattform-Admin — Luckys Taxi App</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .admin-wrap { max-width: 1100px; margin: 1.5rem auto 3rem; padding: 0 1.25rem; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .admin-card { background: var(--card); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); margin-bottom: 1rem; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .admin-table th, .admin-table td { text-align: left; padding: 0.55rem 0.45rem; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-active { background: #d1fae5; color: #065f46; }
+    .badge-suspended { background: #fee2e2; color: #991b1b; }
+    .field { margin-bottom: 0.75rem; }
+    .field label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .field input, .field select, .field textarea { width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 8px; font: inherit; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+    .btn-sm { font-size: 0.78rem; padding: 0.35rem 0.6rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+    .btn-success { background: #059669; color: #fff; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .link-list { margin: 0; padding-left: 1rem; font-size: 0.8rem; }
+    .link-list a { word-break: break-all; }
+    .hidden { display: none !important; }
+    .login-error { color: #991b1b; font-weight: 600; font-size: 0.85rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+    .stat-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 0.75rem; }
+    .stat-box strong { display: block; font-size: 1.35rem; line-height: 1.2; }
+    .stat-box span { font-size: 0.78rem; color: #6b7280; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .section-header h2 { margin: 0; font-size: 1.05rem; }
+    .inquiry-message { max-width: 220px; white-space: pre-wrap; word-break: break-word; font-size: 0.82rem; color: #374151; }
+    .empty-hint { color: #6b7280; font-size: 0.9rem; margin: 0; }
+  </style>
+</head>
+<body>
+  <div id="admin-login" class="admin-wrap">
+    <div class="admin-card" style="max-width:400px;margin:4rem auto">
+      <h1 style="margin:0 0 0.5rem;font-size:1.25rem">Plattform-Admin</h1>
+      <p class="field-hint">ADMIN_PIN von Render eingeben.</p>
+      <form id="admin-login-form">
+        <div class="field">
+          <label for="admin-pin">PIN</label>
+          <input id="admin-pin" type="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary">Anmelden</button>
+        <p id="admin-login-error" class="login-error hidden"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="admin-app" class="admin-wrap hidden">
+    <div class="admin-header">
+      <div>
+        <h1 style="margin:0;font-size:1.35rem">Mandanten-Verwaltung</h1>
+        <p class="field-hint" style="margin:0.25rem 0 0">Manuelle Vermietung — Betriebe anlegen, freischalten, Links kopieren.</p>
+      </div>
+      <button type="button" class="btn-sm btn-secondary" id="admin-logout">Abmelden</button>
+    </div>
+
+    <section class="admin-card">
+      <div class="section-header">
+        <h2>Tarif-Anfragen / Interessenten</h2>
+        <button type="button" class="btn-sm btn-secondary" id="refresh-inquiries">Aktualisieren</button>
+      </div>
+      <div class="stats-grid" id="inquiry-stats">
+        <div class="stat-box"><strong id="stat-total">0</strong><span>Gesamt</span></div>
+        <div class="stat-box"><strong id="stat-starter">0</strong><span>Starter</span></div>
+        <div class="stat-box"><strong id="stat-business">0</strong><span>Business</span></div>
+        <div class="stat-box"><strong id="stat-week">0</strong><span>Letzte 7 Tage</span></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="admin-table" id="inquiries-table">
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Firma</th>
+              <th>E-Mail</th>
+              <th>Tarif</th>
+              <th>Nachricht</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody id="inquiries-body"></tbody>
+        </table>
+      </div>
+      <p id="inquiries-empty" class="empty-hint hidden">Noch keine Tarif-Anfragen — Formular auf der Startseite.</p>
+    </section>
+
+    <section class="admin-card">
+      <h2 style="margin:0 0 1rem;font-size:1.05rem">Neuen Mandanten anlegen</h2>
+      <form id="create-tenant-form">
+        <div class="grid-2">
+          <div class="field"><label for="new-companyName">Firmenname *</label><input id="new-companyName" name="companyName" required></div>
+          <div class="field"><label for="new-email">E-Mail *</label><input id="new-email" name="email" type="email" required></div>
+          <div class="field"><label for="new-centralPhone">Zentrale *</label><input id="new-centralPhone" name="centralPhone" required placeholder="+49…"></div>
+          <div class="field"><label for="new-city">Stadt *</label><input id="new-city" name="city" required></div>
+          <div class="field"><label for="new-postalPrefixes">PLZ-Präfixe *</label><input id="new-postalPrefixes" name="postalPrefixes" required placeholder="68"></div>
+          <div class="field"><label for="new-planId">Tarif</label>
+            <select id="new-planId" name="planId"><option value="starter">Starter (5 Fahrer)</option><option value="business">Business</option></select>
+          </div>
+          <div class="field"><label for="new-billingEmail">Rechnungs-E-Mail</label><input id="new-billingEmail" name="billingEmail" type="email"></div>
+          <div class="field"><label for="new-dispatchPin">Leitstellen-PIN</label><input id="new-dispatchPin" name="dispatchPin" inputmode="numeric"></div>
+        </div>
+        <div class="field"><label for="new-notes">Interne Notizen</label><textarea id="new-notes" name="notes" rows="2"></textarea></div>
+        <button type="submit" class="btn-sm btn-primary">Anlegen &amp; aktivieren</button>
+        <p id="create-error" class="login-error hidden"></p>
+      </form>
+    </section>
+
+    <section class="admin-card">
+      <h2 style="margin:0 0 1rem;font-size:1.05rem">Alle Mandanten</h2>
+      <div style="overflow-x:auto">
+        <table class="admin-table" id="tenants-table">
+          <thead>
+            <tr>
+              <th>Betrieb</th>
+              <th>Status</th>
+              <th>Tarif</th>
+              <th>Links</th>
+              <th>Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="tenants-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

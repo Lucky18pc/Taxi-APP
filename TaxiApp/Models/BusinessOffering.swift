@@ -5,7 +5,12 @@ enum BusinessOffering {
     static let productName = "Luckys Taxi App"
     static let tagline = "Taxi bestellen. Fahren. Bezahlen."
     static let billingNote = "Alle Unternehmer-Tarife monatlich kündbar — keine Mindestlaufzeit."
-    static let partnerEmail = "partner@taxiapp.de"
+    static let partnerEmail = "luckypc81@gmail.com"
+
+    /// Startseite mit Unternehmer-Tarifen (Browser-Buchung / Anfrage-Formular).
+    static var operatorsWebURL: URL? {
+        URL(string: "\(TaxiConfig.stripeBackendURL)/index.html#operators")
+    }
 
     static let customerPriceNote =
         "Kein Festpreis in der App — der Fahrtbetrag steht nach der Fahrt auf dem Taxameter."
@@ -89,13 +94,17 @@ struct OperatorPlan: Identifiable, Hashable {
         Fahrzeuge:
 
         """
-        var components = URLComponents()
-        components.scheme = "mailto"
-        components.path = BusinessOffering.partnerEmail
-        components.queryItems = [
-            URLQueryItem(name: "subject", value: subject),
-            URLQueryItem(name: "body", value: body)
-        ]
-        return components.url
+        var allowed = CharacterSet.urlQueryAllowed
+        allowed.remove(charactersIn: "&+=?")
+        guard
+            let subjectEncoded = subject.addingPercentEncoding(withAllowedCharacters: allowed),
+            let bodyEncoded = body.addingPercentEncoding(withAllowedCharacters: allowed)
+        else { return nil }
+        return URL(string: "mailto:\(BusinessOffering.partnerEmail)?subject=\(subjectEncoded)&body=\(bodyEncoded)")
+    }
+
+    /// Vollständiges Angebot mit Formular auf der Web-Startseite.
+    var webOfferingURL: URL? {
+        BusinessOffering.operatorsWebURL
     }
 }

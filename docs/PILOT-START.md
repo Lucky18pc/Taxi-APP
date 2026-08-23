@@ -31,16 +31,16 @@ ab sofort können Sie App- und Browser-Buchungen in **Ihrer digitalen Leitstelle
 
 | Was | Link |
 |-----|------|
-| **Leitstelle** (Fahrten annehmen, Fahrer zuweisen) | https://taxiapp-api.onrender.com/dispatch.html |
-| **Einstellungen** (Firmendaten, Fahrer, Impressum) | https://taxiapp-api.onrender.com/settings.html |
-| **PIN** (beim Öffnen / Speichern) | `{{ADMIN_PIN}}` |
+| **Leitstelle** (Fahrten annehmen, Fahrer zuweisen) | https://taxiapp-api.onrender.com/dispatch.html?o={{SLUG}} |
+| **Einstellungen** (Firmendaten, Fahrer, Impressum, Branding) | https://taxiapp-api.onrender.com/settings.html?o={{SLUG}} |
+| **PIN** (beim Öffnen / Speichern) | `{{DISPATCH_PIN}}` (Leitstellen-PIN — separat senden) |
 
 ### Für Ihre Fahrgäste (darf weitergegeben werden)
 
 | Kanal | Link / Info |
 |-------|-------------|
-| **Taxi im Browser** (QR, ohne App) | https://taxiapp-api.onrender.com/book.html |
-| **QR-Code drucken** | https://taxiapp-api.onrender.com/qr.html |
+| **Taxi im Browser** (QR, ohne App) | https://taxiapp-api.onrender.com/book.html?o={{SLUG}} |
+| **QR-Code drucken** | https://taxiapp-api.onrender.com/qr.html?o={{SLUG}} |
 | **iPhone-App** (TestFlight) | `{{TESTFLIGHT_LINK}}` |
 | **Zentrale anrufen** | `{{ZENTRALE}}` |
 
@@ -96,11 +96,13 @@ Nach 5–10 Testbuchungen kurz Rückmeldung:
 
 | Platzhalter | Beispiel |
 |-------------|----------|
+| `{{SLUG}}` | mannheim (aus admin.html) |
+| `{{DISPATCH_PIN}}` | Leitstellen-PIN des Betriebs (separat senden) |
 | `{{FIRMENNAME}}` | Mustermann Taxi Mannheim |
 | `{{ZENTRALE}}` | 0621 123456 |
-| `{{ADMIN_PIN}}` | (nur intern, per separater SMS/WhatsApp schicken) |
+| `{{ADMIN_PIN}}` | Nur Plattform-Admin (admin.html) — nicht an Betrieb |
 | `{{TESTFLIGHT_LINK}}` | App Store Connect Einladungslink |
-| `{{SUPPORT_EMAIL}}` | partner@taxiapp.de |
+| `{{SUPPORT_EMAIL}}` | luckypc81@gmail.com |
 | `{{DEIN_NAME}}` | Lucky |
 
 **Sicherheit:** PIN nicht in derselben E-Mail wie öffentliche Links — besser telefonisch oder separat senden.
@@ -109,6 +111,6 @@ Nach 5–10 Testbuchungen kurz Rückmeldung:
 
 ## Verwandte Doku
 
-- Leitstelle technisch: [ZENTRALE.md](ZENTRALE.md)
+- Vermietung an Betriebe: [`VERMIETUNG.md`](VERMIETUNG.md)
 - Render einrichten: [RENDER-GO-LIVE.md](RENDER-GO-LIVE.md)
 - Fahrgast-App Go-Live: `~/CollectionApp/FahrgastApp/docs/GO-LIVE.md`

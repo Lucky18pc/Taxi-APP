@@ -36,7 +36,7 @@
         <span id="legal-owner" class="legal-hint">Inhaber — in Einstellungen eintragen</span><br>
         <span id="legal-street" class="legal-hint">Straße — in Einstellungen eintragen</span><br>
         <span id="legal-city" class="legal-hint">PLZ Ort — in Einstellungen eintragen</span><br>
-        E-Mail: <a id="legal-email" href="mailto:partner@taxiapp.de">partner@taxiapp.de</a>
+        E-Mail: <a id="legal-email" href="mailto:luckypc81@gmail.com">luckypc81@gmail.com</a>
       </p>
       <p>Bitte angeben:</p>
       <ul>
@@ -70,7 +70,7 @@
 
       <h2>7. Fragen</h2>
       <p>
-        Tarifwechsel oder Pause statt Kündigung: <a id="legal-email-2" href="mailto:partner@taxiapp.de">partner@taxiapp.de</a><br>
+        Tarifwechsel oder Pause statt Kündigung: <a id="legal-email-2" href="mailto:luckypc81@gmail.com">luckypc81@gmail.com</a><br>
         Rechtliches: <a href="agb.html">AGB</a> · <a href="widerruf.html">Widerruf</a> · <a href="impressum.html">Impressum</a>
       </p>
     </section>
@@ -92,7 +92,7 @@
   <script src="legal-config.js"></script>
   <script>
     TaxiAppLegal.loadConfig().then((cfg) => {
-      const email = (cfg.legalEmail || "partner@taxiapp.de").trim();
+      const email = TaxiAppLegal.platformEmail(cfg);
       const el = document.getElementById("legal-email-2");
       if (el) {
         el.textContent = email;

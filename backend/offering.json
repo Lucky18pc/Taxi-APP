@@ -2,6 +2,10 @@
   "productName": "Luckys Taxi App",
   "tagline": "Taxi bestellen. Fahren. Bezahlen.",
   "billingNote": "Alle Unternehmer-Tarife monatlich kündbar — keine Mindestlaufzeit.",
+  "billing": {
+    "invoiceDelivery": "Stripe sendet Rechnungen automatisch per E-Mail, sobald Billing live ist.",
+    "contactFallback": "Ohne Stripe: Tarif-Anfrage per Kontaktformular — Rechnung manuell über Lexoffice/sevDesk."
+  },
   "customers": {
     "title": "Für Fahrgäste",
     "priceLabel": "App kostenlos",
@@ -17,7 +21,7 @@
   },
   "operators": {
     "title": "Für Taxi-Unternehmer",
-    "contactEmail": "partner@taxiapp.de",
+    "contactEmail": "luckypc81@gmail.com",
     "plans": [
       {
         "id": "starter",

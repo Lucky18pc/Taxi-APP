@@ -13,7 +13,7 @@ const secretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const publicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
 const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
-const contactNotifyEmail = String(process.env.CONTACT_NOTIFY_EMAIL || "partner@taxiapp.de").trim();
+const contactNotifyEmail = String(process.env.CONTACT_NOTIFY_EMAIL || "luckypc81@gmail.com").trim();
 
 const billingPriceIds = {
   starter: String(process.env.STRIPE_PRICE_STARTER || "").trim(),
@@ -142,7 +142,7 @@ function ensureTenantDefaults() {
     tenantConfig.platformOwner = "";
   }
   if (!tenantConfig.platformEmail) {
-    tenantConfig.platformEmail = "partner@taxiapp.de";
+    tenantConfig.platformEmail = "luckypc81@gmail.com";
   }
   if (!tenantConfig.platformPhone) {
     tenantConfig.platformPhone = "";
@@ -238,6 +238,52 @@ async function geocodePlace(query, country = "DE") {
   const data = await response.json();
   if (!Array.isArray(data) || !data.length) return null;
   return { lat: Number(data[0].lat), lng: Number(data[0].lon) };
+}
+
+async function prepareFleetOperatorBody(req) {
+  const companyName = String(req.body.companyName || "").trim();
+  const centralPhone = String(req.body.centralPhone || "").trim();
+  const city = String(req.body.city || "").trim();
+  const country = String(req.body.country || "DE").trim().toUpperCase();
+  const email = String(req.body.email || req.body.legalEmail || "").trim();
+
+  let centerLat = Number(req.body.centerLat);
+  let centerLng = Number(req.body.centerLng);
+  if (!Number.isFinite(centerLat) || !Number.isFinite(centerLng)) {
+    const geo = await geocodePlace(city || companyName, country);
+    if (geo) {
+      centerLat = geo.lat;
+      centerLng = geo.lng;
+    }
+  }
+
+  return {
+    companyName,
+    centralPhone,
+    centralPhoneDisplay: req.body.centralPhoneDisplay,
+    email,
+    legalEmail: email,
+    legalCity: city,
+    city,
+    country,
+    dispatchHours: req.body.dispatchHours,
+    dispatchNote: req.body.dispatchNote,
+    dispatchPin: req.body.dispatchPin,
+    postalCodes: req.body.postalCodes,
+    postalPrefixes: req.body.postalPrefixes,
+    centerLat,
+    centerLng,
+    radiusKm: req.body.radiusKm,
+    status: req.body.status,
+    planId: req.body.planId,
+    billingEmail: req.body.billingEmail,
+    notes: req.body.notes,
+    maxDrivers: req.body.maxDrivers,
+    slug: req.body.slug,
+    brandPrimaryColor: req.body.brandPrimaryColor,
+    brandAccentColor: req.body.brandAccentColor,
+    logoUrl: req.body.logoUrl,
+  };
 }
 
 async function sendFleetOnboardingNotification(operator, links) {
@@ -741,55 +787,93 @@ app.get("/api/operators", (_req, res) => {
   res.json({ operators: fleet.list().map((op) => fleet.toPublicSummary(op)) });
 });
 
-app.get("/api/fleet/operators", requireAdmin, (_req, res) => {
-  res.json({ operators: fleet.list(true).map((op) => fleet.toPublicSummary(op)) });
+app.get("/api/fleet/operators", requireAdmin, (req, res) => {
+  const baseUrl = resolvePublicBaseUrl(req);
+  res.json({
+    operators: fleet.list(true).map((op) => fleet.toAdminSummary(op, baseUrl)),
+  });
+});
+
+app.post("/api/fleet/operators", requireAdmin, async (req, res) => {
+  try {
+    const input = await prepareFleetOperatorBody(req);
+    const status = String(req.body.status || "active").trim().toLowerCase();
+    input.status = ["pending", "active", "suspended"].includes(status) ? status : "active";
+
+    const operator = fleet.createOperator(input);
+    const links = fleet.onboardingLinks(operator.slug, resolvePublicBaseUrl(req));
+
+    if (operator.status === "active") {
+      await sendFleetOnboardingNotification(operator, links);
+    }
+
+    res.status(201).json({
+      operator: fleet.toAdminSummary(operator, resolvePublicBaseUrl(req)),
+      config: fleet.toPublicConfig(operator),
+      links,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Create failed" });
+  }
+});
+
+app.patch("/api/fleet/operators/:slug", requireAdmin, async (req, res) => {
+  try {
+    const slug = String(req.params.slug || "").trim().toLowerCase();
+    const existing = fleet.findBySlug(slug);
+    if (!existing) {
+      return res.status(404).json({ error: "Operator not found" });
+    }
+
+    const wasActive = existing.status === "active";
+    const patch = { ...req.body };
+    const updated = fleet.updateOperator(slug, patch);
+    if (!updated) {
+      return res.status(404).json({ error: "Operator not found" });
+    }
+
+    const links = fleet.onboardingLinks(updated.slug, resolvePublicBaseUrl(req));
+    if (!wasActive && updated.status === "active") {
+      await sendFleetOnboardingNotification(updated, links);
+    }
+
+    res.json({
+      operator: fleet.toAdminSummary(updated, resolvePublicBaseUrl(req)),
+      config: fleet.toPublicConfig(updated),
+      links,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Update failed" });
+  }
 });
 
 app.post("/api/fleet/register", async (req, res) => {
   try {
-    const companyName = String(req.body.companyName || "").trim();
-    const centralPhone = String(req.body.centralPhone || "").trim();
-    const city = String(req.body.city || "").trim();
-    const country = String(req.body.country || "DE").trim().toUpperCase();
-    const email = String(req.body.email || req.body.legalEmail || "").trim();
+    const input = await prepareFleetOperatorBody(req);
+    input.status = "pending";
+    input.planId = String(req.body.planId || "starter").trim().toLowerCase();
 
-    let centerLat = Number(req.body.centerLat);
-    let centerLng = Number(req.body.centerLng);
-    if (!Number.isFinite(centerLat) || !Number.isFinite(centerLng)) {
-      const geo = await geocodePlace(city || companyName, country);
-      if (geo) {
-        centerLat = geo.lat;
-        centerLng = geo.lng;
-      }
+    const operator = fleet.createOperator(input);
+
+    if (resendApiKey && contactNotifyEmail) {
+      await sendContactNotification({
+        inquiryId: `lead-${operator.slug}`,
+        planId: operator.planId || "starter",
+        email: operator.legalEmail || "keine E-Mail",
+        companyName: operator.companyName,
+        message: `Neue Registrierungsanfrage (pending). Slug: ${operator.slug}. PLZ: ${(operator.serviceArea?.postalPrefixes || []).join(", ")}`,
+        createdAt: new Date().toISOString(),
+      });
+    } else {
+      console.log(
+        `Neue Registrierungsanfrage (pending): ${operator.companyName} (${operator.slug})`
+      );
     }
-
-    const operator = fleet.createOperator({
-      companyName,
-      centralPhone,
-      centralPhoneDisplay: req.body.centralPhoneDisplay,
-      email,
-      legalEmail: email,
-      legalCity: city,
-      city,
-      country,
-      dispatchHours: req.body.dispatchHours,
-      dispatchNote: req.body.dispatchNote,
-      dispatchPin: req.body.dispatchPin,
-      postalCodes: req.body.postalCodes,
-      postalPrefixes: req.body.postalPrefixes,
-      centerLat,
-      centerLng,
-      radiusKm: req.body.radiusKm,
-      status: "active",
-    });
-
-    const links = fleet.onboardingLinks(operator.slug, resolvePublicBaseUrl(req));
-    await sendFleetOnboardingNotification(operator, links);
 
     res.status(201).json({
       operator: fleet.toPublicSummary(operator),
-      config: fleet.toPublicConfig(operator),
-      links,
+      message:
+        "Anfrage eingegangen. Wir prüfen Ihre Daten und schalten Ihren Betrieb frei.",
     });
   } catch (error) {
     res.status(400).json({ error: error.message || "Registration failed" });
@@ -827,6 +911,9 @@ app.patch("/api/config", requireAdmin, (req, res) => {
       "legalOwner",
       "legalEmail",
       "vatId",
+      "brandPrimaryColor",
+      "brandAccentColor",
+      "logoUrl",
     ];
 
     for (const key of allowed) {
@@ -987,6 +1074,18 @@ app.post("/api/drivers", requireAdmin, (req, res) => {
   const operator = resolveFleetOperatorFromRequest(req) || defaultFleetOperator();
   if (fleet.enabled() && !operator) {
     return res.status(400).json({ error: "operator query required" });
+  }
+
+  if (operator) {
+    const limit = fleet.driverLimitFor(operator);
+    if (limit !== null) {
+      const count = drivers.filter((d) => d.operatorId === operator.operatorId).length;
+      if (count >= limit) {
+        return res.status(403).json({
+          error: `Fahrer-Limit erreicht (${limit} im Tarif ${operator.planId || "starter"}). Business-Tarif für mehr Fahrer.`,
+        });
+      }
+    }
   }
 
   const driver = {
