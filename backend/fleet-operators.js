@@ -19,7 +19,24 @@ const CONFIG_KEYS = [
   "nightSurchargeEnabled",
   "nightSurchargeFromHour",
   "nightSurchargeToHour",
+  "brandPrimaryColor",
+  "brandAccentColor",
+  "logoUrl",
 ];
+
+const META_KEYS = ["planId", "billingEmail", "notes", "maxDrivers", "activatedAt"];
+
+function defaultMaxDrivers(planId) {
+  if (planId === "business") return null;
+  if (planId === "starter") return 5;
+  return 5;
+}
+
+function normalizeHexColor(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return "";
+  return /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : "";
+}
 
 function haversineKm(lat1, lon1, lat2, lon2) {
   const toRad = (deg) => (deg * Math.PI) / 180;
@@ -128,7 +145,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
   let state = load();
 
   function activeOperators() {
-    return state.operators.filter((op) => op.status !== "pending");
+    return state.operators.filter((op) => op.status === "active");
   }
 
   function list(includePending = false) {
@@ -220,7 +237,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     const plz = normalizePostalCode(postalCode);
     const hinted = hintSlug ? findBySlug(hintSlug) : null;
 
-    if (hinted && hinted.status !== "pending") {
+    if (hinted && hinted.status === "active") {
       if (operatorMatchesLocation(hinted, latitude, longitude, plz)) {
         return hinted;
       }
@@ -275,6 +292,28 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     };
   }
 
+  function toAdminSummary(operator, baseUrl) {
+    const summary = {
+      ...toPublicSummary(operator),
+      legalEmail: operator.legalEmail || "",
+      planId: operator.planId || "starter",
+      billingEmail: operator.billingEmail || operator.legalEmail || "",
+      notes: operator.notes || "",
+      maxDrivers: operator.maxDrivers ?? defaultMaxDrivers(operator.planId),
+      activatedAt: operator.activatedAt || null,
+      createdAt: operator.createdAt || null,
+      updatedAt: operator.updatedAt || null,
+      hasDispatchPin: Boolean(String(operator.dispatchPin || "").trim()),
+      brandPrimaryColor: operator.brandPrimaryColor || "",
+      brandAccentColor: operator.brandAccentColor || "",
+      logoUrl: operator.logoUrl || "",
+    };
+    if (baseUrl) {
+      summary.links = onboardingLinks(operator.slug, baseUrl);
+    }
+    return summary;
+  }
+
   function applyServiceAreaPatch(operator, patch) {
     if (!operator.serviceArea) operator.serviceArea = normalizeServiceArea({});
     if (patch.postalCodes !== undefined) {
@@ -299,18 +338,59 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     }
   }
 
+  function applyMetaPatch(operator, patch) {
+    if (patch.planId !== undefined) {
+      const planId = String(patch.planId || "starter").trim().toLowerCase();
+      operator.planId = planId === "business" ? "business" : "starter";
+      if (patch.maxDrivers === undefined) {
+        operator.maxDrivers = defaultMaxDrivers(operator.planId);
+      }
+    }
+    if (patch.billingEmail !== undefined) {
+      operator.billingEmail = String(patch.billingEmail).trim();
+    }
+    if (patch.notes !== undefined) {
+      operator.notes = String(patch.notes).trim();
+    }
+    if (patch.maxDrivers !== undefined) {
+      const raw = patch.maxDrivers;
+      if (raw === null || raw === "" || raw === "null") {
+        operator.maxDrivers = null;
+      } else {
+        const limit = Number(raw);
+        operator.maxDrivers = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : null;
+      }
+    }
+    if (patch.status !== undefined) {
+      const status = String(patch.status).trim().toLowerCase();
+      if (["pending", "active", "suspended"].includes(status)) {
+        operator.status = status;
+        if (status === "active" && !operator.activatedAt) {
+          operator.activatedAt = new Date().toISOString();
+        }
+      }
+    }
+  }
+
   function updateOperator(slug, patch) {
     const operator = findBySlug(slug);
     if (!operator) return null;
 
     for (const key of CONFIG_KEYS) {
       if (patch[key] !== undefined) {
-        operator[key] = patch[key];
+        if (key === "brandPrimaryColor" || key === "brandAccentColor") {
+          operator[key] = normalizeHexColor(patch[key]);
+        } else if (key === "logoUrl") {
+          operator[key] = String(patch[key] || "").trim();
+        } else {
+          operator[key] = patch[key];
+        }
       }
     }
     if (patch.dispatchPin !== undefined) {
       operator.dispatchPin = String(patch.dispatchPin).trim();
     }
+    applyMetaPatch(operator, patch);
     if (patch.serviceArea !== undefined) {
       applyServiceAreaPatch(operator, patch.serviceArea);
     }
@@ -341,10 +421,28 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       throw new Error("postalCodes or postalPrefixes required");
     }
 
+    const planId = String(input.planId || "starter").trim().toLowerCase() === "business"
+      ? "business"
+      : "starter";
+    const status = String(input.status || "pending").trim().toLowerCase();
+    const normalizedStatus = ["pending", "active", "suspended"].includes(status)
+      ? status
+      : "pending";
+
     const operator = normalizeOperator({
       operatorId: `op-${crypto.randomUUID()}`,
       slug,
-      status: input.status || "active",
+      status: normalizedStatus,
+      planId,
+      billingEmail: String(input.billingEmail || input.legalEmail || input.email || "").trim(),
+      notes: String(input.notes || "").trim(),
+      maxDrivers:
+        input.maxDrivers !== undefined
+          ? input.maxDrivers === null
+            ? null
+            : Number(input.maxDrivers)
+          : defaultMaxDrivers(planId),
+      activatedAt: normalizedStatus === "active" ? new Date().toISOString() : null,
       companyName,
       centralPhone,
       centralPhoneDisplay: String(input.centralPhoneDisplay || centralPhone).trim(),
@@ -359,6 +457,9 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       legalEmail: String(input.legalEmail || input.email || "").trim(),
       vatId: String(input.vatId || "").trim(),
       dispatchPin: String(input.dispatchPin || "").trim(),
+      brandPrimaryColor: normalizeHexColor(input.brandPrimaryColor),
+      brandAccentColor: normalizeHexColor(input.brandAccentColor),
+      logoUrl: String(input.logoUrl || "").trim(),
       serviceArea: normalizeServiceArea({
         centerLat: Number(input.centerLat),
         centerLng: Number(input.centerLng),
@@ -372,6 +473,13 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     state.operators.unshift(operator);
     save(state.operators);
     return operator;
+  }
+
+  function driverLimitFor(operator) {
+    if (!operator) return null;
+    if (operator.maxDrivers === null || operator.maxDrivers === undefined) return null;
+    const limit = Number(operator.maxDrivers);
+    return Number.isFinite(limit) && limit > 0 ? limit : null;
   }
 
   function pinRequiredForOperator(operator) {
@@ -424,6 +532,8 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     resolveForBooking,
     toPublicConfig,
     toPublicSummary,
+    toAdminSummary,
+    driverLimitFor,
     updateOperator,
     createOperator,
     pinRequiredForOperator,

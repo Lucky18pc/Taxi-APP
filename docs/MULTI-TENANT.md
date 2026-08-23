@@ -23,10 +23,9 @@ Buchungen: `POST /api/bookings` mit `postalCode` optional im Body.
 
 ## Self-Service Onboarding
 
-**Web:** [`onboard.html`](../web/onboard.html)  
-**API:** `POST /api/fleet/register`
-
-Der Betrieb gibt ein: Firmenname, E-Mail, Zentrale, Stadt, PLZ-Präfixe → sofort aktiv mit Links zu Leitstelle, settings, book, QR.
+**Web:** [`onboard.html`](../web/onboard.html) — öffentliche **Anfrage** (`status: pending`)  
+**Admin:** [`admin.html`](../web/admin.html) — Mandanten anlegen und freischalten (ADMIN_PIN)  
+**API:** `POST /api/fleet/register` (Lead) · `POST /api/fleet/operators` (Admin)
 
 ```bash
 curl -X POST https://taxiapp-api.onrender.com/api/fleet/register \
@@ -65,6 +64,5 @@ bash ~/Projects/TaxiApp/scripts/test-multi-tenant-e2e.sh
 
 ## Nächste Stufe
 
-- Plattform-Admin-UI (alle Betriebe auflisten)
+- Stripe Self-Service an Fleet koppeln
 - PLZ-Polygone / GeoJSON
-- Freischaltung „pending“ vor Aktivierung (Spam-Schutz)

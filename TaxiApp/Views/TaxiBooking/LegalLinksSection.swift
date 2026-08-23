@@ -29,12 +29,13 @@ enum LegalLink: String, CaseIterable, Identifiable {
 /// Links zu Impressum, Datenschutz, AGB usw. auf dem Cloud-Backend.
 struct LegalLinksSection: View {
     var links: [LegalLink] = LegalLink.allCases
+    var onNavyBackground: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Rechtliches")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Brand.secondary)
+                .foregroundStyle(onNavyBackground ? Color.white : Brand.secondary)
 
             ForEach(links) { link in
                 if let url = link.url {
@@ -46,14 +47,17 @@ struct LegalLinksSection: View {
                             Image(systemName: "arrow.up.right")
                                 .font(.caption.weight(.semibold))
                         }
-                        .foregroundStyle(Brand.primary)
+                        .foregroundStyle(onNavyBackground ? .white : Brand.primary)
                         .padding(.vertical, 10)
                         .padding(.horizontal, 12)
-                        .background(Color.white)
+                        .background(onNavyBackground ? Color.white.opacity(0.12) : Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(Brand.primary.opacity(0.15), lineWidth: 1)
+                                .stroke(
+                                    onNavyBackground ? Color.white.opacity(0.35) : Brand.primary.opacity(0.15),
+                                    lineWidth: 1
+                                )
                         }
                     }
                 }
@@ -64,9 +68,11 @@ struct LegalLinksSection: View {
 
 /// Kurzhinweis vor Buchungsabschluss (AGB + Datenschutz).
 struct BookingLegalFootnote: View {
+    var confirmActionLabel: String = "Taxi bestellen"
+
     var body: some View {
         VStack(spacing: 4) {
-            Text("Mit „Taxi bestellen“ bestätigen Sie Ihre Fahrtanfrage.")
+            Text("Mit „\(confirmActionLabel)“ bestätigen Sie Ihre Fahrtanfrage.")
                 .font(.caption2)
                 .foregroundStyle(.white.opacity(0.8))
                 .multilineTextAlignment(.center)

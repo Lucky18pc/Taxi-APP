@@ -1,6 +1,11 @@
 # TestFlight & App Store — Vorbereitung
 
-Stand: Nach Cloud-Deploy auf Render. Bundle-ID: `com.collectionshop.taxi`.
+> **Offizielle Kunden-App:** [`FahrgastApp`](file:///Users/pececarmine/CollectionApp/FahrgastApp) (`com.collection.FahrgastApp`).  
+> TestFlight-Anleitung: [`~/CollectionApp/FahrgastApp/docs/TESTFLIGHT.md`](file:///Users/pececarmine/CollectionApp/FahrgastApp/docs/TESTFLIGHT.md)
+
+Diese Datei beschreibt historisch **TaxiApp** (`com.collectionshop.taxi`) — **nicht** für den App Store verwenden.
+
+Stand: Nach Cloud-Deploy auf Render. Bundle-ID TaxiApp: `com.collectionshop.taxi`.
 
 ## Voraussetzungen
 

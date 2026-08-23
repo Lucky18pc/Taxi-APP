@@ -19,20 +19,25 @@ struct TaxiPickupView: View {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 10) {
                         Button(action: { showDriverProfile = true }) {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 6) {
                                 DriverAvatarView(
                                     profileImage: profileStore.profileImage,
                                     fallbackImageName: assignedDriver.photoImageName,
-                                    size: 44,
-                                    showBorder: true
+                                    size: 92,
+                                    showBorder: true,
+                                    faceZoom: 0.88
                                 )
-                                if !profileStore.resolvedDisplayName.isEmpty {
-                                    Text(profileStore.resolvedDisplayName)
-                                        .font(.caption2.weight(.semibold))
-                                        .foregroundStyle(.white)
-                                        .shadow(color: .black.opacity(0.55), radius: 3, y: 1)
-                                        .lineLimit(1)
-                                }
+                                .circleRingShimmer(lineWidth: 3, intensity: 0.9)
+
+                                Text(
+                                    profileStore.resolvedDisplayName.isEmpty
+                                        ? "Profil & Zentrale"
+                                        : profileStore.resolvedDisplayName
+                                )
+                                .font(.callout.weight(.bold))
+                                .foregroundStyle(.white)
+                                .shadow(color: .black.opacity(0.45), radius: 2, y: 1)
+                                .lineLimit(1)
                             }
                         }
                         .buttonStyle(.plain)
@@ -40,16 +45,14 @@ struct TaxiPickupView: View {
 
                         Button(action: { showBusinessPlans = true }) {
                             Text("Für Unternehmen")
-                                .font(.subheadline.weight(.bold))
-                                .foregroundStyle(.white)
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(Brand.primary)
                                 .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.white.opacity(0.12))
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .stroke(Brand.accent.opacity(0.9), lineWidth: 1.5)
-                                }
+                                .padding(.vertical, 7)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.white)
                                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .lightShimmer(cornerRadius: 10, tone: .onLight, intensity: 0.85)
                         }
                         .buttonStyle(.plain)
                     }
@@ -57,7 +60,7 @@ struct TaxiPickupView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
-                .background(Color.black.opacity(0.25))
+                .background(Brand.primary.opacity(0.88))
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .lightShimmer(cornerRadius: 16, tone: .onDark, intensity: 0.9)
                 .padding(.horizontal, 16)
@@ -107,17 +110,24 @@ struct TaxiPickupView: View {
             )
             .toolbar(.hidden, for: .navigationBar)
             .toolbarBackground(.hidden, for: .navigationBar)
+            .onReceive(NotificationCenter.default.publisher(for: .taxiBookingCompleted)) { _ in
+                showNextScreen = false
+            }
             .navigationDestination(isPresented: $showNextScreen) {
-                TaxiCustomerCalendarView()
+                TaxiPickupLocationView()
             }
             .sheet(isPresented: $showBusinessPlans) {
                 NavigationStack {
                     TaxiBusinessPlansView()
                 }
+                .presentationBackground(Brand.background)
+                .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showDriverProfile) {
                 DriverProfileView(store: profileStore)
                     .environmentObject(centralStore)
+                    .presentationBackground(Brand.background)
+                    .presentationDragIndicator(.visible)
             }
             .alert("Taxi abbestellen?", isPresented: $showCancelAlert) {
                 Button("Zentrale anrufen") {

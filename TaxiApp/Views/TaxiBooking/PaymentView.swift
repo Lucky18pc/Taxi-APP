@@ -1,125 +1,29 @@
 import SwiftUI
-import PassKit
 import MapKit
 
-// MARK: - Apple Pay Button (UIKit-Wrapper)
-struct ApplePayButton: UIViewRepresentable {
-    let action: () -> Void
-
-    func makeUIView(context: Context) -> PKPaymentButton {
-        let button = PKPaymentButton(paymentButtonType: .plain, paymentButtonStyle: .black)
-        button.addTarget(context.coordinator, action: #selector(Coordinator.tapped), for: .touchUpInside)
-        return button
-    }
-
-    func updateUIView(_ uiView: PKPaymentButton, context: Context) {}
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(action: action)
-    }
-
-    class Coordinator: NSObject {
-        let action: () -> Void
-        init(action: @escaping () -> Void) { self.action = action }
-        @objc func tapped() { action() }
-    }
-}
-
-// MARK: - Apple Pay Authorization Delegate
-final class ApplePayHandler: NSObject, ObservableObject, PKPaymentAuthorizationControllerDelegate {
-    private var controller: PKPaymentAuthorizationController?
-    private var onComplete: ((Bool, String?) -> Void)?
-    private var didAuthorizeSuccess = false
-
-    func startPayment(
-        merchantId: String = "merchant.com.pececarmine.collectionshop",
-        countryCode: String = "DE",
-        currencyCode: String = "EUR",
-        summaryItems: [PKPaymentSummaryItem],
-        completion: @escaping (Bool, String?) -> Void
-    ) {
-        guard PKPaymentAuthorizationController.canMakePayments() else {
-            completion(false, "Apple Pay ist auf diesem Gerät nicht verfügbar.")
-            return
-        }
-
-        didAuthorizeSuccess = false
-        let request = PKPaymentRequest()
-        request.merchantIdentifier = merchantId
-        request.countryCode = countryCode
-        request.currencyCode = currencyCode
-        request.supportedNetworks = [.visa, .masterCard, .amex, .girocard]
-        request.merchantCapabilities = [.threeDSecure, .debit, .credit]
-        request.paymentSummaryItems = summaryItems
-
-        let authController = PKPaymentAuthorizationController(paymentRequest: request)
-        authController.delegate = self
-        onComplete = completion
-        controller = authController
-        authController.present { [weak self] presented in
-            if !presented {
-                self?.onComplete?(false, "Apple Pay konnte nicht angezeigt werden.")
-                self?.onComplete = nil
-                self?.controller = nil
-            }
-        }
-    }
-
-    func paymentAuthorizationController(
-        _ controller: PKPaymentAuthorizationController,
-        didAuthorizePayment payment: PKPayment,
-        handler completion: @escaping (PKPaymentAuthorizationResult) -> Void
-    ) {
-        didAuthorizeSuccess = true
-        completion(PKPaymentAuthorizationResult(status: .success, errors: nil))
-    }
-
-    func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
-        controller.dismiss { [weak self] in
-            guard let self = self else { return }
-            let success = self.didAuthorizeSuccess
-            self.onComplete?(success, success ? nil : "Zahlung abgebrochen.")
-            self.onComplete = nil
-            self.controller = nil
-        }
-    }
+extension Notification.Name {
+    /// Buchung abgeschlossen — Startseite setzt den Navigationsstack zurück.
+    static let taxiBookingCompleted = Notification.Name("taxiBookingCompleted")
 }
 
 // MARK: - Tip & Payment Models
 
-private enum TipSelection: Hashable {
-    case percent(Int)
-    case fixed(Double)
+private struct TipOption: Identifiable, Hashable {
+    let id: String
+    let amount: Double
 
     var label: String {
-        switch self {
-        case .percent(let pct): return "\(pct)%"
-        case .fixed(let amount): return String(format: "%.2f €", amount)
-        }
+        amount == 0 ? "Kein Trinkgeld" : String(format: "%.2f €", amount)
     }
 }
 
-private enum CheckoutPaymentMethod: String, CaseIterable, Identifiable {
-    case card = "Karte"
-    case cash = "Bar"
-
-    var id: String { rawValue }
-
-    var icon: String {
-        switch self {
-        case .card: return "creditcard.fill"
-        case .cash: return "banknote.fill"
-        }
-    }
-
-    /// Marken-Akzent pro Zahlungsart.
-    var accentColor: Color {
-        switch self {
-        case .card: return Brand.accent
-        case .cash: return Brand.primary
-        }
-    }
-}
+private let tipOptions: [TipOption] = [
+    TipOption(id: "none", amount: 0),
+    TipOption(id: "1_50", amount: 1.5),
+    TipOption(id: "2_00", amount: 2),
+    TipOption(id: "3_00", amount: 3),
+    TipOption(id: "5_00", amount: 5),
+]
 
 private let voucherToggleGreen = Brand.accent
 
@@ -134,6 +38,9 @@ struct TaxiBookingSummary: Hashable {
     var useVoucher: Bool
     var paymentMethodLabel: String
     var nightSurchargeApplies: Bool
+    /// Sofort-Abholung — Anzeige „so bald wie möglich“ statt Kalenderzeit.
+    var isImmediatePickup: Bool = false
+    var passengerEmail: String = ""
 
     /// Bei Buchung kein fester Gesamtpreis — Zahlung nach Fahrt (Taxameter / Fahrer).
     var totalAmount: Double { 0 }
@@ -145,40 +52,143 @@ struct TaxiBookingSummary: Hashable {
     }
 
     var totalDisplayText: String { "0,00 €" }
+
+    func pickupTimeDisplayText(timeZone: TimeZone) -> String {
+        if isImmediatePickup {
+            return "Sofort — so bald wie möglich"
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "HH:mm"
+        return "\(formatter.string(from: pickupDate)) Uhr"
+    }
+
+    func pickupDateDisplayText(timeZone: TimeZone) -> String {
+        if isImmediatePickup {
+            return "Heute"
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "dd.MM.yyyy"
+        return formatter.string(from: pickupDate)
+    }
+}
+
+// MARK: - Fahrtübersicht (Adresse + Abholzeit)
+
+struct BookingTripOverviewCard: View {
+    let pickupLocation: PickupLocation
+    let pickupDate: Date
+    let isImmediate: Bool
+
+    private var trimmedDestination: String {
+        pickupLocation.destinationAddressLine.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(
+                isImmediate ? "Taxi wird zur Abholung geschickt" : "Ihre geplante Fahrt",
+                systemImage: "car.fill"
+            )
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(Brand.primary)
+
+            overviewRow(
+                icon: "mappin.circle.fill",
+                title: "Abholort",
+                value: pickupLocation.addressLine
+            )
+
+            if !trimmedDestination.isEmpty {
+                overviewRow(
+                    icon: "flag.checkered",
+                    title: "Ziel",
+                    value: trimmedDestination
+                )
+            }
+
+            overviewRow(
+                icon: isImmediate ? "bolt.fill" : "clock.fill",
+                title: "Abholzeit",
+                value: isImmediate
+                    ? "Sofort — so bald wie möglich"
+                    : pickupDate.formatted(
+                        .dateTime.day().month(.abbreviated).hour().minute()
+                            .locale(Locale(identifier: "de_DE"))
+                    )
+            )
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+        .colorScheme(.light)
+    }
+
+    private func overviewRow(icon: String, title: String, value: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Brand.primary)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Brand.secondary)
+                Text(value)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
 }
 
 // MARK: - Payment View
 
-/// Seite 4: Zahlung — Tarif, Trinkgeld, Gutschein, ZahlungsArt.
+/// Seite 5: Kasse — Trinkgeld, Gutschein-Hinweis, Zahlungswunsch (letzter Schritt).
 struct PaymentView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var centralStore: CentralConfigStore
-    @State private var showConfirmation = false
-    @State private var showCardPayment = false
+    @State private var showConfirmedAlert = false
+    @State private var isSubmitting = false
+    @State private var submitError: String?
+    @State private var confirmedMessage = ""
 
     let pickupDate: Date
     let pickupLocation: PickupLocation
+    let isImmediatePickup: Bool
+
+    private let bookingService = BookingService()
     /// Kein Demo-Festpreis — Betrag kommt vom Taxameter am Ende der Fahrt.
     private let tariffAmount: Double = 0
-    @State private var selectedTip: TipSelection = .fixed(0)
+    @State private var selectedTipId: String = "none"
     @State private var useVoucher = false
     @State private var voucherText = ""
-    @State private var selectedMethod: CheckoutPaymentMethod = .cash
 
-    private let fixedTips: [TipSelection] = [.fixed(0), .fixed(1.50), .fixed(2.00), .fixed(3.00), .fixed(5.00)]
+    private let fixedTips: [TipOption] = tipOptions
 
-    init(pickupDate: Date = Date(), pickupLocation: PickupLocation = .defaultPlaceholder) {
+    init(
+        pickupDate: Date = Date(),
+        pickupLocation: PickupLocation = .defaultPlaceholder,
+        isImmediatePickup: Bool = false
+    ) {
         self.pickupDate = pickupDate
         self.pickupLocation = pickupLocation
+        self.isImmediatePickup = isImmediatePickup
+    }
+
+    private var selectedTipOption: TipOption {
+        tipOptions.first { $0.id == selectedTipId } ?? tipOptions[0]
     }
 
     private var tipAmount: Double {
-        switch selectedTip {
-        case .percent:
-            return 0
-        case .fixed(let amount):
-            return amount
-        }
+        selectedTipOption.amount
     }
 
     private var voucherAmount: Double {
@@ -189,26 +199,55 @@ struct PaymentView: View {
 
     private var tipSummaryText: String {
         if tipAmount <= 0 {
-            return "Kein Trinkgeld-Wunsch — optional beim Fahrer"
+            return "Kein Trinkgeld-Wunsch — optional bar beim Fahrer"
         }
-        return String(format: "Trinkgeld-Wunsch: %.2f € (beim Fahrer)", tipAmount)
+        return String(
+            format: "Trinkgeld-Wunsch: %.2f € — wird an die Leitstelle gemeldet, nicht zum Taxameter addiert",
+            tipAmount
+        )
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Zahlung")
-                .font(BookingScreenStyle.titleFont)
-                .foregroundStyle(.white)
-                .padding(.top, 10)
+            VStack(spacing: 2) {
+                Text("Kasse")
+                    .font(BookingScreenStyle.titleFont)
+                    .foregroundStyle(.white)
+                Text("Trinkgeld & Zahlungswunsch — Fahrtpreis nach Taxameter")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.82))
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.top, 10)
+            .padding(.horizontal, 16)
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 8) {
+                    if isSubmitting {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .tint(Brand.primary)
+                            Text("Buchung wird gesendet…")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Brand.primary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.92))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+
+                    BookingTripOverviewCard(
+                        pickupLocation: pickupLocation,
+                        pickupDate: pickupDate,
+                        isImmediate: isImmediatePickup
+                    )
                     tariffCard
                     nightSurchargeSection
                     tipCard
                     voucherCard
                     totalBar
-                    paymentMethodCard
+                    barPaymentInfoCard
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -219,17 +258,34 @@ struct PaymentView: View {
         .navigationBarBackButtonHidden(true)
         .safeAreaPadding(.top, 8)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            BookingBottomBar(forwardTitle: "Jetzt buchen", onBack: { dismiss() }, onForward: payTapped)
+            BookingLegalFootnote(confirmActionLabel: "Taxi bestellen")
+            BookingBottomBar(
+                forwardTitle: submitButtonTitle,
+                forwardDisabled: isSubmitting,
+                onBack: { dismiss() },
+                onForward: submitBooking
+            )
         }
-        .navigationDestination(isPresented: $showConfirmation) {
-            TaxiConfirmationView(summary: buildSummary())
-        }
-        .navigationDestination(isPresented: $showCardPayment) {
-            CardTapPaymentView(summary: buildSummary()) {
-                showCardPayment = false
-                showConfirmation = true
+        .alert("Taxi bestellt", isPresented: $showConfirmedAlert) {
+            Button("OK", role: .cancel) {
+                NotificationCenter.default.post(name: .taxiBookingCompleted, object: nil)
             }
+        } message: {
+            Text(confirmedMessage)
         }
+        .alert("Buchung fehlgeschlagen", isPresented: Binding(
+            get: { submitError != nil },
+            set: { if !$0 { submitError = nil } }
+        )) {
+            Button("OK", role: .cancel) { submitError = nil }
+        } message: {
+            Text(submitError ?? "")
+        }
+    }
+
+    private var submitButtonTitle: String {
+        if isSubmitting { return "Bitte warten…" }
+        return "Taxi bestellen"
     }
 
     // MARK: - Cards
@@ -291,9 +347,12 @@ struct PaymentView: View {
             Text("Trinkgeld (optional)")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.white)
+            Text("Wunsch an Fahrer/Leitstelle — kein Aufschlag auf den Taxameter-Betrag in der App.")
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.85))
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                ForEach(fixedTips, id: \.self) { tip in
+                ForEach(fixedTips) { tip in
                     tipButton(tip)
                 }
             }
@@ -301,11 +360,12 @@ struct PaymentView: View {
             Text(tipSummaryText)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
-                .background(Brand.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(selectedTipId == "none" ? Brand.secondary : Color.white.opacity(0.18))
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .lightShimmer(cornerRadius: 8, tone: .onDark, intensity: 0.9)
+                .animation(.easeInOut(duration: 0.2), value: selectedTipId)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -313,40 +373,34 @@ struct PaymentView: View {
         .background(Brand.primary)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
-        .lightShimmer(cornerRadius: 18, tone: .onDark, intensity: 1.1)
     }
 
-    private func tipButton(_ tip: TipSelection) -> some View {
-        let selected = selectedTip == tip
-        let title: String = {
-            switch tip {
-            case .percent: return "—"
-            case .fixed(let amount):
-                return amount == 0 ? "Keins" : String(format: "%.2f €", amount)
-            }
-        }()
+    private func tipButton(_ tip: TipOption) -> some View {
+        let selected = selectedTipId == tip.id
 
         return Button {
-            selectedTip = tip
-        } label: {
-            VStack(spacing: 2) {
-                Text(title)
-                    .font(.caption.weight(.semibold))
-                Text("Trinkgeld")
-                    .font(.caption2)
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedTipId = tip.id
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .foregroundStyle(.white)
-            .background(Brand.secondary)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color.white.opacity(selected ? 1.0 : 0.45), lineWidth: selected ? 2 : 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .lightShimmer(active: true, cornerRadius: 10, tone: .onDark, intensity: selected ? 1.25 : 0.95)
+        } label: {
+            Text(tip.label)
+                .font(.caption.weight(.bold))
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .foregroundStyle(selected ? Brand.primary : .white)
+                .background(selected ? Color.white : Brand.secondary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.white.opacity(selected ? 0 : 0.35), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(tip.label)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private var voucherCard: some View {
@@ -393,7 +447,29 @@ struct PaymentView: View {
     }
 
     private var totalBar: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 8) {
+            HStack {
+                Text("Fahrtpreis")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                Spacer()
+                Text(TaxiBookingSummary.taximeterFareLabel)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.white)
+            }
+
+            HStack {
+                Text("Trinkgeld-Wunsch")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                Spacer()
+                Text(tipAmount > 0 ? String(format: "%.2f €", tipAmount) : "Keins")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(tipAmount > 0 ? Color(red: 1, green: 0.92, blue: 0.55) : .white)
+            }
+
+            Divider().overlay(Color.white.opacity(0.25))
+
             HStack {
                 Text("Jetzt in der App")
                     .font(.headline.weight(.bold))
@@ -403,7 +479,8 @@ struct PaymentView: View {
                     .font(.headline.weight(.bold))
                     .foregroundStyle(.white)
             }
-            Text("Zahlung nach der Fahrt — Betrag laut Taxameter beim Fahrer")
+
+            Text("Taxameter + Trinkgeld zahlen Sie bar beim Fahrer nach der Fahrt.")
                 .font(.caption2)
                 .foregroundStyle(.white.opacity(0.85))
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -413,33 +490,21 @@ struct PaymentView: View {
         .background(Brand.primary)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
-        .lightShimmer(cornerRadius: 16, tone: .onDark, intensity: 1.2)
+        .animation(.easeInOut(duration: 0.2), value: selectedTipId)
     }
 
-    private var paymentMethodCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Zahlungsart")
-                .font(.subheadline.weight(.semibold))
+    private var barPaymentInfoCard: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "banknote.fill")
+                .font(.title2)
                 .foregroundStyle(Brand.primary)
-
-            HStack(spacing: 10) {
-                ForEach(CheckoutPaymentMethod.allCases) { method in
-                    paymentMethodButton(method)
-                }
-            }
-
-            if selectedMethod == .cash {
-                Text("Bar am Ende der Fahrt beim Fahrer — jetzt nur die Fahrt buchen.")
-                    .font(.caption)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Zahlung bar beim Fahrer")
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Brand.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 4)
-            } else {
-                Text("Kartenzahlung in der App folgt nach der Fahrt (Taxameter-Betrag). Bis dahin bitte Bar wählen.")
+                Text("Fahrtpreis laut Taxameter am Ende der Fahrt — jetzt nur die Fahrt buchen.")
                     .font(.caption)
-                    .foregroundStyle(Brand.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 4)
+                    .foregroundStyle(Brand.primary.opacity(0.85))
             }
         }
         .padding(.horizontal, 16)
@@ -451,47 +516,26 @@ struct PaymentView: View {
         .lightShimmer(cornerRadius: 18, tone: .onLight, intensity: 0.9)
     }
 
-    private func paymentMethodButton(_ method: CheckoutPaymentMethod) -> some View {
-        let selected = selectedMethod == method
-        let accent = method.accentColor
-
-        return Button {
-            selectedMethod = method
-        } label: {
-            VStack(spacing: 6) {
-                Image(systemName: method.icon)
-                    .font(.title3)
-                Text(method.rawValue)
-                    .font(.caption.weight(.semibold))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .foregroundStyle(selected ? Color.white : accent)
-            .background(selected ? accent : accent.opacity(0.10))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(selected ? accent : accent.opacity(0.35), lineWidth: selected ? 0 : 1.5)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .lightShimmer(
-                active: true,
-                cornerRadius: 12,
-                tone: selected ? .onDark : .onLight,
-                intensity: selected ? 1.3 : 0.75
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
     // MARK: - Payment Logic
 
-    private func payTapped() {
-        switch selectedMethod {
-        case .card:
-            // Kein Vorab-Betrag — Kartenzahlung erst nach Taxameter (später).
-            showConfirmation = true
-        case .cash:
-            showConfirmation = true
+    private func submitBooking() {
+        guard !isSubmitting else { return }
+        isSubmitting = true
+
+        let summary = buildSummary()
+        Task {
+            let result = await bookingService.submitBooking(summary: summary)
+            await MainActor.run {
+                isSubmitting = false
+                switch result {
+                case .failure(let message):
+                    submitError = message
+                case .success:
+                    confirmedMessage =
+                        "Ihr Taxi ist bestellt. Die Zahlung erfolgt nach der Fahrt — Betrag laut Taxameter, bar beim Fahrer."
+                    showConfirmedAlert = true
+                }
+            }
         }
     }
 
@@ -503,482 +547,294 @@ struct PaymentView: View {
             tipAmount: tipAmount,
             voucherAmount: voucherAmount,
             useVoucher: useVoucher,
-            paymentMethodLabel: selectedMethod.rawValue,
-            nightSurchargeApplies: centralStore.nightSurchargeApplies(for: pickupDate)
+            paymentMethodLabel: "Bar",
+            nightSurchargeApplies: centralStore.nightSurchargeApplies(for: pickupDate),
+            isImmediatePickup: isImmediatePickup
         )
-    }
-}
-
-// MARK: - Card Tap Payment View
-
-private enum BankCardPaymentMode: String, CaseIterable, Identifiable {
-    case cardEntry = "Bankkarte"
-    case contactless = "Kontaktlos"
-
-    var id: String { rawValue }
-}
-
-/// Bankkarten-Zahlung — Stripe Payment Sheet oder Kontaktlos.
-struct CardTapPaymentView: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var centralStore: CentralConfigStore
-    @StateObject private var applePayHandler = ApplePayHandler()
-    @State private var paymentMode: BankCardPaymentMode = .cardEntry
-    @State private var isProcessing = false
-    @State private var pulseScale: CGFloat = 1.0
-    @State private var errorMessage: String?
-
-    private let stripeService = StripePaymentService()
-
-    let summary: TaxiBookingSummary
-    let onSuccess: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Text("Bankkarte")
-                .font(BookingScreenStyle.titleFont)
-                .foregroundStyle(.white)
-                .padding(.top, 10)
-
-            Picker("Zahlungsart", selection: $paymentMode) {
-                ForEach(BankCardPaymentMode.allCases) { mode in
-                    Text(mode.rawValue).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
-
-            ScrollView(showsIndicators: false) {
-                Group {
-                    if paymentMode == .cardEntry {
-                        stripeBankCardView
-                    } else {
-                        contactlessCard
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
-            }
-        }
-        .safeAreaPadding(.top, 8)
-        .bookingFlowBackground()
-        .navigationBarBackButtonHidden(true)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            BookingBottomBar(
-                backTitle: "Zurück",
-                forwardTitle: paymentMode == .cardEntry ? "Mit Bankkarte bezahlen" : "Jetzt bezahlen",
-                forwardDisabled: isProcessing,
-                onBack: { dismiss() },
-                onForward: submitPayment
-            )
-        }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                pulseScale = 1.18
-            }
-        }
-    }
-
-    private var stripeBankCardView: some View {
-        VStack(spacing: 20) {
-            Text(String(format: "%.2f €", summary.totalAmount))
-                .font(.system(size: 44, weight: .bold, design: .rounded))
-                .foregroundStyle(Brand.primary)
-
-            Image(systemName: "creditcard.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(Brand.primary)
-
-            VStack(spacing: 8) {
-                Text("Sichere Zahlung mit Stripe")
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(Brand.primary)
-                Text("EC- oder Kreditkarte — verschlüsselt über Stripe Payment Sheet.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Testkarte (Stripe Testmodus):")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Brand.primary)
-                Text("4242 4242 4242 4242 · MM/JJ beliebig · CVC 123")
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            if isProcessing {
-                ProgressView("Verbindung zur Bank…")
-                    .font(.subheadline)
-            }
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 32)
-        .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .shadow(color: .black.opacity(0.10), radius: 16, y: 8)
-        .lightShimmer(cornerRadius: 22, tone: .onLight, intensity: 0.9)
-    }
-
-    private var contactlessCard: some View {
-        VStack(spacing: 24) {
-            Text(String(format: "%.2f €", summary.totalAmount))
-                .font(.system(size: 44, weight: .bold, design: .rounded))
-                .foregroundStyle(Brand.primary)
-
-            ZStack {
-                Circle()
-                    .stroke(Brand.primary.opacity(0.25), lineWidth: 3)
-                    .frame(width: 120, height: 120)
-                    .scaleEffect(pulseScale)
-
-                Circle()
-                    .stroke(Brand.primary.opacity(0.15), lineWidth: 2)
-                    .frame(width: 150, height: 150)
-                    .scaleEffect(pulseScale * 0.95)
-
-                VStack(spacing: 8) {
-                    Image(systemName: "wave.3.right")
-                        .font(.system(size: 36))
-                        .foregroundStyle(Brand.primary)
-                    Image(systemName: "creditcard.fill")
-                        .font(.title2)
-                        .foregroundStyle(Brand.primary)
-                }
-            }
-            .frame(height: 160)
-
-            Text("Bankkarte ans Gerät halten")
-                .font(.subheadline.weight(.medium))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Brand.primary)
-
-            if isProcessing {
-                ProgressView("Zahlung wird verarbeitet…")
-                    .font(.subheadline)
-            }
-
-            if PKPaymentAuthorizationController.canMakePayments() {
-                VStack(spacing: 6) {
-                    Text("Oder mit hinterlegter Karte:")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    ApplePayButton(action: processApplePay)
-                        .frame(height: 44)
-                }
-                .disabled(isProcessing)
-            }
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 32)
-        .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .shadow(color: .black.opacity(0.10), radius: 16, y: 8)
-        .lightShimmer(cornerRadius: 22, tone: .onLight, intensity: 0.9)
-    }
-
-    private func submitPayment() {
-        errorMessage = nil
-        if paymentMode == .cardEntry {
-            startStripePayment()
-        } else {
-            processContactlessSimulation()
-        }
-    }
-
-    private func startStripePayment() {
-        guard !isProcessing else { return }
-        isProcessing = true
-
-        let amountInCents = Int((summary.totalAmount * 100).rounded())
-
-        Task { @MainActor in
-            do {
-                let clientSecret = try await stripeService.fetchClientSecret(
-                    amountInCents: amountInCents,
-                    currency: centralStore.stripeCurrencyCode
-                )
-                isProcessing = false
-                stripeService.presentPaymentSheet(clientSecret: clientSecret) { success in
-                    if success {
-                        onSuccess()
-                    }
-                }
-            } catch {
-                isProcessing = false
-                errorMessage = error.localizedDescription
-            }
-        }
-    }
-
-    private func processContactlessSimulation() {
-        guard !isProcessing else { return }
-        isProcessing = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            isProcessing = false
-            onSuccess()
-        }
-    }
-
-    private func processApplePay() {
-        guard !isProcessing else { return }
-        let total = NSDecimalNumber(value: summary.totalAmount)
-        let items: [PKPaymentSummaryItem] = [
-            PKPaymentSummaryItem(label: "Tarif", amount: NSDecimalNumber(value: summary.tariffAmount)),
-            PKPaymentSummaryItem(label: "Trinkgeld", amount: NSDecimalNumber(value: summary.tipAmount)),
-            PKPaymentSummaryItem(label: "TaxiApp", amount: total)
-        ]
-
-        applePayHandler.startPayment(
-            countryCode: centralStore.regionCountryCode,
-            currencyCode: centralStore.paymentCurrencyCode,
-            summaryItems: items
-        ) { success, _ in
-            DispatchQueue.main.async {
-                if success {
-                    onSuccess()
-                }
-            }
-        }
     }
 }
 
 // MARK: - Confirmation View
 
-/// Seite 5: Buchungsbestätigung — Zusammenfassung vor finaler Bestätigung.
+/// Seite 4: Fahrt prüfen — Adresse und Karte, danach zur Kasse.
 struct TaxiConfirmationView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var centralStore: CentralConfigStore
-    @State private var showConfirmedAlert = false
-    @State private var isSubmitting = false
-    @State private var submitError: String?
-    @State private var confirmedMessage = ""
+    @State private var showCheckout = false
+    @State private var cameraPosition: MapCameraPosition
+    @State private var displayAddress: String
+    @State private var displayPickupTime: String
+    @State private var displayPickupDate: String
+    @State private var displayCoordinate: CLLocationCoordinate2D
 
     let summary: TaxiBookingSummary
 
-    private let bookingService = BookingService()
+    init(summary: TaxiBookingSummary) {
+        self.summary = summary
+        let center = summary.pickupLocation.coordinate
+        _cameraPosition = State(initialValue: TaxiConfig.pickupMapCamera(center: center))
+        _displayAddress = State(initialValue: summary.pickupLocation.addressLine)
+        _displayCoordinate = State(initialValue: center)
+        _displayPickupTime = State(initialValue: Self.initialPickupTime(summary: summary))
+        _displayPickupDate = State(initialValue: Self.initialPickupDate(summary: summary))
+    }
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Taxi bestellen")
-                .font(BookingScreenStyle.titleFont)
+            Text("Fahrt prüfen")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
-                .padding(.top, 10)
+                .padding(.top, 8)
 
-            if summary.paymentMethodLabel == "Bar" {
-                Text("Barzahlung am Ende der Fahrt beim Fahrer")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 4)
-                Text("Preis nach Taxameter — unten Taxi bestellen, kein Zahlvorgang in der App.")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.85))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 2)
-            }
+            Text(summary.isImmediatePickup
+                ? "Sofort-Abholung — danach Trinkgeld an der Kasse wählen."
+                : "Adresse und Termin prüfen — danach zur Kasse.")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.88))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+                .padding(.top, 2)
+                .padding(.bottom, 4)
+
+            pickupMapPreview
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
 
             ScrollView(showsIndicators: false) {
-                summaryCard
+                tripDetailsCard
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.bottom, 6)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            if isSubmitting {
-                HStack(spacing: 8) {
-                    ProgressView()
-                        .tint(.white)
-                    Text("Buchung wird gesendet…")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(Brand.primary.opacity(0.92))
-            }
-
-            BookingLegalFootnote()
-
             BookingBottomBar(
-                forwardTitle: confirmButtonTitle,
-                forwardDisabled: isSubmitting,
+                forwardTitle: "Zur Kasse",
                 onBack: { dismiss() },
-                onForward: confirmBooking
+                onForward: { showCheckout = true }
             )
         }
         .bookingFlowBackground()
         .navigationBarBackButtonHidden(true)
         .safeAreaPadding(.top, 8)
-        .alert("Taxi bestellt", isPresented: $showConfirmedAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(confirmedMessage)
+        .onAppear {
+            refreshPickupSchedule()
         }
-        .alert("Buchung fehlgeschlagen", isPresented: Binding(
-            get: { submitError != nil },
-            set: { if !$0 { submitError = nil } }
-        )) {
-            Button("OK", role: .cancel) { submitError = nil }
-        } message: {
-            Text(submitError ?? "")
+        .task {
+            await resolvePickupOnMap()
+        }
+        .navigationDestination(isPresented: $showCheckout) {
+            PaymentView(
+                pickupDate: summary.isImmediatePickup ? Date() : summary.pickupDate,
+                pickupLocation: checkoutPickupLocation,
+                isImmediatePickup: summary.isImmediatePickup
+            )
         }
     }
 
-    private var confirmButtonTitle: String {
-        if isSubmitting { return "Bitte warten…" }
-        return "Taxi bestellen"
+    private var checkoutPickupLocation: PickupLocation {
+        PickupLocation(
+            latitude: displayCoordinate.latitude,
+            longitude: displayCoordinate.longitude,
+            addressLine: displayAddress,
+            destinationAddressLine: summary.pickupLocation.destinationAddressLine
+        )
     }
 
-    private var summaryCard: some View {
-        VStack(spacing: 10) {
-            pickupMapPreview
-
-            summaryRow(label: "Abholort", value: summary.pickupLocation.addressLine)
+    private var tripDetailsCard: some View {
+        VStack(spacing: 6) {
+            summaryRow(label: "Abholort", value: displayAddress)
             if !summary.pickupLocation.destinationAddressLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 summaryRow(label: "Ziel", value: summary.pickupLocation.destinationAddressLine)
             }
-            summaryRow(label: "Abholzeit", value: pickupTimeText)
-            summaryRow(label: "Datum", value: pickupDateText)
+            summaryRow(label: "Abholzeit", value: displayPickupTime)
+            summaryRow(label: "Datum", value: displayPickupDate)
+
             summaryRow(label: "Fahrtpreis", value: summary.fareDisplayText)
 
             if summary.nightSurchargeApplies {
                 summaryRow(
                     label: "Nachtzuschlag",
-                    value: "Möglich (\(NightSurcharge.windowLabel))"
+                    value: NightSurcharge.windowLabel
                 )
             }
 
-            if summary.tipAmount > 0 {
-                summaryRow(
-                    label: "Trinkgeld-Wunsch",
-                    value: String(format: "%.2f €", summary.tipAmount)
-                )
-            }
-
-            if summary.useVoucher, summary.voucherAmount > 0 {
-                summaryRow(
-                    label: "Gutschein-Hinweis",
-                    value: String(format: "%.2f €", summary.voucherAmount)
-                )
-            }
-
-            summaryRow(label: "Zahlungsart", value: summary.paymentMethodLabel)
-
-            Divider()
-                .padding(.vertical, 4)
-
-            HStack {
-                Text("Jetzt fällig")
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(Brand.primary)
-                Spacer()
-                Text(summary.totalDisplayText)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(Brand.primary)
-            }
-
-            Text("Endbetrag nach Taxameter — Zahlung beim Fahrer bzw. nach der Fahrt in der App.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text("Trinkgeld und Zahlungswunsch wählen Sie an der Kasse.")
+                .font(.caption2)
+                .foregroundStyle(Brand.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 2)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: .black.opacity(0.10), radius: 12, y: 6)
-        .lightShimmer(cornerRadius: 18, tone: .onLight, intensity: 0.9)
+        .background(Brand.background)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Brand.primary.opacity(0.14), lineWidth: 1)
+        }
+        .colorScheme(.light)
     }
 
     private var pickupMapPreview: some View {
-        let pin = PickupMapPin(location: summary.pickupLocation)
-        return Map(
-            coordinateRegion: .constant(
-                MKCoordinateRegion(
-                    center: summary.pickupLocation.coordinate,
-                    span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
-                )
-            ),
-            interactionModes: [],
-            annotationItems: [pin]
-        ) { item in
-            MapMarker(coordinate: item.location.coordinate, tint: Brand.primary)
+        let coordinate = displayCoordinate
+
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label(displayAddress, systemImage: "mappin.and.ellipse")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .lineLimit(2)
+                Spacer(minLength: 0)
+                Button("Zentrieren") {
+                    centerMapOnPickup(coordinate: coordinate, animated: true)
+                }
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Brand.primary.opacity(0.85))
+                .clipShape(Capsule())
+            }
+            .padding(.horizontal, 2)
+
+            Text("Karte verschieben und zoomen — Pin = genauer Abholpunkt")
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.72))
+                .padding(.leading, 2)
+
+            Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
+                Annotation("Abholpunkt", coordinate: coordinate) {
+                    Image(systemName: "mappin.circle.fill")
+                        .font(.system(size: 36))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Brand.primary, .white)
+                        .shadow(color: .black.opacity(0.35), radius: 4, y: 2)
+                }
+            }
+            .mapStyle(.standard(elevation: .realistic))
+            .mapControls {
+                MapCompass()
+                MapScaleView()
+            }
+            .europeanBookingMap()
+            .frame(height: 196)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.white.opacity(0.55), lineWidth: 1.5)
+            }
+            .shadow(color: .black.opacity(0.22), radius: 10, y: 4)
         }
-        .frame(height: 100)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private func centerMapOnPickup(coordinate: CLLocationCoordinate2D, animated: Bool) {
+        let position = TaxiConfig.pickupMapCamera(center: coordinate)
+        if animated {
+            withAnimation(.easeInOut(duration: 0.45)) {
+                cameraPosition = position
+            }
+        } else {
+            cameraPosition = position
+        }
+    }
+
+    private func refreshPickupSchedule() {
+        let timeZone = centralStore.regionTimeZone
+        if summary.isImmediatePickup {
+            displayPickupTime = Self.formattedImmediatePickupTime(timeZone: timeZone)
+            displayPickupDate = Self.formattedImmediatePickupDate(timeZone: timeZone)
+        } else {
+            displayPickupTime = summary.pickupTimeDisplayText(timeZone: timeZone)
+            displayPickupDate = summary.pickupDateDisplayText(timeZone: timeZone)
+        }
+    }
+
+    private func resolvePickupOnMap() async {
+        var coordinate = summary.pickupLocation.coordinate
+        let address = summary.pickupLocation.addressLine
+
+        if TaxiConfig.isInAmericas(coordinate) || !TaxiConfig.isInEurope(coordinate) {
+            coordinate = TaxiConfig.defaultMapCenter
+        }
+
+        if TaxiConfig.isLikelyUnsetPickupCoordinate(coordinate),
+           !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           let searched = await GeocodingService.forwardGeocode(addressLine: address) {
+            coordinate = searched
+        }
+
+        if Self.needsAddressLookup(displayAddress) {
+            let parsed = await GeocodingService.reverseGeocodeParsed(coordinate: coordinate)
+            if !parsed.isEmpty {
+                await MainActor.run {
+                    displayAddress = parsed.formattedLine
+                }
+            }
+        } else if !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            await MainActor.run {
+                displayAddress = address
+            }
+        }
+
+        await MainActor.run {
+            displayCoordinate = coordinate
+            centerMapOnPickup(coordinate: coordinate, animated: false)
+        }
+    }
+
+    private static func needsAddressLookup(_ line: String) -> Bool {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return true }
+        let lowered = trimmed.lowercased()
+        return lowered.contains("abholpunkt")
+            || lowered.contains("pin auf karte")
+            || lowered.contains("wird auf der karte")
+    }
+
+    private static func initialPickupTime(summary: TaxiBookingSummary) -> String {
+        let timeZone = TimeZone(identifier: "Europe/Berlin") ?? .current
+        if summary.isImmediatePickup {
+            return formattedImmediatePickupTime(timeZone: timeZone)
+        }
+        return summary.pickupTimeDisplayText(timeZone: timeZone)
+    }
+
+    private static func initialPickupDate(summary: TaxiBookingSummary) -> String {
+        let timeZone = TimeZone(identifier: "Europe/Berlin") ?? .current
+        if summary.isImmediatePickup {
+            return formattedImmediatePickupDate(timeZone: timeZone)
+        }
+        return summary.pickupDateDisplayText(timeZone: timeZone)
+    }
+
+    private static func formattedImmediatePickupTime(timeZone: TimeZone) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "HH:mm"
+        return "Sofort — ca. \(formatter.string(from: Date())) Uhr"
+    }
+
+    private static func formattedImmediatePickupDate(timeZone: TimeZone) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "EEEE, dd.MM.yyyy"
+        return formatter.string(from: Date())
     }
 
     private func summaryRow(label: String, value: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 8) {
             Text(label)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(Color(white: 0.38))
-            Spacer(minLength: 8)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Brand.secondary)
+                .frame(width: 72, alignment: .leading)
             Text(value)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color(white: 0.22))
-                .multilineTextAlignment(.trailing)
-        }
-    }
-
-    private var pickupTimeText: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.timeZone = centralStore.regionTimeZone
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: summary.pickupDate)
-    }
-
-    private var pickupDateText: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.timeZone = centralStore.regionTimeZone
-        formatter.dateFormat = "dd.MM.yyyy"
-        return formatter.string(from: summary.pickupDate)
-    }
-
-    private func confirmBooking() {
-        guard !isSubmitting else { return }
-        isSubmitting = true
-
-        Task {
-            let result = await bookingService.submitBooking(summary: summary)
-            await MainActor.run {
-                isSubmitting = false
-                switch result {
-                case .failure(let message):
-                    submitError = message
-                case .success:
-                    if summary.paymentMethodLabel == "Bar" {
-                        confirmedMessage =
-                            "Ihr Taxi ist bestellt. Der Fahrtpreis steht nach der Fahrt auf dem Taxameter — bar beim Fahrer bezahlen."
-                    } else {
-                        confirmedMessage =
-                            "Ihr Taxi ist bestellt. Kartenzahlung in der App folgt nach der Fahrt, sobald der Taxameter-Betrag feststeht."
-                    }
-                    showConfirmedAlert = true
-                }
-            }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Brand.primary)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

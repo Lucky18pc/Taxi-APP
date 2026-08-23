@@ -22,7 +22,9 @@ Fahrgast-Strategie: docs/FAHRGAST-STRATEGIE.md (FahrgastApp = App Store)
 Fahrgast Go-Live:   ~/CollectionApp/FahrgastApp/docs/GO-LIVE.md
 Multi-Mandant:      docs/MULTI-TENANT.md (2+ Betriebe, GPS-Routing)
 Pilot-Betrieb:      docs/PILOT-START.md (E-Mail + Leitstelle an Taxi-Unternehmer)
-Betrieb registrieren: web/onboard.html (Self-Service)
+Partner-Anfrage: web/onboard.html (Lead, pending)
+Plattform-Admin: web/admin.html (Mandanten anlegen — ADMIN_PIN)
+Vermietung: docs/VERMIETUNG.md
 
 Cloud / Go-Live: **Render.com** (nicht Firebase — das ist CollectionShop).
 Live-URL: https://taxiapp-api.onrender.com

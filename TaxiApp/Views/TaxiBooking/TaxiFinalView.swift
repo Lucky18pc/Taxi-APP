@@ -1,7 +1,6 @@
 import SwiftUI
 import MapKit
 import CoreLocation
-import PassKit
 
 struct TaxiFinalView: View {
     @State private var route: MKRoute?
@@ -56,16 +55,16 @@ struct TaxiFinalView: View {
                     .cornerRadius(15)
 
                     Button(action: {
-                        startApplePayProcess()
+                        showPaymentSheet = true
                     }) {
                         HStack {
-                            Image(systemName: "applelogo")
-                            Text("Mit Apple Pay bezahlen")
+                            Image(systemName: "car.fill")
+                            Text("Taxi bestellen")
                                 .font(.headline)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(.systemGray2))
+                        .background(Brand.primary)
                         .foregroundColor(.white)
                         .cornerRadius(15)
                     }
@@ -81,9 +80,5 @@ struct TaxiFinalView: View {
         .sheet(isPresented: $showPaymentSheet) {
             PaymentView()
         }
-    }
-
-    func startApplePayProcess() {
-        showPaymentSheet = true
     }
 }

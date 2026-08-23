@@ -1,13 +1,17 @@
 import SwiftUI
+import SafariServices
 
 /// Angebot für Taxi-Unternehmer — monatliche Tarife, kündbar.
 struct TaxiBusinessPlansView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+    @State private var safariURL: IdentifiableURL?
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 24) {
                 headerSection
+                webOfferCard
                 customerSection
                 operatorSection
                 platformFeeSection
@@ -18,13 +22,61 @@ struct TaxiBusinessPlansView: View {
             .padding(.vertical, 16)
         }
         .background(Brand.background.ignoresSafeArea())
-        .navigationTitle("Angebot")
+        .navigationTitle("Für Unternehmer")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Brand.primary, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Schließen") { dismiss() }
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.white)
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Angebot online") {
+                    openOperatorsWebPage()
+                }
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.white)
             }
         }
+        .sheet(item: $safariURL) { item in
+            SafariWebView(url: item.url)
+                .ignoresSafeArea()
+        }
+    }
+
+    private func openOperatorsWebPage() {
+        guard let url = BusinessOffering.operatorsWebURL else { return }
+        safariURL = IdentifiableURL(url: url)
+    }
+
+    private var webOfferCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Tarife & Anfrage online")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(Brand.primary)
+            Text("Die vollständige Angebotsseite mit Formular (Tarif anfragen oder abonnieren) öffnet sich im Browser.")
+                .font(.caption)
+                .foregroundStyle(Brand.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button(action: openOperatorsWebPage) {
+                Label("Zur Angebotsseite", systemImage: "safari")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .foregroundStyle(.white)
+                    .background(Brand.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Brand.card)
+        .clipShape(RoundedRectangle(cornerRadius: Brand.cornerRadius, style: .continuous))
     }
 
     private var headerSection: some View {
@@ -37,7 +89,7 @@ struct TaxiBusinessPlansView: View {
                 .foregroundStyle(Brand.secondary)
             Text(BusinessOffering.billingNote)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Brand.secondary)
         }
     }
 
@@ -50,7 +102,7 @@ struct TaxiBusinessPlansView: View {
 
             Text(BusinessOffering.customerPriceNote)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Brand.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             ForEach(BusinessOffering.customerHighlights, id: \.self) { item in
@@ -82,6 +134,7 @@ struct TaxiBusinessPlansView: View {
             HStack {
                 Text(plan.name)
                     .font(.title3.weight(.bold))
+                    .foregroundStyle(Brand.primary)
                 Spacer()
                 if plan.highlighted {
                     Text("Beliebt")
@@ -100,7 +153,7 @@ struct TaxiBusinessPlansView: View {
 
             Text("Monatlich kündbar · \(plan.vehicleLimit)")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Brand.secondary)
 
             Text(plan.formattedPlatformFee)
                 .font(.caption.weight(.medium))
@@ -112,15 +165,30 @@ struct TaxiBusinessPlansView: View {
                     .foregroundStyle(Brand.secondary)
             }
 
-            if let url = plan.mailtoPartnerURL {
-                Link(destination: url) {
+            if let url = plan.webOfferingURL {
+                Button {
+                    safariURL = IdentifiableURL(url: url)
+                } label: {
                     Text("Tarif anfragen")
                         .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(plan.highlighted ? Brand.primary : Brand.primary.opacity(0.12))
-                        .foregroundStyle(plan.highlighted ? Color.white : Brand.primary)
+                        .foregroundStyle(.white)
+                        .background(Brand.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
+
+                if let mailURL = plan.mailtoPartnerURL {
+                    Button {
+                        openURL(mailURL)
+                    } label: {
+                        Text("Stattdessen per E-Mail")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Brand.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -137,7 +205,7 @@ struct TaxiBusinessPlansView: View {
     private var platformFeeSection: some View {
         Text(BusinessOffering.platformFeeExplanation)
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Brand.secondary)
             .padding(.bottom, 8)
     }
 
@@ -146,6 +214,21 @@ struct TaxiBusinessPlansView: View {
             .font(.headline.weight(.semibold))
             .foregroundStyle(Brand.primary)
     }
+}
+
+private struct IdentifiableURL: Identifiable {
+    let url: URL
+    var id: String { url.absoluteString }
+}
+
+private struct SafariWebView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        SFSafariViewController(url: url)
+    }
+
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
 
 #Preview {

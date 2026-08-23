@@ -46,5 +46,5 @@ Option C — Mit Backend (Preise aus API):
 Impressum & Rechtliches
 -----------------------
 Dateien: impressum.html, datenschutz.html, agb.html, widerruf.html, kuendigung.html
-Firmendaten: settings.html → Impressum (Web) — erscheinen auf allen Rechtseiten
+Firmendaten: settings.html → Plattform-Anbieter + Taxi-Betrieb (getrennt) — legal-config.js
 Vor Go-Live: Mustertexte rechtlich prüfen lassen

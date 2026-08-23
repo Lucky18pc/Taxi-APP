@@ -37,6 +37,7 @@ struct BookingService {
         let addressLine: String
         let destinationAddressLine: String?
         let paymentMethod: String
+        let passengerEmail: String?
         let totalAmount: Double
         let tariffAmount: Double
         let tipAmount: Double
@@ -77,6 +78,9 @@ struct BookingService {
             addressLine: summary.pickupLocation.addressLine,
             destinationAddressLine: destination.isEmpty ? nil : destination,
             paymentMethod: summary.paymentMethodLabel,
+            passengerEmail: summary.passengerEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? nil
+                : summary.passengerEmail.trimmingCharacters(in: .whitespacesAndNewlines),
             totalAmount: summary.totalAmount,
             tariffAmount: summary.tariffAmount,
             tipAmount: summary.tipAmount

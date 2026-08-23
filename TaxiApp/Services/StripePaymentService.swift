@@ -25,6 +25,22 @@ struct StripePaymentService {
     private struct PaymentIntentRequest: Encodable {
         let amount: Int
         let currency: String
+        let receiptEmail: String?
+
+        enum CodingKeys: String, CodingKey {
+            case amount
+            case currency
+            case receiptEmail
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(amount, forKey: .amount)
+            try container.encode(currency, forKey: .currency)
+            if let receiptEmail, !receiptEmail.isEmpty {
+                try container.encode(receiptEmail, forKey: .receiptEmail)
+            }
+        }
     }
 
     private struct PaymentIntentResponse: Decodable {
@@ -38,7 +54,11 @@ struct StripePaymentService {
         }
     }
 
-    func fetchClientSecret(amountInCents: Int, currency: String = "eur") async throws -> String {
+    func fetchClientSecret(
+        amountInCents: Int,
+        currency: String = "eur",
+        receiptEmail: String? = nil
+    ) async throws -> String {
         await configureStripeIfNeeded()
         guard let url = URL(string: "\(TaxiConfig.stripeBackendURL)/create-payment-intent") else {
             throw StripePaymentError.invalidBackendURL
@@ -48,7 +68,7 @@ struct StripePaymentService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(
-            PaymentIntentRequest(amount: amountInCents, currency: currency)
+            PaymentIntentRequest(amount: amountInCents, currency: currency, receiptEmail: receiptEmail)
         )
 
         let (data, response) = try await URLSession.shared.data(for: request)

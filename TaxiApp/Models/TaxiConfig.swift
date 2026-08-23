@@ -4,8 +4,8 @@ import MapKit
 
 /// Zentrale Einstellungen für den Taxi-Bereich (Zentrale, Logo, etc.).
 enum TaxiConfig {
-    /// Asset-Name für Header-Logo auf Karten-Ansichten — `pickup_background`.
-    static let logoImageName: String? = "pickup_background"
+    /// Kein Logo in der Mitte — Prototyp nur mit Hintergrundfoto (`app_background`).
+    static let logoImageName: String? = nil
 
     /// Vollbild-Hintergrund im Buchungsflow.
     static let backgroundImageName = "app_background"
@@ -26,27 +26,42 @@ enum TaxiConfig {
     /// Telefonnummer der Taxi-Zentrale („Zentrale Anrufen“).
     static let centralPhoneNumber = "03012345678"
 
-    /// Geografische Mitte Europas — Standard für Abholort-Karte.
-    static let defaultMapCenter = CLLocationCoordinate2D(latitude: 51.1657, longitude: 10.4515)
+    /// Standard-Kartenmittelpunkt — Berlin (europäischer Dienst).
+    static let defaultMapCenter = CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954)
+
+    /// Locale für Kartenbeschriftung und Geocoding.
+    static let mapLocale = Locale(identifier: "de_DE")
 
     /// Straßen-Zoom beim Abholpunkt setzen.
     static let defaultMapSpanDelta: CLLocationDegrees = 0.012
 
-    /// Europa-Übersicht — Startansicht der Abholort-Karte.
-    static var europeOverviewRegion: MKCoordinateRegion {
+    /// Deutschland-Übersicht — Startansicht (keine US-Weltkarte).
+    static var germanyOverviewRegion: MKCoordinateRegion {
         MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 50.0, longitude: 12.0),
-            span: MKCoordinateSpan(latitudeDelta: 28, longitudeDelta: 38)
+            center: defaultMapCenter,
+            span: MKCoordinateSpan(latitudeDelta: 5.5, longitudeDelta: 5.5)
         )
     }
 
-    /// Fallback ohne GPS — zentrale Europa-Ansicht.
-    static var regionOverviewFallback: MKCoordinateRegion {
-        europeOverviewRegion
+    /// Suchgebiet für Adressen — Europa, Schwerpunkt Deutschland.
+    static var europeSearchRegion: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 51.0, longitude: 10.5),
+            span: MKCoordinateSpan(latitudeDelta: 18, longitudeDelta: 22)
+        )
     }
 
-    static var germanyOverviewRegion: MKCoordinateRegion {
-        regionOverviewFallback
+    /// Europa-Übersicht — Fallback wenn kein GPS in Europa.
+    static var europeOverviewRegion: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 50.0, longitude: 12.0),
+            span: MKCoordinateSpan(latitudeDelta: 22, longitudeDelta: 28)
+        )
+    }
+
+    /// Fallback ohne GPS — Deutschland statt Welt/US-Schwerpunkt.
+    static var regionOverviewFallback: MKCoordinateRegion {
+        germanyOverviewRegion
     }
 
     /// Straßen-Ansicht um einen Punkt.
@@ -58,6 +73,33 @@ enum TaxiConfig {
                 longitudeDelta: defaultMapSpanDelta
             )
         )
+    }
+
+    /// Kamera-Abstand für Hausnummern-Genauigkeit (Apple Maps / MapKit).
+    static let pickupMapCameraDistance: CLLocationDistance = 360
+
+    /// Kamera-Abstand für Orte/Städte (z. B. Speyer).
+    static let cityMapCameraDistance: CLLocationDistance = 2_400
+
+    /// Noch keine echte Pin-Position — oder Simulator/US-Standort außerhalb Europa.
+    static func isLikelyUnsetPickupCoordinate(_ coordinate: CLLocationCoordinate2D) -> Bool {
+        if isInAmericas(coordinate) || !isInEurope(coordinate) {
+            return true
+        }
+        let unsetSamples: [CLLocationCoordinate2D] = [
+            CLLocationCoordinate2D(latitude: 50.0, longitude: 12.0),
+            CLLocationCoordinate2D(latitude: 51.1657, longitude: 10.4515)
+        ]
+        return unsetSamples.contains { sample in
+            abs(coordinate.latitude - sample.latitude) < 0.2
+                && abs(coordinate.longitude - sample.longitude) < 0.2
+        }
+    }
+
+    /// USA / Kanada / Mittelamerika — Simulator-Default (z. B. Cupertino) ausschließen.
+    static func isInAmericas(_ coordinate: CLLocationCoordinate2D) -> Bool {
+        coordinate.latitude >= 14 && coordinate.latitude <= 72
+            && coordinate.longitude >= -168 && coordinate.longitude <= -52
     }
 
     /// Deutschland — Legacy-Hilfsfunktion.

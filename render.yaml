@@ -13,20 +13,31 @@ services:
     name: taxiapp-api
     runtime: node
     rootDir: backend
-    plan: free
+    plan: starter
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health
+    disk:
+      name: taxiapp-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
+      - key: DATA_DIR
+        value: /var/data
       - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_STARTER
+        sync: false
+      - key: STRIPE_PRICE_BUSINESS
+        sync: false
+      - key: PUBLIC_BASE_URL
         sync: false
       - key: ADMIN_PIN
         sync: false
-    # Persistent Disk (empfohlen ab Starter-Plan — Buchungen bleiben nach Deploy):
-    # disk:
-    #   name: taxiapp-data
-    #   mountPath: /var/data
-    #   sizeGB: 1
-    # envVars:
-    #   - key: DATA_DIR
-    #     value: /var/data
+      - key: RESEND_API_KEY
+        sync: false
+      - key: CONTACT_NOTIFY_EMAIL
+        sync: false
+    # Persistent Disk — Buchungen und Mandanten bleiben nach Deploy erhalten.

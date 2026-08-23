@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import MapKit
 
 enum Brand {
     /// Editorial / Premium-Retail: tiefes Navy, kühles Slate — ohne Orange-/Pink-Kindergarten-Akzente.
@@ -124,6 +125,154 @@ extension View {
                 intensity: intensity
             )
         )
+    }
+
+    /// Lesbare Eingabefelder im Buchungsflow — dunkler Text auf hellem Grund (auch bei Dark Mode).
+    func bookingFormTextField() -> some View {
+        modifier(BookingFormTextFieldModifier())
+    }
+
+    /// Dezenter Schimmer entlang des Kreisrands — z. B. Profilbild.
+    func circleRingShimmer(
+        active: Bool = true,
+        lineWidth: CGFloat = 2.5,
+        intensity: CGFloat = 0.55
+    ) -> some View {
+        modifier(
+            CircularRingShimmerModifier(
+                active: active,
+                lineWidth: lineWidth,
+                intensity: intensity
+            )
+        )
+    }
+
+    /// Marineblauer Diamant-Schimmer (schräg) — z. B. Firmenlogo im Header.
+    func diamondShimmer(
+        active: Bool = true,
+        cornerRadius: CGFloat = 10,
+        intensity: CGFloat = 1.0
+    ) -> some View {
+        modifier(
+            DiamondShimmerModifier(
+                active: active,
+                cornerRadius: cornerRadius,
+                intensity: intensity
+            )
+        )
+    }
+}
+
+private struct DiamondShimmerModifier: ViewModifier {
+    var active: Bool
+    var cornerRadius: CGFloat
+    var intensity: CGFloat
+
+    private static let marineDeep = Color(red: 0.05, green: 0.14, blue: 0.28)
+    private static let marineMid = Color(red: 0.09, green: 0.22, blue: 0.42)
+    private static let marineBright = Color(red: 0.14, green: 0.34, blue: 0.58)
+    private static let diagonalAngle: Double = -38
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if active {
+                    GeometryReader { geometry in
+                        TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+                            let t = timeline.date.timeIntervalSinceReferenceDate
+                            let period: Double = 2.4
+                            let progress = (t.truncatingRemainder(dividingBy: period)) / period
+                            let i = min(1.6, max(0.35, intensity))
+                            let w: CGFloat = geometry.size.width
+                            let h: CGFloat = geometry.size.height
+
+                            let beamWidth: CGFloat = max(w, h) * 0.38
+                            let beamHeight: CGFloat = max(w, h) * 2.4
+                            let travelX: CGFloat = w + beamWidth * 1.4
+                            let travelY: CGFloat = h * 0.75
+                            let x: CGFloat = CGFloat(progress) * travelX - beamWidth * 0.65
+                            let y: CGFloat = CGFloat(progress) * travelY - travelY * 0.5
+
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            .clear,
+                                            Self.marineDeep.opacity(0.45 * i),
+                                            Self.marineMid.opacity(0.88 * i),
+                                            Self.marineBright.opacity(1.0 * i),
+                                            Self.marineMid.opacity(0.88 * i),
+                                            Self.marineDeep.opacity(0.45 * i),
+                                            .clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                                .frame(width: beamWidth, height: beamHeight)
+                                .rotationEffect(.degrees(Self.diagonalAngle))
+                                .offset(
+                                    x: x - w * 0.05,
+                                    y: y + (h - beamHeight) / 2.0
+                                )
+                        }
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                    .allowsHitTesting(false)
+                }
+            }
+    }
+}
+
+private struct BookingFormTextFieldModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.body.weight(.medium))
+            .foregroundStyle(Brand.primary)
+            .tint(Brand.accent)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 11)
+            .background(Color(red: 0.97, green: 0.97, blue: 0.98))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Brand.primary.opacity(0.22), lineWidth: 1)
+            }
+    }
+}
+
+private struct CircularRingShimmerModifier: ViewModifier {
+    var active: Bool
+    var lineWidth: CGFloat
+    var intensity: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if active {
+                    TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+                        let t = timeline.date.timeIntervalSinceReferenceDate
+                        let rotation = (t.truncatingRemainder(dividingBy: 2.8) / 2.8) * 360
+
+                        Circle()
+                            .stroke(
+                                AngularGradient(
+                                    colors: [
+                                        .white.opacity(0.04 * intensity),
+                                        .white.opacity(0.22 * intensity),
+                                        .white.opacity(0.62 * intensity),
+                                        .white.opacity(0.22 * intensity),
+                                        .white.opacity(0.04 * intensity),
+                                    ],
+                                    center: .center
+                                ),
+                                lineWidth: lineWidth
+                            )
+                            .rotationEffect(.degrees(rotation))
+                            .allowsHitTesting(false)
+                    }
+                }
+            }
     }
 }
 
@@ -276,6 +425,8 @@ struct DriverAvatarView: View {
     var fallbackImageName: String
     var size: CGFloat = 44
     var showBorder: Bool = false
+    /// Etwas unter 1.0 — zeigt mehr vom Gesicht (weniger starker Zuschnitt).
+    var faceZoom: CGFloat = 0.9
 
     var body: some View {
         Group {
@@ -283,6 +434,7 @@ struct DriverAvatarView: View {
                 Image(uiImage: profileImage)
                     .resizable()
                     .scaledToFill()
+                    .scaleEffect(faceZoom)
             } else {
                 Image(fallbackImageName)
                     .resizable()
@@ -366,3 +518,34 @@ extension Brand {
     }
 }
 #endif
+
+extension TaxiConfig {
+    static func pickupMapCamera(center: CLLocationCoordinate2D) -> MapCameraPosition {
+        .camera(
+            MapCamera(
+                centerCoordinate: center,
+                distance: pickupMapCameraDistance,
+                heading: 0,
+                pitch: 0
+            )
+        )
+    }
+
+    static func cityMapCamera(center: CLLocationCoordinate2D) -> MapCameraPosition {
+        .camera(
+            MapCamera(
+                centerCoordinate: center,
+                distance: cityMapCameraDistance,
+                heading: 0,
+                pitch: 0
+            )
+        )
+    }
+}
+
+extension View {
+    /// Deutsche Beschriftung, europäischer Kartenkontext im Buchungsflow.
+    func europeanBookingMap() -> some View {
+        environment(\.locale, TaxiConfig.mapLocale)
+    }
+}

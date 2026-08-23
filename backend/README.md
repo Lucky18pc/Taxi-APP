@@ -40,7 +40,15 @@ Server läuft auf `http://127.0.0.1:4242`.
 - `PATCH /api/bookings/:id/assign` — Body: `{ "driverId": "…" }` — Fahrer zuweisen
 - `POST /api/calls/incoming` — VoIP-Stub: eingehender Anruf (Body: `{ "from": "+49…" }`)
 - `GET /api/calls` — Telefon-Anrufe für dispatch.html
-- `POST /create-payment-intent` — Body: `{ "amount": 1450, "currency": "eur" }` (Cent, braucht STRIPE_SECRET_KEY)
+- `POST /create-payment-intent` — Body: `{ "amount": 1450, "currency": "eur", "receiptEmail": "fahrgast@example.com" }` (Cent, braucht STRIPE_SECRET_KEY; `receiptEmail` optional → Stripe-Quittung per E-Mail)
+- `GET /api/billing/config` — Ob Stripe-Abo-Checkout aktiv ist
+- `POST /api/billing/checkout` — Body: `{ "planId": "starter"|"business", "email", "companyName" }` → Stripe Checkout URL
+- `POST /api/billing/webhook` — Stripe Webhook (STRIPE_WEBHOOK_SECRET)
+- `GET /api/billing/operators` — Abonnenten (ADMIN_PIN)
+- `POST /api/contact` — Tarif-Anfrage ohne Stripe (speichert in `data/inquiries.json`)
+- `GET /api/contact/inquiries` — Anfragen (ADMIN_PIN)
+
+Rechnungen & Abrechnung: `../docs/RECHNUNGEN-ABRECHNUNG.md` · Web: `/rechnungen.html`
 
 Leitstellen-Nummer & Fahrer: im Browser **http://127.0.0.1:4242/settings.html** (ohne Code). Dateien: `tenant-config.json`, `drivers.json`. Buchungen: `data/bookings.json` (persistent). Details: `../docs/ZENTRALE.md`
 

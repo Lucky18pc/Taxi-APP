@@ -45,9 +45,13 @@ final class DriverProfileStore: ObservableObject {
         }
     }
 
-    func resetToDefault() {
+    func removeProfileImage() {
         try? FileManager.default.removeItem(at: Self.profileImageURL)
         profileImage = nil
+    }
+
+    func resetToDefault() {
+        removeProfileImage()
         updateDisplayName(TaxiConfig.defaultDriver.name)
     }
 

@@ -203,6 +203,7 @@
     </nav>
   </footer>
 
+  <script src="tenant-branding.js"></script>
   <script src="leitstelle-auth.js"></script>
   <script>
     const STATUS_LABELS = {
@@ -282,6 +283,12 @@
         const res = await fetch(configUrl);
         if (!res.ok) return;
         const cfg = await res.json();
+        TenantBranding.applyTenantBranding(cfg, {
+          titleId: "company-title",
+          documentTitle: true,
+          titlePrefix: "",
+          titleSuffix: " — Leitstelle",
+        });
         document.getElementById("company-title").textContent = cfg.companyName || "Zentrale";
         const display = cfg.centralPhoneDisplay || cfg.centralPhone || "—";
         const link = document.getElementById("central-phone-link");

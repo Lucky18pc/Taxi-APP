@@ -14,6 +14,7 @@ struct TaxiApp: App {
             TaxiPickupView()
                 .environmentObject(profileStore)
                 .environmentObject(centralStore)
+                .environment(\.locale, TaxiConfig.mapLocale)
                 .task {
                     await centralStore.refreshFromBackend()
                 }
