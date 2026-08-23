@@ -14,6 +14,7 @@ const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const publicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
 const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
 const contactNotifyEmail = String(process.env.CONTACT_NOTIFY_EMAIL || "luckypc81@gmail.com").trim();
+const gaMeasurementId = String(process.env.GA_MEASUREMENT_ID || "").trim();
 
 const billingPriceIds = {
   starter: String(process.env.STRIPE_PRICE_STARTER || "").trim(),
@@ -623,7 +624,12 @@ app.get("/health", (_req, res) => {
     fleetOperators: fleet.list().length,
     multiTenant: fleet.enabled(),
     authRequired: Boolean(adminPin) || fleet.anyOperatorPinRequired(),
+    analytics: Boolean(gaMeasurementId),
   });
+});
+
+app.get("/api/public/analytics", (_req, res) => {
+  res.json({ gaMeasurementId: gaMeasurementId || null });
 });
 
 app.get("/api/auth/required", (req, res) => {
