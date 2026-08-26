@@ -473,11 +473,50 @@ function driverMatchesRequest(req, driver) {
   return driver.operatorId === operator.operatorId;
 }
 
+const PLATFORM_CONFIG_KEYS = [
+  "platformCompanyName",
+  "platformStreet",
+  "platformCity",
+  "platformOwner",
+  "platformEmail",
+  "platformPhone",
+  "platformVatId",
+];
+
+function platformPublicConfig() {
+  return {
+    platformCompanyName: tenantConfig.platformCompanyName || "Luckys Taxi App",
+    platformStreet: tenantConfig.platformStreet || "",
+    platformCity: tenantConfig.platformCity || "",
+    platformOwner: tenantConfig.platformOwner || "",
+    platformEmail: tenantConfig.platformEmail || "luckypc81@gmail.com",
+    platformPhone: tenantConfig.platformPhone || "",
+    platformVatId: tenantConfig.platformVatId || "",
+  };
+}
+
+function withPlatformFields(config) {
+  if (!config) return platformPublicConfig();
+  return { ...config, ...platformPublicConfig() };
+}
+
+function applyPlatformPatch(body) {
+  let changed = false;
+  for (const key of PLATFORM_CONFIG_KEYS) {
+    if (body[key] !== undefined) {
+      tenantConfig[key] = String(body[key]).trim();
+      changed = true;
+    }
+  }
+  if (changed) saveTenantConfig();
+  return changed;
+}
+
 function configForRequest(req) {
   const operator = resolveFleetOperatorFromRequest(req);
-  if (operator) return fleet.toPublicConfig(operator);
-  if (fleet.enabled()) return null;
-  return tenantConfig;
+  if (operator) return withPlatformFields(fleet.toPublicConfig(operator));
+  if (fleet.enabled()) return platformPublicConfig();
+  return withPlatformFields(tenantConfig);
 }
 
 function operatorConfigForNightSurcharge(operatorOrNull) {
@@ -513,7 +552,30 @@ function saveTenantConfig() {
   fs.writeFileSync(tenantConfigPath, `${JSON.stringify(tenantConfig, null, 2)}\n`, "utf8");
 }
 
+function applyPlatformSeedIfEmpty() {
+  const seedPath = path.join(__dirname, "tenant-config.json");
+  if (!fs.existsSync(seedPath) || path.resolve(seedPath) === path.resolve(tenantConfigPath)) {
+    return;
+  }
+  let seed;
+  try {
+    seed = JSON.parse(fs.readFileSync(seedPath, "utf8"));
+  } catch {
+    return;
+  }
+  let changed = false;
+  for (const key of PLATFORM_CONFIG_KEYS) {
+    const seedValue = String(seed[key] || "").trim();
+    if (seedValue && !String(tenantConfig[key] || "").trim()) {
+      tenantConfig[key] = seedValue;
+      changed = true;
+    }
+  }
+  if (changed) saveTenantConfig();
+}
+
 ensureTenantDefaults();
+applyPlatformSeedIfEmpty();
 
 function saveDriversConfig() {
   const payload = {
@@ -899,10 +961,12 @@ app.get("/api/config", (req, res) => {
 mountPwaBrandRoutes(app, { configForRequest });
 
 app.patch("/api/config", requireAdmin, (req, res) => {
+  applyPlatformPatch(req.body);
+
   const slug = operatorSlugFromRequest(req);
   if (fleet.enabled()) {
     if (!slug) {
-      return res.status(400).json({ error: "operator query required" });
+      return res.json(platformPublicConfig());
     }
 
     const patch = {};
@@ -980,7 +1044,7 @@ app.patch("/api/config", requireAdmin, (req, res) => {
     try {
       const updated = fleet.updateOperator(slug, patch);
       console.log(`Fleet-Config aktualisiert: ${updated.companyName} (${slug})`);
-      return res.json(fleet.toPublicConfig(updated));
+      return res.json(withPlatformFields(fleet.toPublicConfig(updated)));
     } catch (error) {
       return res.status(400).json({ error: error.message || "Update failed" });
     }

@@ -110,8 +110,12 @@
     applyOperatorContact,
     loadConfig() {
       return fetch("/api/config")
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) throw new Error("config");
+          return r.json();
+        })
         .then((cfg) => {
+          if (!cfg || cfg.error) return cfg || {};
           applyPlatformContact(cfg);
           applyOperatorContact(cfg);
           return cfg;
