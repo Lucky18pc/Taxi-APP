@@ -85,6 +85,14 @@ a { color: var(--primary); }
   letter-spacing: -0.02em;
 }
 
+.hero-sub {
+  font-size: 1.12rem;
+  font-weight: 600;
+  max-width: 38rem;
+  margin: 0 auto 0.85rem;
+  opacity: 1;
+}
+
 .hero p {
   opacity: 0.95;
   max-width: 38rem;

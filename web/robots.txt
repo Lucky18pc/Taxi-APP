@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /settings.html
+Disallow: /dispatch.html
+Disallow: /api/
+
+Sitemap: https://luckystaxiapp.de/sitemap.xml

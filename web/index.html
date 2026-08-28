@@ -3,21 +3,90 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Luckys Taxi App — Plattform für Taxi-Unternehmer</title>
-  <meta name="description" content="Luckys Taxi App: iPhone-App und Browser-Buchung für Ihre Fahrgäste, Leitstelle inklusive. Für Taxi-Unternehmer ab 49 €/Monat, monatlich kündbar.">
-  <meta property="og:title" content="Luckys Taxi App">
-  <meta property="og:description" content="Taxi bestellen. Fahren. Bezahlen. Preis nach Taxameter.">
+  <title>Taxi bestellen in Deutschland | Luckys Taxi App</title>
+  <meta name="description" content="Taxi in Deutschland online bestellen — kostenlos mit Luckys Taxi App. Bar nach Taxameter. Für Taxi-Betriebe: eigene Leitstelle und Fahrgast-App ab 49 €/Monat.">
+  <link rel="canonical" href="https://luckystaxiapp.de/">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#612eb8">
+  <meta property="og:title" content="Taxi bestellen in Deutschland | Luckys Taxi App">
+  <meta property="og:description" content="Online Taxi bestellen, bar nach Taxameter. Taxi-Betriebe bekommen App, Browser-Buchung und Leitstelle — ab 49 €/Monat, monatlich kündbar.">
   <meta property="og:type" content="website">
-  <!-- App Store Link eintragen, wenn live: href="https://apps.apple.com/..." -->
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:url" content="https://luckystaxiapp.de/">
+  <meta property="og:image" content="https://luckystaxiapp.de/icon-taxi-512.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Taxi bestellen in Deutschland | Luckys Taxi App">
+  <meta name="twitter:description" content="Taxi online bestellen — bar nach Taxameter. Leitstelle für Taxi-Betriebe ab 49 €/Monat.">
+  <link rel="apple-touch-icon" href="icon-taxi-192.png">
   <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": "Luckys Taxi App",
+        "url": "https://luckystaxiapp.de/",
+        "logo": "https://luckystaxiapp.de/icon-taxi-512.png",
+        "email": "luckypc81@gmail.com",
+        "founder": { "@type": "Person", "name": "Pece Carmine" },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Asternweg 21",
+          "addressLocality": "Speyer",
+          "postalCode": "67346",
+          "addressCountry": "DE"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "Luckys Taxi App",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "iOS, Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "description": "Taxi in Deutschland online bestellen. Barzahlung nach Taxameter. Leitstelle für Taxi-Betriebe."
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Wie bestelle ich ein Taxi mit Luckys Taxi App?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Im Browser auf luckystaxiapp.de/book.html Abholadresse und Zeit angeben und Taxi bestellen. Optional legen Sie Luckys Taxi App auf den Home-Bildschirm."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Was kostet die Fahrt?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Der Fahrpreis steht nach der Fahrt auf dem Taxameter. Sie zahlen bar beim Fahrer. In der App fällt keine Reservierungsgebühr an."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Was kostet Luckys Taxi App für Taxi-Betriebe?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Starter 49 €/Monat, Business 99 €/Monat, jeweils monatlich kündbar. Enthalten sind Fahrgast-Buchung, Leitstelle und QR-Code unter Ihrem Betriebsnamen."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <script src="analytics.js" defer></script>
   <script src="i18n.js" defer></script>
 </head>
 <body data-i18n-title="meta.indexTitle">
   <header class="hero">
-    <p class="hero-badge" data-i18n="hero.badge">Plattform für Taxi-Unternehmer — Fahrgast-App inklusive</p>
+    <p class="hero-badge" data-i18n="hero.badge">Taxi-App für Fahrgäste — Leitstelle für Taxi-Betriebe</p>
     <h1>Luckys Taxi App</h1>
-    <p data-i18n="hero.lead">Sie betreiben das Taxi — wir liefern App, Browser-Buchung und Leitstelle. Ihre Kunden bestellen bei Ihnen, nicht bei einem anonymen Portal.</p>
+    <p class="hero-sub">Taxi online bestellen in Deutschland — App, Browser und Leitstelle</p>
+    <p data-i18n="hero.lead">Fahrgäste bestellen Taxi online, bar nach Taxameter. Taxi-Betriebe bekommen eine eigene App, Browser-Buchung und Leitstelle — Kunden buchen bei Ihnen, nicht über ein anonymes Portal.</p>
     <div class="hero-ctas">
       <a class="hero-cta" href="book.html" data-i18n="hero.ctaGuests">Fahrgäste: deutschlandweit bestellen</a>
       <a class="hero-cta hero-cta-outline" href="#operators" data-i18n="hero.ctaOps">Für Unternehmer</a>
@@ -26,24 +95,19 @@
 
   <main class="wrap">
     <section id="die-app">
-      <h2 data-i18n="sec.app">Die App</h2>
-      <p class="lead" data-i18n="sec.appLead">Die iPhone-App bietet den vollen Ablauf. Fahrgäste können Luckys Taxi App deutschlandweit aufs Handy legen — ein Knopf, Taxi vor Ort per PLZ. Zusätzlich hat jeder Betrieb seinen eigenen Button für Stammkunden.</p>
+      <h2 data-i18n="sec.app">Taxi-App für Fahrgäste</h2>
+      <p class="lead" data-i18n="sec.appLead">Taxi in Deutschland online bestellen: im Browser oder mit Luckys Taxi App auf dem Handy. Abholadresse und Zeit angeben, bar nach Taxameter zahlen. Jeder Taxi-Betrieb erscheint unter eigenem Namen — für Stammkunden, Hotels und die Straße.</p>
 
       <div class="app-access">
         <article class="app-access-card">
-          <h3>Jetzt testen (Entwicklung)</h3>
-          <ol class="access-steps">
-            <li><code>open ~/Projects/TaxiApp/TaxiApp.xcodeproj</code></li>
-            <li>Oben den <strong>iPhone-Simulator</strong> wählen</li>
-            <li><strong>Cmd+R</strong> drücken — App startet</li>
-          </ol>
-          <p class="note">Mehr Details: <code>00-START-HIER.txt</code> im Projektordner</p>
+          <h3>Taxi jetzt bestellen</h3>
+          <p>Ohne App Store: im Browser buchen oder Luckys Taxi App auf den Home-Bildschirm legen. Ein Knopf — Taxi vor Ort.</p>
+          <p><a class="btn" href="book.html">Taxi bestellen</a></p>
         </article>
         <article class="app-access-card">
-          <h3>Später für Kunden</h3>
-          <p>Die App erscheint im App Store / TestFlight, sobald du live gehst.</p>
-          <a class="btn secondary app-store-btn" href="#" title="App-Store-Link eintragen, wenn live">Im App Store (folgt)</a>
-          <p class="note">Link in <code>index.html</code> anpassen, wenn die App veröffentlicht ist.</p>
+          <h3>Taxi-Software für Betriebe</h3>
+          <p>Eigene Leitstelle, QR-Code und Online-Buchung unter Ihrem Firmennamen — ab 49 €/Monat, monatlich kündbar.</p>
+          <p><a class="btn secondary" href="#operators">Tarife ansehen</a></p>
         </article>
       </div>
 
@@ -223,7 +287,7 @@
       <p class="lead">Pece Carmine — App-Designer, Softwareentwickler und Taxifahrer aus Leidenschaft.</p>
       <article class="sales-card founder-card">
         <p>
-          <strong>Pece Carmine</strong> ist Gründer von Luckys Taxi App.
+          <strong>Pece Carmine</strong> aus Speyer ist Gründer von Luckys Taxi App.
           Zwanzig Jahre lang hat er selbst als Taxifahrer gearbeitet — mit Fahrgästen, Zentrale, Taxameter und dem Alltag auf der Straße.
         </p>
         <p>
@@ -328,6 +392,24 @@
         Rechnungen: automatisch per Stripe (Online-Abo) oder manuell über Lexoffice/sevDesk — <a href="rechnungen.html">Details</a>.
       </p>
     </section>
+
+    <section id="faq" class="sales-pitch">
+      <h2>Häufige Fragen</h2>
+      <div class="sales-grid">
+      <article class="sales-card">
+        <h3>Wie bestelle ich ein Taxi?</h3>
+        <p>Auf <a href="book.html">Taxi bestellen</a> Abholadresse und Zeit angeben. Optional Luckys Taxi App auf den Home-Bildschirm legen — dann geht die nächste Fahrt mit einem Tipp.</p>
+      </article>
+      <article class="sales-card">
+        <h3>Was kostet die Fahrt?</h3>
+        <p>Der Preis steht nach der Fahrt auf dem <strong>Taxameter</strong>. Zahlung bar beim Fahrer. In der App gibt es keine Reservierungsgebühr.</p>
+      </article>
+      <article class="sales-card">
+        <h3>Was zahlt ein Taxi-Betrieb?</h3>
+        <p><strong>49 € oder 99 € im Monat</strong>, monatlich kündbar. Dafür gibt es Fahrgast-Buchung, Leitstelle und QR-Code unter Ihrem Namen.</p>
+      </article>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -338,6 +420,7 @@
       <a href="#operators" data-i18n="nav.operators">Für Unternehmer</a>
       <a href="#warum-luckys" data-i18n="nav.why">Warum Luckys?</a>
       <a href="#gruender">Über den Gründer</a>
+      <a href="#faq">Fragen</a>
       <a href="#zentrale-vs-app" data-i18n="nav.vs">Zentrale vs. App</a>
       <a href="dispatch.html" data-i18n="nav.dispatch">Zentrale</a>
       <a href="settings.html" data-i18n="nav.settings">Einstellungen</a>
