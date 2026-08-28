@@ -256,6 +256,10 @@ ul.checklist li::before {
   color: var(--primary);
 }
 
+.founder-card p + p {
+  margin-top: 0.85rem;
+}
+
 .plans {
   display: grid;
   gap: 1rem;
