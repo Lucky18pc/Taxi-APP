@@ -87,6 +87,9 @@ struct MovingTaxiView: View {
                 .padding(.bottom, 30)
             }
         }
+        .onAppear {
+            startTaxiAnimation()
+        }
         .alert("Taxi abbestellen?", isPresented: $showCancelAlert) {
             Button("Ja, Fahrt stornieren", role: .destructive) {
                 dismiss()

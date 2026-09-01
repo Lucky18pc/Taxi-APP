@@ -43,6 +43,8 @@ ab sofort können Sie App- und Browser-Buchungen in **Ihrer digitalen Leitstelle
 | **QR-Code drucken** | https://taxiapp-api.onrender.com/qr.html?o={{SLUG}} |
 | **iPhone-App** (TestFlight) | `{{TESTFLIGHT_LINK}}` |
 | **Zentrale anrufen** | `{{ZENTRALE}}` |
+| **Taxi live verfolgen** (Browser) | https://taxiapp-api.onrender.com/track.html?bookingId=… (nach Buchung) |
+| **Fahrer GPS** (intern) | https://taxiapp-api.onrender.com/driver-track.html |
 
 Ihr Firmenname in App und Leitstelle: **{{FIRMENNAME}}**
 
@@ -51,7 +53,9 @@ Ihr Firmenname in App und Leitstelle: **{{FIRMENNAME}}**
 1. Leitstelle im Browser öffnen und eingeloggt lassen.
 2. Neue Buchung erscheint automatisch (Adresse, Zeit, Barzahlung).
 3. Fahrer aus der Liste wählen → **Fahrer anrufen** → Adresse durchgeben.
-4. Status auf „Fahrer unterwegs“ / „Erledigt“ setzen.
+4. Fahrer öffnet **GPS-Seite** (`driver-track.html`, Link in Leitstelle oder Einstellungen) und startet Tracking.
+5. Fahrgast kann in App oder unter `track.html?bookingId=…` das Taxi live auf der Karte sehen.
+6. Status auf „Fahrer unterwegs“ / „Erledigt“ setzen.
 
 **Telefonanrufe** auf Ihre Zentrale laufen wie bisher — nur Buchungen aus **App oder Browser** erscheinen in der Leitstelle.
 
@@ -75,8 +79,9 @@ An Disponent weiterleiten oder in der E-Mail belassen:
 1. **Lesezeichen:** `dispatch.html` — Seite tagsüber offen lassen (aktualisiert sich).
 2. **Neue Fahrt:** Karte mit Adresse und Abholzeit lesen — bei Unklarheit Fahrgast anrufen (E-Mail steht in der Buchung, falls angegeben).
 3. **Fahrer zuweisen:** Dropdown → Fahrer wählen → **Fahrer anrufen** (Handy-Nummer aus Ihren Einstellungen).
-4. **Status:** „Fahrer unterwegs“ nach Bestätigung, „Erledigt“ nach Fahrtende.
-5. **Telefon parallel:** Anrufe auf `{{ZENTRALE}}` werden weiter manuell bearbeitet — nicht jede Fahrt kommt digital.
+4. **GPS:** Link **GPS starten** in der Leitstelle — Fahrer lässt die Seite während der Fahrt offen.
+5. **Status:** „Fahrer unterwegs“ nach Bestätigung, „Erledigt“ nach Fahrtende.
+6. **Telefon parallel:** Anrufe auf `{{ZENTRALE}}` werden weiter manuell bearbeitet — nicht jede Fahrt kommt digital.
 
 **Keine Fahrer in der Liste?** Inhaber trägt sie unter `settings.html` ein.
 

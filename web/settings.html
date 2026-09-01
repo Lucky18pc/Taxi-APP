@@ -808,6 +808,9 @@
     function driverForm(driver) {
       const isNew = !driver.driverId;
       const id = driver.driverId || "new-" + Date.now();
+      const trackUrl = driver.driverId && driver.trackingPin
+        ? `driver-track.html?driverId=${encodeURIComponent(driver.driverId)}&pin=${encodeURIComponent(driver.trackingPin)}`
+        : "";
       return `
         <article class="driver-edit" data-driver-id="${isNew ? "" : driver.driverId}">
           <h3>${isNew ? "Neuer Fahrer" : driver.name}</h3>
@@ -823,6 +826,14 @@
             <label>Kennzeichen</label>
             <input data-field="vehicle" value="${escapeAttr(driver.vehicle || "")}" placeholder="B-TX 2026">
           </div>
+          ${!isNew && driver.trackingPin ? `
+          <div class="field">
+            <label>Live-Tracking (Fahrer-Handy)</label>
+            <p class="field-hint" style="margin:0 0 0.35rem">PIN: <strong>${escapeAttr(driver.trackingPin)}</strong></p>
+            <p class="field-hint" style="margin:0 0 0.35rem">ID: <code style="font-size:0.78rem">${escapeAttr(driver.driverId)}</code></p>
+            <p class="field-hint" style="margin:0"><a href="${trackUrl}" target="_blank" rel="noopener">driver-track.html öffnen</a> — Link an Fahrer senden oder auf Handy ablegen.</p>
+          </div>
+          ` : ""}
           <div class="btn-row">
             <button type="button" class="btn-primary" data-save-driver>${isNew ? "Anlegen" : "Speichern"}</button>
             ${isNew ? `<button type="button" class="btn-secondary" data-cancel-new>Abbrechen</button>` : `<button type="button" class="btn-danger" data-delete-driver>Löschen</button>`}

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1c304f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Fahrer GPS">
+  <title>Fahrer GPS | Luckys Taxi App</title>
+  <link rel="icon" type="image/png" href="icon-taxi-192.png">
+  <style>
+    :root {
+      --navy: #1c304f;
+      --yellow: #ffcc00;
+      --bg: #f4f6f9;
+      --ok: #065f46;
+      --err: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: #111827;
+      line-height: 1.45;
+    }
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 1rem 1.25rem;
+    }
+    header h1 { margin: 0; font-size: 1.15rem; }
+    header p { margin: 0.35rem 0 0; opacity: 0.85; font-size: 0.9rem; }
+    main { max-width: 520px; margin: 0 auto; padding: 1rem 1.25rem 2rem; }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1rem;
+      box-shadow: 0 8px 24px rgba(28, 48, 79, 0.08);
+      margin-bottom: 1rem;
+    }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
+    input {
+      width: 100%;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-bottom: 0.85rem;
+    }
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-start { background: var(--yellow); color: var(--navy); }
+    .btn-stop { background: #fee2e2; color: var(--err); }
+    .status {
+      padding: 0.75rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      margin-top: 0.75rem;
+    }
+    .status.ok { background: #d1fae5; color: var(--ok); }
+    .status.warn { background: #fef3c7; color: #92400e; }
+    .status.err { background: #fee2e2; color: var(--err); }
+    .hint { font-size: 0.85rem; color: #6b7280; margin: 0; }
+    .coords { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
+    a { color: var(--navy); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Fahrer GPS senden</h1>
+    <p>Standort für Live-Tracking an Fahrgäste — Seite offen lassen während der Fahrt.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <p class="hint" style="margin-bottom:0.85rem">
+        PIN und Fahrer-ID stehen in den <a href="settings.html">Einstellungen → Fahrer</a>.
+        Nach der Zuweisung in der Leitstelle hier starten.
+      </p>
+
+      <label for="driver-id">Fahrer-ID</label>
+      <input id="driver-id" autocomplete="off" placeholder="z. B. 8f3c…">
+
+      <label for="tracking-pin">Tracking-PIN</label>
+      <input id="tracking-pin" inputmode="numeric" autocomplete="off" placeholder="6-stellig">
+
+      <label for="booking-id">Buchungs-ID (optional)</label>
+      <input id="booking-id" autocomplete="off" placeholder="Nur bei aktiver Fahrt">
+
+      <button type="button" class="btn-start" id="btn-toggle">GPS-Tracking starten</button>
+
+      <div id="status" class="status warn" hidden></div>
+      <p id="coords" class="coords hint" style="margin-top:0.75rem"></p>
+    </section>
+
+    <section class="card">
+      <p class="hint">
+        Tipp: Seite auf dem Home-Bildschirm ablegen (Teilen → Zum Home-Bildschirm).
+        Standort wird alle 5 Sekunden gesendet, solange diese Seite aktiv ist.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const API_BASE = location.origin.includes("localhost") || location.origin.includes("127.0.0.1")
+      ? "http://127.0.0.1:4242"
+      : "https://taxiapp-api.onrender.com";
+
+    const driverIdInput = document.getElementById("driver-id");
+    const pinInput = document.getElementById("tracking-pin");
+    const bookingIdInput = document.getElementById("booking-id");
+    const btnToggle = document.getElementById("btn-toggle");
+    const statusEl = document.getElementById("status");
+    const coordsEl = document.getElementById("coords");
+
+    const params = new URLSearchParams(location.search);
+    if (params.get("driverId")) driverIdInput.value = params.get("driverId");
+    if (params.get("pin")) pinInput.value = params.get("pin");
+    if (params.get("bookingId")) bookingIdInput.value = params.get("bookingId");
+
+    let watchId = null;
+    let sendTimer = null;
+    let lastCoords = null;
+    let isSharing = false;
+
+    function showStatus(message, kind) {
+      statusEl.hidden = false;
+      statusEl.className = `status ${kind}`;
+      statusEl.textContent = message;
+    }
+
+    function saveLocal() {
+      localStorage.setItem("driverTrack.driverId", driverIdInput.value.trim());
+      localStorage.setItem("driverTrack.pin", pinInput.value.trim());
+    }
+
+    function loadLocal() {
+      if (!driverIdInput.value) driverIdInput.value = localStorage.getItem("driverTrack.driverId") || "";
+      if (!pinInput.value) pinInput.value = localStorage.getItem("driverTrack.pin") || "";
+    }
+
+    async function sendLocation() {
+      if (!lastCoords) return;
+      const driverId = driverIdInput.value.trim();
+      const trackingPin = pinInput.value.trim();
+      if (!driverId || !trackingPin) return;
+
+      const body = {
+        trackingPin,
+        latitude: lastCoords.latitude,
+        longitude: lastCoords.longitude,
+      };
+      const bookingId = bookingIdInput.value.trim();
+      if (bookingId) body.bookingId = bookingId;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/drivers/${encodeURIComponent(driverId)}/location`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || `Fehler ${res.status}`);
+        }
+        showStatus(`Standort gesendet (${new Date().toLocaleTimeString("de-DE")})`, "ok");
+      } catch (error) {
+        showStatus(error.message || "Senden fehlgeschlagen", "err");
+      }
+    }
+
+    function stopSharing() {
+      isSharing = false;
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+      if (sendTimer) {
+        clearInterval(sendTimer);
+        sendTimer = null;
+      }
+      btnToggle.textContent = "GPS-Tracking starten";
+      btnToggle.className = "btn-start";
+      showStatus("Tracking gestoppt.", "warn");
+    }
+
+    function startSharing() {
+      const driverId = driverIdInput.value.trim();
+      const trackingPin = pinInput.value.trim();
+      if (!driverId || !trackingPin) {
+        showStatus("Bitte Fahrer-ID und PIN eintragen.", "err");
+        return;
+      }
+      if (!navigator.geolocation) {
+        showStatus("GPS wird von diesem Gerät nicht unterstützt.", "err");
+        return;
+      }
+
+      saveLocal();
+      isSharing = true;
+      btnToggle.textContent = "GPS-Tracking stoppen";
+      btnToggle.className = "btn-stop";
+      showStatus("Standort wird ermittelt…", "warn");
+
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          lastCoords = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          };
+          coordsEl.textContent = `Lat ${lastCoords.latitude.toFixed(5)}, Lon ${lastCoords.longitude.toFixed(5)}`;
+          sendLocation();
+        },
+        (err) => {
+          showStatus(`GPS-Fehler: ${err.message}`, "err");
+          stopSharing();
+        },
+        { enableHighAccuracy: true, maximumAge: 4000, timeout: 15000 }
+      );
+
+      sendTimer = setInterval(sendLocation, 5000);
+    }
+
+    btnToggle.addEventListener("click", () => {
+      if (isSharing) stopSharing();
+      else startSharing();
+    });
+
+    loadLocal();
+  </script>
+</body>
+</html>

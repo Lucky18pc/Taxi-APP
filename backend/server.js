@@ -382,6 +382,39 @@ const BOOKING_STATUSES = new Set([
   "cancelled",
 ]);
 const DRIVER_STATUSES = new Set(["available", "busy", "offline"]);
+const DRIVER_LOCATION_MAX_AGE_MS = 2 * 60 * 1000;
+
+function generateTrackingPin() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function ensureDriverTrackingFields(driver) {
+  if (!driver.trackingPin) {
+    driver.trackingPin = generateTrackingPin();
+    return true;
+  }
+  return false;
+}
+
+function driverHasFreshLocation(driver) {
+  if (!driver || !Number.isFinite(driver.lastLat) || !Number.isFinite(driver.lastLng)) {
+    return false;
+  }
+  if (!driver.lastLocationAt) return false;
+  return Date.now() - new Date(driver.lastLocationAt).getTime() <= DRIVER_LOCATION_MAX_AGE_MS;
+}
+
+function publicDriverTracking(driver) {
+  const fresh = driverHasFreshLocation(driver);
+  return {
+    name: driver.name,
+    vehicle: driver.vehicle || "",
+    phone: driver.phone,
+    latitude: fresh ? driver.lastLat : null,
+    longitude: fresh ? driver.lastLng : null,
+    locationUpdatedAt: driver.lastLocationAt || null,
+  };
+}
 
 function operatorSlugFromRequest(req) {
   const querySlug = String(req.query.operator || req.query.o || "").trim().toLowerCase();
@@ -417,10 +450,21 @@ function migrateLegacyBookings() {
 }
 
 function migrateLegacyDrivers() {
-  if (!fleet.enabled()) return;
-  const fallback = defaultFleetOperator();
-  if (!fallback) return;
   let changed = false;
+  for (const driver of drivers) {
+    if (ensureDriverTrackingFields(driver)) {
+      changed = true;
+    }
+  }
+  if (!fleet.enabled()) {
+    if (changed) saveDriversConfig();
+    return;
+  }
+  const fallback = defaultFleetOperator();
+  if (!fallback) {
+    if (changed) saveDriversConfig();
+    return;
+  }
   for (const driver of drivers) {
     if (!driver.operatorId) {
       driver.operatorId = fallback.operatorId;
@@ -537,9 +581,14 @@ function findBooking(bookingId) {
 
 function releaseDriver(driverId) {
   const driver = findDriver(driverId);
-  if (driver && driver.status === "busy") {
+  if (!driver) return;
+  if (driver.status === "busy") {
     driver.status = "available";
   }
+  driver.activeBookingId = null;
+  driver.lastLat = null;
+  driver.lastLng = null;
+  driver.lastLocationAt = null;
 }
 
 function releaseDriverFromBooking(booking) {
@@ -579,14 +628,18 @@ applyPlatformSeedIfEmpty();
 
 function saveDriversConfig() {
   const payload = {
-    drivers: drivers.map(({ driverId, name, phone, vehicle, status, operatorId }) => ({
-      driverId,
-      name,
-      phone,
-      vehicle,
-      status,
-      ...(operatorId ? { operatorId } : {}),
-    })),
+    drivers: drivers.map((driver) => {
+      ensureDriverTrackingFields(driver);
+      return {
+        driverId: driver.driverId,
+        name: driver.name,
+        phone: driver.phone,
+        vehicle: driver.vehicle,
+        status: driver.status,
+        trackingPin: driver.trackingPin,
+        ...(driver.operatorId ? { operatorId: driver.operatorId } : {}),
+      };
+    }),
   };
   fs.writeFileSync(driversConfigPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
@@ -1164,6 +1217,11 @@ app.post("/api/drivers", requireAdmin, (req, res) => {
     phone,
     vehicle,
     status: "available",
+    trackingPin: generateTrackingPin(),
+    activeBookingId: null,
+    lastLat: null,
+    lastLng: null,
+    lastLocationAt: null,
     ...(operator ? { operatorId: operator.operatorId } : {}),
   };
 
@@ -1388,11 +1446,87 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
   booking.assignedDriverId = driverId;
   booking.status = "assigned";
   driver.status = "busy";
+  driver.activeBookingId = booking.bookingId;
   booking.updatedAt = new Date().toISOString();
 
   console.log(`Buchung ${booking.bookingId} → Fahrer ${driver.name}`);
   saveBookings();
   res.json(booking);
+});
+
+/** Fahrer sendet GPS-Standort (Web/PWA oder spätere Fahrer-App). */
+app.post("/api/drivers/:id/location", (req, res) => {
+  const driver = findDriver(req.params.id);
+  if (!driver) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+
+  const pin = String(req.body.trackingPin || "").trim();
+  if (!pin || pin !== String(driver.trackingPin || "")) {
+    return res.status(401).json({ error: "Invalid tracking PIN" });
+  }
+
+  const latitude = Number(req.body.latitude);
+  const longitude = Number(req.body.longitude);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return res.status(400).json({ error: "latitude and longitude required" });
+  }
+
+  const bookingId = String(req.body.bookingId || "").trim();
+  if (bookingId && driver.activeBookingId && driver.activeBookingId !== bookingId) {
+    return res.status(403).json({ error: "Not assigned to this booking" });
+  }
+
+  driver.lastLat = latitude;
+  driver.lastLng = longitude;
+  driver.lastLocationAt = new Date().toISOString();
+  if (driver.status === "offline") {
+    driver.status = "busy";
+  }
+
+  res.json({
+    ok: true,
+    driverId: driver.driverId,
+    activeBookingId: driver.activeBookingId || null,
+    updatedAt: driver.lastLocationAt,
+  });
+});
+
+/** Fahrgast verfolgt zugewiesenes Taxi (öffentlich per Buchungs-ID). */
+app.get("/api/public/bookings/:id/tracking", (req, res) => {
+  const booking = findBooking(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+
+  const driver = booking.assignedDriverId ? findDriver(booking.assignedDriverId) : null;
+  const payload = {
+    bookingId: booking.bookingId,
+    status: booking.status,
+    pickup: {
+      latitude: booking.latitude,
+      longitude: booking.longitude,
+      addressLine: booking.addressLine,
+    },
+    driver: driver ? publicDriverTracking(driver) : null,
+    hasDriverLocation: driver ? driverHasFreshLocation(driver) : false,
+  };
+
+  res.json(payload);
+});
+
+app.post("/api/drivers/:id/tracking-pin", requireAdmin, (req, res) => {
+  const driver = findDriver(req.params.id);
+  if (!driver) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+  if (!driverMatchesRequest(req, driver)) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+
+  driver.trackingPin = generateTrackingPin();
+  saveDriversConfig();
+  res.json({ driverId: driver.driverId, trackingPin: driver.trackingPin });
 });
 
 /** VoIP-Stufe C: eingehender Anruf (Twilio/Sipgate-Webhook-Vorbereitung). */

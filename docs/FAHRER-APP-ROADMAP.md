@@ -5,6 +5,8 @@
 **Es gibt aktuell keine echte Fahrer-iOS-App.**  
 `TaxiApp` und `FahrgastApp` sind beide **Kunden-Apps**.
 
+**Live-Tracking MVP (September 2026):** Fahrer senden GPS über **`web/driver-track.html`**. Fahrgäste verfolgen in der **FahrgastApp** (`LiveTrackingScreen`). Siehe **`docs/LIVE-TRACKING.md`**.
+
 Die echte Fahrer-App wird ein **separates** Xcode-Projekt oder Target mit eigenem UI.
 
 ## Geplante Anzeige & Bundle

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1c304f">
+  <title>Taxi verfolgen | Luckys Taxi App</title>
+  <link rel="icon" type="image/png" href="icon-taxi-192.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    :root { --navy: #1c304f; --yellow: #ffcc00; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f9; color: #111827; }
+    header { background: var(--navy); color: #fff; padding: 1rem 1.25rem; }
+    header h1 { margin: 0; font-size: 1.15rem; }
+    header p { margin: 0.35rem 0 0; opacity: 0.85; font-size: 0.9rem; }
+    main { max-width: 720px; margin: 0 auto; padding: 1rem 1.25rem 2rem; }
+    .card { background: #fff; border-radius: 14px; padding: 1rem; box-shadow: 0 8px 24px rgba(28,48,79,.08); margin-bottom: 1rem; }
+    #map { height: 320px; border-radius: 12px; }
+    .status { padding: 0.75rem; border-radius: 10px; font-weight: 600; }
+    .status.ok { background: #d1fae5; color: #065f46; }
+    .status.warn { background: #fef3c7; color: #92400e; }
+    .status.err { background: #fee2e2; color: #b91c1c; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+    .btn { display: inline-block; padding: 0.65rem 1rem; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.92rem; }
+    .btn-primary { background: var(--yellow); color: var(--navy); }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+    .hint { font-size: 0.85rem; color: #6b7280; margin: 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dein Taxi live</h1>
+    <p id="header-sub">Karte aktualisiert sich automatisch.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <div id="status" class="status warn">Buchung wird geladen…</div>
+      <p id="pickup-line" class="hint" style="margin-top:0.75rem"></p>
+      <p id="driver-line" class="hint"></p>
+      <div id="map"></div>
+      <div class="actions">
+        <a id="call-driver" class="btn btn-primary" href="#" hidden>Fahrer anrufen</a>
+        <a id="call-central" class="btn btn-secondary" href="#">Zentrale anrufen</a>
+        <a class="btn btn-secondary" href="book.html">Neue Fahrt</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const API_BASE = location.origin.includes("localhost") || location.origin.includes("127.0.0.1")
+      ? "http://127.0.0.1:4242"
+      : "";
+
+    const params = new URLSearchParams(location.search);
+    const bookingId = (params.get("bookingId") || params.get("id") || "").trim();
+
+    const statusEl = document.getElementById("status");
+    const pickupLine = document.getElementById("pickup-line");
+    const driverLine = document.getElementById("driver-line");
+    const callDriver = document.getElementById("call-driver");
+    const callCentral = document.getElementById("call-central");
+
+    let map;
+    let pickupMarker;
+    let taxiMarker;
+    let pollTimer;
+
+    function telHref(phone) {
+      return `tel:${String(phone || "").replace(/\s/g, "")}`;
+    }
+
+    function ensureMap() {
+      if (map) return;
+      map = L.map("map").setView([51.1657, 10.4515], 6);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap",
+      }).addTo(map);
+    }
+
+    function fitMarkers(coords) {
+      if (!coords.length) return;
+      if (coords.length === 1) {
+        map.setView(coords[0], 15);
+        return;
+      }
+      map.fitBounds(L.latLngBounds(coords), { padding: [40, 40], maxZoom: 16 });
+    }
+
+    function updateMarkers(snapshot) {
+      ensureMap();
+      const pickup = [snapshot.pickup.latitude, snapshot.pickup.longitude];
+      if (!pickupMarker) {
+        pickupMarker = L.marker(pickup).addTo(map).bindPopup("Abholung");
+      } else {
+        pickupMarker.setLatLng(pickup);
+      }
+
+      const coords = [pickup];
+      if (snapshot.hasDriverLocation && snapshot.driver?.latitude != null) {
+        const taxi = [snapshot.driver.latitude, snapshot.driver.longitude];
+        coords.push(taxi);
+        if (!taxiMarker) {
+          taxiMarker = L.marker(taxi).addTo(map).bindPopup("Taxi");
+        } else {
+          taxiMarker.setLatLng(taxi);
+        }
+      } else if (taxiMarker) {
+        map.removeLayer(taxiMarker);
+        taxiMarker = null;
+      }
+      fitMarkers(coords);
+    }
+
+    function updateUi(snapshot) {
+      pickupLine.textContent = `Abholung: ${snapshot.pickup.addressLine}`;
+
+      if (snapshot.driver) {
+        driverLine.textContent = `${snapshot.driver.name}${snapshot.driver.vehicle ? " · " + snapshot.driver.vehicle : ""}`;
+        if (snapshot.driver.phone) {
+          callDriver.href = telHref(snapshot.driver.phone);
+          callDriver.hidden = false;
+        }
+      } else {
+        driverLine.textContent = "Noch kein Fahrer zugewiesen — Leitstelle arbeitet daran.";
+        callDriver.hidden = true;
+      }
+
+      if (snapshot.hasDriverLocation) {
+        statusEl.className = "status ok";
+        statusEl.textContent = "Dein Taxi ist unterwegs.";
+      } else if (snapshot.driver) {
+        statusEl.className = "status warn";
+        statusEl.textContent = "Fahrer zugewiesen — GPS startet gleich.";
+      } else if (snapshot.status === "completed") {
+        statusEl.className = "status ok";
+        statusEl.textContent = "Fahrt abgeschlossen.";
+      } else if (snapshot.status === "cancelled") {
+        statusEl.className = "status err";
+        statusEl.textContent = "Fahrt storniert.";
+      } else {
+        statusEl.className = "status warn";
+        statusEl.textContent = "Buchung bestätigt — Fahrer folgt.";
+      }
+
+      updateMarkers(snapshot);
+    }
+
+    async function poll() {
+      if (!bookingId) {
+        statusEl.className = "status err";
+        statusEl.textContent = "Keine Buchungs-ID in der URL (?bookingId=…).";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/public/bookings/${encodeURIComponent(bookingId)}/tracking`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Fehler ${res.status}`);
+        updateUi(data);
+      } catch (error) {
+        statusEl.className = "status err";
+        statusEl.textContent = error.message || "Tracking nicht erreichbar.";
+      }
+    }
+
+    fetch("/api/config")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((cfg) => {
+        if (cfg?.centralPhone) callCentral.href = telHref(cfg.centralPhone);
+      })
+      .catch(() => {});
+
+    poll();
+    pollTimer = setInterval(poll, 4000);
+    window.addEventListener("pagehide", () => clearInterval(pollTimer));
+  </script>
+</body>
+</html>
