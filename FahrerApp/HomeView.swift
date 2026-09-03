@@ -96,6 +96,8 @@ struct HomeView: View {
                 }
             }
             .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background { TaxiHintergrund() }
             .navigationTitle("Fahrer")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -108,6 +110,7 @@ struct HomeView: View {
                 await loadOnlineStatus()
             }
         }
+        .preferredColorScheme(.light)
     }
 
     private func loadOnlineStatus() async {
@@ -230,5 +233,19 @@ struct HomeView: View {
                 errorMessage = error.localizedDescription
             }
         }
+    }
+}
+
+/// Gleiches gelbes TAXI-Dachschild wie in der Fahrgast-App (Asset-Name: app_background).
+struct TaxiHintergrund: View {
+    var body: some View {
+        ZStack {
+            Color(red: 1, green: 0.8, blue: 0)
+            Image("app_background")
+                .resizable()
+                .scaledToFill()
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
     }
 }

@@ -59,6 +59,9 @@ struct LoginView: View {
             .disabled(isLoading)
         }
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background { TaxiHintergrund() }
+        .preferredColorScheme(.light)
     }
 
     private func login() {
