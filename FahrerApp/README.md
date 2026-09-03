@@ -19,15 +19,21 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | `BackendConfig.swift` | Backend-URL + Operator-Slug |
 | `DriverBooking.swift` | Modelle |
 | `DriverAPI.swift` | API-Aufrufe |
+| `firestore-user-rule.txt` | Firestore-Regel für Collection `user` (nicht in Xcode) |
 
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
 Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
 
-## Firestore-Regeln (wichtig für Online-Schalter)
+## Firestore-Regeln (4 Klicks, nötig fürs Login)
 
-Firebase → Firestore → **Regeln** → Block aus `firestore-user-rule.txt` einfügen → **Veröffentlichen**.
+Ohne diese Regel kommt in der App **„Keine Berechtigung für Firestore“**.
 
-Der Block erlaubt Lesen + Update von `isOnline` / `onlineUpdatedAt` nur für das eigene Dokument.
+1. Datei [`firestore-user-rule.txt`](firestore-user-rule.txt) öffnen und den `match /user/...`-Block kopieren.  
+2. Firebase-Regeln öffnen: [collectionshop-2854d → Firestore → Regeln](https://console.firebase.google.com/project/collectionshop-2854d/firestore/rules)  
+3. Den Block **nach** dem bestehenden `match /fahrer/...` einfügen (vor den letzten `}`).  
+4. **Veröffentlichen** → App neu starten → `fahrer@test.de` + Passwort einloggen.
+
+Erwartung: keine Meldung „Keine Berechtigung“ mehr, sondern HomeView.
 
 ## Backend-Endpunkte (neu)
 
