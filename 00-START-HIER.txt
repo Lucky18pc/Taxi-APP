@@ -22,6 +22,8 @@ Fahrgast-Strategie: docs/FAHRGAST-STRATEGIE.md (FahrgastApp = App Store)
 Fahrgast Go-Live:   ~/CollectionApp/FahrgastApp/docs/GO-LIVE.md
 Multi-Mandant:      docs/MULTI-TENANT.md (2+ Betriebe, GPS-Routing)
 Pilot-Betrieb:      docs/PILOT-START.md (E-Mail + Leitstelle an Taxi-Unternehmer)
+Projekt-Status:     docs/PROJEKT-STATUS.md (was fertig ist / was fehlt)
+Live-Tracking:      docs/LIVE-TRACKING.md
 Partner-Anfrage: web/onboard.html (Lead, pending)
 Plattform-Admin: web/admin.html (Mandanten anlegen — ADMIN_PIN)
 Vermietung: docs/VERMIETUNG.md
@@ -133,7 +135,8 @@ Go-Live Checkliste (Schritt für Schritt)
 [ ] 8. Optional: eigene Marketing-Domain via scripts/deploy-web.sh (Surge/Netlify)
 [x] 9. cloudBackendURL in TaxiConfig.swift = https://taxiapp-api.onrender.com
 [ ] 10. TestFlight → App Store (docs/TESTFLIGHT.md)
-[ ] 11. Optional — Stripe Live für Unternehmer-Abo, wenn erste Kunden zahlen sollen
+[ ] 11. Live-Tracking testen: driver-track.html + track.html (scripts/test-live-tracking-e2e.sh)
+[ ] 12. Optional — Stripe Live für Unternehmer-Abo, wenn erste Kunden zahlen sollen
 
 Backend Cloud (Render.com)
 --------------------------

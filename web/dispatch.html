@@ -395,6 +395,7 @@
         <div class="assigned-driver">
           <strong>Fahrer:</strong> ${escapeHtml(driver.name)} · ${escapeHtml(driver.vehicle || "")}
           · <a href="${telHref(driver.phone)}">Anrufen</a>
+          · <a href="driver-track.html?driverId=${encodeURIComponent(driver.driverId)}&bookingId=${encodeURIComponent(booking.bookingId)}" target="_blank" rel="noopener">GPS starten</a>
         </div>
       `;
     }

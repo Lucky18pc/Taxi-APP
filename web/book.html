@@ -16,6 +16,7 @@
   <meta property="og:url" content="https://luckystaxiapp.de/book.html">
   <meta property="og:image" content="https://luckystaxiapp.de/icon-taxi-512.png">
   <link rel="manifest" href="book-manifest.json">
+  <link rel="icon" type="image/png" href="icon-taxi-192.png">
   <link rel="apple-touch-icon" id="apple-touch-icon" href="icon-taxi-192.png">
   <script>
     (function () {
@@ -129,7 +130,8 @@
       <h2 data-i18n="book.successTitle">Taxi bestellt</h2>
       <p id="success-message" data-i18n="book.successMsg">Die Leitstelle hat Ihre Anfrage erhalten.</p>
       <div class="book-actions">
-        <a id="call-central" class="btn-book btn-book-primary" href="#" data-i18n="book.callCentral">Zentrale anrufen</a>
+        <a id="track-ride" class="btn-book btn-book-primary" href="#" hidden data-i18n="book.trackRide">Taxi auf der Karte verfolgen</a>
+        <a id="call-central" class="btn-book btn-book-secondary" href="#" data-i18n="book.callCentral">Zentrale anrufen</a>
         <a class="btn-book btn-book-secondary" href="book.html" data-i18n="book.anotherRide">Weitere Fahrt</a>
       </div>
     </div>
@@ -466,6 +468,11 @@
           state.companyName
             ? `Luckys Taxi App hat ${state.companyName} benachrichtigt.`
             : tx("book.successMsg");
+        const trackBtn = document.getElementById("track-ride");
+        if (trackBtn && data.bookingId) {
+          trackBtn.href = `track.html?bookingId=${encodeURIComponent(data.bookingId)}`;
+          trackBtn.hidden = false;
+        }
       } catch (err) {
         setStatus(err.message || tx("book.sendError"), "error");
         btn.disabled = false;
