@@ -30,9 +30,12 @@ struct LoginView: View {
         VStack(spacing: 20) {
             Text("Luckys Taxi Fahrer")
                 .font(.largeTitle.bold())
+                .foregroundStyle(FahrerTheme.navy)
+                .multilineTextAlignment(.center)
 
             Text("Anmelden")
                 .font(.title2)
+                .foregroundStyle(FahrerTheme.navy)
 
             HStack {
                 TextField("E-Mail (mit @)", text: $email)
@@ -75,10 +78,16 @@ struct LoginView: View {
                 login()
             }
             .buttonStyle(.borderedProminent)
-            .tint(.orange)
+            .tint(FahrerTheme.navy)
             .disabled(isLoading)
         }
+        .padding(24)
+        .background(FahrerTheme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background { TaxiYellowBackground() }
+        .preferredColorScheme(.light)
     }
 
     private func login() {

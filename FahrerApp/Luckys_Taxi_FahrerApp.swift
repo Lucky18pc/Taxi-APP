@@ -15,6 +15,8 @@ struct Luckys_Taxi_FahrerApp: App {
     var body: some Scene {
         WindowGroup {
             LoginView()
+                .preferredColorScheme(.light)
+                .tint(FahrerTheme.navy)
         }
     }
 }
