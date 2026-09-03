@@ -69,16 +69,36 @@ struct LoginView: View {
                 return
             }
 
-            Firestore.firestore().collection("users").document(uid).getDocument { snap, _ in
-                let role = snap?.data()?["role"] as? String ?? ""
-                let name = snap?.data()?["displayName"] as? String ?? "Fahrer"
+            // Collection heißt in Firestore "user" (nicht "users")
+            Firestore.firestore().collection("user").document(uid).getDocument { snap, error in
+                if let error {
+                    let nsError = error as NSError
+                    if nsError.domain == FirestoreErrorDomain,
+                       nsError.code == FirestoreErrorCode.permissionDenied.rawValue {
+                        errorMessage = "Keine Berechtigung für Firestore. Regeln prüfen."
+                    } else {
+                        errorMessage = "Firestore-Fehler: \(error.localizedDescription)"
+                    }
+                    try? Auth.auth().signOut()
+                    return
+                }
+
+                guard let data = snap?.data(), snap?.exists == true else {
+                    errorMessage = "Kein Fahrer-Dokument in Firestore (user/\(uid))."
+                    try? Auth.auth().signOut()
+                    return
+                }
+
+                let role = (data["role"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                let name = (data["displayName"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    ?? "Fahrer"
 
                 if role == "driver" {
                     driverName = name
                     isLoggedIn = true
                 } else {
                     try? Auth.auth().signOut()
-                    errorMessage = "Kein Fahrer-Konto. Bitte Zentrale kontaktieren."
+                    errorMessage = "Kein Fahrer-Konto (role=\(role.isEmpty ? "leer" : role)). Bitte Zentrale kontaktieren."
                 }
             }
         }
