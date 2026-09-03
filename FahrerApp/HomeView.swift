@@ -21,93 +21,99 @@ struct HomeView: View {
     private let operatorSlug = BackendConfig.defaultOperatorSlug
 
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Hallo, \(driverName)")
-                    .font(.title2.bold())
+        ZStack {
+            TaxiHintergrund()
 
-                Toggle("Online / Schicht", isOn: $isOnline)
-                    .padding()
-                    .background(.gray.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .onChange(of: isOnline) { _, newValue in
-                        Task { await setOnline(newValue) }
-                    }
+            NavigationStack {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Hallo, \(driverName)")
+                        .font(.title2.bold())
 
-                Text(statusText)
-                    .foregroundStyle(.secondary)
-
-                if let errorMessage {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
-                        .font(.footnote)
-                }
-
-                if isOnline {
-                    HStack {
-                        Text("Offene Fahrten")
-                            .font(.headline)
-                        Spacer()
-                        Button("Aktualisieren") {
-                            Task { await loadBookings() }
+                    Toggle("Online / Schicht", isOn: $isOnline)
+                        .padding()
+                        .background(Color.white.opacity(0.92))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .onChange(of: isOnline) { _, newValue in
+                            Task { await setOnline(newValue) }
                         }
-                        .disabled(isBusy)
+
+                    Text(statusText)
+                        .foregroundStyle(.secondary)
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(.red)
+                            .font(.footnote)
                     }
 
-                    if bookings.isEmpty {
-                        Text("Keine offenen Buchungen.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        List(bookings) { booking in
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(booking.titleLine)
-                                    .font(.body.weight(.semibold))
-                                if let pickupDate = booking.pickupDate {
-                                    Text(pickupDate)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                if let paymentMethod = booking.paymentMethod {
-                                    Text("Zahlung: \(paymentMethod)")
-                                        .font(.caption)
-                                }
-
-                                if acceptedBookingId == booking.bookingId {
-                                    Button("Fahrt erledigt") {
-                                        Task { await complete(booking) }
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.green)
-                                } else {
-                                    Button("Annehmen") {
-                                        Task { await accept(booking) }
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.orange)
-                                    .disabled(acceptedBookingId != nil || isBusy)
-                                }
+                    if isOnline {
+                        HStack {
+                            Text("Offene Fahrten")
+                                .font(.headline)
+                            Spacer()
+                            Button("Aktualisieren") {
+                                Task { await loadBookings() }
                             }
-                            .padding(.vertical, 4)
+                            .disabled(isBusy)
                         }
-                        .listStyle(.plain)
+
+                        if bookings.isEmpty {
+                            Text("Keine offenen Buchungen.")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            List(bookings) { booking in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(booking.titleLine)
+                                        .font(.body.weight(.semibold))
+                                    if let pickupDate = booking.pickupDate {
+                                        Text(pickupDate)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    if let paymentMethod = booking.paymentMethod {
+                                        Text("Zahlung: \(paymentMethod)")
+                                            .font(.caption)
+                                    }
+
+                                    if acceptedBookingId == booking.bookingId {
+                                        Button("Fahrt erledigt") {
+                                            Task { await complete(booking) }
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .tint(.green)
+                                    } else {
+                                        Button("Annehmen") {
+                                            Task { await accept(booking) }
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .tint(.orange)
+                                        .disabled(acceptedBookingId != nil || isBusy)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                                .listRowBackground(Color.white.opacity(0.92))
+                            }
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
+                        }
+                    } else {
+                        Spacer()
                     }
-                } else {
-                    Spacer()
                 }
-            }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background { TaxiHintergrund() }
-            .navigationTitle("Fahrer")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Abmelden") {
-                        try? Auth.auth().signOut()
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .navigationTitle("Fahrer")
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Abmelden") {
+                            try? Auth.auth().signOut()
+                        }
                     }
                 }
-            }
-            .task {
-                await loadOnlineStatus()
+                .task {
+                    await loadOnlineStatus()
+                }
             }
         }
         .preferredColorScheme(.light)
