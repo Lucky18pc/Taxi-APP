@@ -14,11 +14,24 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | Datei | Zweck |
 |-------|--------|
 | `Luckys_Taxi_FahrerApp.swift` | App-Start + Firebase |
+| `FahrerTheme.swift` | Taxi-Gelb + Hintergrund |
 | `LoginView.swift` | Login |
 | `HomeView.swift` | Online + Fahrtenliste |
 | `BackendConfig.swift` | Backend-URL + Operator-Slug |
 | `DriverBooking.swift` | Modelle |
 | `DriverAPI.swift` | API-Aufrufe |
+| `fahrer_background.jpg` | Gelbes Taxi-Hintergrundbild |
+
+## Gelber Taxi-Hintergrund
+
+Gleiches Foto wie die **Fahrgast-App**: gelbes Dachschild mit **TAXI**.
+
+1. In der Fahrgast-Xcode-App: `Assets.xcassets` → Bild **`app_background`**.
+2. Dieses Bild in die Fahrer-App nach `Assets.xcassets` ziehen.
+3. Name lassen: **`app_background`** (oder `fahrer_background`).
+4. Datei `FahrerTheme.swift` ins Target legen, App-Dateien wie im Ordner ersetzen.
+
+Ohne Bild bleibt der Hintergrund Taxi-Gelb.
 
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
 Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)

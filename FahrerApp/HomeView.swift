@@ -25,10 +25,11 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Hallo, \(driverName)")
                     .font(.title2.bold())
+                    .foregroundStyle(FahrerTheme.navy)
 
                 Toggle("Online / Schicht", isOn: $isOnline)
                     .padding()
-                    .background(.gray.opacity(0.1))
+                    .background(FahrerTheme.card)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .onChange(of: isOnline) { _, newValue in
                         Task { await setOnline(newValue) }
@@ -88,26 +89,35 @@ struct HomeView: View {
                                 }
                             }
                             .padding(.vertical, 4)
+                            .listRowBackground(FahrerTheme.card)
                         }
                         .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
                     }
                 } else {
                     Spacer()
                 }
             }
             .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background { TaxiYellowBackground() }
             .navigationTitle("Fahrer")
+            .toolbarBackground(FahrerTheme.taxiYellow.opacity(0.92), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.light, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Abmelden") {
                         try? Auth.auth().signOut()
                     }
+                    .foregroundStyle(FahrerTheme.navy)
                 }
             }
             .task {
                 await loadOnlineStatus()
             }
         }
+        .preferredColorScheme(.light)
     }
 
     private func loadOnlineStatus() async {
