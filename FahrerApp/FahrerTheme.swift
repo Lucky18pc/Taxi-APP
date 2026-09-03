@@ -12,28 +12,25 @@ enum FahrerTheme {
     /// Marine wie Fahrgast-App / Web (#0C1C34)
     static let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
     static let card = Color.white.opacity(0.94)
-    static let backgroundImageName = "fahrer_background"
+    /// Gleiches Foto wie die Fahrgast-App (`TaxiApp` → Assets → app_background).
+    static let backgroundImageNames = ["app_background", "fahrer_background"]
+
+    static var backgroundImageName: String? {
+        backgroundImageNames.first { UIImage(named: $0) != nil }
+    }
 }
 
-/// Gelber Taxi-Hintergrund. Nutzt das Asset `fahrer_background`, sonst reines Taxi-Gelb.
+/// Gleicher gelber TAXI-Hintergrund wie in der Fahrgast-App.
 struct TaxiYellowBackground: View {
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 1, green: 0.88, blue: 0.28),
-                    FahrerTheme.taxiYellow,
-                    Color(red: 0.93, green: 0.70, blue: 0.04),
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            FahrerTheme.taxiYellow
 
-            if UIImage(named: FahrerTheme.backgroundImageName) != nil {
-                Image(FahrerTheme.backgroundImageName)
+            if let name = FahrerTheme.backgroundImageName {
+                Image(name)
                     .resizable()
                     .scaledToFill()
-                    .overlay(FahrerTheme.taxiYellow.opacity(0.18))
+                    .overlay(FahrerTheme.taxiYellow.opacity(0.08))
             } else {
                 VStack {
                     Spacer()

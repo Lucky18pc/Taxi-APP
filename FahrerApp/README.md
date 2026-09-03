@@ -24,14 +24,14 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 
 ## Gelber Taxi-Hintergrund
 
-Die App ist schwarz, wenn iOS im **Dunkelmodus** ist und kein Hintergrund gesetzt wurde.
+Gleiches Foto wie die **Fahrgast-App**: gelbes Dachschild mit **TAXI**.
 
-1. Neue Datei `FahrerTheme.swift` ins Target legen.
-2. `fahrer_background.jpg` ins Xcode-Projekt ziehen → **Assets.xcassets**.
-3. Name des Bildes im Katalog: **`fahrer_background`** (ohne Dateiendung).
-4. `LoginView.swift`, `HomeView.swift` und `Luckys_Taxi_FahrerApp.swift` ersetzen.
+1. In der Fahrgast-Xcode-App: `Assets.xcassets` → Bild **`app_background`**.
+2. Dieses Bild in die Fahrer-App nach `Assets.xcassets` ziehen.
+3. Name lassen: **`app_background`** (oder `fahrer_background`).
+4. Datei `FahrerTheme.swift` ins Target legen, App-Dateien wie im Ordner ersetzen.
 
-Ohne Bild bleibt der Hintergrund **Taxi-Gelb** (`#FFCC00`). Mit Bild siehst du das gelbe Taxi.
+Ohne Bild bleibt der Hintergrund Taxi-Gelb.
 
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
 Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
