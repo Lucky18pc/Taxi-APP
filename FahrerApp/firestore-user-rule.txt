@@ -1,0 +1,13 @@
+// Diesen Block in Firebase → Firestore → Regeln einfügen
+// Position: NACH dem match /fahrer/... Block, VOR den beiden letzten }
+//
+// Erlaubt: eigenes Dokument lesen + Online-Status speichern (isOnline)
+
+    match /user/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).changedKeys()
+            .hasOnly(['isOnline', 'onlineUpdatedAt']);
+      allow create, delete: if false;
+    }

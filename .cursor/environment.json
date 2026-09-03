@@ -1,0 +1,17 @@
+{
+  "name": "TaxiApp Backend",
+  "install": "cd backend && npm ci",
+  "terminals": [
+    {
+      "name": "backend",
+      "command": "cd backend && npm start",
+      "description": "TaxiApp Node.js/Express backend (API + Web/Leitstelle) auf http://127.0.0.1:4242"
+    }
+  ],
+  "ports": [
+    {
+      "name": "backend",
+      "port": 4242
+    }
+  ]
+}

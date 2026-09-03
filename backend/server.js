@@ -1454,6 +1454,86 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
   res.json(booking);
 });
 
+/**
+ * Fahrer-App (ohne ADMIN_PIN): offene Buchungen + Annehmen / Abschließen.
+ * Query: ?operator=mannheim (Slug)
+ */
+app.get("/api/driver/open-bookings", (req, res) => {
+  const operator = resolveFleetOperatorFromRequest(req);
+  if (fleet.enabled() && !operator) {
+    return res.status(400).json({ error: "operator query required (z.B. ?operator=mannheim)" });
+  }
+
+  const open = filterBookingsForRequest(req).filter((booking) => {
+    if (booking.assignedDriverId) return false;
+    return booking.status === "confirmed" || booking.status === "accepted";
+  });
+
+  res.json({
+    bookings: open.map((b) => ({
+      bookingId: b.bookingId,
+      pickupDate: b.pickupDate,
+      addressLine: b.addressLine,
+      destinationAddressLine: b.destinationAddressLine || null,
+      paymentMethod: b.paymentMethod || null,
+      latitude: b.latitude,
+      longitude: b.longitude,
+      status: b.status,
+      createdAt: b.createdAt,
+    })),
+  });
+});
+
+app.patch("/api/driver/bookings/:id/accept", (req, res) => {
+  const booking = findBooking(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+  if (!bookingMatchesRequest(req, booking)) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+  if (booking.assignedDriverId) {
+    return res.status(409).json({ error: "Booking already assigned" });
+  }
+  if (booking.status !== "confirmed" && booking.status !== "accepted") {
+    return res.status(400).json({ error: "Booking not open" });
+  }
+
+  const driverUid = String(req.body.driverUid || "").trim();
+  const driverName = String(req.body.driverName || "Fahrer").trim() || "Fahrer";
+  if (!driverUid) {
+    return res.status(400).json({ error: "driverUid required" });
+  }
+
+  booking.assignedDriverId = driverUid;
+  booking.assignedDriverName = driverName;
+  booking.status = "assigned";
+  booking.updatedAt = new Date().toISOString();
+  saveBookings();
+  console.log(`Fahrer-App: ${driverName} (${driverUid}) hat ${booking.bookingId} angenommen`);
+  res.json(booking);
+});
+
+app.patch("/api/driver/bookings/:id/complete", (req, res) => {
+  const booking = findBooking(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+  if (!bookingMatchesRequest(req, booking)) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+
+  const driverUid = String(req.body.driverUid || "").trim();
+  if (!driverUid || booking.assignedDriverId !== driverUid) {
+    return res.status(403).json({ error: "Not your booking" });
+  }
+
+  booking.status = "completed";
+  booking.updatedAt = new Date().toISOString();
+  saveBookings();
+  res.json(booking);
+});
+
 /** Fahrer sendet GPS-Standort (Web/PWA oder spätere Fahrer-App). */
 app.post("/api/drivers/:id/location", (req, res) => {
   const driver = findDriver(req.params.id);
