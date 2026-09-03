@@ -1,0 +1,7 @@
+// Diesen Block in Firebase → Firestore → Regeln einfügen
+// Position: NACH dem match /fahrer/... Block, VOR den beiden letzten }
+
+    match /user/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
