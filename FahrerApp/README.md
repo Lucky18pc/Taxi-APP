@@ -1,73 +1,50 @@
-# Luckys Taxi Fahrer — korrekte Swift-Dateien
+# Luckys Taxi Fahrer — Swift-Dateien + Backend
 
-Diese Dateien beheben den Xcode-Fehler **„Cannot find LoginView in scope“** und den Login-Fehler **„Kein Fahrer-Konto“**.
+## Features (aktuell)
 
-Kopiere sie in dein Xcode-Projekt **Luckys Taxi Fahrer** auf dem Mac.
+1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
+2. **Online / Schicht** — wird in Firestore gespeichert (`isOnline`)
+3. **Fahrtenliste** — offene Buchungen vom Render-Backend
+4. **Annehmen / Erledigt** — Driver-API ohne ADMIN_PIN
 
-## Dateinamen (wichtig: `.swift` hinten)
+## Dateien in Xcode übernehmen
 
-Jeder Dateiname **muss mit `.swift` enden** — nicht nur `LoginView` oder `File`:
+Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 
-| Dateiname (Save As) | Inhalt |
-|---------------------|--------|
-| `Luckys_Taxi_FahrerApp.swift` | App-Start: Firebase + `LoginView()` |
-| `LoginView.swift` | Login-Formular (Auth + Rolle `driver`) |
-| `HomeView.swift` | Startseite nach Login (Online/Offline) |
+| Datei | Zweck |
+|-------|--------|
+| `Luckys_Taxi_FahrerApp.swift` | App-Start + Firebase |
+| `LoginView.swift` | Login |
+| `HomeView.swift` | Online + Fahrtenliste |
+| `BackendConfig.swift` | Backend-URL + Operator-Slug |
+| `DriverBooking.swift` | Modelle |
+| `DriverAPI.swift` | API-Aufrufe |
 
-Falsch: `LoginView`, `File`, `HomeView.txt`  
-Richtig: `LoginView.swift`, `HomeView.swift`, `Luckys_Taxi_FahrerApp.swift`
+Backend-URL Standard: `https://taxiapp-api.onrender.com`  
+Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
 
-## In Xcode einfügen
+## Firestore-Regeln (wichtig für Online-Schalter)
 
-1. Projekt **Luckys Taxi Fahrer** öffnen.
-2. `Luckys_Taxi_FahrerApp.swift` öffnen → **alles löschen** → Inhalt aus dieser Datei einfügen → speichern (Cmd+S).
-3. `LoginView.swift` öffnen → **alles ersetzen** mit dem Inhalt aus diesem Ordner (wichtig: liest Collection **`user`**).
-4. Falls `HomeView.swift` fehlt: **File → New → File… → Swift File** → **Save As:** `HomeView.swift` → Inhalt einfügen.
-5. Prüfen, dass links sichtbar sind:
-   - `Luckys_Taxi_FahrerApp.swift`
-   - `LoginView.swift`
-   - `HomeView.swift`
-   - `GoogleService-Info.plist` (ohne `-6` im Namen)
-6. Packages: **FirebaseAuth** + **FirebaseFirestore**.
-7. **Play ▶**
+Firebase → Firestore → **Regeln** → Block aus `firestore-user-rule.txt` einfügen → **Veröffentlichen**.
 
-## Firebase / Firestore Checkliste
+Der Block erlaubt Lesen + Update von `isOnline` / `onlineUpdatedAt` nur für das eigene Dokument.
 
-| Schritt | Wert |
-|---------|------|
-| Authentication-User | `fahrer@test.de` |
-| Firestore-Collection | **`user`** (ohne s — so heißt sie bei dir) |
-| Dokument-ID | Auth-**UID** von `fahrer@test.de` |
-| Feld `role` | `driver` |
-| Feld `email` | `fahrer@test.de` |
-| Feld `displayName` | Name oder E-Mail |
+## Backend-Endpunkte (neu)
 
-### Optional: Firestore-Regeln (Tab „Regeln“)
+- `GET /api/driver/open-bookings?operator=mannheim`
+- `PATCH /api/driver/bookings/:id/accept` — Body: `{ "driverUid", "driverName" }`
+- `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid" }`
 
-```
-match /user/{userId} {
-  allow read: if request.auth != null && request.auth.uid == userId;
-}
-```
+Nach Deploy auf Render sind die Endpunkte live. Lokal: `cd backend && npm start`.
 
-Danach **Veröffentlichen**.
+## Testablauf
 
-### Fehlermeldungen in der App
-
-| Meldung | Bedeutung |
-|---------|-----------|
-| Auth-Fehler (englisch) | E-Mail/Passwort falsch |
-| Keine Berechtigung für Firestore | Regeln blockieren Lesen |
-| Kein Fahrer-Dokument in Firestore | Collection/UID falsch |
-| Kein Fahrer-Konto (role=…) | Dokument da, aber `role` nicht `driver` |
-
-## Wichtig
-
-- **Nicht** den Login-Code in `Luckys_Taxi_FahrerApp.swift` legen.
-- Collection-Name in der App: **`user`** (nicht `users`).
-- Test-Login: `fahrer@test.de` + dein Passwort (z. B. `Test1234!`).
+1. App starten → Login `fahrer@test.de`
+2. Online einschalten (Status muss in Firestore `isOnline: true` stehen)
+3. Testbuchung erzeugen (Fahrgast-App / `book.html` / `scripts/test-cloud-e2e.sh`)
+4. In Fahrer-App **Aktualisieren** → Fahrt sehen → **Annehmen** → **Fahrt erledigt**
 
 ## Siehe auch
 
-- `docs/FAHRER-APP-ROADMAP.md` — geplante Features
-- `docs/FAHRGAST-STRATEGIE.md` — Firebase-Rollen `passenger` / `driver`
+- `docs/FAHRER-APP-ROADMAP.md`
+- `docs/FAHRGAST-STRATEGIE.md`

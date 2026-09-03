@@ -13,12 +13,13 @@ struct LoginView: View {
     @State private var errorMessage: String?
     @State private var isLoggedIn = false
     @State private var driverName = ""
+    @State private var driverUid = ""
     @State private var isLoading = false
 
     var body: some View {
         Group {
             if isLoggedIn {
-                HomeView(driverName: driverName)
+                HomeView(driverUid: driverUid, driverName: driverName)
             } else {
                 loginForm
             }
@@ -119,6 +120,7 @@ struct LoginView: View {
                 .trimmingCharacters(in: .whitespacesAndNewlines) ?? "Fahrer"
 
             if role == "driver" {
+                driverUid = uid
                 driverName = name
                 isLoggedIn = true
                 isLoading = false
