@@ -22,6 +22,12 @@ struct HomeView: View {
     /// Verhindert, dass programmatische isOnline-Änderungen erneut setOnline auslösen.
     @State private var suppressOnlineWrite = false
     @State private var onlineWriteGeneration = 0
+    /// Bekannte Booking-IDs — neue IDs lösen Fahrt-Benachrichtigung aus.
+    @State private var knownBookingIds: Set<String> = []
+    /// true nach erstem erfolgreichen Poll in dieser Online-Session (kein Alert für Bestand).
+    @State private var hasSeededBookingIds = false
+    @State private var newRideBanner: String?
+    @State private var bannerDismissTask: Task<Void, Never>?
 
     private let operatorSlug = BackendConfig.defaultOperatorSlug
 
@@ -80,6 +86,36 @@ struct HomeView: View {
                     Text(statusText)
                         .foregroundStyle(navy.opacity(0.85))
 
+                    if let newRideBanner {
+                        HStack(alignment: .top, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Neue Fahrt!")
+                                    .font(.headline.weight(.black))
+                                    .foregroundStyle(.white)
+                                Text(newRideBanner)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.white.opacity(0.95))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 8)
+                            Button("OK") {
+                                dismissNewRideBanner()
+                            }
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(navy)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(taxiYellow)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(red: 0.85, green: 0.35, blue: 0.05))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .accessibilityIdentifier("newRideBanner")
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+
                     NavigationLink {
                         FahrerSpieleHubView()
                     } label: {
@@ -119,7 +155,7 @@ struct HomeView: View {
                                 .foregroundStyle(navy)
                             Spacer()
                             Button("Aktualisieren") {
-                                Task { await loadBookings() }
+                                Task { await loadBookings(silent: false) }
                             }
                             .foregroundStyle(navy)
                             .disabled(isBusy)
@@ -169,6 +205,7 @@ struct HomeView: View {
                     }
                 }
                 .padding()
+                .animation(.easeInOut(duration: 0.25), value: newRideBanner)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background {
@@ -194,6 +231,25 @@ struct HomeView: View {
             .task {
                 await loadOnlineStatus()
             }
+            // Polling nur solange online — Task bricht bei Offline/Logout automatisch ab.
+            .task(id: isOnline) {
+                guard isOnline else { return }
+                await MainActor.run {
+                    // Neue Online-Session: Bestand neu seeden (kein Alarm für bereits offene Fahrten).
+                    knownBookingIds = []
+                    hasSeededBookingIds = false
+                    dismissNewRideBanner()
+                }
+                await FahrerBenachrichtigung.requestPermissionIfNeeded()
+                await loadBookings(silent: true)
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: FahrerBenachrichtigung.pollIntervalNanoseconds)
+                    guard !Task.isCancelled else { break }
+                    let stillOnline = await MainActor.run { isOnline }
+                    guard stillOnline else { break }
+                    await loadBookings(silent: true)
+                }
+            }
         }
         .background(taxiYellow)
         .preferredColorScheme(.light)
@@ -208,10 +264,33 @@ struct HomeView: View {
         acceptedBookingId = nil
         errorMessage = nil
         statusText = "Abgemeldet."
+        resetRideNotificationState()
 
         try? Auth.auth().signOut()
         // Binding aktualisiert LoginView → Startseite erscheint sofort.
         isLoggedIn = false
+    }
+
+    private func resetRideNotificationState() {
+        knownBookingIds = []
+        hasSeededBookingIds = false
+        dismissNewRideBanner()
+    }
+
+    private func dismissNewRideBanner() {
+        bannerDismissTask?.cancel()
+        bannerDismissTask = nil
+        newRideBanner = nil
+    }
+
+    private func showNewRideBanner(_ message: String) {
+        bannerDismissTask?.cancel()
+        newRideBanner = message
+        bannerDismissTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 12_000_000_000)
+            guard !Task.isCancelled else { return }
+            newRideBanner = nil
+        }
     }
 
     private func applyOnlineLocally(_ online: Bool, status: String? = nil) {
@@ -241,9 +320,7 @@ struct HomeView: View {
                     status: online ? "Online — bereit." : "Du bist offline."
                 )
             }
-            if online {
-                await loadBookings()
-            }
+            // Bookings kommen über .task(id: isOnline), sobald online.
         } catch {
             await MainActor.run {
                 errorMessage = "Status laden: \(error.localizedDescription)"
@@ -255,6 +332,9 @@ struct HomeView: View {
         await MainActor.run {
             isBusy = true
             errorMessage = nil
+            if !online {
+                resetRideNotificationState()
+            }
         }
 
         do {
@@ -279,10 +359,7 @@ struct HomeView: View {
                 }
                 isBusy = false
             }
-
-            if online {
-                await loadBookings()
-            }
+            // Online → Polling-Task (id: isOnline) startet und lädt Buchungen.
         } catch {
             let isStale = await MainActor.run { generation != onlineWriteGeneration }
             if isStale { return }
@@ -295,17 +372,22 @@ struct HomeView: View {
         }
     }
 
-    private func loadBookings() async {
+    /// - Parameter silent: true = Hintergrund-Poll (kein isBusy-Flackern).
+    private func loadBookings(silent: Bool) async {
         let stillOnline = await MainActor.run { isOnline }
         guard stillOnline else { return }
 
-        await MainActor.run {
-            isBusy = true
-            errorMessage = nil
+        if !silent {
+            await MainActor.run {
+                isBusy = true
+                errorMessage = nil
+            }
         }
         defer {
-            Task { @MainActor in
-                isBusy = false
+            if !silent {
+                Task { @MainActor in
+                    isBusy = false
+                }
             }
         }
 
@@ -313,22 +395,67 @@ struct HomeView: View {
             let list = try await DriverAPI.openBookings(operatorSlug: operatorSlug)
             await MainActor.run {
                 guard isOnline else { return }
-                // Angenommene Fahrt bleibt lokal sichtbar (API listet sie nicht mehr als „offen“).
-                if let acceptedBookingId,
-                   let kept = bookings.first(where: { $0.bookingId == acceptedBookingId }),
-                   !list.contains(where: { $0.bookingId == acceptedBookingId }) {
-                    bookings = [kept] + list
-                    statusText = "Fahrt aktiv — plus \(list.count) weitere offen."
-                } else {
-                    bookings = list
-                    statusText = list.isEmpty
-                        ? "Online — keine offenen Fahrten."
-                        : "Online — \(list.count) offene Fahrt(en)."
-                }
+                applyBookingsUpdate(list)
             }
         } catch {
-            await MainActor.run {
-                errorMessage = error.localizedDescription
+            // Stille Polls: Fehler nicht dauerhaft die UI zum Blinken bringen.
+            if !silent {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    /// Aktualisiert Liste + erkennt neue IDs für Benachrichtigung (ohne unnötige State-Writes).
+    @MainActor
+    private func applyBookingsUpdate(_ list: [DriverBooking]) {
+        let incomingIds = Set(list.map(\.bookingId))
+        let newOnes = list.filter { !knownBookingIds.contains($0.bookingId) }
+
+        // Angenommene Fahrt bleibt lokal sichtbar (API listet sie nicht mehr als „offen“).
+        let nextBookings: [DriverBooking]
+        let nextStatus: String
+        if let acceptedBookingId,
+           let kept = bookings.first(where: { $0.bookingId == acceptedBookingId }),
+           !list.contains(where: { $0.bookingId == acceptedBookingId }) {
+            nextBookings = [kept] + list
+            nextStatus = "Fahrt aktiv — plus \(list.count) weitere offen."
+        } else {
+            nextBookings = list
+            nextStatus = list.isEmpty
+                ? "Online — keine offenen Fahrten."
+                : "Online — \(list.count) offene Fahrt(en)."
+        }
+
+        // Nur schreiben wenn sich etwas ändert — vermeidet UI-Flackern.
+        if bookings.map(\.bookingId) != nextBookings.map(\.bookingId)
+            || bookings.map(\.status) != nextBookings.map(\.status) {
+            bookings = nextBookings
+        }
+        if statusText != nextStatus {
+            statusText = nextStatus
+        }
+
+        if !hasSeededBookingIds {
+            knownBookingIds = incomingIds
+            hasSeededBookingIds = true
+            return
+        }
+
+        if !newOnes.isEmpty {
+            knownBookingIds.formUnion(incomingIds)
+            let message = FahrerBenachrichtigung.bannerMessage(newBookings: newOnes)
+            showNewRideBanner(message)
+            FahrerBenachrichtigung.announceNewRide(
+                count: newOnes.count,
+                preview: newOnes.first?.titleLine
+            )
+        } else {
+            // Verschwundene IDs aus dem Set nehmen (angenommene/erledigte), Bestand behalten.
+            knownBookingIds = knownBookingIds.union(incomingIds)
+            if let acceptedBookingId {
+                knownBookingIds.insert(acceptedBookingId)
             }
         }
     }
@@ -355,8 +482,10 @@ struct HomeView: View {
             // sonst verschwindet die Karte und „Fahrt erledigt“ wäre unerreichbar.
             await MainActor.run {
                 acceptedBookingId = booking.bookingId
+                knownBookingIds.insert(booking.bookingId)
                 statusText = "Fahrt angenommen — nach Abschluss unten tippen."
                 bookings = [booking]
+                dismissNewRideBanner()
             }
         } catch {
             await MainActor.run {
@@ -384,9 +513,10 @@ struct HomeView: View {
             )
             await MainActor.run {
                 acceptedBookingId = nil
+                knownBookingIds.remove(booking.bookingId)
                 statusText = "Fahrt erledigt."
             }
-            await loadBookings()
+            await loadBookings(silent: false)
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription

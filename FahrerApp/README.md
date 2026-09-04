@@ -18,6 +18,8 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 
 **Pause-Spiele:** Neue Datei `FahrerSpiele.swift` in Xcode anlegen (File → New → Swift File), kompletten Code einfügen, Target abhaken. Danach `HomeView.swift` ersetzen → Button **Pause-Spiele** erscheint.
 
+**Fahrt-Benachrichtigung:** Neue Datei `FahrerBenachrichtigung.swift` anlegen + Target abhaken, danach `HomeView.swift` **komplett ersetzen**. Beim ersten Online-Schalten fragt iOS nach Mitteilungen → **Erlauben**. Neue Testbuchung → ohne Tippen auf „Aktualisieren“ erscheint Banner + Ton (App offen) bzw. lokale Notification.
+
 ## Features (aktuell)
 
 1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
@@ -25,6 +27,7 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 3. **Fahrtenliste** — offene Buchungen vom Render-Backend
 4. **Annehmen / Erledigt** — Driver-API ohne ADMIN_PIN
 5. **Pause-Spiele** — Taxi tippen, Memory, Tarif rechnen (`FahrerSpiele.swift`)
+6. **Fahrt-Benachrichtigung (MVP)** — wenn Online: alle ~18s Poll auf offene Buchungen; neue IDs → oranger Banner „Neue Fahrt!“, System-Sound + lokale Notification (`FahrerBenachrichtigung.swift`)
 
 ## Dateien in Xcode übernehmen
 
@@ -34,7 +37,8 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 |-------|--------|
 | `Luckys_Taxi_FahrerApp.swift` | App-Start + Firebase |
 | `LoginView.swift` | Startseite Anmelden + TAXI-Hintergrund |
-| `HomeView.swift` | Online + Fahrtenliste + Link zu Spielen |
+| `HomeView.swift` | Online + Fahrtenliste + Polling + Banner |
+| `FahrerBenachrichtigung.swift` | Permission, Sound, lokale Notification (neu — als Datei ins Target legen) |
 | `FahrerSpiele.swift` | Pause-Spiele (neu — als Datei ins Target legen) |
 | `BackendConfig.swift` | Backend-URL + Operator-Slug |
 | `DriverBooking.swift` | Modelle |
@@ -90,9 +94,38 @@ Nach Deploy auf Render sind die Endpunkte live. Lokal: `cd backend && npm start`
 ## Testablauf
 
 1. App starten → Login `fahrer@test.de`
-2. Online einschalten (Status muss in Firestore `isOnline: true` stehen)
+2. Online einschalten (Status muss in Firestore `isOnline: true` stehen) → Mitteilungen **Erlauben**
 3. Testbuchung erzeugen (Fahrgast-App / `book.html` / `scripts/test-cloud-e2e.sh`)
-4. In Fahrer-App **Aktualisieren** → Fahrt sehen → **Annehmen** → **Fahrt erledigt**
+4. **Ohne** „Aktualisieren“: innerhalb ~18s Banner „Neue Fahrt!“ + Sound; Liste aktualisiert sich
+5. **Annehmen** → **Fahrt erledigt** (angenommene Fahrt bleibt lokal sichtbar)
+
+## Fahrt-Benachrichtigung — was schon geht / was noch fehlt
+
+### MVP (jetzt, ohne Apple Push-Zertifikate)
+
+- Client-Polling auf `GET /api/driver/open-bookings` solange `isOnline`
+- Erste Antwort einer Online-Session = Bestand (kein Alarm)
+- Neue Booking-IDs → In-App-Banner + `AudioServicesPlaySystemSound` + lokale `UNNotification`
+- Permission über `UserNotifications` (kein Signing / kein FCM nötig)
+- Stille Polls setzen **kein** `isBusy` → Toggle/Abmelden flackern nicht
+
+### Später: echte Remote-Push (FCM / APNs) — auf dem Mac
+
+Damit der Fahrer auch merkt, wenn die App **geschlossen** ist (kein Poll):
+
+1. **Apple Developer:** App-ID mit Push Notifications Capability; APNs Key (`.p8`) oder Zertifikat in developer.apple.com
+2. **Xcode:** Target → Signing & Capabilities → **Push Notifications** (+ optional Background Modes → Remote notifications)
+3. **Firebase Console:** Cloud Messaging aktivieren; APNs-Key unter Projekteinstellungen → Cloud Messaging hochladen
+4. **Xcode SPM:** `FirebaseMessaging` zum Target hinzufügen
+5. **App-Code:** `Messaging.messaging().delegate`, Token holen, in Firestore speichern z. B.  
+   `user/{uid}` Feld `fcmToken` (String) + `fcmTokenUpdatedAt` — bestehende Regel erlaubt write auf eigenes `user/{uid}`
+6. **Backend:** bei neuer offener Buchung FCM-Nachricht an alle Online-Fahrer mit `fcmToken` senden (Admin SDK / HTTP v1)
+7. **Info.plist / Entitlements:** automatisch durch Capability; auf Gerät (nicht nur Simulator) testen
+
+Optionaler Hook (wenn Messaging eingebunden): nach Login Token schreiben mit Merge, z. B.  
+`setData(["fcmToken": token, "fcmTokenUpdatedAt": FieldValue.serverTimestamp()], merge: true)` — **nicht** den Online-Toggle blockieren.
+
+Bis dahin reicht Polling + lokale Notification als „erste Fahrt-Benachrichtigung“.
 
 ## Siehe auch
 
