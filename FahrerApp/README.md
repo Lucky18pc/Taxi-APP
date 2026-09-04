@@ -14,12 +14,15 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 
 **Home gelb:** Nach Login wirkt Home warmgelb (Taxi). Dazu `HomeView.swift` in Xcode **komplett ersetzen** → Cmd+S → Stop/Play. Sonst bleibt der alte weiß-graue Screen.
 
+**Pause-Spiele:** Neue Datei `FahrerSpiele.swift` in Xcode anlegen (File → New → Swift File), kompletten Code einfügen, Target abhaken. Danach `HomeView.swift` ersetzen → Button **Pause-Spiele** erscheint.
+
 ## Features (aktuell)
 
 1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
 2. **Online / Schicht** — wird in Firestore gespeichert (`isOnline`)
 3. **Fahrtenliste** — offene Buchungen vom Render-Backend
 4. **Annehmen / Erledigt** — Driver-API ohne ADMIN_PIN
+5. **Pause-Spiele** — Taxi tippen, Memory, Tarif rechnen (`FahrerSpiele.swift`)
 
 ## Dateien in Xcode übernehmen
 
@@ -29,7 +32,8 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 |-------|--------|
 | `Luckys_Taxi_FahrerApp.swift` | App-Start + Firebase |
 | `LoginView.swift` | Startseite Anmelden + TAXI-Hintergrund |
-| `HomeView.swift` | Online + Fahrtenliste (**gelber** Hintergrund — in Xcode ersetzen) |
+| `HomeView.swift` | Online + Fahrtenliste + Link zu Spielen |
+| `FahrerSpiele.swift` | Pause-Spiele (neu — als Datei ins Target legen) |
 | `BackendConfig.swift` | Backend-URL + Operator-Slug |
 | `DriverBooking.swift` | Modelle |
 | `DriverAPI.swift` | API-Aufrufe |

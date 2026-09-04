@@ -53,6 +53,31 @@ struct HomeView: View {
                     Text(statusText)
                         .foregroundStyle(navy.opacity(0.85))
 
+                    NavigationLink {
+                        FahrerSpieleHubView()
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Pause-Spiele")
+                                    .font(.headline.weight(.bold))
+                                    .foregroundStyle(navy)
+                                Text("Bei Langerweile: Taxi tippen, Memory, Tarif rechnen")
+                                    .font(.caption)
+                                    .foregroundStyle(navy.opacity(0.75))
+                            }
+                            Spacer()
+                            Text("▶")
+                                .foregroundStyle(navy)
+                        }
+                        .padding(14)
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(navy.opacity(0.35), lineWidth: 1.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+
                     if let errorMessage {
                         Text(errorMessage)
                             .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
