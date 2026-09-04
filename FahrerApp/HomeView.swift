@@ -28,10 +28,12 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Hallo, \(driverName)")
                         .font(.title2.bold())
+                        .foregroundStyle(Color(red: 0.05, green: 0.08, blue: 0.14))
 
                     Toggle("Online / Schicht", isOn: $isOnline)
+                        .foregroundStyle(Color(red: 0.05, green: 0.08, blue: 0.14))
                         .padding()
-                        .background(Color.white.opacity(0.92))
+                        .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .onChange(of: isOnline) { _, newValue in
                             Task { await setOnline(newValue) }
