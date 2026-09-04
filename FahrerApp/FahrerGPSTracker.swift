@@ -1,5 +1,5 @@
 //
-//  FahrerLocationTracker.swift
+//  FahrerGPSTracker.swift
 //  Luckys Taxi Fahrer
 //
 // GPS während angenommener Fahrt → Backend Live-Tracking.
@@ -10,7 +10,7 @@ import Foundation
 import CoreLocation
 import Combine
 
-final class FahrerLocationTracker: NSObject, ObservableObject {
+final class FahrerGPSTracker: NSObject, ObservableObject {
     @Published var lastError: String?
     @Published var isSharing = false
 
@@ -97,7 +97,7 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
     }
 }
 
-extension FahrerLocationTracker: CLLocationManagerDelegate {
+extension FahrerGPSTracker: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }

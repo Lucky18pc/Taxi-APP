@@ -30,7 +30,7 @@ struct LoginView: View {
         Group {
             if isLoggedIn {
                 // Binding statt Closure: Abmelden setzt isLoggedIn direkt → Startseite.
-                HomeView(
+                FahrerHomeView(
                     driverUid: driverUid,
                     driverName: driverName,
                     isLoggedIn: $isLoggedIn
@@ -334,70 +334,4 @@ struct LoginView: View {
     }
 }
 
-/// Lädt app_background aus Assets oder Bundle.
-enum TaxiBild {
-    static var uiImage: UIImage? {
-        if let named = UIImage(named: "app_background") {
-            return named
-        }
-        if let url = Bundle.main.url(forResource: "app_background", withExtension: "jpg"),
-           let data = try? Data(contentsOf: url),
-           let image = UIImage(data: data) {
-            return image
-        }
-        return nil
-    }
-}
-
-/// Obere Login-Hälfte: TAXI-Schild groß und scharf (kein Blur, kein Overlay).
-struct TaxiHeroFoto: View {
-    var body: some View {
-        ZStack {
-            Color(red: 1, green: 0.8, blue: 0)
-
-            if let image = TaxiBild.uiImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .clipped()
-            } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "car.side.fill")
-                        .font(.system(size: 64))
-                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
-                    Text("TAXI")
-                        .font(.system(size: 48, weight: .black))
-                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
-                    Text("Asset „app_background“ in Xcode Assets einfügen")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-            }
-        }
-    }
-}
-
-/// Vollflächiger Hintergrund für Home (ohne Blur). Nie Hit-Tests — sonst blockiert er Controls.
-struct TaxiHintergrund: View {
-    var body: some View {
-        ZStack {
-            Color(red: 1, green: 0.8, blue: 0)
-                .allowsHitTesting(false)
-
-            if let image = TaxiBild.uiImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .clipped()
-                    .allowsHitTesting(false)
-            }
-        }
-        .ignoresSafeArea()
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-    }
-}
+// TaxiBild / TaxiHeroFoto / TaxiHintergrund → nur noch in TaxiUI.swift
