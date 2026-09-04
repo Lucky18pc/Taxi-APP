@@ -54,7 +54,8 @@ enum DriverAPI {
             throw DriverAPIError.badURL
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
-        guard let url = components?.url else { throw DriverAPIError.badURL }
+        // Nach guard var ist components kein Optional mehr → kein ?.url
+        guard let url = components.url else { throw DriverAPIError.badURL }
 
         let request = try authorizedRequest(
             url: url,
@@ -77,7 +78,7 @@ enum DriverAPI {
             throw DriverAPIError.badURL
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
-        guard let url = components?.url else { throw DriverAPIError.badURL }
+        guard let url = components.url else { throw DriverAPIError.badURL }
 
         let request = try authorizedRequest(
             url: url,
@@ -106,7 +107,7 @@ enum DriverAPI {
             throw DriverAPIError.badURL
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
-        guard let url = components?.url else { throw DriverAPIError.badURL }
+        guard let url = components.url else { throw DriverAPIError.badURL }
 
         var body: [String: Any] = [
             "driverUid": driverUid,
