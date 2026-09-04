@@ -61,7 +61,7 @@ struct HomeView: View {
                                 Text("Pause-Spiele")
                                     .font(.headline.weight(.bold))
                                     .foregroundStyle(navy)
-                                Text("Bei Langerweile: Taxi tippen, Memory, Tarif rechnen")
+                                Text("Bei Langeweile: Taxi tippen, Memory, Tarif rechnen")
                                     .font(.caption)
                                     .foregroundStyle(navy.opacity(0.75))
                             }
