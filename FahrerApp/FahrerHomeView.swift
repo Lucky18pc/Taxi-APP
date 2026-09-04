@@ -2,9 +2,10 @@
 //  FahrerHomeView.swift
 //  Luckys Taxi Fahrer
 //
-// Alias — echte View liegt in LoginView.swift als FahrerHomeScreen.
+// Optional. Echte Home-View: LoginHomeScreen in LoginView.swift
+// Bei „Redeclaration“: diese Datei in Xcode LÖSCHEN.
 //
 
 import SwiftUI
 
-typealias FahrerHomeView = FahrerHomeScreen
+typealias FahrerHomeView = LoginHomeScreen

@@ -2,8 +2,8 @@
 //  TaxiUI.swift
 //  Luckys Taxi Fahrer
 //
-// Alias auf LoginView-Typen — damit alte TaxiUI.swift im Target keine Doppel-Typen erzeugt.
-// Wenn Xcode „Invalid redeclaration“ zeigt: diese Datei LÖSCHEN oder durch diese Version ersetzen.
+// Optional. Bei „Invalid redeclaration of TaxiBild“: diese Datei LÖSCHEN.
+// Hero/Hintergrund liegen in LoginView.swift (LoginTaxi*).
 //
 
 import SwiftUI

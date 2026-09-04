@@ -1,28 +1,23 @@
-# Redeclaration (TaxiBild / GPS) beheben
+# LoginView Rot endgültig weg
 
-Branch: `cursor/fahrer-xcodeproj-a9f4`
+## 1) In Xcode LÖSCHEN (Move to Trash)
+Alles außer **einer** `LoginView.swift` und der App-Startdatei + Firebase:
 
-## Ursache
-Alte Dateien **und** neue LoginView definieren dieselben Namen → rot.
-
-## Fix im Code
-LoginView nutzt jetzt **eigene Namen**:
-- `LoginTaxiBild` / `LoginTaxiHeroFoto` / `LoginGPSTracker` / `LoginTaxiHintergrund`
-
-## In Xcode (wichtig)
-
-### A) Löschen (Move to Trash) — sonst bleibt rot
-- Jede **zweite** `LoginView.swift`
-- Alte volle `FahrerHomeView.swift` / `HomeView.swift` (mit GPS-Klasse)
-- Alte `TaxiUI.swift` die noch `TaxiBild` / `TaxiHeroFoto` enthält
+- zweite `LoginView.swift`
+- `HomeView.swift` / alte volle `FahrerHomeView.swift`
+- `TaxiUI.swift` (wenn sie noch `TaxiBild` / `TaxiHeroFoto` enthält)
 - `FahrerGPSTracker.swift` / `FahrerLocationTracker.swift`
+- alte `BackendConfig.swift`
 
-### B) Ersetzen
-Nur **eine** LoginView:  
-https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/LoginView.swift  
+## 2) EINE Datei ersetzen
+`LoginView.swift` komplett (Cmd+A → einfügen):
 
-Optional Alias-Dateien (oder löschen):  
-https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/FahrerHomeView.swift  
-https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/TaxiUI.swift  
+https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/LoginView.swift
 
-Clean Build (Shift+Cmd+K) → Play
+Diese eine Datei enthält: Login + Home + GPS + API (alle Typen mit `Login…`-Namen).
+
+## 3) Clean
+Shift+Cmd+K → Play ▶
+
+---
+Oder fertiges Projekt: `LuckysTaxiFahrer.xcodeproj` + `GoogleService-Info.plist`.
