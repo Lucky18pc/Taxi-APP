@@ -1,26 +1,40 @@
-# Xcode: Rote Fehler beheben (Kurz)
+# Xcode: Rote Fehler beheben + Raw-Links
 
-## 1. Alte Config löschen
-- Links nach `BackendConfig` suchen
-- **Jede** `BackendConfig.swift` → Rechtsklick → Delete → **Move to Trash**
+Branch: `cursor/fahrer-home-taxi-background-a9f4`
 
-## 2. Neue Config anlegen
-- Rechtsklick auf Projektordner → New "FahrerBackendConfig.swift" from Clipboard
-  (Code von Raw kopieren)
-- Raw: https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-taxi-background-a9f4/FahrerApp/FahrerBackendConfig.swift
+## 5 Schritte
 
-## 3. Diese Dateien ersetzen / anlegen
-| Datei | Aktion |
-|-------|--------|
-| FahrerBackendConfig.swift | neu |
-| FahrerLocationTracker.swift | neu oder ersetzen |
-| DriverAPI.swift | ersetzen |
-| HomeView.swift | ersetzen |
-| LoginView.swift | ersetzen |
+### 1. Alte Config löschen
+Links nach `BackendConfig` suchen → **jede** `BackendConfig.swift` → Delete → **Move to Trash**.
 
-## 4. Location-Text
-Target → Info → + → Privacy - Location When In Use Usage Description  
+### 2. Neue Config
+Raw öffnen → Cmd+A → Cmd+C → in Xcode: **New "FahrerBackendConfig.swift" from Clipboard**
+
+https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-taxi-background-a9f4/FahrerApp/FahrerBackendConfig.swift
+
+### 3. Diese Dateien komplett ersetzen (Cmd+A → einfügen)
+| Datei | Raw-Link |
+|-------|----------|
+| FahrerLocationTracker.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-taxi-background-a9f4/FahrerApp/FahrerLocationTracker.swift |
+| DriverAPI.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-taxi-background-a9f4/FahrerApp/DriverAPI.swift |
+| HomeView.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-taxi-background-a9f4/FahrerApp/HomeView.swift |
+| LoginView.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-taxi-background-a9f4/FahrerApp/LoginView.swift |
+
+### 4. Optional (falls noch nicht im Projekt)
+| Datei | Raw-Link |
+|-------|----------|
+| FahrerBenachrichtigung.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-taxi-background-a9f4/FahrerApp/FahrerBenachrichtigung.swift |
+| FahrerSpiele.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-taxi-background-a9f4/FahrerApp/FahrerSpiele.swift |
+
+### 5. Location + Build
+Target → Info → **+** → `Privacy - Location When In Use Usage Description`  
 Wert: `Standort wird während der Fahrt an den Fahrgast gesendet.`
 
-## 5. Clean → Play
-Shift+Cmd+K, dann Play.
+Dann: Shift+Cmd+K → Play ▶
+
+## Prüfung im Repo (Stand)
+
+- Nur `FahrerBackendConfig` (kein `enum BackendConfig`)
+- `FahrerLocationTracker` ohne class-`@MainActor`
+- `HomeView` + `LoginView` mit Binding-Abmelden
+- `DriverAPI` mit Bearer-Key + `postLocation`
