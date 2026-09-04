@@ -1,19 +1,28 @@
-# Xcode — Code neu (Home + GPS in einer Datei)
+# LoginView rot beheben
 
 Branch: `cursor/fahrer-home-gps-combined-a9f4`
 
-## Löschen in Xcode (Move to Trash)
-- `HomeView.swift`
-- `FahrerGPSTracker.swift` (GPS steckt jetzt in FahrerHomeView)
-- `FahrerLocationTracker.swift` (falls noch da)
+## Ursache
+`LoginView` braucht `FahrerHomeView` und `TaxiHeroFoto`. Fehlen die Dateien im Xcode-Target → rote Meldung.
 
-## Ersetzen / neu anlegen
+## Fix (nach diesem Commit)
+- `TaxiHeroFoto` / `TaxiBild` stecken **am Ende von LoginView.swift**
+- `TaxiUI.swift` hat nur noch **`TaxiHintergrund`** (für Home)
+- GPS steckt **oben in FahrerHomeView.swift**
+
+## In Xcode
+
+### Löschen (Move to Trash)
+- `HomeView.swift`
+- `FahrerGPSTracker.swift` / `FahrerLocationTracker.swift` (falls vorhanden)
+
+### Ersetzen (Raw → Cmd+A → Cmd+C → einfügen)
 
 | Datei | Link |
 |-------|------|
+| **LoginView.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/LoginView.swift |
 | **FahrerHomeView.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/FahrerHomeView.swift |
 | **TaxiUI.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/TaxiUI.swift |
 | **DriverAPI.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/DriverAPI.swift |
-| **LoginView.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/LoginView.swift |
 
-Danach: Shift+Cmd+K → Play ▶
+Target-Häkchen bei jeder Datei setzen. Dann Shift+Cmd+K → Play ▶
