@@ -13,6 +13,8 @@ struct HomeView: View {
     /// Binding statt Closure — zuverlässiger als onLogout-Callback (kein leerer Default).
     @Binding var isLoggedIn: Bool
 
+    @StateObject private var locationTracker = FahrerLocationTracker()
+
     @State private var isOnline = false
     @State private var bookings: [DriverBooking] = []
     @State private var statusText = "Du bist offline."
@@ -148,6 +150,17 @@ struct HomeView: View {
                             .font(.footnote.weight(.semibold))
                     }
 
+                    if locationTracker.isSharing {
+                        Text("Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(navy.opacity(0.85))
+                    }
+                    if let locError = locationTracker.lastError {
+                        Text("GPS: \(locError)")
+                            .font(.caption)
+                            .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
+                    }
+
                     if isOnline {
                         HStack {
                             Text("Offene Fahrten")
@@ -264,6 +277,7 @@ struct HomeView: View {
         acceptedBookingId = nil
         errorMessage = nil
         statusText = "Abgemeldet."
+        locationTracker.stop()
         resetRideNotificationState()
 
         try? Auth.auth().signOut()
@@ -356,6 +370,7 @@ struct HomeView: View {
                 if !online {
                     bookings = []
                     acceptedBookingId = nil
+                    locationTracker.stop()
                 }
                 isBusy = false
             }
@@ -483,9 +498,14 @@ struct HomeView: View {
             await MainActor.run {
                 acceptedBookingId = booking.bookingId
                 knownBookingIds.insert(booking.bookingId)
-                statusText = "Fahrt angenommen — nach Abschluss unten tippen."
+                statusText = "Fahrt angenommen — GPS-Tracking aktiv. Nach Abschluss unten tippen."
                 bookings = [booking]
                 dismissNewRideBanner()
+                locationTracker.start(
+                    driverUid: driverUid,
+                    bookingId: booking.bookingId,
+                    operatorSlug: operatorSlug
+                )
             }
         } catch {
             await MainActor.run {
@@ -515,6 +535,7 @@ struct HomeView: View {
                 acceptedBookingId = nil
                 knownBookingIds.remove(booking.bookingId)
                 statusText = "Fahrt erledigt."
+                locationTracker.stop()
             }
             await loadBookings(silent: false)
         } catch {

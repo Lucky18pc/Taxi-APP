@@ -93,4 +93,35 @@ enum DriverAPI {
             throw DriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
         }
     }
+
+    /// GPS an Backend für Live-Tracking (Fahrgast-Karte).
+    static func postLocation(
+        driverUid: String,
+        latitude: Double,
+        longitude: Double,
+        bookingId: String?,
+        operatorSlug: String
+    ) async throws {
+        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/location") else {
+            throw DriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components?.url else { throw DriverAPIError.badURL }
+
+        var body: [String: Any] = [
+            "driverUid": driverUid,
+            "latitude": latitude,
+            "longitude": longitude,
+        ]
+        if let bookingId, !bookingId.isEmpty {
+            body["bookingId"] = bookingId
+        }
+
+        let request = try authorizedRequest(url: url, method: "POST", jsonBody: body)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw DriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
 }

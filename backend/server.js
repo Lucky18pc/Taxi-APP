@@ -579,7 +579,61 @@ function operatorConfigForNightSurcharge(operatorOrNull) {
 }
 
 function findDriver(driverId) {
-  return drivers.find((d) => d.driverId === driverId);
+  if (!driverId) return null;
+  return drivers.find((d) => d.driverId === driverId || d.firebaseUid === driverId) || null;
+}
+
+function findDriverByFirebaseUid(firebaseUid) {
+  const uid = String(firebaseUid || "").trim();
+  if (!uid) return null;
+  return drivers.find((d) => d.firebaseUid === uid) || null;
+}
+
+/** Fleet-Fahrer für Firebase-Auth-UID anlegen oder wiederverwenden (Tracking-Brücke). */
+function ensureAppDriverFromFirebase({ firebaseUid, name, req }) {
+  const uid = String(firebaseUid || "").trim();
+  if (!uid) return null;
+
+  let driver = findDriverByFirebaseUid(uid);
+  const displayName = String(name || "").trim() || "Fahrer";
+  const operator = resolveFleetOperatorFromRequest(req) || defaultFleetOperator();
+
+  if (!driver) {
+    driver = {
+      driverId: crypto.randomUUID(),
+      name: displayName,
+      phone: "fahrer-app",
+      vehicle: "Taxi (App)",
+      status: "available",
+      trackingPin: generateTrackingPin(),
+      firebaseUid: uid,
+      activeBookingId: null,
+      lastLat: null,
+      lastLng: null,
+      lastLocationAt: null,
+      ...(operator ? { operatorId: operator.operatorId } : {}),
+    };
+    drivers.push(driver);
+  } else {
+    driver.name = displayName;
+    driver.firebaseUid = uid;
+    if (operator && !driver.operatorId) {
+      driver.operatorId = operator.operatorId;
+    }
+    ensureDriverTrackingFields(driver);
+  }
+
+  saveDriversConfig();
+  return driver;
+}
+
+function driverOwnsBooking(booking, firebaseUid) {
+  const uid = String(firebaseUid || "").trim();
+  if (!booking || !uid) return false;
+  if (booking.assignedDriverId === uid) return true;
+  if (booking.assignedFirebaseUid === uid) return true;
+  const driver = findDriver(booking.assignedDriverId);
+  return Boolean(driver && driver.firebaseUid === uid);
 }
 
 migrateLegacyBookings();
@@ -645,8 +699,9 @@ function saveDriversConfig() {
         name: driver.name,
         phone: driver.phone,
         vehicle: driver.vehicle,
-        status: driver.status,
+        status: driver.status === "busy" ? "available" : driver.status,
         trackingPin: driver.trackingPin,
+        ...(driver.firebaseUid ? { firebaseUid: driver.firebaseUid } : {}),
         ...(driver.operatorId ? { operatorId: driver.operatorId } : {}),
       };
     }),
@@ -1529,13 +1584,31 @@ app.patch("/api/driver/bookings/:id/accept", requireDriverApp, (req, res) => {
     return res.status(400).json({ error: "driverUid required" });
   }
 
-  booking.assignedDriverId = driverUid;
+  const fleetDriver = ensureAppDriverFromFirebase({
+    firebaseUid: driverUid,
+    name: driverName,
+    req,
+  });
+  if (!fleetDriver) {
+    return res.status(500).json({ error: "Could not link driver profile" });
+  }
+
+  booking.assignedDriverId = fleetDriver.driverId;
+  booking.assignedFirebaseUid = driverUid;
   booking.assignedDriverName = driverName;
   booking.status = "assigned";
   booking.updatedAt = new Date().toISOString();
+  fleetDriver.status = "busy";
+  fleetDriver.activeBookingId = booking.bookingId;
   saveBookings();
-  console.log(`Fahrer-App: ${driverName} (${driverUid}) hat ${booking.bookingId} angenommen`);
-  res.json(booking);
+  saveDriversConfig();
+  console.log(
+    `Fahrer-App: ${driverName} (${driverUid} → fleet ${fleetDriver.driverId}) hat ${booking.bookingId} angenommen`
+  );
+  res.json({
+    ...booking,
+    fleetDriverId: fleetDriver.driverId,
+  });
 });
 
 app.patch("/api/driver/bookings/:id/complete", requireDriverApp, (req, res) => {
@@ -1548,17 +1621,61 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, (req, res) => {
   }
 
   const driverUid = String(req.body.driverUid || "").trim();
-  if (!driverUid || booking.assignedDriverId !== driverUid) {
+  if (!driverOwnsBooking(booking, driverUid)) {
     return res.status(403).json({ error: "Not your booking" });
   }
 
+  releaseDriverFromBooking(booking);
   booking.status = "completed";
   booking.updatedAt = new Date().toISOString();
   saveBookings();
+  saveDriversConfig();
   res.json(booking);
 });
 
-/** Fahrer sendet GPS-Standort (Web/PWA oder spätere Fahrer-App). */
+/** Fahrer-App sendet GPS (Auth: DRIVER_API_KEY + Firebase-UID). */
+app.post("/api/driver/location", requireDriverApp, (req, res) => {
+  const driverUid = String(req.body.driverUid || "").trim();
+  if (!driverUid) {
+    return res.status(400).json({ error: "driverUid required" });
+  }
+
+  const driver = findDriverByFirebaseUid(driverUid) || findDriver(driverUid);
+  if (!driver) {
+    return res.status(404).json({ error: "Driver not found — accept a booking first" });
+  }
+
+  const latitude = Number(req.body.latitude);
+  const longitude = Number(req.body.longitude);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return res.status(400).json({ error: "latitude and longitude required" });
+  }
+
+  const bookingId = String(req.body.bookingId || "").trim();
+  if (bookingId) {
+    const booking = findBooking(bookingId);
+    if (!booking || !driverOwnsBooking(booking, driverUid)) {
+      return res.status(403).json({ error: "Not assigned to this booking" });
+    }
+  }
+
+  driver.lastLat = latitude;
+  driver.lastLng = longitude;
+  driver.lastLocationAt = new Date().toISOString();
+  if (driver.status === "offline") {
+    driver.status = "busy";
+  }
+
+  res.json({
+    ok: true,
+    driverId: driver.driverId,
+    firebaseUid: driver.firebaseUid || null,
+    activeBookingId: driver.activeBookingId || null,
+    updatedAt: driver.lastLocationAt,
+  });
+});
+
+/** Fahrer sendet GPS-Standort (Web/PWA — Tracking-PIN). */
 app.post("/api/drivers/:id/location", (req, res) => {
   const driver = findDriver(req.params.id);
   if (!driver) {

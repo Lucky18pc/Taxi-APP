@@ -20,6 +20,8 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 
 **Fahrt-Benachrichtigung:** Neue Datei `FahrerBenachrichtigung.swift` anlegen + Target abhaken, danach `HomeView.swift` **komplett ersetzen**. Beim ersten Online-Schalten fragt iOS nach Mitteilungen → **Erlauben**. Neue Testbuchung → ohne Tippen auf „Aktualisieren“ erscheint Banner + Ton (App offen) bzw. lokale Notification.
 
+**Live-Tracking:** Neue Datei `FahrerLocationTracker.swift` + Target. `HomeView.swift` + `DriverAPI.swift` ersetzen. In Xcode Target → Info → Privacy → **Location When In Use Usage Description** z. B. `Standort wird während der Fahrt an den Fahrgast gesendet.` Nach **Annehmen** fragt iOS nach Standort → erlauben. Fahrgast: Tracking-Screen / `track.html?bookingId=…`.
+
 ## Features (aktuell)
 
 1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
@@ -27,7 +29,8 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 3. **Fahrtenliste** — offene Buchungen vom Render-Backend
 4. **Annehmen / Erledigt** — Driver-API mit `DRIVER_API_KEY` (Bearer)
 5. **Pause-Spiele** — Taxi tippen, Memory, Tarif rechnen (`FahrerSpiele.swift`)
-6. **Fahrt-Benachrichtigung (MVP)** — wenn Online: alle ~18s Poll auf offene Buchungen; neue IDs → oranger Banner „Neue Fahrt!“, System-Sound + lokale Notification (`FahrerBenachrichtigung.swift`)
+6. **Fahrt-Benachrichtigung (MVP)** — wenn Online: alle ~18s Poll; neue IDs → Banner + Sound (`FahrerBenachrichtigung.swift`)
+7. **Live-Tracking** — nach Annehmen sendet die App GPS; Fahrgast sieht das Taxi (`FahrerLocationTracker.swift`)
 
 ## Dateien in Xcode übernehmen
 
@@ -37,12 +40,13 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 |-------|--------|
 | `Luckys_Taxi_FahrerApp.swift` | App-Start + Firebase |
 | `LoginView.swift` | Startseite Anmelden + TAXI-Hintergrund |
-| `HomeView.swift` | Online + Fahrtenliste + Polling + Banner |
-| `FahrerBenachrichtigung.swift` | Permission, Sound, lokale Notification (neu — als Datei ins Target legen) |
-| `FahrerSpiele.swift` | Pause-Spiele (neu — als Datei ins Target legen) |
-| `BackendConfig.swift` | Backend-URL + Operator-Slug |
+| `HomeView.swift` | Online + Fahrtenliste + Polling + Banner + GPS |
+| `FahrerBenachrichtigung.swift` | Permission, Sound, lokale Notification |
+| `FahrerLocationTracker.swift` | GPS während angenommener Fahrt (**neu**) |
+| `FahrerSpiele.swift` | Pause-Spiele |
+| `BackendConfig.swift` | Backend-URL + Operator-Slug + API-Key |
 | `DriverBooking.swift` | Modelle |
-| `DriverAPI.swift` | API-Aufrufe |
+| `DriverAPI.swift` | API-Aufrufe inkl. Location |
 | `Assets.xcassets/app_background.imageset/` | TAXI-Dachschild (wie Fahrgast-App) |
 | `app_background.jpg` | Kopie zum Ziehen in Xcode-Assets |
 | `firestore-user-rule.txt` | Firestore-Regel für Collection `user` (nicht in Xcode) |
@@ -88,8 +92,9 @@ Erwartung: keine Meldung „Keine Berechtigung“ mehr, sondern HomeView; Online
 Auth-Header Pflicht: `Authorization: Bearer <DRIVER_API_KEY>` (oder `X-Driver-Key`).
 
 - `GET /api/driver/open-bookings?operator=mannheim`
-- `PATCH /api/driver/bookings/:id/accept` — Body: `{ "driverUid", "driverName" }`
+- `PATCH /api/driver/bookings/:id/accept` — Body: `{ "driverUid", "driverName" }` (legt Fleet-Driver mit `firebaseUid` an)
 - `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid" }`
+- `POST /api/driver/location` — Body: `{ "driverUid", "latitude", "longitude", "bookingId?" }` (GPS für Fahrgast-Karte)
 
 Key in der App: `BackendConfig.driverApiKey`  
 Key auf dem Server: Env `DRIVER_API_KEY` (sonst Pilot-Default in `server.js`).  
