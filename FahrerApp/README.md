@@ -2,9 +2,12 @@
 
 ## Login-Checkliste (3 Schritte — sonst „tut sich nix“)
 
+**Passwort Schritt für Schritt:** [`PASSWORT-SCHRITT-FUER-SCHRITT.md`](PASSWORT-SCHRITT-FUER-SCHRITT.md)  
+Festes Test-Passwort in der Anleitung: **`Taxi2026!`** (nur in **Authentication**, nicht in Firestore).
+
 1. **Code:** In Xcode `LoginView.swift` öffnen → **Cmd+A** → löschen → komplette neue Datei aus diesem Ordner einfügen → **Cmd+S** → Stopp ■ → Play ▶  
    Erwartung: gelber Button, Statuszeile „Status: bereit“, Hinweistext unter dem Button. Ohne Passwort → **Fehlerfenster** (kein stiller Button mehr).
-2. **Passwort:** Firebase Console → [Authentication](https://console.firebase.google.com/project/collectionshop-2854d/authentication/users) → User `fahrer@test.de` → Passwort setzen/zurücksetzen (z. B. `Test1234!`) → in der App eingeben.
+2. **Passwort:** Anleitung oben folgen — User löschen → neu anlegen mit `Taxi2026!` → UID mit Firestore `user/{uid}` abgleichen.
 3. **Regeln:** Block aus [`firestore-user-rule.txt`](firestore-user-rule.txt) in [Firestore → Regeln](https://console.firebase.google.com/project/collectionshop-2854d/firestore/rules) einfügen → **Veröffentlichen** (read + write für eigenes `user/{uid}`).
 
 Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkretem Text. Alert-Text merken / Screenshot.
