@@ -14,8 +14,8 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | Datei | Zweck |
 |-------|--------|
 | `Luckys_Taxi_FahrerApp.swift` | App-Start + Firebase |
-| `LoginView.swift` | Login |
-| `HomeView.swift` | Online + Fahrtenliste (+ TAXI-Hintergrund) |
+| `LoginView.swift` | Startseite Anmelden + TAXI-Hintergrund |
+| `HomeView.swift` | Online + Fahrtenliste (gleicher Hintergrund) |
 | `BackendConfig.swift` | Backend-URL + Operator-Slug |
 | `DriverBooking.swift` | Modelle |
 | `DriverAPI.swift` | API-Aufrufe |
