@@ -33,53 +33,83 @@ struct LoginView: View {
 
     /// Startseite (Anmelden) mit TAXI-Hintergrund.
     private var startPage: some View {
-        ZStack {
+        let ink = Color(red: 0.05, green: 0.08, blue: 0.14) // fast schwarz, gut lesbar
+        let fieldFill = Color(red: 0.97, green: 0.97, blue: 0.95)
+
+        return ZStack {
             TaxiHintergrund()
 
-            VStack(spacing: 16) {
-                Spacer(minLength: 24)
-
+            VStack(alignment: .leading, spacing: 14) {
                 Text("Luckys Taxi Fahrer")
                     .font(.largeTitle.bold())
-                    .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                    .foregroundStyle(ink)
                     .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
 
                 Text("Anmelden")
-                    .font(.title2)
-                    .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(ink)
+                    .frame(maxWidth: .infinity)
 
-                TextField("E-Mail", text: $email)
+                Text("E-Mail")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(ink)
+
+                TextField("fahrer@test.de", text: $email)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.emailAddress)
                     .textContentType(.username)
-                    .textFieldStyle(.roundedBorder)
+                    .foregroundStyle(ink)
+                    .padding(12)
+                    .background(fieldFill)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(ink.opacity(0.55), lineWidth: 1.5)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                     .disabled(isLoading)
 
-                SecureField("Passwort", text: $password)
+                Text("Passwort")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(ink)
+
+                SecureField("••••••••", text: $password)
                     .textContentType(.password)
-                    .textFieldStyle(.roundedBorder)
+                    .foregroundStyle(ink)
+                    .padding(12)
+                    .background(fieldFill)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(ink.opacity(0.55), lineWidth: 1.5)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                     .disabled(isLoading)
 
                 if let errorMessage {
                     Text(errorMessage)
-                        .foregroundStyle(.red)
-                        .font(.footnote)
+                        .foregroundStyle(Color(red: 0.55, green: 0.05, blue: 0.05))
+                        .font(.footnote.weight(.medium))
                         .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
                 }
 
                 Button(isLoading ? "Bitte warten…" : "Einloggen") {
                     login()
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(ink)
+                .foregroundStyle(Color(red: 1, green: 0.8, blue: 0))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .disabled(isLoading)
-
-                Spacer(minLength: 24)
+                .padding(.top, 4)
             }
             .padding(24)
-            .background(Color.white.opacity(0.94))
+            .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
             .padding(20)
         }
     }
