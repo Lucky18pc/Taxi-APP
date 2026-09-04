@@ -12,6 +12,8 @@ Festes Test-Passwort in der Anleitung: **`Lucky1803`** (nur in **Authentication*
 
 Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkretem Text. Alert-Text merken / Screenshot.
 
+**Home gelb:** Nach Login wirkt Home warmgelb (Taxi). Dazu `HomeView.swift` in Xcode **komplett ersetzen** → Cmd+S → Stop/Play. Sonst bleibt der alte weiß-graue Screen.
+
 ## Features (aktuell)
 
 1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
@@ -27,7 +29,7 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 |-------|--------|
 | `Luckys_Taxi_FahrerApp.swift` | App-Start + Firebase |
 | `LoginView.swift` | Startseite Anmelden + TAXI-Hintergrund |
-| `HomeView.swift` | Online + Fahrtenliste (gleicher Hintergrund) |
+| `HomeView.swift` | Online + Fahrtenliste (**gelber** Hintergrund — in Xcode ersetzen) |
 | `BackendConfig.swift` | Backend-URL + Operator-Slug |
 | `DriverBooking.swift` | Modelle |
 | `DriverAPI.swift` | API-Aufrufe |
