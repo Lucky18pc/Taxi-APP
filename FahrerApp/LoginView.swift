@@ -244,7 +244,7 @@ struct LoginView: View {
         if text.localizedCaseInsensitiveContains("password")
             || text.localizedCaseInsensitiveContains("credential")
             || text.localizedCaseInsensitiveContains("invalid") {
-            return "Passwort oder E-Mail stimmt nicht. In Firebase Authentication neu setzen (Anleitung: PASSWORT-SCHRITT-FUER-SCHRITT.md), z. B. Taxi2026!."
+            return "Passwort oder E-Mail stimmt nicht. In Firebase Authentication prüfen (Anleitung: PASSWORT-SCHRITT-FUER-SCHRITT.md)."
         }
         if text.localizedCaseInsensitiveContains("network") {
             return "Kein Netz. WLAN/Internet prüfen und nochmal Einloggen."

@@ -1,6 +1,6 @@
 # Passwort setzen — nur Authentication (nicht Firestore!)
 
-Passwort für die App: **`Taxi2026!`**
+Passwort für die App: **`Lucky1803`**
 
 ---
 
@@ -27,7 +27,7 @@ Nicht „Passwort zurücksetzen“ wählen.
 
 1. Button **Nutzer hinzufügen**  
 2. E-Mail: `fahrer@test.de`  
-3. Passwort: `Taxi2026!`  
+3. Passwort: `Lucky1803`  
 4. Speichern  
 
 ---
@@ -62,7 +62,7 @@ Kein Feld `password` anlegen.
 ## Schritt 6 — App
 
 1. E-Mail: `fahrer@test.de`  
-2. Passwort: `Taxi2026!`  
+2. Passwort: `Lucky1803`  
 3. **Einloggen**  
 
 Erwartung: Home-Screen. Sonst Alert-Text / Screenshot schicken.
