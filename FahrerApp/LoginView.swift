@@ -33,84 +33,101 @@ struct LoginView: View {
 
     /// Startseite (Anmelden) mit TAXI-Hintergrund.
     private var startPage: some View {
-        let ink = Color(red: 0.05, green: 0.08, blue: 0.14) // fast schwarz, gut lesbar
-        let fieldFill = Color(red: 0.97, green: 0.97, blue: 0.95)
+        let ink = Color.black
+        let cream = Color(red: 1.0, green: 0.95, blue: 0.78)
+        let fieldBg = Color.white
 
         return ZStack {
             TaxiHintergrund()
 
-            VStack(alignment: .leading, spacing: 14) {
-                Text("Luckys Taxi Fahrer")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(ink)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
+            ScrollView {
+                VStack(spacing: 18) {
+                    Spacer(minLength: 40)
 
-                Text("Anmelden")
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(ink)
-                    .frame(maxWidth: .infinity)
+                    Text("Luckys Taxi Fahrer")
+                        .font(.system(size: 30, weight: .black))
+                        .foregroundStyle(ink)
+                        .shadow(color: cream, radius: 0, x: 0, y: 0)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(cream)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                Text("E-Mail")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(ink)
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Anmelden")
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(ink)
+                            .frame(maxWidth: .infinity)
 
-                TextField("fahrer@test.de", text: $email)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.emailAddress)
-                    .textContentType(.username)
-                    .foregroundStyle(ink)
-                    .padding(12)
-                    .background(fieldFill)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(ink.opacity(0.55), lineWidth: 1.5)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .disabled(isLoading)
+                        Text("E-Mail")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(ink)
 
-                Text("Passwort")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(ink)
+                        TextField("", text: $email)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                            .textContentType(.username)
+                            .foregroundColor(.black)
+                            .tint(.black)
+                            .padding(14)
+                            .background(fieldBg)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 2.5)
+                            )
+                            .disabled(isLoading)
 
-                SecureField("••••••••", text: $password)
-                    .textContentType(.password)
-                    .foregroundStyle(ink)
-                    .padding(12)
-                    .background(fieldFill)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(ink.opacity(0.55), lineWidth: 1.5)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .disabled(isLoading)
+                        Text("Passwort")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(ink)
 
-                if let errorMessage {
-                    Text(errorMessage)
-                        .foregroundStyle(Color(red: 0.55, green: 0.05, blue: 0.05))
-                        .font(.footnote.weight(.medium))
-                        .multilineTextAlignment(.center)
+                        SecureField("", text: $password)
+                            .textContentType(.password)
+                            .foregroundColor(.black)
+                            .tint(.black)
+                            .padding(14)
+                            .background(fieldBg)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 2.5)
+                            )
+                            .disabled(isLoading)
+
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .foregroundStyle(Color(red: 0.55, green: 0.05, blue: 0.05))
+                                .font(.footnote.weight(.semibold))
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity)
+                        }
+
+                        Button(isLoading ? "Bitte warten…" : "Einloggen") {
+                            login()
+                        }
+                        .font(.headline.weight(.bold))
                         .frame(maxWidth: .infinity)
-                }
+                        .padding(.vertical, 14)
+                        .background(Color.black)
+                        .foregroundStyle(Color(red: 1, green: 0.8, blue: 0))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .disabled(isLoading)
+                        .padding(.top, 6)
+                    }
+                    .padding(20)
+                    .background(cream)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.black, lineWidth: 2)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .padding(.horizontal, 18)
 
-                Button(isLoading ? "Bitte warten…" : "Einloggen") {
-                    login()
+                    Spacer(minLength: 120)
                 }
-                .font(.headline)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(ink)
-                .foregroundStyle(Color(red: 1, green: 0.8, blue: 0))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .disabled(isLoading)
-                .padding(.top, 4)
             }
-            .padding(24)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
-            .padding(20)
+            .scrollDismissesKeyboard(.interactively)
         }
     }
 
@@ -221,6 +238,8 @@ struct TaxiHintergrund: View {
                 Image(uiImage: taxiImage)
                     .resizable()
                     .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .clipped()
             }
         }
         .ignoresSafeArea()
