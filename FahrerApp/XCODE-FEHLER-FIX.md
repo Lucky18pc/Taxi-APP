@@ -1,13 +1,18 @@
-# Schnell: Rote Fehler weg
+# LoginView rot → weg (eine Datei)
 
-**Besser:** Fertiges Projekt öffnen → siehe [`OEFFNEN-HIER.md`](OEFFNEN-HIER.md)  
-Datei: `LuckysTaxiFahrer.xcodeproj` im Repo-Root (Branch `cursor/fahrer-xcodeproj-a9f4`).
+Branch: `cursor/fahrer-xcodeproj-a9f4`
 
-Wenn du im alten Projekt bleibst: alte Duplikate löschen und diese Raw-Dateien ersetzen:
+## Ursache
+`FahrerHomeView` fehlte im Xcode-Target → LoginView rot.
 
-| Datei | Link |
-|-------|------|
-| LoginView.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/LoginView.swift |
-| FahrerHomeView.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/FahrerHomeView.swift |
-| TaxiUI.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/TaxiUI.swift |
-| DriverAPI.swift | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/DriverAPI.swift |
+## Fix
+Home + GPS stecken jetzt **in LoginView.swift** als `FahrerHomeScreen`.
+
+## In Xcode (1 Schritt)
+1. `LoginView.swift` öffnen → Cmd+A → löschen  
+2. Einfügen von:  
+   https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/LoginView.swift  
+3. Alte `HomeView.swift` löschen (falls vorhanden)  
+4. Shift+Cmd+K → Play ▶  
+
+Optional besser: ganzes Projekt `LuckysTaxiFahrer.xcodeproj` öffnen (siehe `OEFFNEN-HIER.md`).
