@@ -253,11 +253,13 @@ struct HomeView: View {
                 driverName: driverName,
                 operatorSlug: operatorSlug
             )
+            // Nicht loadBookings() aufrufen: open-bookings liefert assigned-Fahrten nicht mehr,
+            // sonst verschwindet die Karte und „Fahrt erledigt“ wäre unerreichbar.
             await MainActor.run {
                 acceptedBookingId = booking.bookingId
-                statusText = "Fahrt angenommen."
+                statusText = "Fahrt angenommen — nach Abschluss unten tippen."
+                bookings = [booking]
             }
-            await loadBookings()
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription
