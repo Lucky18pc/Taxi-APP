@@ -1,0 +1,300 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F10000000000000000000001 /* Luckys_Taxi_FahrerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* Luckys_Taxi_FahrerApp.swift */; };
+		F10000000000000000000002 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* LoginView.swift */; };
+		F10000000000000000000003 /* FahrerHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000003 /* FahrerHomeView.swift */; };
+		F10000000000000000000004 /* TaxiUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000004 /* TaxiUI.swift */; };
+		F10000000000000000000005 /* DriverAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000005 /* DriverAPI.swift */; };
+		F10000000000000000000006 /* DriverBooking.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000006 /* DriverBooking.swift */; };
+		F10000000000000000000007 /* FahrerBackendConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000007 /* FahrerBackendConfig.swift */; };
+		F10000000000000000000008 /* FahrerBenachrichtigung.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000008 /* FahrerBenachrichtigung.swift */; };
+		F10000000000000000000009 /* FahrerSpiele.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000009 /* FahrerSpiele.swift */; };
+		F1000000000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F2000000000000000000000A /* Assets.xcassets */; };
+		F1000000000000000000000B /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = F30000000000000000000001 /* FirebaseCore */; };
+		F1000000000000000000000C /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F30000000000000000000002 /* FirebaseAuth */; };
+		F1000000000000000000000D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = F30000000000000000000003 /* FirebaseFirestore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		F20000000000000000000000 /* LuckysTaxiFahrer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LuckysTaxiFahrer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F20000000000000000000001 /* Luckys_Taxi_FahrerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Luckys_Taxi_FahrerApp.swift; sourceTree = "<group>"; };
+		F20000000000000000000002 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		F20000000000000000000003 /* FahrerHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FahrerHomeView.swift; sourceTree = "<group>"; };
+		F20000000000000000000004 /* TaxiUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiUI.swift; sourceTree = "<group>"; };
+		F20000000000000000000005 /* DriverAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverAPI.swift; sourceTree = "<group>"; };
+		F20000000000000000000006 /* DriverBooking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverBooking.swift; sourceTree = "<group>"; };
+		F20000000000000000000007 /* FahrerBackendConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FahrerBackendConfig.swift; sourceTree = "<group>"; };
+		F20000000000000000000008 /* FahrerBenachrichtigung.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FahrerBenachrichtigung.swift; sourceTree = "<group>"; };
+		F20000000000000000000009 /* FahrerSpiele.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FahrerSpiele.swift; sourceTree = "<group>"; };
+		F2000000000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F40000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1000000000000000000000B /* FirebaseCore in Frameworks */,
+				F1000000000000000000000C /* FirebaseAuth in Frameworks */,
+				F1000000000000000000000D /* FirebaseFirestore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F50000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				F50000000000000000000002 /* FahrerApp */,
+				F50000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F50000000000000000000002 /* FahrerApp */ = {
+			isa = PBXGroup;
+			children = (
+				F20000000000000000000001 /* Luckys_Taxi_FahrerApp.swift */,
+				F20000000000000000000002 /* LoginView.swift */,
+				F20000000000000000000003 /* FahrerHomeView.swift */,
+				F20000000000000000000004 /* TaxiUI.swift */,
+				F20000000000000000000005 /* DriverAPI.swift */,
+				F20000000000000000000006 /* DriverBooking.swift */,
+				F20000000000000000000007 /* FahrerBackendConfig.swift */,
+				F20000000000000000000008 /* FahrerBenachrichtigung.swift */,
+				F20000000000000000000009 /* FahrerSpiele.swift */,
+				F2000000000000000000000A /* Assets.xcassets */,
+			);
+			path = FahrerApp;
+			sourceTree = "<group>";
+		};
+		F50000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F20000000000000000000000 /* LuckysTaxiFahrer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F60000000000000000000001 /* LuckysTaxiFahrer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F70000000000000000000001 /* Build configuration list for PBXNativeTarget "LuckysTaxiFahrer" */;
+			buildPhases = (
+				F80000000000000000000001 /* Sources */,
+				F80000000000000000000002 /* Resources */,
+				F40000000000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LuckysTaxiFahrer;
+			packageProductDependencies = (
+				F30000000000000000000001 /* FirebaseCore */,
+				F30000000000000000000002 /* FirebaseAuth */,
+				F30000000000000000000003 /* FirebaseFirestore */,
+			);
+			productName = LuckysTaxiFahrer;
+			productReference = F20000000000000000000000 /* LuckysTaxiFahrer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F90000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					F60000000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = F70000000000000000000002 /* Build configuration list for PBXProject "LuckysTaxiFahrer" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = de;
+			knownRegions = (
+				de,
+				Base,
+			);
+			mainGroup = F50000000000000000000001;
+			packageReferences = (
+				F30000000000000000000010 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			productRefGroup = F50000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F60000000000000000000001 /* LuckysTaxiFahrer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F80000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1000000000000000000000A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F80000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F10000000000000000000001 /* Luckys_Taxi_FahrerApp.swift in Sources */,
+				F10000000000000000000002 /* LoginView.swift in Sources */,
+				F10000000000000000000003 /* FahrerHomeView.swift in Sources */,
+				F10000000000000000000004 /* TaxiUI.swift in Sources */,
+				F10000000000000000000005 /* DriverAPI.swift in Sources */,
+				F10000000000000000000006 /* DriverBooking.swift in Sources */,
+				F10000000000000000000007 /* FahrerBackendConfig.swift in Sources */,
+				F10000000000000000000008 /* FahrerBenachrichtigung.swift in Sources */,
+				F10000000000000000000009 /* FahrerSpiele.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		FA0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = L44Z8KQDL5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Luckys Taxi Fahrer";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Standort wird während der Fahrt an den Fahrgast gesendet.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.collectionshop.luckystaxifahrer";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FA0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = L44Z8KQDL5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Luckys Taxi Fahrer";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Standort wird während der Fahrt an den Fahrgast gesendet.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.collectionshop.luckystaxifahrer";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		FA0000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		FA0000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F70000000000000000000001 /* Build configuration list for PBXNativeTarget "LuckysTaxiFahrer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA0000000000000000000001 /* Debug */,
+				FA0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F70000000000000000000002 /* Build configuration list for PBXProject "LuckysTaxiFahrer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA0000000000000000000003 /* Debug */,
+				FA0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F30000000000000000000010 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F30000000000000000000001 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F30000000000000000000010 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		F30000000000000000000002 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F30000000000000000000010 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		F30000000000000000000003 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F30000000000000000000010 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F90000000000000000000001 /* Project object */;
+}
