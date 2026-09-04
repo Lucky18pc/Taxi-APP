@@ -5,6 +5,7 @@
 # 1. Repo auf GitHub pushen → Render deployt automatisch
 # 2. Dashboard → taxiapp-api → Environment:
 #    ADMIN_PIN=deine-pin          (Leitstelle schützen)
+#    DRIVER_API_KEY=dein-key     (Fahrer-App-Endpunkte; muss zur iOS-App passen)
 #    STRIPE_SECRET_KEY=sk_test_…  (optional, Kartenzahlung später)
 # 3. iOS: TaxiConfig.cloudBackendURL = https://taxiapp-api.onrender.com
 
@@ -35,6 +36,8 @@ services:
       - key: PUBLIC_BASE_URL
         sync: false
       - key: ADMIN_PIN
+        sync: false
+      - key: DRIVER_API_KEY
         sync: false
       - key: RESEND_API_KEY
         sync: false
