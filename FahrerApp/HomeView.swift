@@ -229,10 +229,18 @@ struct HomeView: View {
         do {
             let list = try await DriverAPI.openBookings(operatorSlug: operatorSlug)
             await MainActor.run {
-                bookings = list
-                statusText = list.isEmpty
-                    ? "Online — keine offenen Fahrten."
-                    : "Online — \(list.count) offene Fahrt(en)."
+                // Angenommene Fahrt bleibt lokal sichtbar (API listet sie nicht mehr als „offen“).
+                if let acceptedBookingId,
+                   let kept = bookings.first(where: { $0.bookingId == acceptedBookingId }),
+                   !list.contains(where: { $0.bookingId == acceptedBookingId }) {
+                    bookings = [kept] + list
+                    statusText = "Fahrt aktiv — plus \(list.count) weitere offen."
+                } else {
+                    bookings = list
+                    statusText = list.isEmpty
+                        ? "Online — keine offenen Fahrten."
+                        : "Online — \(list.count) offene Fahrt(en)."
+                }
             }
         } catch {
             await MainActor.run {
