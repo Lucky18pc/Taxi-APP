@@ -29,12 +29,15 @@ struct LoginView: View {
     var body: some View {
         Group {
             if isLoggedIn {
-                HomeView(driverUid: driverUid, driverName: driverName) {
+                HomeView(driverUid: driverUid, driverName: driverName, onLogout: {
+                    // Explizit benanntes onLogout — vermeidet leeren Default-Callback.
                     isLoggedIn = false
                     driverUid = ""
                     driverName = ""
+                    password = ""
                     statusText = "Status: abgemeldet"
-                }
+                    errorMessage = nil
+                })
             } else {
                 startPage
             }
@@ -369,11 +372,12 @@ struct TaxiHeroFoto: View {
     }
 }
 
-/// Vollflächiger Hintergrund für Home (ohne Blur).
+/// Vollflächiger Hintergrund für Home (ohne Blur). Nie Hit-Tests — sonst blockiert er Controls.
 struct TaxiHintergrund: View {
     var body: some View {
         ZStack {
             Color(red: 1, green: 0.8, blue: 0)
+                .allowsHitTesting(false)
 
             if let image = TaxiBild.uiImage {
                 Image(uiImage: image)
@@ -381,9 +385,11 @@ struct TaxiHintergrund: View {
                     .scaledToFill()
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .clipped()
+                    .allowsHitTesting(false)
             }
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
