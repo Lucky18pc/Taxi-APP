@@ -10,6 +10,7 @@ import FirebaseFirestore
 struct HomeView: View {
     let driverUid: String
     let driverName: String
+    var onLogout: () -> Void = {}
 
     @State private var isOnline = false
     @State private var bookings: [DriverBooking] = []
@@ -153,6 +154,7 @@ struct HomeView: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Abmelden") {
                             try? Auth.auth().signOut()
+                            onLogout()
                         }
                         .foregroundStyle(navy)
                     }

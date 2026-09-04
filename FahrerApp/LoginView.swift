@@ -29,7 +29,12 @@ struct LoginView: View {
     var body: some View {
         Group {
             if isLoggedIn {
-                HomeView(driverUid: driverUid, driverName: driverName)
+                HomeView(driverUid: driverUid, driverName: driverName) {
+                    isLoggedIn = false
+                    driverUid = ""
+                    driverName = ""
+                    statusText = "Status: abgemeldet"
+                }
             } else {
                 startPage
             }
