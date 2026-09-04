@@ -55,6 +55,9 @@ function resolveDataDir() {
 
 const dataDir = resolveDataDir();
 const adminPin = String(process.env.ADMIN_PIN || "").trim();
+/** Shared secret für Fahrer-App-Endpunkte. Auf Render per DRIVER_API_KEY überschreiben. */
+const DEFAULT_DRIVER_API_KEY = "luckys-fahrer-pilot-k7m2p9qx";
+const driverApiKey = String(process.env.DRIVER_API_KEY || DEFAULT_DRIVER_API_KEY).trim();
 
 function seedDataFile(filename) {
   const target = path.join(dataDir, filename);
@@ -373,6 +376,13 @@ if (adminPin) {
 } else {
   console.warn("Hinweis: ADMIN_PIN fehlt — settings/dispatch ohne PIN erreichbar.");
 }
+if (process.env.DRIVER_API_KEY) {
+  console.log("Fahrer-App-Schutz aktiv (DRIVER_API_KEY gesetzt).");
+} else {
+  console.warn(
+    "Hinweis: DRIVER_API_KEY fehlt — Default-Pilot-Key aktiv. Für Produktion auf Render setzen."
+  );
+}
 
 const BOOKING_STATUSES = new Set([
   "confirmed",
@@ -569,7 +579,61 @@ function operatorConfigForNightSurcharge(operatorOrNull) {
 }
 
 function findDriver(driverId) {
-  return drivers.find((d) => d.driverId === driverId);
+  if (!driverId) return null;
+  return drivers.find((d) => d.driverId === driverId || d.firebaseUid === driverId) || null;
+}
+
+function findDriverByFirebaseUid(firebaseUid) {
+  const uid = String(firebaseUid || "").trim();
+  if (!uid) return null;
+  return drivers.find((d) => d.firebaseUid === uid) || null;
+}
+
+/** Fleet-Fahrer für Firebase-Auth-UID anlegen oder wiederverwenden (Tracking-Brücke). */
+function ensureAppDriverFromFirebase({ firebaseUid, name, req }) {
+  const uid = String(firebaseUid || "").trim();
+  if (!uid) return null;
+
+  let driver = findDriverByFirebaseUid(uid);
+  const displayName = String(name || "").trim() || "Fahrer";
+  const operator = resolveFleetOperatorFromRequest(req) || defaultFleetOperator();
+
+  if (!driver) {
+    driver = {
+      driverId: crypto.randomUUID(),
+      name: displayName,
+      phone: "fahrer-app",
+      vehicle: "Taxi (App)",
+      status: "available",
+      trackingPin: generateTrackingPin(),
+      firebaseUid: uid,
+      activeBookingId: null,
+      lastLat: null,
+      lastLng: null,
+      lastLocationAt: null,
+      ...(operator ? { operatorId: operator.operatorId } : {}),
+    };
+    drivers.push(driver);
+  } else {
+    driver.name = displayName;
+    driver.firebaseUid = uid;
+    if (operator && !driver.operatorId) {
+      driver.operatorId = operator.operatorId;
+    }
+    ensureDriverTrackingFields(driver);
+  }
+
+  saveDriversConfig();
+  return driver;
+}
+
+function driverOwnsBooking(booking, firebaseUid) {
+  const uid = String(firebaseUid || "").trim();
+  if (!booking || !uid) return false;
+  if (booking.assignedDriverId === uid) return true;
+  if (booking.assignedFirebaseUid === uid) return true;
+  const driver = findDriver(booking.assignedDriverId);
+  return Boolean(driver && driver.firebaseUid === uid);
 }
 
 migrateLegacyBookings();
@@ -635,8 +699,9 @@ function saveDriversConfig() {
         name: driver.name,
         phone: driver.phone,
         vehicle: driver.vehicle,
-        status: driver.status,
+        status: driver.status === "busy" ? "available" : driver.status,
         trackingPin: driver.trackingPin,
+        ...(driver.firebaseUid ? { firebaseUid: driver.firebaseUid } : {}),
         ...(driver.operatorId ? { operatorId: driver.operatorId } : {}),
       };
     }),
@@ -652,6 +717,19 @@ function requireAdmin(req, res, next) {
   const pin = bearer || pinHeader;
   if (verifyRequestPin(req, pin)) return next();
   return res.status(401).json({ error: "Unauthorized — PIN required" });
+}
+
+/** Fahrer-App: Bearer oder X-Driver-Key muss DRIVER_API_KEY treffen. */
+function requireDriverApp(req, res, next) {
+  if (!driverApiKey) {
+    return res.status(503).json({ error: "DRIVER_API_KEY not configured" });
+  }
+  const header = String(req.headers.authorization || "");
+  const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  const keyHeader = String(req.headers["x-driver-key"] || "").trim();
+  const provided = bearer || keyHeader;
+  if (provided && provided === driverApiKey) return next();
+  return res.status(401).json({ error: "Unauthorized — driver API key required" });
 }
 
 app.use(cors());
@@ -1455,10 +1533,11 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
 });
 
 /**
- * Fahrer-App (ohne ADMIN_PIN): offene Buchungen + Annehmen / Abschließen.
+ * Fahrer-App: offene Buchungen + Annehmen / Abschließen.
+ * Auth: Authorization: Bearer <DRIVER_API_KEY> oder X-Driver-Key.
  * Query: ?operator=mannheim (Slug)
  */
-app.get("/api/driver/open-bookings", (req, res) => {
+app.get("/api/driver/open-bookings", requireDriverApp, (req, res) => {
   const operator = resolveFleetOperatorFromRequest(req);
   if (fleet.enabled() && !operator) {
     return res.status(400).json({ error: "operator query required (z.B. ?operator=mannheim)" });
@@ -1484,7 +1563,7 @@ app.get("/api/driver/open-bookings", (req, res) => {
   });
 });
 
-app.patch("/api/driver/bookings/:id/accept", (req, res) => {
+app.patch("/api/driver/bookings/:id/accept", requireDriverApp, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });
@@ -1505,16 +1584,34 @@ app.patch("/api/driver/bookings/:id/accept", (req, res) => {
     return res.status(400).json({ error: "driverUid required" });
   }
 
-  booking.assignedDriverId = driverUid;
+  const fleetDriver = ensureAppDriverFromFirebase({
+    firebaseUid: driverUid,
+    name: driverName,
+    req,
+  });
+  if (!fleetDriver) {
+    return res.status(500).json({ error: "Could not link driver profile" });
+  }
+
+  booking.assignedDriverId = fleetDriver.driverId;
+  booking.assignedFirebaseUid = driverUid;
   booking.assignedDriverName = driverName;
   booking.status = "assigned";
   booking.updatedAt = new Date().toISOString();
+  fleetDriver.status = "busy";
+  fleetDriver.activeBookingId = booking.bookingId;
   saveBookings();
-  console.log(`Fahrer-App: ${driverName} (${driverUid}) hat ${booking.bookingId} angenommen`);
-  res.json(booking);
+  saveDriversConfig();
+  console.log(
+    `Fahrer-App: ${driverName} (${driverUid} → fleet ${fleetDriver.driverId}) hat ${booking.bookingId} angenommen`
+  );
+  res.json({
+    ...booking,
+    fleetDriverId: fleetDriver.driverId,
+  });
 });
 
-app.patch("/api/driver/bookings/:id/complete", (req, res) => {
+app.patch("/api/driver/bookings/:id/complete", requireDriverApp, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });
@@ -1524,17 +1621,61 @@ app.patch("/api/driver/bookings/:id/complete", (req, res) => {
   }
 
   const driverUid = String(req.body.driverUid || "").trim();
-  if (!driverUid || booking.assignedDriverId !== driverUid) {
+  if (!driverOwnsBooking(booking, driverUid)) {
     return res.status(403).json({ error: "Not your booking" });
   }
 
+  releaseDriverFromBooking(booking);
   booking.status = "completed";
   booking.updatedAt = new Date().toISOString();
   saveBookings();
+  saveDriversConfig();
   res.json(booking);
 });
 
-/** Fahrer sendet GPS-Standort (Web/PWA oder spätere Fahrer-App). */
+/** Fahrer-App sendet GPS (Auth: DRIVER_API_KEY + Firebase-UID). */
+app.post("/api/driver/location", requireDriverApp, (req, res) => {
+  const driverUid = String(req.body.driverUid || "").trim();
+  if (!driverUid) {
+    return res.status(400).json({ error: "driverUid required" });
+  }
+
+  const driver = findDriverByFirebaseUid(driverUid) || findDriver(driverUid);
+  if (!driver) {
+    return res.status(404).json({ error: "Driver not found — accept a booking first" });
+  }
+
+  const latitude = Number(req.body.latitude);
+  const longitude = Number(req.body.longitude);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return res.status(400).json({ error: "latitude and longitude required" });
+  }
+
+  const bookingId = String(req.body.bookingId || "").trim();
+  if (bookingId) {
+    const booking = findBooking(bookingId);
+    if (!booking || !driverOwnsBooking(booking, driverUid)) {
+      return res.status(403).json({ error: "Not assigned to this booking" });
+    }
+  }
+
+  driver.lastLat = latitude;
+  driver.lastLng = longitude;
+  driver.lastLocationAt = new Date().toISOString();
+  if (driver.status === "offline") {
+    driver.status = "busy";
+  }
+
+  res.json({
+    ok: true,
+    driverId: driver.driverId,
+    firebaseUid: driver.firebaseUid || null,
+    activeBookingId: driver.activeBookingId || null,
+    updatedAt: driver.lastLocationAt,
+  });
+});
+
+/** Fahrer sendet GPS-Standort (Web/PWA — Tracking-PIN). */
 app.post("/api/drivers/:id/location", (req, res) => {
   const driver = findDriver(req.params.id);
   if (!driver) {

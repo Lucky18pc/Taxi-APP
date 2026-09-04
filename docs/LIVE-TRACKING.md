@@ -2,16 +2,24 @@
 
 Fahrgäste sehen das zugewiesene Taxi auf der Karte. Fahrer senden GPS über eine Web-Seite (keine native Fahrer-App nötig für den Start).
 
+## Native Fahrer-App (zusätzlich zur Web-Seite)
+
+Die iOS-FahrerApp verknüpft Firebase-UID ↔ Fleet-Driver (`firebaseUid` in `drivers.json`) beim **Annehmen**.  
+GPS läuft über `POST /api/driver/location` mit `DRIVER_API_KEY` (kein Tracking-PIN nötig).
+
+Siehe `FahrerApp/README.md` → Live-Tracking.
+
 ## Ablauf
 
 ```
 Fahrgast bucht (App/PWA)
         ↓
 Leitstelle weist Fahrer zu (dispatch.html)
+  ODER Fahrer-App nimmt Fahrt an
         ↓
-Fahrer öffnet driver-track.html → GPS starten
+Fahrer: driver-track.html  ODER  native FahrerApp (GPS)
         ↓
-Fahrgast tippt „Taxi auf der Karte verfolgen“ (FahrgastApp)
+Fahrgast tippt „Taxi auf der Karte verfolgen“
         ↓
 App pollt /api/public/bookings/:id/tracking alle 4 s
 ```
@@ -28,7 +36,21 @@ App pollt /api/public/bookings/:id/tracking alle 4 s
 
 ## API
 
-### Fahrer sendet Standort
+### Fahrer-App sendet Standort (ohne PIN)
+
+`POST /api/driver/location`  
+Header: `Authorization: Bearer <DRIVER_API_KEY>`
+
+```json
+{
+  "driverUid": "Firebase-UID",
+  "latitude": 49.4875,
+  "longitude": 8.4660,
+  "bookingId": "optional"
+}
+```
+
+### Fahrer Web sendet Standort (PIN)
 
 `POST /api/drivers/:driverId/location`
 
