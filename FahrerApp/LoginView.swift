@@ -32,7 +32,7 @@ struct LoginView: View {
         .preferredColorScheme(.light)
     }
 
-    /// Oben: klares TAXI-Foto. Unten: schmale Anmelde-Karte.
+    /// Oben: klares TAXI-Foto. Unten: Login (scrollbar, Return = Einloggen).
     private var startPage: some View {
         let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
         let taxiYellow = Color(red: 1, green: 0.8, blue: 0)
@@ -40,81 +40,98 @@ struct LoginView: View {
 
         return GeometryReader { geo in
             VStack(spacing: 0) {
-                // Obere ~55 %: scharfes Dachschild, nicht hinter der Karte versteckt
+                // Weniger Höhe oben, damit Tastatur den Button nicht verdeckt
                 TaxiHeroFoto()
-                    .frame(width: geo.size.width, height: geo.size.height * 0.55)
+                    .frame(width: geo.size.width, height: max(160, geo.size.height * 0.32))
                     .clipped()
 
-                // Untere ~45 %: kompaktes Login
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Luckys Taxi Fahrer")
-                        .font(.system(size: 24, weight: .black))
-                        .foregroundStyle(taxiYellow)
-                        .frame(maxWidth: .infinity)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Luckys Taxi Fahrer")
+                            .font(.system(size: 24, weight: .black))
+                            .foregroundStyle(taxiYellow)
+                            .frame(maxWidth: .infinity)
 
-                    Text("Anmelden")
+                        Text("Anmelden")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+
+                        Text("E-Mail-Adresse")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(taxiYellow)
+
+                        TextField("fahrer@test.de", text: $email)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                            .textContentType(.username)
+                            .submitLabel(.next)
+                            .foregroundColor(.black)
+                            .tint(.black)
+                            .padding(12)
+                            .background(cream)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 2.5)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .disabled(isLoading)
+
+                        Text("Passwort")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(taxiYellow)
+
+                        SecureField("Passwort eingeben", text: $password)
+                            .textContentType(.password)
+                            .submitLabel(.go)
+                            .onSubmit { login() }
+                            .foregroundColor(.black)
+                            .tint(.black)
+                            .padding(12)
+                            .background(cream)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 2.5)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .disabled(isLoading)
+
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .foregroundStyle(Color(red: 1, green: 0.75, blue: 0.75))
+                                .font(.footnote.weight(.semibold))
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity)
+                        }
+
+                        Button(isLoading ? "Bitte warten…" : "Einloggen") {
+                            UIApplication.shared.sendAction(
+                                #selector(UIResponder.resignFirstResponder),
+                                to: nil, from: nil, for: nil
+                            )
+                            login()
+                        }
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
-
-                    Text("E-Mail-Adresse")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(taxiYellow)
-
-                    TextField("fahrer@test.de", text: $email)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .keyboardType(.emailAddress)
-                        .textContentType(.username)
-                        .foregroundColor(.black)
-                        .tint(.black)
-                        .padding(12)
-                        .background(cream)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.black, lineWidth: 2.5)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .padding(.vertical, 12)
+                        .background(taxiYellow)
+                        .foregroundStyle(Color.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                         .disabled(isLoading)
 
-                    Text("Passwort")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(taxiYellow)
-
-                    SecureField("Passwort eingeben", text: $password)
-                        .textContentType(.password)
-                        .foregroundColor(.black)
-                        .tint(.black)
-                        .padding(12)
-                        .background(cream)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.black, lineWidth: 2.5)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .disabled(isLoading)
-
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .foregroundStyle(Color(red: 1, green: 0.75, blue: 0.75))
-                            .font(.footnote.weight(.semibold))
+                        Text("Tipp: Auf der Tastatur „Los“ / Pfeil tippen — oder nach unten wischen und „Einloggen“.")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.75))
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
+                            .padding(.top, 4)
                     }
-
-                    Button(isLoading ? "Bitte warten…" : "Einloggen") {
-                        login()
-                    }
-                    .font(.headline.weight(.bold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(taxiYellow)
-                    .foregroundStyle(Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .disabled(isLoading)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .padding(.bottom, 40)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .scrollDismissesKeyboard(.interactively)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(navy)
             }
