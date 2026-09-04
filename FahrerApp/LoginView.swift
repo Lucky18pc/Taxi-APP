@@ -70,7 +70,7 @@ struct LoginView: View {
         return GeometryReader { geo in
             VStack(spacing: 0) {
                 // Weniger Höhe oben, damit Tastatur den Button nicht verdeckt
-                TaxiHeroFoto()
+                LoginTaxiHeroFoto()
                     .frame(width: geo.size.width, height: max(160, geo.size.height * 0.32))
                     .clipped()
 
@@ -337,9 +337,9 @@ struct LoginView: View {
     }
 }
 
-// MARK: - Taxi Hero (in LoginView, damit Xcode TaxiHeroFoto findet)
+// MARK: - Taxi Hero (LoginTaxi* = einzigartige Namen, keine Redeclaration)
 
-enum TaxiBild {
+enum LoginTaxiBild {
     static var uiImage: UIImage? {
         if let named = UIImage(named: "app_background") {
             return named
@@ -353,14 +353,14 @@ enum TaxiBild {
     }
 }
 
-struct TaxiHeroFoto: View {
+struct LoginTaxiHeroFoto: View {
     private let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
     private let yellow = Color(red: 1, green: 0.8, blue: 0)
 
     var body: some View {
         ZStack {
             yellow
-            if let image = TaxiBild.uiImage {
+            if let image = LoginTaxiBild.uiImage {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
@@ -387,7 +387,7 @@ struct TaxiHeroFoto: View {
 
 // MARK: - GPS (vor FahrerHomeScreen)
 
-final class FahrerGPSTracker: NSObject, ObservableObject {
+final class LoginGPSTracker: NSObject, ObservableObject {
     @Published var lastError: String?
     @Published var isSharing = false
 
@@ -472,7 +472,7 @@ final class FahrerGPSTracker: NSObject, ObservableObject {
     }
 }
 
-extension FahrerGPSTracker: CLLocationManagerDelegate {
+extension LoginGPSTracker: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         DispatchQueue.main.async { [weak self] in
             guard let self, isSharing else { return }
@@ -510,7 +510,7 @@ struct FahrerHomeScreen: View {
     let driverName: String
     @Binding var isLoggedIn: Bool
 
-    @StateObject private var gps = FahrerGPSTracker()
+    @StateObject private var gps = LoginGPSTracker()
 
     @State private var isOnline = false
     @State private var bookings: [DriverBooking] = []
@@ -634,7 +634,7 @@ struct FahrerHomeScreen: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background {
                 ZStack {
-                    TaxiHintergrund()
+                    LoginTaxiHintergrund()
                     taxiYellow.opacity(0.72).ignoresSafeArea()
                 }
                 .allowsHitTesting(false)
@@ -991,6 +991,40 @@ struct FahrerHomeScreen: View {
         } catch {
             await MainActor.run { errorMessage = error.localizedDescription }
         }
+    }
+}
+
+
+// MARK: - Hintergrund (eigener Name → keine Redeclaration mit TaxiUI.swift)
+
+struct LoginTaxiHintergrund: View {
+    private let yellow = Color(red: 1, green: 0.8, blue: 0)
+
+    private var backgroundImage: UIImage? {
+        if let named = UIImage(named: "app_background") { return named }
+        if let url = Bundle.main.url(forResource: "app_background", withExtension: "jpg"),
+           let data = try? Data(contentsOf: url),
+           let image = UIImage(data: data) {
+            return image
+        }
+        return nil
+    }
+
+    var body: some View {
+        ZStack {
+            yellow.allowsHitTesting(false)
+            if let image = backgroundImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .clipped()
+                    .allowsHitTesting(false)
+            }
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 

@@ -1,18 +1,28 @@
-# LoginView rot → weg (eine Datei)
+# Redeclaration (TaxiBild / GPS) beheben
 
 Branch: `cursor/fahrer-xcodeproj-a9f4`
 
 ## Ursache
-`FahrerHomeView` fehlte im Xcode-Target → LoginView rot.
+Alte Dateien **und** neue LoginView definieren dieselben Namen → rot.
 
-## Fix
-Home + GPS stecken jetzt **in LoginView.swift** als `FahrerHomeScreen`.
+## Fix im Code
+LoginView nutzt jetzt **eigene Namen**:
+- `LoginTaxiBild` / `LoginTaxiHeroFoto` / `LoginGPSTracker` / `LoginTaxiHintergrund`
 
-## In Xcode (1 Schritt)
-1. `LoginView.swift` öffnen → Cmd+A → löschen  
-2. Einfügen von:  
-   https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/LoginView.swift  
-3. Alte `HomeView.swift` löschen (falls vorhanden)  
-4. Shift+Cmd+K → Play ▶  
+## In Xcode (wichtig)
 
-Optional besser: ganzes Projekt `LuckysTaxiFahrer.xcodeproj` öffnen (siehe `OEFFNEN-HIER.md`).
+### A) Löschen (Move to Trash) — sonst bleibt rot
+- Jede **zweite** `LoginView.swift`
+- Alte volle `FahrerHomeView.swift` / `HomeView.swift` (mit GPS-Klasse)
+- Alte `TaxiUI.swift` die noch `TaxiBild` / `TaxiHeroFoto` enthält
+- `FahrerGPSTracker.swift` / `FahrerLocationTracker.swift`
+
+### B) Ersetzen
+Nur **eine** LoginView:  
+https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/LoginView.swift  
+
+Optional Alias-Dateien (oder löschen):  
+https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/FahrerHomeView.swift  
+https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-xcodeproj-a9f4/FahrerApp/TaxiUI.swift  
+
+Clean Build (Shift+Cmd+K) → Play
