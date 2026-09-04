@@ -20,12 +20,24 @@ enum DriverAPIError: LocalizedError {
 }
 
 enum DriverAPI {
+    private static func authorizedRequest(url: URL, method: String = "GET", jsonBody: [String: Any]? = nil) throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("Bearer \(BackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
+        if let jsonBody {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
+        }
+        return request
+    }
+
     static func openBookings(operatorSlug: String) async throws -> [DriverBooking] {
         var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/open-bookings")
         components?.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
         guard let url = components?.url else { throw DriverAPIError.badURL }
 
-        let (data, response) = try await URLSession.shared.data(from: url)
+        let request = try authorizedRequest(url: url)
+        let (data, response) = try await URLSession.shared.data(for: request)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard (200..<300).contains(code) else {
             throw DriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
@@ -44,13 +56,14 @@ enum DriverAPI {
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
         guard let url = components?.url else { throw DriverAPIError.badURL }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: [
-            "driverUid": driverUid,
-            "driverName": driverName,
-        ])
+        let request = try authorizedRequest(
+            url: url,
+            method: "PATCH",
+            jsonBody: [
+                "driverUid": driverUid,
+                "driverName": driverName,
+            ]
+        )
 
         let (data, response) = try await URLSession.shared.data(for: request)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
@@ -66,12 +79,13 @@ enum DriverAPI {
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
         guard let url = components?.url else { throw DriverAPIError.badURL }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: [
-            "driverUid": driverUid,
-        ])
+        let request = try authorizedRequest(
+            url: url,
+            method: "PATCH",
+            jsonBody: [
+                "driverUid": driverUid,
+            ]
+        )
 
         let (data, response) = try await URLSession.shared.data(for: request)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0

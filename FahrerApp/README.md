@@ -25,7 +25,7 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
 2. **Online / Schicht** — wird in Firestore gespeichert (`isOnline`)
 3. **Fahrtenliste** — offene Buchungen vom Render-Backend
-4. **Annehmen / Erledigt** — Driver-API ohne ADMIN_PIN
+4. **Annehmen / Erledigt** — Driver-API mit `DRIVER_API_KEY` (Bearer)
 5. **Pause-Spiele** — Taxi tippen, Memory, Tarif rechnen (`FahrerSpiele.swift`)
 6. **Fahrt-Benachrichtigung (MVP)** — wenn Online: alle ~18s Poll auf offene Buchungen; neue IDs → oranger Banner „Neue Fahrt!“, System-Sound + lokale Notification (`FahrerBenachrichtigung.swift`)
 
@@ -83,13 +83,19 @@ Ohne diese Regel kommt in der App **„Keine Berechtigung für Firestore“**. D
 
 Erwartung: keine Meldung „Keine Berechtigung“ mehr, sondern HomeView; Online-Schalter speichert `isOnline`.
 
-## Backend-Endpunkte (neu)
+## Backend-Endpunkte (Fahrer-App)
+
+Auth-Header Pflicht: `Authorization: Bearer <DRIVER_API_KEY>` (oder `X-Driver-Key`).
 
 - `GET /api/driver/open-bookings?operator=mannheim`
 - `PATCH /api/driver/bookings/:id/accept` — Body: `{ "driverUid", "driverName" }`
 - `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid" }`
 
-Nach Deploy auf Render sind die Endpunkte live. Lokal: `cd backend && npm start`.
+Key in der App: `BackendConfig.driverApiKey`  
+Key auf dem Server: Env `DRIVER_API_KEY` (sonst Pilot-Default in `server.js`).  
+Beide müssen übereinstimmen. Nach Backend-Deploy auf Render: Env-Var setzen oder Default nutzen.
+
+Lokal: `cd backend && npm start`.
 
 ## Testablauf
 

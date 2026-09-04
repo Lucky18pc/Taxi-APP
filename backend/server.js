@@ -55,6 +55,9 @@ function resolveDataDir() {
 
 const dataDir = resolveDataDir();
 const adminPin = String(process.env.ADMIN_PIN || "").trim();
+/** Shared secret für Fahrer-App-Endpunkte. Auf Render per DRIVER_API_KEY überschreiben. */
+const DEFAULT_DRIVER_API_KEY = "luckys-fahrer-pilot-k7m2p9qx";
+const driverApiKey = String(process.env.DRIVER_API_KEY || DEFAULT_DRIVER_API_KEY).trim();
 
 function seedDataFile(filename) {
   const target = path.join(dataDir, filename);
@@ -373,6 +376,13 @@ if (adminPin) {
 } else {
   console.warn("Hinweis: ADMIN_PIN fehlt — settings/dispatch ohne PIN erreichbar.");
 }
+if (process.env.DRIVER_API_KEY) {
+  console.log("Fahrer-App-Schutz aktiv (DRIVER_API_KEY gesetzt).");
+} else {
+  console.warn(
+    "Hinweis: DRIVER_API_KEY fehlt — Default-Pilot-Key aktiv. Für Produktion auf Render setzen."
+  );
+}
 
 const BOOKING_STATUSES = new Set([
   "confirmed",
@@ -652,6 +662,19 @@ function requireAdmin(req, res, next) {
   const pin = bearer || pinHeader;
   if (verifyRequestPin(req, pin)) return next();
   return res.status(401).json({ error: "Unauthorized — PIN required" });
+}
+
+/** Fahrer-App: Bearer oder X-Driver-Key muss DRIVER_API_KEY treffen. */
+function requireDriverApp(req, res, next) {
+  if (!driverApiKey) {
+    return res.status(503).json({ error: "DRIVER_API_KEY not configured" });
+  }
+  const header = String(req.headers.authorization || "");
+  const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  const keyHeader = String(req.headers["x-driver-key"] || "").trim();
+  const provided = bearer || keyHeader;
+  if (provided && provided === driverApiKey) return next();
+  return res.status(401).json({ error: "Unauthorized — driver API key required" });
 }
 
 app.use(cors());
@@ -1455,10 +1478,11 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
 });
 
 /**
- * Fahrer-App (ohne ADMIN_PIN): offene Buchungen + Annehmen / Abschließen.
+ * Fahrer-App: offene Buchungen + Annehmen / Abschließen.
+ * Auth: Authorization: Bearer <DRIVER_API_KEY> oder X-Driver-Key.
  * Query: ?operator=mannheim (Slug)
  */
-app.get("/api/driver/open-bookings", (req, res) => {
+app.get("/api/driver/open-bookings", requireDriverApp, (req, res) => {
   const operator = resolveFleetOperatorFromRequest(req);
   if (fleet.enabled() && !operator) {
     return res.status(400).json({ error: "operator query required (z.B. ?operator=mannheim)" });
@@ -1484,7 +1508,7 @@ app.get("/api/driver/open-bookings", (req, res) => {
   });
 });
 
-app.patch("/api/driver/bookings/:id/accept", (req, res) => {
+app.patch("/api/driver/bookings/:id/accept", requireDriverApp, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });
@@ -1514,7 +1538,7 @@ app.patch("/api/driver/bookings/:id/accept", (req, res) => {
   res.json(booking);
 });
 
-app.patch("/api/driver/bookings/:id/complete", (req, res) => {
+app.patch("/api/driver/bookings/:id/complete", requireDriverApp, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });

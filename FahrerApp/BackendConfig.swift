@@ -11,4 +11,8 @@ enum BackendConfig {
 
     /// Standard-Betrieb für den Pilot (Multi-Tenant-Slug).
     static let defaultOperatorSlug = "mannheim"
+
+    /// Muss mit Backend `DRIVER_API_KEY` übereinstimmen (Render Environment).
+    /// Default = Pilot-Key aus server.js — für Produktion eigenen Key setzen.
+    static let driverApiKey = "luckys-fahrer-pilot-k7m2p9qx"
 }
