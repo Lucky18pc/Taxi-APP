@@ -113,7 +113,7 @@ enum DriverAPI {
             "latitude": latitude,
             "longitude": longitude,
         ]
-        if let bookingId, !bookingId.isEmpty {
+        if let bookingId = bookingId, !bookingId.isEmpty {
             body["bookingId"] = bookingId
         }
 

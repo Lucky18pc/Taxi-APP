@@ -16,7 +16,9 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 
 **Abmelden:** `HomeView.swift` **und** `LoginView.swift` zusammen ersetzen. Home bekommt `@Binding var isLoggedIn` (kein fragiler `onLogout`-Callback mehr). Großer gelber **Abmelden**-Button oben im Content + Toolbar. Erwartung: Tippen → sofort Login-Startseite, Status „Status: abgemeldet“.
 
-**Compile-Fehler „Invalid redeclaration of BackendConfig“:** In Xcode alle Dateien namens `BackendConfig` suchen → **alle löschen** bis auf eine. Inhalt muss `enum FahrerBackendConfig` sein (nicht `enum BackendConfig`). Dann Clean Build.
+**Compile-Fehler „Invalid redeclaration of BackendConfig“:**  
+In Xcode **jede** Datei `BackendConfig.swift` löschen (Move to Trash).  
+Neue Datei anlegen: `FahrerBackendConfig.swift` (Raw unten). Clean Build.
 
 **Pause-Spiele:** Neue Datei `FahrerSpiele.swift` in Xcode anlegen (File → New → Swift File), kompletten Code einfügen, Target abhaken. Danach `HomeView.swift` ersetzen → Button **Pause-Spiele** erscheint.
 
@@ -46,7 +48,7 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | `FahrerBenachrichtigung.swift` | Permission, Sound, lokale Notification |
 | `FahrerLocationTracker.swift` | GPS während angenommener Fahrt (**neu**) |
 | `FahrerSpiele.swift` | Pause-Spiele |
-| `BackendConfig.swift` | `FahrerBackendConfig` (URL, Operator, API-Key) — alte doppelte BackendConfig löschen! |
+| `FahrerBackendConfig.swift` | URL + Operator + API-Key (**neu** — alte BackendConfig.swift in Xcode löschen!) |
 | `DriverBooking.swift` | Modelle |
 | `DriverAPI.swift` | API-Aufrufe inkl. Location |
 | `Assets.xcassets/app_background.imageset/` | TAXI-Dachschild (wie Fahrgast-App) |
@@ -54,7 +56,7 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | `firestore-user-rule.txt` | Firestore-Regel für Collection `user` (nicht in Xcode) |
 
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
-Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
+Operator-Slug Standard: `mannheim` (in `FahrerBackendConfig.swift` änderbar)
 
 ## TAXI-Hintergrund auf der Startseite
 

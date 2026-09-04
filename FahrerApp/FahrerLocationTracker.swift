@@ -2,19 +2,17 @@
 //  FahrerLocationTracker.swift
 //  Luckys Taxi Fahrer
 //
-// Sendet GPS während einer angenommenen Fahrt an das Backend (Live-Tracking).
-// Xcode: Info → Privacy → Location When In Use Usage Description setzen!
+// GPS während angenommener Fahrt → Backend Live-Tracking.
+// Xcode Info: Privacy - Location When In Use Usage Description setzen!
 //
 
 import Foundation
 import CoreLocation
 import Combine
 
-/// GPS-Sender für Live-Tracking. Läuft bewusst ohne class-weiten @MainActor
-/// (weniger Concurrency-Fehler in Xcode).
 final class FahrerLocationTracker: NSObject, ObservableObject {
-    @Published private(set) var lastError: String?
-    @Published private(set) var isSharing = false
+    @Published var lastError: String?
+    @Published var isSharing = false
 
     private let manager = CLLocationManager()
     private var driverUid = ""
@@ -37,19 +35,19 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
         self.operatorSlug = operatorSlug
 
         DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
+            guard let self = self else { return }
             self.lastError = nil
             self.isSharing = true
 
-            switch self.manager.authorizationStatus {
-            case .notDetermined:
+            let status = self.manager.authorizationStatus
+            if status == .notDetermined {
                 self.manager.requestWhenInUseAuthorization()
-            case .authorizedWhenInUse, .authorizedAlways:
+            } else if status == .authorizedWhenInUse || status == .authorizedAlways {
                 self.manager.startUpdatingLocation()
-            case .denied, .restricted:
+            } else if status == .denied || status == .restricted {
                 self.lastError = "Standort-Zugriff verweigert. In iOS-Einstellungen erlauben."
                 self.isSharing = false
-            @unknown default:
+            } else {
                 self.manager.requestWhenInUseAuthorization()
             }
         }
@@ -57,7 +55,7 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
 
     func stop() {
         DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
+            guard let self = self else { return }
             self.isSharing = false
             self.bookingId = nil
             self.manager.stopUpdatingLocation()
@@ -66,7 +64,7 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
 
     private func send(_ location: CLLocation) {
         guard isSharing, !driverUid.isEmpty else { return }
-        if let lastSentAt, Date().timeIntervalSince(lastSentAt) < minInterval {
+        if let last = lastSentAt, Date().timeIntervalSince(last) < minInterval {
             return
         }
         lastSentAt = Date()
@@ -90,8 +88,9 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
                     self?.lastError = nil
                 }
             } catch {
+                let message = error.localizedDescription
                 await MainActor.run { [weak self] in
-                    self?.lastError = error.localizedDescription
+                    self?.lastError = message
                 }
             }
         }
@@ -101,15 +100,14 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
 extension FahrerLocationTracker: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         DispatchQueue.main.async { [weak self] in
-            guard let self, self.isSharing else { return }
-            switch manager.authorizationStatus {
-            case .authorizedWhenInUse, .authorizedAlways:
+            guard let self = self else { return }
+            guard self.isSharing else { return }
+            let status = manager.authorizationStatus
+            if status == .authorizedWhenInUse || status == .authorizedAlways {
                 self.manager.startUpdatingLocation()
-            case .denied, .restricted:
+            } else if status == .denied || status == .restricted {
                 self.lastError = "Standort-Zugriff verweigert."
                 self.isSharing = false
-            default:
-                break
             }
         }
     }
@@ -122,8 +120,9 @@ extension FahrerLocationTracker: CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        let message = error.localizedDescription
         DispatchQueue.main.async { [weak self] in
-            self?.lastError = error.localizedDescription
+            self?.lastError = message
         }
     }
 }

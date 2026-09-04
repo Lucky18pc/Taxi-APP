@@ -74,7 +74,7 @@ struct HomeView: View {
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .disabled(isBusy)
-                        .onChange(of: isOnline) { _, newValue in
+                        .onChange(of: isOnline) { newValue in
                             // Flag erst hier verbrauchen: onChange kann nach applyOnlineLocally asynchron laufen.
                             if suppressOnlineWrite {
                                 suppressOnlineWrite = false

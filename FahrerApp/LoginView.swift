@@ -40,7 +40,7 @@ struct LoginView: View {
             }
         }
         .preferredColorScheme(.light)
-        .onChange(of: isLoggedIn) { _, loggedIn in
+        .onChange(of: isLoggedIn) { loggedIn in
             // Nach Abmelden State aufräumen (Home setzt nur isLoggedIn = false).
             guard !loggedIn else { return }
             driverUid = ""
