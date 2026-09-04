@@ -2,8 +2,9 @@
 //  LoginView.swift
 //  Luckys Taxi Fahrer
 //
-// Startseite: gelbes TAXI-Dachschild als Hintergrund.
-// Asset-Name: app_background (in Assets.xcassets ablegen)
+// Startseite: TAXI-Schild oben klar (Hero), Login unten kompakt.
+// Asset-Name in Xcode Assets: app_background
+// WICHTIG: Altes kleines Bild in Assets löschen, neues app_background.jpg einfügen!
 //
 
 import SwiftUI
@@ -31,31 +32,33 @@ struct LoginView: View {
         .preferredColorScheme(.light)
     }
 
-    /// Startseite (Anmelden): TAXI oben frei, dunkle Anmelde-Karte unten.
+    /// Oben: klares TAXI-Foto. Unten: schmale Anmelde-Karte.
     private var startPage: some View {
         let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
         let taxiYellow = Color(red: 1, green: 0.8, blue: 0)
         let cream = Color(red: 1.0, green: 0.96, blue: 0.82)
 
-        return ZStack(alignment: .bottom) {
-            TaxiHintergrund()
-
+        return GeometryReader { geo in
             VStack(spacing: 0) {
-                Spacer(minLength: 120)
+                // Obere ~55 %: scharfes Dachschild, nicht hinter der Karte versteckt
+                TaxiHeroFoto()
+                    .frame(width: geo.size.width, height: geo.size.height * 0.55)
+                    .clipped()
 
-                VStack(alignment: .leading, spacing: 14) {
+                // Untere ~45 %: kompaktes Login
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Luckys Taxi Fahrer")
-                        .font(.system(size: 28, weight: .black))
+                        .font(.system(size: 24, weight: .black))
                         .foregroundStyle(taxiYellow)
                         .frame(maxWidth: .infinity)
 
                     Text("Anmelden")
-                        .font(.title2.weight(.bold))
+                        .font(.headline.weight(.bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
 
                     Text("E-Mail-Adresse")
-                        .font(.subheadline.weight(.bold))
+                        .font(.headline.weight(.bold))
                         .foregroundStyle(taxiYellow)
 
                     TextField("fahrer@test.de", text: $email)
@@ -65,7 +68,7 @@ struct LoginView: View {
                         .textContentType(.username)
                         .foregroundColor(.black)
                         .tint(.black)
-                        .padding(14)
+                        .padding(12)
                         .background(cream)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
@@ -75,14 +78,14 @@ struct LoginView: View {
                         .disabled(isLoading)
 
                     Text("Passwort")
-                        .font(.subheadline.weight(.bold))
+                        .font(.headline.weight(.bold))
                         .foregroundStyle(taxiYellow)
 
                     SecureField("Passwort eingeben", text: $password)
                         .textContentType(.password)
                         .foregroundColor(.black)
                         .tint(.black)
-                        .padding(14)
+                        .padding(12)
                         .background(cream)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
@@ -104,24 +107,20 @@ struct LoginView: View {
                     }
                     .font(.headline.weight(.bold))
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                    .padding(.vertical, 12)
                     .background(taxiYellow)
                     .foregroundStyle(Color.black)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .disabled(isLoading)
-                    .padding(.top, 4)
                 }
-                .padding(20)
-                .background(navy.opacity(0.94))
-                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(taxiYellow, lineWidth: 2)
-                )
                 .padding(.horizontal, 16)
-                .padding(.bottom, 28)
+                .padding(.vertical, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(navy)
             }
+            .ignoresSafeArea(edges: .bottom)
         }
+        .ignoresSafeArea(edges: .top)
     }
 
     private func login() {
@@ -207,14 +206,9 @@ struct LoginView: View {
     }
 }
 
-/// TAXI-Hintergrund für Startseite + Home.
-/// Asset-Name: `app_background` — Zoom aufs Dachschild, damit TAXI groß und scharf wirkt.
-struct TaxiHintergrund: View {
-    /// Näher an das Schild zoomen (Originalfoto war zu klein/weich auf dem iPhone).
-    private let zoom: CGFloat = 1.35
-    private let offsetY: CGFloat = -40
-
-    private var taxiImage: UIImage? {
+/// Lädt app_background aus Assets oder Bundle.
+enum TaxiBild {
+    static var uiImage: UIImage? {
         if let named = UIImage(named: "app_background") {
             return named
         }
@@ -225,18 +219,50 @@ struct TaxiHintergrund: View {
         }
         return nil
     }
+}
 
+/// Obere Login-Hälfte: TAXI-Schild groß und scharf (kein Blur, kein Overlay).
+struct TaxiHeroFoto: View {
     var body: some View {
         ZStack {
             Color(red: 1, green: 0.8, blue: 0)
 
-            if let taxiImage {
-                Image(uiImage: taxiImage)
+            if let image = TaxiBild.uiImage {
+                Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
-                    .scaleEffect(zoom)
-                    .offset(y: offsetY)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .clipped()
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "car.side.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                    Text("TAXI")
+                        .font(.system(size: 48, weight: .black))
+                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                    Text("Asset „app_background“ in Xcode Assets einfügen")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+            }
+        }
+    }
+}
+
+/// Vollflächiger Hintergrund für Home (ohne Blur).
+struct TaxiHintergrund: View {
+    var body: some View {
+        ZStack {
+            Color(red: 1, green: 0.8, blue: 0)
+
+            if let image = TaxiBild.uiImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .clipped()
             }
         }

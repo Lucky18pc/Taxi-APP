@@ -28,18 +28,25 @@ Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
 
 ## TAXI-Hintergrund auf der Startseite
 
-Gleiches Motiv wie die **Fahrgast-App**: gelbes Dachschild mit **TAXI** — jetzt **näher gezoomt** und in höherer Auflösung (720×1280), damit es nicht verschwommen wirkt.
+Oben soll das **TAXI-Dachschild scharf** sein, unten das Login.
 
-**Wichtig:** Wenn der Screen noch hell/weiß oder unscharf ist:
+### Ohne diesen Asset-Schritt bleibt das Bild verschwommen
 
-1. Xcode → **Assets** → altes `app_background` löschen oder ersetzen  
-2. Neue Datei [`app_background.jpg`](app_background.jpg) hineinziehen, Name **`app_background`**  
-3. **`LoginView.swift`** öffnen → **Cmd+A** → alles löschen → neuen Inhalt **komplett einfügen** → **Cmd+S**  
-4. Stopp ■ → Play ▶  
+1. Xcode → links **Assets** (Assets.xcassets)  
+2. Eintrag **`app_background`** anklicken → **löschen** (Backspace / Delete)  
+3. Im Finder die Datei `FahrerApp/app_background.jpg` finden (720×1280, scharfes Schild)  
+4. Diese Datei in **Assets** ziehen  
+5. Name genau: **`app_background`**  
+6. In Assets die Vorschau prüfen: großes gelbes Schild mit **TAXI** — nicht das alte weiche Querformat  
 
-Ohne kompletten Ersatz von Code **und** Bild bleibt der alte, weiche Screen.
+### Danach Code
 
-**Layout:** TAXI-Schild groß oben (Zoom), unten dunkle Navy-Karte mit lesbaren Labels **E-Mail-Adresse** / **Passwort**.
+1. `LoginView.swift` öffnen → **Cmd+A** → löschen → neuen Code komplett einfügen → **Cmd+S**  
+2. Stopp ■ → Play ▶  
+
+Layout: **obere Hälfte** = klares Foto, **untere Hälfte** = Navy-Login mit **E-Mail-Adresse** / **Passwort**.  
+
+Fehlt das Asset, erscheint oben gelb mit Hinweis „Asset app_background einfügen“.
 
 ## Firestore-Regeln (4 Klicks, nötig fürs Login)
 
