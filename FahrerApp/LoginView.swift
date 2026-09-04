@@ -31,103 +31,96 @@ struct LoginView: View {
         .preferredColorScheme(.light)
     }
 
-    /// Startseite (Anmelden) mit TAXI-Hintergrund.
+    /// Startseite (Anmelden): TAXI oben frei, dunkle Anmelde-Karte unten.
     private var startPage: some View {
-        let ink = Color.black
-        let cream = Color(red: 1.0, green: 0.95, blue: 0.78)
-        let fieldBg = Color.white
+        let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
+        let taxiYellow = Color(red: 1, green: 0.8, blue: 0)
+        let cream = Color(red: 1.0, green: 0.96, blue: 0.82)
 
-        return ZStack {
+        return ZStack(alignment: .bottom) {
             TaxiHintergrund()
 
-            ScrollView {
-                VStack(spacing: 18) {
-                    Spacer(minLength: 40)
+            VStack(spacing: 0) {
+                Spacer(minLength: 120)
 
+                VStack(alignment: .leading, spacing: 14) {
                     Text("Luckys Taxi Fahrer")
-                        .font(.system(size: 30, weight: .black))
-                        .foregroundStyle(ink)
-                        .shadow(color: cream, radius: 0, x: 0, y: 0)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(cream)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Anmelden")
-                            .font(.title2.weight(.bold))
-                            .foregroundStyle(ink)
-                            .frame(maxWidth: .infinity)
-
-                        Text("E-Mail")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(ink)
-
-                        TextField("", text: $email)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .keyboardType(.emailAddress)
-                            .textContentType(.username)
-                            .foregroundColor(.black)
-                            .tint(.black)
-                            .padding(14)
-                            .background(fieldBg)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.black, lineWidth: 2.5)
-                            )
-                            .disabled(isLoading)
-
-                        Text("Passwort")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(ink)
-
-                        SecureField("", text: $password)
-                            .textContentType(.password)
-                            .foregroundColor(.black)
-                            .tint(.black)
-                            .padding(14)
-                            .background(fieldBg)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.black, lineWidth: 2.5)
-                            )
-                            .disabled(isLoading)
-
-                        if let errorMessage {
-                            Text(errorMessage)
-                                .foregroundStyle(Color(red: 0.55, green: 0.05, blue: 0.05))
-                                .font(.footnote.weight(.semibold))
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity)
-                        }
-
-                        Button(isLoading ? "Bitte warten…" : "Einloggen") {
-                            login()
-                        }
-                        .font(.headline.weight(.bold))
+                        .font(.system(size: 28, weight: .black))
+                        .foregroundStyle(taxiYellow)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color.black)
-                        .foregroundStyle(Color(red: 1, green: 0.8, blue: 0))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .disabled(isLoading)
-                        .padding(.top, 6)
-                    }
-                    .padding(20)
-                    .background(cream)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.black, lineWidth: 2)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .padding(.horizontal, 18)
 
-                    Spacer(minLength: 120)
+                    Text("Anmelden")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+
+                    Text("E-Mail-Adresse")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(taxiYellow)
+
+                    TextField("fahrer@test.de", text: $email)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.emailAddress)
+                        .textContentType(.username)
+                        .foregroundColor(.black)
+                        .tint(.black)
+                        .padding(14)
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.black, lineWidth: 2.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .disabled(isLoading)
+
+                    Text("Passwort")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(taxiYellow)
+
+                    SecureField("Passwort eingeben", text: $password)
+                        .textContentType(.password)
+                        .foregroundColor(.black)
+                        .tint(.black)
+                        .padding(14)
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.black, lineWidth: 2.5)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .disabled(isLoading)
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(Color(red: 1, green: 0.75, blue: 0.75))
+                            .font(.footnote.weight(.semibold))
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    Button(isLoading ? "Bitte warten…" : "Einloggen") {
+                        login()
+                    }
+                    .font(.headline.weight(.bold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(taxiYellow)
+                    .foregroundStyle(Color.black)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .disabled(isLoading)
+                    .padding(.top, 4)
                 }
-                .frame(maxWidth: .infinity)
+                .padding(20)
+                .background(navy.opacity(0.94))
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(taxiYellow, lineWidth: 2)
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 28)
             }
-            .scrollDismissesKeyboard(.interactively)
         }
     }
 
