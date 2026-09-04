@@ -2,9 +2,11 @@
 //  LoginView.swift
 //  Luckys Taxi Fahrer
 //
-// Startseite: TAXI-Schild oben klar (Hero), Login unten kompakt.
-// Asset-Name in Xcode Assets: app_background
-// WICHTIG: Altes kleines Bild in Assets löschen, neues app_background.jpg einfügen!
+// === EINE DATEI FÜR ALLES (Login + Home + GPS + API) ===
+// In Xcode: NUR diese Datei ersetzen (Cmd+A → einfügen).
+// DANN LÖSCHEN (sonst rot): alte TaxiUI, HomeView, FahrerGPSTracker,
+// zweite LoginView, alte Dateien mit TaxiBild / FahrerGPSTracker.
+// Asset: app_background
 //
 
 import SwiftUI
@@ -14,6 +16,8 @@ import FirebaseFirestore
 import Foundation
 import CoreLocation
 import Combine
+import UserNotifications
+import AudioToolbox
 
 struct LoginView: View {
     @State private var email = "fahrer@test.de"
@@ -33,7 +37,7 @@ struct LoginView: View {
         Group {
             if isLoggedIn {
                 // Binding statt Closure: Abmelden setzt isLoggedIn direkt → Startseite.
-                FahrerHomeScreen(
+                LoginHomeScreen(
                     driverUid: driverUid,
                     driverName: driverName,
                     isLoggedIn: $isLoggedIn
@@ -385,7 +389,7 @@ struct LoginTaxiHeroFoto: View {
     }
 }
 
-// MARK: - GPS (vor FahrerHomeScreen)
+// MARK: - GPS (vor LoginHomeScreen)
 
 final class LoginGPSTracker: NSObject, ObservableObject {
     @Published var lastError: String?
@@ -394,7 +398,7 @@ final class LoginGPSTracker: NSObject, ObservableObject {
     private let manager = CLLocationManager()
     private var driverUid = ""
     private var bookingId: String?
-    private var operatorSlug = FahrerBackendConfig.defaultOperatorSlug
+    private var operatorSlug = LoginBackendConfig.defaultOperatorSlug
     private var lastSentAt: Date?
     private let minInterval: TimeInterval = 4
 
@@ -452,7 +456,7 @@ final class LoginGPSTracker: NSObject, ObservableObject {
 
         Task {
             do {
-                try await DriverAPI.postLocation(
+                try await LoginDriverAPI.postLocation(
                     driverUid: uid,
                     latitude: lat,
                     longitude: lng,
@@ -505,7 +509,7 @@ extension LoginGPSTracker: CLLocationManagerDelegate {
 
 // MARK: - Home Screen (in LoginView, kein externes FahrerHomeView nötig)
 
-struct FahrerHomeScreen: View {
+struct LoginHomeScreen: View {
     let driverUid: String
     let driverName: String
     @Binding var isLoggedIn: Bool
@@ -513,7 +517,7 @@ struct FahrerHomeScreen: View {
     @StateObject private var gps = LoginGPSTracker()
 
     @State private var isOnline = false
-    @State private var bookings: [DriverBooking] = []
+    @State private var bookings: [LoginDriverBooking] = []
     @State private var statusText = "Du bist offline."
     @State private var errorMessage: String?
     @State private var isBusy = false
@@ -525,7 +529,7 @@ struct FahrerHomeScreen: View {
     @State private var newRideBanner: String?
     @State private var bannerDismissTask: Task<Void, Never>?
 
-    private let operatorSlug = FahrerBackendConfig.defaultOperatorSlug
+    private let operatorSlug = LoginBackendConfig.defaultOperatorSlug
     private let taxiYellow = Color(red: 1, green: 0.8, blue: 0)
     private let cream = Color(red: 1.0, green: 0.96, blue: 0.82)
     private let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
@@ -583,7 +587,7 @@ struct FahrerHomeScreen: View {
                     }
 
                     NavigationLink {
-                        FahrerSpieleHubView()
+                        LoginPauseSpieleView()
                     } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
@@ -708,7 +712,7 @@ struct FahrerHomeScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func rideCard(_ booking: DriverBooking) -> some View {
+    private func rideCard(_ booking: LoginDriverBooking) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(booking.titleLine)
                 .font(.body.weight(.semibold))
@@ -851,10 +855,10 @@ struct FahrerHomeScreen: View {
             hasSeededBookingIds = false
             clearBanner()
         }
-        await FahrerBenachrichtigung.requestPermissionIfNeeded()
+        await LoginBenachrichtigung.requestPermissionIfNeeded()
         await fetchBookings(silent: true)
         while !Task.isCancelled {
-            try? await Task.sleep(nanoseconds: FahrerBenachrichtigung.pollIntervalNanoseconds)
+            try? await Task.sleep(nanoseconds: LoginBenachrichtigung.pollIntervalNanoseconds)
             guard !Task.isCancelled else { break }
             guard await MainActor.run(body: { isOnline }) else { break }
             await fetchBookings(silent: true)
@@ -877,7 +881,7 @@ struct FahrerHomeScreen: View {
         }
 
         do {
-            let list = try await DriverAPI.openBookings(operatorSlug: operatorSlug)
+            let list = try await LoginDriverAPI.openBookings(operatorSlug: operatorSlug)
             await MainActor.run {
                 guard isOnline else { return }
                 applyBookings(list)
@@ -890,11 +894,11 @@ struct FahrerHomeScreen: View {
     }
 
     @MainActor
-    private func applyBookings(_ list: [DriverBooking]) {
+    private func applyBookings(_ list: [LoginDriverBooking]) {
         let incomingIds = Set(list.map(\.bookingId))
         let fresh = list.filter { !knownBookingIds.contains($0.bookingId) }
 
-        let next: [DriverBooking]
+        let next: [LoginDriverBooking]
         let nextStatus: String
         if let acceptedBookingId,
            let kept = bookings.first(where: { $0.bookingId == acceptedBookingId }),
@@ -924,8 +928,8 @@ struct FahrerHomeScreen: View {
 
         if !fresh.isEmpty {
             knownBookingIds.formUnion(incomingIds)
-            showBanner(FahrerBenachrichtigung.bannerMessage(newBookings: fresh))
-            FahrerBenachrichtigung.announceNewRide(
+            showBanner(LoginBenachrichtigung.bannerMessage(newBookings: fresh))
+            LoginBenachrichtigung.announceNewRide(
                 count: fresh.count,
                 preview: fresh.first?.titleLine
             )
@@ -937,7 +941,7 @@ struct FahrerHomeScreen: View {
         }
     }
 
-    private func takeRide(_ booking: DriverBooking) async {
+    private func takeRide(_ booking: LoginDriverBooking) async {
         await MainActor.run {
             isBusy = true
             errorMessage = nil
@@ -945,7 +949,7 @@ struct FahrerHomeScreen: View {
         defer { Task { @MainActor in isBusy = false } }
 
         do {
-            try await DriverAPI.acceptBooking(
+            try await LoginDriverAPI.acceptBooking(
                 bookingId: booking.bookingId,
                 driverUid: driverUid,
                 driverName: driverName,
@@ -968,7 +972,7 @@ struct FahrerHomeScreen: View {
         }
     }
 
-    private func finishRide(_ booking: DriverBooking) async {
+    private func finishRide(_ booking: LoginDriverBooking) async {
         await MainActor.run {
             isBusy = true
             errorMessage = nil
@@ -976,7 +980,7 @@ struct FahrerHomeScreen: View {
         defer { Task { @MainActor in isBusy = false } }
 
         do {
-            try await DriverAPI.completeBooking(
+            try await LoginDriverAPI.completeBooking(
                 bookingId: booking.bookingId,
                 driverUid: driverUid,
                 operatorSlug: operatorSlug
@@ -1027,4 +1031,210 @@ struct LoginTaxiHintergrund: View {
         .accessibilityHidden(true)
     }
 }
+
+
+// MARK: - Config / API / Modelle (nur Login*-Namen → keine Doppel-Typen)
+
+enum LoginBackendConfig {
+    static let baseURL = "https://taxiapp-api.onrender.com"
+    static let defaultOperatorSlug = "mannheim"
+    static let driverApiKey = "luckys-fahrer-pilot-k7m2p9qx"
+}
+
+struct LoginDriverBooking: Identifiable, Decodable {
+    let bookingId: String
+    let pickupDate: String?
+    let addressLine: String
+    let destinationAddressLine: String?
+    let paymentMethod: String?
+    let latitude: Double?
+    let longitude: Double?
+    let status: String
+    let createdAt: String?
+
+    var id: String { bookingId }
+
+    var titleLine: String {
+        if let destinationAddressLine, !destinationAddressLine.isEmpty {
+            return "\(addressLine) → \(destinationAddressLine)"
+        }
+        return addressLine
+    }
+}
+
+struct LoginOpenBookingsResponse: Decodable {
+    let bookings: [LoginDriverBooking]
+}
+
+enum LoginDriverAPIError: LocalizedError {
+    case badURL
+    case http(Int, String)
+    case decoding
+
+    var errorDescription: String? {
+        switch self {
+        case .badURL: return "Ungültige Backend-URL."
+        case .http(let code, let body): return "Server \(code): \(body)"
+        case .decoding: return "Antwort konnte nicht gelesen werden."
+        }
+    }
+}
+
+enum LoginDriverAPI {
+    private static func authorizedRequest(url: URL, method: String = "GET", jsonBody: [String: Any]? = nil) throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("Bearer \(LoginBackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
+        if let jsonBody {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
+        }
+        return request
+    }
+
+    static func openBookings(operatorSlug: String) async throws -> [LoginDriverBooking] {
+        guard var components = URLComponents(string: "\(LoginBackendConfig.baseURL)/api/driver/open-bookings") else {
+            throw LoginDriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw LoginDriverAPIError.badURL }
+        let request = try authorizedRequest(url: url)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw LoginDriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+        do {
+            return try JSONDecoder().decode(LoginOpenBookingsResponse.self, from: data).bookings
+        } catch {
+            throw LoginDriverAPIError.decoding
+        }
+    }
+
+    static func acceptBooking(bookingId: String, driverUid: String, driverName: String, operatorSlug: String) async throws {
+        guard var components = URLComponents(string: "\(LoginBackendConfig.baseURL)/api/driver/bookings/\(bookingId)/accept") else {
+            throw LoginDriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw LoginDriverAPIError.badURL }
+        let request = try authorizedRequest(url: url, method: "PATCH", jsonBody: [
+            "driverUid": driverUid,
+            "driverName": driverName,
+        ])
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw LoginDriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
+
+    static func completeBooking(bookingId: String, driverUid: String, operatorSlug: String) async throws {
+        guard var components = URLComponents(string: "\(LoginBackendConfig.baseURL)/api/driver/bookings/\(bookingId)/complete") else {
+            throw LoginDriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw LoginDriverAPIError.badURL }
+        let request = try authorizedRequest(url: url, method: "PATCH", jsonBody: [
+            "driverUid": driverUid,
+        ])
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw LoginDriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
+
+    static func postLocation(
+        driverUid: String,
+        latitude: Double,
+        longitude: Double,
+        bookingId: String?,
+        operatorSlug: String
+    ) async throws {
+        guard var components = URLComponents(string: "\(LoginBackendConfig.baseURL)/api/driver/location") else {
+            throw LoginDriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw LoginDriverAPIError.badURL }
+        var body: [String: Any] = [
+            "driverUid": driverUid,
+            "latitude": latitude,
+            "longitude": longitude,
+        ]
+        if let bookingId, !bookingId.isEmpty {
+            body["bookingId"] = bookingId
+        }
+        let request = try authorizedRequest(url: url, method: "POST", jsonBody: body)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw LoginDriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
+}
+
+enum LoginBenachrichtigung {
+    static let pollIntervalNanoseconds: UInt64 = 18_000_000_000
+
+    @MainActor
+    static func requestPermissionIfNeeded() async {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        if settings.authorizationStatus == .notDetermined {
+            _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
+        }
+        if center.delegate == nil {
+            center.delegate = LoginForegroundNotificationDelegate.shared
+        }
+    }
+
+    static func announceNewRide(count: Int, preview: String?) {
+        AudioServicesPlaySystemSound(1007)
+        let content = UNMutableNotificationContent()
+        content.title = count == 1 ? "Neue Fahrt!" : "\(count) neue Fahrten!"
+        content.body = (preview?.isEmpty == false) ? (preview ?? "Offene Buchung prüfen.") : "Eine neue offene Buchung ist verfügbar."
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: "new-ride-\(UUID().uuidString)", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    static func bannerMessage(newBookings: [LoginDriverBooking]) -> String {
+        if newBookings.count == 1, let first = newBookings.first {
+            return "Neue Fahrt: \(first.titleLine)"
+        }
+        return "\(newBookings.count) neue offene Fahrten!"
+    }
+}
+
+final class LoginForegroundNotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = LoginForegroundNotificationDelegate()
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .list])
+    }
+}
+
+struct LoginPauseSpieleView: View {
+    private let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
+    private let yellow = Color(red: 1, green: 0.8, blue: 0)
+    var body: some View {
+        ZStack {
+            yellow.ignoresSafeArea()
+            VStack(spacing: 12) {
+                Text("Pause-Spiele")
+                    .font(.largeTitle.weight(.black))
+                    .foregroundStyle(navy)
+                Text("Spiele folgen in einem Update. Bei neuer Fahrt zurück zur Liste.")
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(navy.opacity(0.8))
+                    .padding()
+            }
+        }
+        .navigationTitle("Pause")
+    }
+}
+
 
