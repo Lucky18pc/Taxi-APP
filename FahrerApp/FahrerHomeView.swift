@@ -2,8 +2,9 @@
 //  FahrerHomeView.swift
 //  Luckys Taxi Fahrer
 //
-// Früher: HomeView.swift — umbenannt, damit Xcode keine Redeclaration hat.
-// Body in Subviews aufgeteilt (SwiftUI type-check timeout vermeiden).
+// NEU — ersetzt die alte HomeView.swift komplett.
+// In Xcode: Datei „HomeView.swift“ LÖSCHEN, diese Datei NEU anlegen.
+// Benötigt außerdem: TaxiUI.swift + FahrerGPSTracker.swift
 //
 
 import SwiftUI
@@ -13,10 +14,9 @@ import FirebaseFirestore
 struct FahrerHomeView: View {
     let driverUid: String
     let driverName: String
-    /// Binding statt Closure — zuverlässiger als onLogout-Callback (kein leerer Default).
     @Binding var isLoggedIn: Bool
 
-    @StateObject private var locationTracker = FahrerGPSTracker()
+    @StateObject private var gps = FahrerGPSTracker()
 
     @State private var isOnline = false
     @State private var bookings: [DriverBooking] = []
@@ -24,18 +24,14 @@ struct FahrerHomeView: View {
     @State private var errorMessage: String?
     @State private var isBusy = false
     @State private var acceptedBookingId: String?
-    /// Verhindert, dass programmatische isOnline-Änderungen erneut setOnline auslösen.
     @State private var suppressOnlineWrite = false
     @State private var onlineWriteGeneration = 0
-    /// Bekannte Booking-IDs — neue IDs lösen Fahrt-Benachrichtigung aus.
     @State private var knownBookingIds: Set<String> = []
-    /// true nach erstem erfolgreichen Poll in dieser Online-Session (kein Alert für Bestand).
     @State private var hasSeededBookingIds = false
     @State private var newRideBanner: String?
     @State private var bannerDismissTask: Task<Void, Never>?
 
     private let operatorSlug = FahrerBackendConfig.defaultOperatorSlug
-
     private let taxiYellow = Color(red: 1, green: 0.8, blue: 0)
     private let cream = Color(red: 1.0, green: 0.96, blue: 0.82)
     private let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
@@ -44,63 +40,58 @@ struct FahrerHomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    greetingSection
-                    logoutButton
-                    onlineToggle
+                    headerBlock
+                    logoutBlock
+                    onlineBlock
                     Text(statusText)
                         .foregroundStyle(navy.opacity(0.85))
-                    if let newRideBanner {
-                        newRideBannerView(message: newRideBanner)
-                    }
-                    gamesLink
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
-                            .font(.footnote.weight(.semibold))
-                    }
-                    trackingStatus
+                    bannerBlock
+                    gamesBlock
+                    errorBlock
+                    gpsBlock
                     if isOnline {
-                        bookingsSection
+                        ridesBlock
                     }
                 }
                 .padding()
                 .animation(.easeInOut(duration: 0.25), value: newRideBanner)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background { homeBackground }
+            .background {
+                ZStack {
+                    TaxiHintergrund()
+                    taxiYellow.opacity(0.72).ignoresSafeArea()
+                }
+                .allowsHitTesting(false)
+            }
             .navigationTitle("Fahrer")
             .toolbarBackground(taxiYellow.opacity(0.9), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.light, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Abmelden", action: performLogout)
+                    Button("Abmelden", action: logout)
                         .fontWeight(.bold)
                         .foregroundStyle(navy)
-                        .accessibilityIdentifier("logoutButtonToolbar")
                 }
             }
-            .task {
-                await loadOnlineStatus()
-            }
-            .task(id: isOnline) {
-                await runOnlinePollingLoop()
-            }
+            .task { await refreshOnlineFromFirestore() }
+            .task(id: isOnline) { await pollWhileOnline() }
         }
         .background(taxiYellow)
         .preferredColorScheme(.light)
     }
 
-    // MARK: - Subviews (type-check Fix)
+    // MARK: - UI
 
-    private var greetingSection: some View {
+    private var headerBlock: some View {
         Text("Hallo, \(driverName)")
             .font(.title2.bold())
             .foregroundStyle(navy)
     }
 
-    private var logoutButton: some View {
-        Button(action: performLogout) {
+    private var logoutBlock: some View {
+        Button(action: logout) {
             Text("Abmelden")
                 .font(.title3.weight(.black))
                 .frame(maxWidth: .infinity)
@@ -115,10 +106,9 @@ struct FahrerHomeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("logoutButtonContent")
     }
 
-    private var onlineToggle: some View {
+    private var onlineBlock: some View {
         Toggle("Online / Schicht", isOn: $isOnline)
             .foregroundStyle(navy)
             .padding()
@@ -137,41 +127,41 @@ struct FahrerHomeView: View {
                 }
                 onlineWriteGeneration += 1
                 let generation = onlineWriteGeneration
-                Task { await setOnline(newValue, generation: generation) }
+                Task { await writeOnline(newValue, generation: generation) }
             }
     }
 
-    private func newRideBannerView(message: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Neue Fahrt!")
-                    .font(.headline.weight(.black))
-                    .foregroundStyle(.white)
-                Text(message)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.95))
-                    .fixedSize(horizontal: false, vertical: true)
+    @ViewBuilder
+    private var bannerBlock: some View {
+        if let newRideBanner {
+            HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Neue Fahrt!")
+                        .font(.headline.weight(.black))
+                        .foregroundStyle(.white)
+                    Text(newRideBanner)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.95))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Button("OK") { clearBanner() }
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(navy)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(taxiYellow)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            Spacer(minLength: 8)
-            Button("OK") {
-                dismissNewRideBanner()
-            }
-            .font(.subheadline.weight(.bold))
-            .foregroundStyle(navy)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(taxiYellow)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(red: 0.85, green: 0.35, blue: 0.05))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .transition(.move(edge: .top).combined(with: .opacity))
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(red: 0.85, green: 0.35, blue: 0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .accessibilityIdentifier("newRideBanner")
-        .transition(.move(edge: .top).combined(with: .opacity))
     }
 
-    private var gamesLink: some View {
+    private var gamesBlock: some View {
         NavigationLink {
             FahrerSpieleHubView()
         } label: {
@@ -185,8 +175,7 @@ struct FahrerHomeView: View {
                         .foregroundStyle(navy.opacity(0.75))
                 }
                 Spacer()
-                Text("▶")
-                    .foregroundStyle(navy)
+                Text("▶").foregroundStyle(navy)
             }
             .padding(14)
             .background(cream)
@@ -199,22 +188,30 @@ struct FahrerHomeView: View {
         }
     }
 
-    private var trackingStatus: some View {
-        Group {
-            if locationTracker.isSharing {
-                Text("Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(navy.opacity(0.85))
-            }
-            if let locError = locationTracker.lastError {
-                Text("GPS: \(locError)")
-                    .font(.caption)
-                    .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
-            }
+    @ViewBuilder
+    private var errorBlock: some View {
+        if let errorMessage {
+            Text(errorMessage)
+                .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
+                .font(.footnote.weight(.semibold))
         }
     }
 
-    private var bookingsSection: some View {
+    @ViewBuilder
+    private var gpsBlock: some View {
+        if gps.isSharing {
+            Text("Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(navy.opacity(0.85))
+        }
+        if let locError = gps.lastError {
+            Text("GPS: \(locError)")
+                .font(.caption)
+                .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
+        }
+    }
+
+    private var ridesBlock: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Offene Fahrten")
@@ -222,7 +219,7 @@ struct FahrerHomeView: View {
                     .foregroundStyle(navy)
                 Spacer()
                 Button("Aktualisieren") {
-                    Task { await loadBookings(silent: false) }
+                    Task { await fetchBookings(silent: false) }
                 }
                 .foregroundStyle(navy)
                 .disabled(isBusy)
@@ -233,13 +230,13 @@ struct FahrerHomeView: View {
                     .foregroundStyle(navy.opacity(0.75))
             } else {
                 ForEach(bookings) { booking in
-                    bookingCard(booking)
+                    rideCard(booking)
                 }
             }
         }
     }
 
-    private func bookingCard(_ booking: DriverBooking) -> some View {
+    private func rideCard(_ booking: DriverBooking) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(booking.titleLine)
                 .font(.body.weight(.semibold))
@@ -257,13 +254,13 @@ struct FahrerHomeView: View {
 
             if acceptedBookingId == booking.bookingId {
                 Button("Fahrt erledigt") {
-                    Task { await complete(booking) }
+                    Task { await finishRide(booking) }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
             } else {
                 Button("Annehmen") {
-                    Task { await accept(booking) }
+                    Task { await takeRide(booking) }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.orange)
@@ -276,36 +273,9 @@ struct FahrerHomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    private var homeBackground: some View {
-        ZStack {
-            TaxiHintergrund()
-            taxiYellow.opacity(0.72)
-                .ignoresSafeArea()
-        }
-        .allowsHitTesting(false)
-    }
+    // MARK: - Logout / Banner
 
-    // MARK: - Actions
-
-    private func runOnlinePollingLoop() async {
-        guard isOnline else { return }
-        await MainActor.run {
-            knownBookingIds = []
-            hasSeededBookingIds = false
-            dismissNewRideBanner()
-        }
-        await FahrerBenachrichtigung.requestPermissionIfNeeded()
-        await loadBookings(silent: true)
-        while !Task.isCancelled {
-            try? await Task.sleep(nanoseconds: FahrerBenachrichtigung.pollIntervalNanoseconds)
-            guard !Task.isCancelled else { break }
-            let stillOnline = await MainActor.run { isOnline }
-            guard stillOnline else { break }
-            await loadBookings(silent: true)
-        }
-    }
-
-    private func performLogout() {
+    private func logout() {
         onlineWriteGeneration += 1
         suppressOnlineWrite = true
         isOnline = false
@@ -313,26 +283,25 @@ struct FahrerHomeView: View {
         acceptedBookingId = nil
         errorMessage = nil
         statusText = "Abgemeldet."
-        locationTracker.stop()
-        resetRideNotificationState()
-
+        gps.stop()
+        resetNotifyState()
         try? Auth.auth().signOut()
         isLoggedIn = false
     }
 
-    private func resetRideNotificationState() {
+    private func resetNotifyState() {
         knownBookingIds = []
         hasSeededBookingIds = false
-        dismissNewRideBanner()
+        clearBanner()
     }
 
-    private func dismissNewRideBanner() {
+    private func clearBanner() {
         bannerDismissTask?.cancel()
         bannerDismissTask = nil
         newRideBanner = nil
     }
 
-    private func showNewRideBanner(_ message: String) {
+    private func showBanner(_ message: String) {
         bannerDismissTask?.cancel()
         newRideBanner = message
         bannerDismissTask = Task { @MainActor in
@@ -342,18 +311,16 @@ struct FahrerHomeView: View {
         }
     }
 
-    private func applyOnlineLocally(_ online: Bool, status: String? = nil) {
-        if let status {
-            statusText = status
-        }
-        if isOnline == online {
-            return
-        }
+    private func setOnlineLocal(_ online: Bool, status: String? = nil) {
+        if let status { statusText = status }
+        guard isOnline != online else { return }
         suppressOnlineWrite = true
         isOnline = online
     }
 
-    private func loadOnlineStatus() async {
+    // MARK: - Online / Polling
+
+    private func refreshOnlineFromFirestore() async {
         do {
             let snap = try await Firestore.firestore()
                 .collection("user")
@@ -361,10 +328,7 @@ struct FahrerHomeView: View {
                 .getDocument()
             let online = snap.data()?["isOnline"] as? Bool ?? false
             await MainActor.run {
-                applyOnlineLocally(
-                    online,
-                    status: online ? "Online — bereit." : "Du bist offline."
-                )
+                setOnlineLocal(online, status: online ? "Online — bereit." : "Du bist offline.")
             }
         } catch {
             await MainActor.run {
@@ -373,13 +337,11 @@ struct FahrerHomeView: View {
         }
     }
 
-    private func setOnline(_ online: Bool, generation: Int) async {
+    private func writeOnline(_ online: Bool, generation: Int) async {
         await MainActor.run {
             isBusy = true
             errorMessage = nil
-            if !online {
-                resetRideNotificationState()
-            }
+            if !online { resetNotifyState() }
         }
 
         do {
@@ -391,35 +353,46 @@ struct FahrerHomeView: View {
                     "onlineUpdatedAt": FieldValue.serverTimestamp(),
                 ], merge: true)
 
-            let isStale = await MainActor.run { generation != onlineWriteGeneration }
-            if isStale {
-                return
-            }
+            if await MainActor.run(body: { generation != onlineWriteGeneration }) { return }
 
             await MainActor.run {
                 statusText = online ? "Online — bereit." : "Du bist offline."
                 if !online {
                     bookings = []
                     acceptedBookingId = nil
-                    locationTracker.stop()
+                    gps.stop()
                 }
                 isBusy = false
             }
         } catch {
-            let isStale = await MainActor.run { generation != onlineWriteGeneration }
-            if isStale { return }
+            if await MainActor.run(body: { generation != onlineWriteGeneration }) { return }
             await MainActor.run {
-                applyOnlineLocally(!online)
-                errorMessage = "Status speichern fehlgeschlagen: \(error.localizedDescription). Firestore-Regeln: write für eigenes user-Dokument erlauben."
+                setOnlineLocal(!online)
+                errorMessage = "Status speichern fehlgeschlagen: \(error.localizedDescription)."
                 isBusy = false
             }
         }
     }
 
-    /// - Parameter silent: true = Hintergrund-Poll (kein isBusy-Flackern).
-    private func loadBookings(silent: Bool) async {
-        let stillOnline = await MainActor.run { isOnline }
-        guard stillOnline else { return }
+    private func pollWhileOnline() async {
+        guard isOnline else { return }
+        await MainActor.run {
+            knownBookingIds = []
+            hasSeededBookingIds = false
+            clearBanner()
+        }
+        await FahrerBenachrichtigung.requestPermissionIfNeeded()
+        await fetchBookings(silent: true)
+        while !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: FahrerBenachrichtigung.pollIntervalNanoseconds)
+            guard !Task.isCancelled else { break }
+            guard await MainActor.run(body: { isOnline }) else { break }
+            await fetchBookings(silent: true)
+        }
+    }
+
+    private func fetchBookings(silent: Bool) async {
+        guard await MainActor.run(body: { isOnline }) else { return }
 
         if !silent {
             await MainActor.run {
@@ -429,9 +402,7 @@ struct FahrerHomeView: View {
         }
         defer {
             if !silent {
-                Task { @MainActor in
-                    isBusy = false
-                }
+                Task { @MainActor in isBusy = false }
             }
         }
 
@@ -439,39 +410,37 @@ struct FahrerHomeView: View {
             let list = try await DriverAPI.openBookings(operatorSlug: operatorSlug)
             await MainActor.run {
                 guard isOnline else { return }
-                applyBookingsUpdate(list)
+                applyBookings(list)
             }
         } catch {
             if !silent {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
-                }
+                await MainActor.run { errorMessage = error.localizedDescription }
             }
         }
     }
 
     @MainActor
-    private func applyBookingsUpdate(_ list: [DriverBooking]) {
+    private func applyBookings(_ list: [DriverBooking]) {
         let incomingIds = Set(list.map(\.bookingId))
-        let newOnes = list.filter { !knownBookingIds.contains($0.bookingId) }
+        let fresh = list.filter { !knownBookingIds.contains($0.bookingId) }
 
-        let nextBookings: [DriverBooking]
+        let next: [DriverBooking]
         let nextStatus: String
         if let acceptedBookingId,
            let kept = bookings.first(where: { $0.bookingId == acceptedBookingId }),
            !list.contains(where: { $0.bookingId == acceptedBookingId }) {
-            nextBookings = [kept] + list
+            next = [kept] + list
             nextStatus = "Fahrt aktiv — plus \(list.count) weitere offen."
         } else {
-            nextBookings = list
+            next = list
             nextStatus = list.isEmpty
                 ? "Online — keine offenen Fahrten."
                 : "Online — \(list.count) offene Fahrt(en)."
         }
 
-        if bookings.map(\.bookingId) != nextBookings.map(\.bookingId)
-            || bookings.map(\.status) != nextBookings.map(\.status) {
-            bookings = nextBookings
+        if bookings.map(\.bookingId) != next.map(\.bookingId)
+            || bookings.map(\.status) != next.map(\.status) {
+            bookings = next
         }
         if statusText != nextStatus {
             statusText = nextStatus
@@ -483,32 +452,29 @@ struct FahrerHomeView: View {
             return
         }
 
-        if !newOnes.isEmpty {
+        if !fresh.isEmpty {
             knownBookingIds.formUnion(incomingIds)
-            let message = FahrerBenachrichtigung.bannerMessage(newBookings: newOnes)
-            showNewRideBanner(message)
+            showBanner(FahrerBenachrichtigung.bannerMessage(newBookings: fresh))
             FahrerBenachrichtigung.announceNewRide(
-                count: newOnes.count,
-                preview: newOnes.first?.titleLine
+                count: fresh.count,
+                preview: fresh.first?.titleLine
             )
         } else {
-            knownBookingIds = knownBookingIds.union(incomingIds)
+            knownBookingIds.formUnion(incomingIds)
             if let acceptedBookingId {
                 knownBookingIds.insert(acceptedBookingId)
             }
         }
     }
 
-    private func accept(_ booking: DriverBooking) async {
+    // MARK: - Accept / Complete
+
+    private func takeRide(_ booking: DriverBooking) async {
         await MainActor.run {
             isBusy = true
             errorMessage = nil
         }
-        defer {
-            Task { @MainActor in
-                isBusy = false
-            }
-        }
+        defer { Task { @MainActor in isBusy = false } }
 
         do {
             try await DriverAPI.acceptBooking(
@@ -522,30 +488,24 @@ struct FahrerHomeView: View {
                 knownBookingIds.insert(booking.bookingId)
                 statusText = "Fahrt angenommen — GPS-Tracking aktiv. Nach Abschluss unten tippen."
                 bookings = [booking]
-                dismissNewRideBanner()
-                locationTracker.start(
+                clearBanner()
+                gps.start(
                     driverUid: driverUid,
                     bookingId: booking.bookingId,
                     operatorSlug: operatorSlug
                 )
             }
         } catch {
-            await MainActor.run {
-                errorMessage = error.localizedDescription
-            }
+            await MainActor.run { errorMessage = error.localizedDescription }
         }
     }
 
-    private func complete(_ booking: DriverBooking) async {
+    private func finishRide(_ booking: DriverBooking) async {
         await MainActor.run {
             isBusy = true
             errorMessage = nil
         }
-        defer {
-            Task { @MainActor in
-                isBusy = false
-            }
-        }
+        defer { Task { @MainActor in isBusy = false } }
 
         do {
             try await DriverAPI.completeBooking(
@@ -557,13 +517,11 @@ struct FahrerHomeView: View {
                 acceptedBookingId = nil
                 knownBookingIds.remove(booking.bookingId)
                 statusText = "Fahrt erledigt."
-                locationTracker.stop()
+                gps.stop()
             }
-            await loadBookings(silent: false)
+            await fetchBookings(silent: false)
         } catch {
-            await MainActor.run {
-                errorMessage = error.localizedDescription
-            }
+            await MainActor.run { errorMessage = error.localizedDescription }
         }
     }
 }

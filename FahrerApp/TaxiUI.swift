@@ -2,7 +2,9 @@
 //  TaxiUI.swift
 //  Luckys Taxi Fahrer
 //
-// Gemeinsame Taxi-Bilder. Eigene Datei → kein „Cannot find TaxiHintergrund“.
+// NEU — TaxiBild / TaxiHeroFoto / TaxiHintergrund.
+// In Xcode als EIGENE Datei anlegen (nicht in LoginView lassen!).
+// Asset-Name: app_background
 //
 
 import SwiftUI
@@ -23,10 +25,12 @@ enum TaxiBild {
 }
 
 struct TaxiHeroFoto: View {
+    private let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
+    private let yellow = Color(red: 1, green: 0.8, blue: 0)
+
     var body: some View {
         ZStack {
-            Color(red: 1, green: 0.8, blue: 0)
-
+            yellow
             if let image = TaxiBild.uiImage {
                 Image(uiImage: image)
                     .resizable()
@@ -37,13 +41,13 @@ struct TaxiHeroFoto: View {
                 VStack(spacing: 12) {
                     Image(systemName: "car.side.fill")
                         .font(.system(size: 64))
-                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                        .foregroundStyle(navy)
                     Text("TAXI")
                         .font(.system(size: 48, weight: .black))
-                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                        .foregroundStyle(navy)
                     Text("Asset „app_background“ in Xcode Assets einfügen")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255))
+                        .foregroundStyle(navy)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                 }
@@ -53,11 +57,11 @@ struct TaxiHeroFoto: View {
 }
 
 struct TaxiHintergrund: View {
+    private let yellow = Color(red: 1, green: 0.8, blue: 0)
+
     var body: some View {
         ZStack {
-            Color(red: 1, green: 0.8, blue: 0)
-                .allowsHitTesting(false)
-
+            yellow.allowsHitTesting(false)
             if let image = TaxiBild.uiImage {
                 Image(uiImage: image)
                     .resizable()
