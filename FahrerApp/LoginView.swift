@@ -57,6 +57,17 @@ struct LoginView: View {
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
 
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .foregroundStyle(.white)
+                                .font(.subheadline.weight(.bold))
+                                .multilineTextAlignment(.center)
+                                .padding(12)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(red: 0.75, green: 0.1, blue: 0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+
                         Text("E-Mail-Adresse")
                             .font(.headline.weight(.bold))
                             .foregroundStyle(taxiYellow)
@@ -97,19 +108,7 @@ struct LoginView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                             .disabled(isLoading)
 
-                        if let errorMessage {
-                            Text(errorMessage)
-                                .foregroundStyle(Color(red: 1, green: 0.75, blue: 0.75))
-                                .font(.footnote.weight(.semibold))
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity)
-                        }
-
                         Button(isLoading ? "Bitte warten…" : "Einloggen") {
-                            UIApplication.shared.sendAction(
-                                #selector(UIResponder.resignFirstResponder),
-                                to: nil, from: nil, for: nil
-                            )
                             login()
                         }
                         .font(.headline.weight(.bold))
@@ -118,9 +117,9 @@ struct LoginView: View {
                         .background(taxiYellow)
                         .foregroundStyle(Color.black)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .disabled(isLoading)
+                        .disabled(isLoading || password.isEmpty)
 
-                        Text("Tipp: Auf der Tastatur „Los“ / Pfeil tippen — oder nach unten wischen und „Einloggen“.")
+                        Text("Tastatur nach unten wischen, dann Einloggen. Bei Fehler erscheint ein roter Kasten oben.")
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.75))
                             .multilineTextAlignment(.center)
@@ -141,6 +140,11 @@ struct LoginView: View {
     }
 
     private func login() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil, from: nil, for: nil
+        )
+
         errorMessage = nil
         isLoading = true
 
@@ -150,12 +154,17 @@ struct LoginView: View {
             errorMessage = "In der E-Mail fehlt @. Nutze fahrer@test.de"
             return
         }
+        if password.isEmpty {
+            isLoading = false
+            errorMessage = "Bitte Passwort eingeben."
+            return
+        }
 
         Auth.auth().signIn(withEmail: trimmed, password: password) { result, error in
             DispatchQueue.main.async {
                 if let error {
                     isLoading = false
-                    errorMessage = error.localizedDescription
+                    errorMessage = germanAuthMessage(error)
                     return
                 }
 
@@ -176,6 +185,22 @@ struct LoginView: View {
                 }
             }
         }
+    }
+
+    private func germanAuthMessage(_ error: Error) -> String {
+        let text = error.localizedDescription
+        if text.localizedCaseInsensitiveContains("password")
+            || text.localizedCaseInsensitiveContains("credential")
+            || text.localizedCaseInsensitiveContains("invalid") {
+            return "Passwort oder E-Mail stimmt nicht. Nochmal eingeben (z. B. Test1234!)."
+        }
+        if text.localizedCaseInsensitiveContains("network") {
+            return "Kein Netz. WLAN/Internet prüfen und nochmal Einloggen."
+        }
+        if text.localizedCaseInsensitiveContains("badly formatted") {
+            return "E-Mail ungültig. Es muss ein @ drinstehen: fahrer@test.de"
+        }
+        return text
     }
 
     private func loadDriverProfile(uid: String, collectionName: String, completion: @escaping (Bool) -> Void) {
