@@ -29,20 +29,28 @@ struct LoginView: View {
     var body: some View {
         Group {
             if isLoggedIn {
-                HomeView(driverUid: driverUid, driverName: driverName, onLogout: {
-                    // Explizit benanntes onLogout — vermeidet leeren Default-Callback.
-                    isLoggedIn = false
-                    driverUid = ""
-                    driverName = ""
-                    password = ""
-                    statusText = "Status: abgemeldet"
-                    errorMessage = nil
-                })
+                // Binding statt Closure: Abmelden setzt isLoggedIn direkt → Startseite.
+                HomeView(
+                    driverUid: driverUid,
+                    driverName: driverName,
+                    isLoggedIn: $isLoggedIn
+                )
             } else {
                 startPage
             }
         }
         .preferredColorScheme(.light)
+        .onChange(of: isLoggedIn) { _, loggedIn in
+            // Nach Abmelden State aufräumen (Home setzt nur isLoggedIn = false).
+            guard !loggedIn else { return }
+            driverUid = ""
+            driverName = ""
+            password = ""
+            isLoading = false
+            statusText = "Status: abgemeldet"
+            errorMessage = nil
+            showErrorAlert = false
+        }
         .alert("Login-Fehler", isPresented: $showErrorAlert) {
             Button("OK", role: .cancel) {}
         } message: {

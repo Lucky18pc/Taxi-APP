@@ -14,6 +14,8 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 
 **Home gelb:** Nach Login wirkt Home warmgelb (Taxi). Dazu `HomeView.swift` in Xcode **komplett ersetzen** → Cmd+S → Stop/Play. Sonst bleibt der alte weiß-graue Screen.
 
+**Abmelden:** `HomeView.swift` **und** `LoginView.swift` zusammen ersetzen. Home bekommt `@Binding var isLoggedIn` (kein fragiler `onLogout`-Callback mehr). Großer gelber **Abmelden**-Button oben im Content + Toolbar. Erwartung: Tippen → sofort Login-Startseite, Status „Status: abgemeldet“.
+
 **Pause-Spiele:** Neue Datei `FahrerSpiele.swift` in Xcode anlegen (File → New → Swift File), kompletten Code einfügen, Target abhaken. Danach `HomeView.swift` ersetzen → Button **Pause-Spiele** erscheint.
 
 ## Features (aktuell)

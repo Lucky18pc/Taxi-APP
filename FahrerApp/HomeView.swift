@@ -10,7 +10,8 @@ import FirebaseFirestore
 struct HomeView: View {
     let driverUid: String
     let driverName: String
-    var onLogout: () -> Void = {}
+    /// Binding statt Closure — zuverlässiger als onLogout-Callback (kein leerer Default).
+    @Binding var isLoggedIn: Bool
 
     @State private var isOnline = false
     @State private var bookings: [DriverBooking] = []
@@ -30,145 +31,145 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack(alignment: .center) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
                     Text("Hallo, \(driverName)")
                         .font(.title2.bold())
                         .foregroundStyle(navy)
-                    Spacer(minLength: 8)
-                    Button("Abmelden") {
-                        performLogout()
+
+                    // Großer Content-Button — primärer Abmelden-Weg (nicht nur Toolbar).
+                    Button(action: performLogout) {
+                        Text("Abmelden")
+                            .font(.title3.weight(.black))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(taxiYellow)
+                            .foregroundStyle(navy)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(navy, lineWidth: 2.5)
+                                    .allowsHitTesting(false)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(navy)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(cream)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(navy.opacity(0.4), lineWidth: 1.5)
-                            .allowsHitTesting(false)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .buttonStyle(.plain)
                     .accessibilityIdentifier("logoutButtonContent")
-                }
 
-                Toggle("Online / Schicht", isOn: $isOnline)
-                    .foregroundStyle(navy)
-                    .padding()
-                    .background(cream)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(navy.opacity(0.35), lineWidth: 1.5)
-                            .allowsHitTesting(false)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .disabled(isBusy)
-                    .onChange(of: isOnline) { _, newValue in
-                        // Flag erst hier verbrauchen: onChange kann nach applyOnlineLocally asynchron laufen.
-                        if suppressOnlineWrite {
-                            suppressOnlineWrite = false
-                            return
-                        }
-                        onlineWriteGeneration += 1
-                        let generation = onlineWriteGeneration
-                        Task { await setOnline(newValue, generation: generation) }
-                    }
-
-                Text(statusText)
-                    .foregroundStyle(navy.opacity(0.85))
-
-                NavigationLink {
-                    FahrerSpieleHubView()
-                } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Pause-Spiele")
-                                .font(.headline.weight(.bold))
-                                .foregroundStyle(navy)
-                            Text("Bei Langeweile: Taxi tippen, Memory, Tarif rechnen")
-                                .font(.caption)
-                                .foregroundStyle(navy.opacity(0.75))
-                        }
-                        Spacer()
-                        Text("▶")
-                            .foregroundStyle(navy)
-                    }
-                    .padding(14)
-                    .background(cream)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(navy.opacity(0.35), lineWidth: 1.5)
-                            .allowsHitTesting(false)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-
-                if let errorMessage {
-                    Text(errorMessage)
-                        .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
-                        .font(.footnote.weight(.semibold))
-                }
-
-                if isOnline {
-                    HStack {
-                        Text("Offene Fahrten")
-                            .font(.headline)
-                            .foregroundStyle(navy)
-                        Spacer()
-                        Button("Aktualisieren") {
-                            Task { await loadBookings() }
-                        }
+                    Toggle("Online / Schicht", isOn: $isOnline)
                         .foregroundStyle(navy)
+                        .padding()
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(navy.opacity(0.35), lineWidth: 1.5)
+                                .allowsHitTesting(false)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                         .disabled(isBusy)
-                    }
-
-                    if bookings.isEmpty {
-                        Text("Keine offenen Buchungen.")
-                            .foregroundStyle(navy.opacity(0.75))
-                    } else {
-                        List(bookings) { booking in
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(booking.titleLine)
-                                    .font(.body.weight(.semibold))
-                                    .foregroundStyle(navy)
-                                if let pickupDate = booking.pickupDate {
-                                    Text(pickupDate)
-                                        .font(.caption)
-                                        .foregroundStyle(navy.opacity(0.7))
-                                }
-                                if let paymentMethod = booking.paymentMethod {
-                                    Text("Zahlung: \(paymentMethod)")
-                                        .font(.caption)
-                                        .foregroundStyle(navy.opacity(0.85))
-                                }
-
-                                if acceptedBookingId == booking.bookingId {
-                                    Button("Fahrt erledigt") {
-                                        Task { await complete(booking) }
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.green)
-                                } else {
-                                    Button("Annehmen") {
-                                        Task { await accept(booking) }
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.orange)
-                                    .disabled(acceptedBookingId != nil || isBusy)
-                                }
+                        .onChange(of: isOnline) { _, newValue in
+                            // Flag erst hier verbrauchen: onChange kann nach applyOnlineLocally asynchron laufen.
+                            if suppressOnlineWrite {
+                                suppressOnlineWrite = false
+                                return
                             }
-                            .padding(.vertical, 4)
-                            .listRowBackground(cream.opacity(0.95))
+                            onlineWriteGeneration += 1
+                            let generation = onlineWriteGeneration
+                            Task { await setOnline(newValue, generation: generation) }
                         }
-                        .listStyle(.plain)
-                        .scrollContentBackground(.hidden)
+
+                    Text(statusText)
+                        .foregroundStyle(navy.opacity(0.85))
+
+                    NavigationLink {
+                        FahrerSpieleHubView()
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Pause-Spiele")
+                                    .font(.headline.weight(.bold))
+                                    .foregroundStyle(navy)
+                                Text("Bei Langeweile: Taxi tippen, Memory, Tarif rechnen")
+                                    .font(.caption)
+                                    .foregroundStyle(navy.opacity(0.75))
+                            }
+                            Spacer()
+                            Text("▶")
+                                .foregroundStyle(navy)
+                        }
+                        .padding(14)
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(navy.opacity(0.35), lineWidth: 1.5)
+                                .allowsHitTesting(false)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                } else {
-                    Spacer()
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
+                            .font(.footnote.weight(.semibold))
+                    }
+
+                    if isOnline {
+                        HStack {
+                            Text("Offene Fahrten")
+                                .font(.headline)
+                                .foregroundStyle(navy)
+                            Spacer()
+                            Button("Aktualisieren") {
+                                Task { await loadBookings() }
+                            }
+                            .foregroundStyle(navy)
+                            .disabled(isBusy)
+                        }
+
+                        if bookings.isEmpty {
+                            Text("Keine offenen Buchungen.")
+                                .foregroundStyle(navy.opacity(0.75))
+                        } else {
+                            ForEach(bookings) { booking in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(booking.titleLine)
+                                        .font(.body.weight(.semibold))
+                                        .foregroundStyle(navy)
+                                    if let pickupDate = booking.pickupDate {
+                                        Text(pickupDate)
+                                            .font(.caption)
+                                            .foregroundStyle(navy.opacity(0.7))
+                                    }
+                                    if let paymentMethod = booking.paymentMethod {
+                                        Text("Zahlung: \(paymentMethod)")
+                                            .font(.caption)
+                                            .foregroundStyle(navy.opacity(0.85))
+                                    }
+
+                                    if acceptedBookingId == booking.bookingId {
+                                        Button("Fahrt erledigt") {
+                                            Task { await complete(booking) }
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .tint(.green)
+                                    } else {
+                                        Button("Annehmen") {
+                                            Task { await accept(booking) }
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .tint(.orange)
+                                        .disabled(acceptedBookingId != nil || isBusy)
+                                    }
+                                }
+                                .padding(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(cream.opacity(0.95))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                        }
+                    }
                 }
+                .padding()
             }
-            .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background {
                 ZStack {
@@ -184,11 +185,10 @@ struct HomeView: View {
             .toolbarColorScheme(.light, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Abmelden") {
-                        performLogout()
-                    }
-                    .foregroundStyle(navy)
-                    .accessibilityIdentifier("logoutButtonToolbar")
+                    Button("Abmelden", action: performLogout)
+                        .fontWeight(.bold)
+                        .foregroundStyle(navy)
+                        .accessibilityIdentifier("logoutButtonToolbar")
                 }
             }
             .task {
@@ -200,9 +200,18 @@ struct HomeView: View {
     }
 
     private func performLogout() {
+        // Stale Online-Writes abbrechen; lokal offline (Firestore optional, nicht blockierend).
         onlineWriteGeneration += 1
+        suppressOnlineWrite = true
+        isOnline = false
+        bookings = []
+        acceptedBookingId = nil
+        errorMessage = nil
+        statusText = "Abgemeldet."
+
         try? Auth.auth().signOut()
-        onLogout()
+        // Binding aktualisiert LoginView → Startseite erscheint sofort.
+        isLoggedIn = false
     }
 
     private func applyOnlineLocally(_ online: Bool, status: String? = nil) {
