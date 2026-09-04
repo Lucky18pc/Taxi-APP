@@ -8,8 +8,10 @@
 
 import Foundation
 import CoreLocation
+import Combine
 
-@MainActor
+/// GPS-Sender für Live-Tracking. Läuft bewusst ohne class-weiten @MainActor
+/// (weniger Concurrency-Fehler in Xcode).
 final class FahrerLocationTracker: NSObject, ObservableObject {
     @Published private(set) var lastError: String?
     @Published private(set) var isSharing = false
@@ -33,26 +35,33 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
         self.driverUid = driverUid
         self.bookingId = bookingId
         self.operatorSlug = operatorSlug
-        lastError = nil
-        isSharing = true
 
-        switch manager.authorizationStatus {
-        case .notDetermined:
-            manager.requestWhenInUseAuthorization()
-        case .authorizedWhenInUse, .authorizedAlways:
-            manager.startUpdatingLocation()
-        case .denied, .restricted:
-            lastError = "Standort-Zugriff verweigert. In iOS-Einstellungen erlauben."
-            isSharing = false
-        @unknown default:
-            manager.requestWhenInUseAuthorization()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.lastError = nil
+            self.isSharing = true
+
+            switch self.manager.authorizationStatus {
+            case .notDetermined:
+                self.manager.requestWhenInUseAuthorization()
+            case .authorizedWhenInUse, .authorizedAlways:
+                self.manager.startUpdatingLocation()
+            case .denied, .restricted:
+                self.lastError = "Standort-Zugriff verweigert. In iOS-Einstellungen erlauben."
+                self.isSharing = false
+            @unknown default:
+                self.manager.requestWhenInUseAuthorization()
+            }
         }
     }
 
     func stop() {
-        isSharing = false
-        bookingId = nil
-        manager.stopUpdatingLocation()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.isSharing = false
+            self.bookingId = nil
+            self.manager.stopUpdatingLocation()
+        }
     }
 
     private func send(_ location: CLLocation) {
@@ -61,6 +70,7 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
             return
         }
         lastSentAt = Date()
+
         let uid = driverUid
         let booking = bookingId
         let slug = operatorSlug
@@ -76,10 +86,12 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
                     bookingId: booking,
                     operatorSlug: slug
                 )
-                await MainActor.run { lastError = nil }
+                await MainActor.run { [weak self] in
+                    self?.lastError = nil
+                }
             } catch {
-                await MainActor.run {
-                    lastError = error.localizedDescription
+                await MainActor.run { [weak self] in
+                    self?.lastError = error.localizedDescription
                 }
             }
         }
@@ -87,31 +99,31 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
 }
 
 extension FahrerLocationTracker: CLLocationManagerDelegate {
-    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor in
-            guard isSharing else { return }
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.isSharing else { return }
             switch manager.authorizationStatus {
             case .authorizedWhenInUse, .authorizedAlways:
                 self.manager.startUpdatingLocation()
             case .denied, .restricted:
-                lastError = "Standort-Zugriff verweigert."
-                isSharing = false
+                self.lastError = "Standort-Zugriff verweigert."
+                self.isSharing = false
             default:
                 break
             }
         }
     }
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        Task { @MainActor in
-            send(location)
+        DispatchQueue.main.async { [weak self] in
+            self?.send(location)
         }
     }
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        Task { @MainActor in
-            lastError = error.localizedDescription
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        DispatchQueue.main.async { [weak self] in
+            self?.lastError = error.localizedDescription
         }
     }
 }
