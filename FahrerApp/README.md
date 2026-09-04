@@ -26,18 +26,21 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
 Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
 
-## TAXI-Hintergrund speichern (wie die anderen Bilder)
+## TAXI-Hintergrund auf der Startseite
 
-Gleiches Foto wie die **Fahrgast-App** (`TaxiApp` → Assets → **`app_background`**).
+Gleiches Foto wie die **Fahrgast-App** (gelbes Dachschild **TAXI**).
 
-1. Xcode: Projekt **Luckys Taxi Fahrer** öffnen.  
-2. Links den bestehenden Ordner **Assets** (`Assets.xcassets`) anklicken — dort liegen schon App-Icon usw.  
-3. Datei [`app_background.jpg`](app_background.jpg) **oder** den Ordner [`Assets.xcassets/app_background.imageset`](Assets.xcassets/app_background.imageset) in diesen Assets-Ordner ziehen.  
-4. Name im Katalog: **`app_background`** (ohne `.jpg`). Target **Luckys Taxi Fahrer** angehakt.  
-5. `HomeView.swift` aus diesem Ordner übernehmen (nutzt `Image("app_background")`).  
-6. Cmd+S → Stopp ■ → Play ▶ → einloggen.
+**Ohne Bild in Assets** siehst du trotzdem **Taxi-Gelb** (nicht Schwarz).  
+**Mit Bild** siehst du das Schild hinter dem Login-Formular.
 
-Ohne dieses Asset im Target bleibt der Screen schwarz bzw. nur gelb. Mit Asset siehst du das gelbe TAXI-Dachschild hinter Hallo / Online.
+1. Xcode: **Luckys Taxi Fahrer** → links **Assets** öffnen.  
+2. Datei [`app_background.jpg`](app_background.jpg) in Assets ziehen.  
+3. Name: **`app_background`**. Target angehakt.  
+4. Datei [`LoginView.swift`](LoginView.swift) **komplett ersetzen** (Cmd+A → einfügen → Cmd+S).  
+5. [`HomeView.swift`](HomeView.swift) ebenfalls ersetzen (nutzt denselben `TaxiHintergrund`).  
+6. Stopp ■ → Play ▶.
+
+Startseite = Anmelden-Screen. Nach Login bleibt dasselbe Bild auf Home.
 
 ## Firestore-Regeln (4 Klicks, nötig fürs Login)
 
