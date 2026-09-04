@@ -16,10 +16,15 @@ struct LoginView: View {
     @State private var email = "fahrer@test.de"
     @State private var password = ""
     @State private var errorMessage: String?
+    @State private var statusText = "Status: bereit"
+    @State private var showErrorAlert = false
     @State private var isLoggedIn = false
     @State private var driverName = ""
     @State private var driverUid = ""
     @State private var isLoading = false
+    @State private var loginGeneration = 0
+
+    private let loginTimeoutSeconds: TimeInterval = 20
 
     var body: some View {
         Group {
@@ -30,6 +35,11 @@ struct LoginView: View {
             }
         }
         .preferredColorScheme(.light)
+        .alert("Login-Fehler", isPresented: $showErrorAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "Unbekannter Fehler")
+        }
     }
 
     /// Oben: klares TAXI-Foto. Unten: Login (scrollbar, Return = Einloggen).
@@ -117,9 +127,15 @@ struct LoginView: View {
                         .background(taxiYellow)
                         .foregroundStyle(Color.black)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .disabled(isLoading || password.isEmpty)
+                        .disabled(isLoading)
 
-                        Text("Tastatur nach unten wischen, dann Einloggen. Bei Fehler erscheint ein roter Kasten oben.")
+                        Text(statusText)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(taxiYellow)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+
+                        Text("Ohne Passwort erscheint ein Fehlerfenster (kein stiller Button mehr). Tastatur nach unten wischen, dann Einloggen.")
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.75))
                             .multilineTextAlignment(.center)
@@ -146,45 +162,81 @@ struct LoginView: View {
         )
 
         errorMessage = nil
-        isLoading = true
+        showErrorAlert = false
+        loginGeneration += 1
+        let generation = loginGeneration
 
         let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.contains("@") {
-            isLoading = false
-            errorMessage = "In der E-Mail fehlt @. Nutze fahrer@test.de"
+            failLogin(
+                "In der E-Mail fehlt @. Nutze fahrer@test.de",
+                status: "Status: E-Mail ungültig"
+            )
             return
         }
         if password.isEmpty {
-            isLoading = false
-            errorMessage = "Bitte Passwort eingeben."
+            failLogin(
+                "Bitte Passwort eingeben.",
+                status: "Status: Passwort fehlt"
+            )
             return
         }
 
+        isLoading = true
+        statusText = "Status: Firebase…"
+
+        scheduleLoginTimeout(generation: generation)
+
         Auth.auth().signIn(withEmail: trimmed, password: password) { result, error in
             DispatchQueue.main.async {
+                guard generation == loginGeneration else { return }
+
                 if let error {
-                    isLoading = false
-                    errorMessage = germanAuthMessage(error)
+                    failLogin(germanAuthMessage(error), status: "Status: Auth fehlgeschlagen")
                     return
                 }
 
                 guard let uid = result?.user.uid else {
-                    isLoading = false
-                    errorMessage = "Login fehlgeschlagen (keine UID)."
+                    failLogin(
+                        "Login fehlgeschlagen (keine UID).",
+                        status: "Status: keine UID"
+                    )
                     return
                 }
 
-                loadDriverProfile(uid: uid, collectionName: "user") { found in
+                statusText = "Status: Firestore…"
+                loadDriverProfile(uid: uid, collectionName: "user", generation: generation) { found in
+                    guard generation == loginGeneration else { return }
                     if found { return }
-                    loadDriverProfile(uid: uid, collectionName: "users") { foundSecond in
+                    loadDriverProfile(uid: uid, collectionName: "users", generation: generation) { foundSecond in
+                        guard generation == loginGeneration else { return }
                         if foundSecond { return }
-                        isLoading = false
                         try? Auth.auth().signOut()
-                        errorMessage = "Kein Fahrer-Dokument für UID \(uid) in user/ oder users/. Firestore prüfen."
+                        failLogin(
+                            "Kein Fahrer-Dokument für UID \(uid) in user/ oder users/. Firestore prüfen.",
+                            status: "Status: kein Fahrer-Dokument"
+                        )
                     }
                 }
             }
         }
+    }
+
+    private func scheduleLoginTimeout(generation: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + loginTimeoutSeconds) {
+            guard generation == loginGeneration, isLoading, !isLoggedIn else { return }
+            failLogin(
+                "Antwort von Firebase kommt nicht – Netz / GoogleService-Info.plist prüfen.",
+                status: "Status: Timeout"
+            )
+        }
+    }
+
+    private func failLogin(_ message: String, status: String) {
+        isLoading = false
+        errorMessage = message
+        statusText = status
+        showErrorAlert = true
     }
 
     private func germanAuthMessage(_ error: Error) -> String {
@@ -203,18 +255,33 @@ struct LoginView: View {
         return text
     }
 
-    private func loadDriverProfile(uid: String, collectionName: String, completion: @escaping (Bool) -> Void) {
+    private func loadDriverProfile(
+        uid: String,
+        collectionName: String,
+        generation: Int,
+        completion: @escaping (Bool) -> Void
+    ) {
         Firestore.firestore().collection(collectionName).document(uid).getDocument { snap, error in
             DispatchQueue.main.async {
+                guard generation == loginGeneration else {
+                    completion(true)
+                    return
+                }
+
                 if let error {
                     let nsError = error as NSError
-                    isLoading = false
                     try? Auth.auth().signOut()
                     if nsError.domain == FirestoreErrorDomain,
                        nsError.code == FirestoreErrorCode.permissionDenied.rawValue {
-                        errorMessage = "Keine Berechtigung für Firestore (\(collectionName)). Tab Regeln prüfen."
+                        failLogin(
+                            "Keine Berechtigung für Firestore (\(collectionName)). Tab Regeln prüfen.",
+                            status: "Status: Firestore-Regel fehlt"
+                        )
                     } else {
-                        errorMessage = "Firestore-Fehler (\(collectionName)): \(error.localizedDescription)"
+                        failLogin(
+                            "Firestore-Fehler (\(collectionName)): \(error.localizedDescription)",
+                            status: "Status: Firestore-Fehler"
+                        )
                     }
                     completion(true)
                     return
@@ -236,11 +303,14 @@ struct LoginView: View {
                     driverName = name
                     isLoggedIn = true
                     isLoading = false
+                    statusText = "Status: angemeldet"
                     completion(true)
                 } else {
-                    isLoading = false
                     try? Auth.auth().signOut()
-                    errorMessage = "Dokument \(collectionName)/\(uid) gefunden, aber role=\(role.isEmpty ? "leer" : role) (erwartet: driver)."
+                    failLogin(
+                        "Dokument \(collectionName)/\(uid) gefunden, aber role=\(role.isEmpty ? "leer" : role) (erwartet: driver).",
+                        status: "Status: role falsch"
+                    )
                     completion(true)
                 }
             }

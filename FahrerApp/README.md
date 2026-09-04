@@ -1,5 +1,14 @@
 # Luckys Taxi Fahrer — Swift-Dateien + Backend
 
+## Login-Checkliste (3 Schritte — sonst „tut sich nix“)
+
+1. **Code:** In Xcode `LoginView.swift` öffnen → **Cmd+A** → löschen → komplette neue Datei aus diesem Ordner einfügen → **Cmd+S** → Stopp ■ → Play ▶  
+   Erwartung: gelber Button, Statuszeile „Status: bereit“, Hinweistext unter dem Button. Ohne Passwort → **Fehlerfenster** (kein stiller Button mehr).
+2. **Passwort:** Firebase Console → [Authentication](https://console.firebase.google.com/project/collectionshop-2854d/authentication/users) → User `fahrer@test.de` → Passwort setzen/zurücksetzen (z. B. `Test1234!`) → in der App eingeben.
+3. **Regeln:** Block aus [`firestore-user-rule.txt`](firestore-user-rule.txt) in [Firestore → Regeln](https://console.firebase.google.com/project/collectionshop-2854d/firestore/rules) einfügen → **Veröffentlichen** (read + write für eigenes `user/{uid}`).
+
+Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkretem Text. Alert-Text merken / Screenshot.
+
 ## Features (aktuell)
 
 1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
@@ -48,16 +57,16 @@ Layout: **obere Hälfte** = klares Foto, **untere Hälfte** = Navy-Login mit **E
 
 Fehlt das Asset, erscheint oben gelb mit Hinweis „Asset app_background einfügen“.
 
-## Firestore-Regeln (4 Klicks, nötig fürs Login)
+## Firestore-Regeln (4 Klicks, nötig für Login + Online)
 
-Ohne diese Regel kommt in der App **„Keine Berechtigung für Firestore“**.
+Ohne diese Regel kommt in der App **„Keine Berechtigung für Firestore“**. Die Regel erlaubt **read und write** für das eigene `user/{uid}` (Login + Online-Toggle).
 
 1. Datei [`firestore-user-rule.txt`](firestore-user-rule.txt) öffnen und den `match /user/...`-Block kopieren.  
 2. Firebase-Regeln öffnen: [collectionshop-2854d → Firestore → Regeln](https://console.firebase.google.com/project/collectionshop-2854d/firestore/rules)  
-3. Den Block **nach** dem bestehenden `match /fahrer/...` einfügen (vor den letzten `}`).  
+3. Den Block **nach** dem bestehenden `match /fahrer/...` einfügen (vor den letzten `}`). Falls schon ein älterer `match /user/...` mit `write: if false` existiert: **ersetzen**.  
 4. **Veröffentlichen** → App neu starten → `fahrer@test.de` + Passwort einloggen.
 
-Erwartung: keine Meldung „Keine Berechtigung“ mehr, sondern HomeView.
+Erwartung: keine Meldung „Keine Berechtigung“ mehr, sondern HomeView; Online-Schalter speichert `isOnline`.
 
 ## Backend-Endpunkte (neu)
 
