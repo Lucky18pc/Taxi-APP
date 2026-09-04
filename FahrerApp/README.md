@@ -28,26 +28,18 @@ Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
 
 ## TAXI-Hintergrund auf der Startseite
 
-Gleiches Foto wie die **Fahrgast-App** (gelbes Dachschild **TAXI**).
+Gleiches Motiv wie die **Fahrgast-App**: gelbes Dachschild mit **TAXI** — jetzt **näher gezoomt** und in höherer Auflösung (720×1280), damit es nicht verschwommen wirkt.
 
-**Wichtig:** Wenn der Screen noch hell/weiß ist und Labels fehlen, läuft in Xcode noch die **alte** `LoginView`. Dann hilft nur:
+**Wichtig:** Wenn der Screen noch hell/weiß oder unscharf ist:
 
-1. Xcode → **`LoginView.swift`** öffnen  
-2. **Cmd+A** → alles löschen → neuen Inhalt aus diesem Repo **komplett einfügen**  
-3. **Cmd+S** → Stopp ■ → Play ▶  
+1. Xcode → **Assets** → altes `app_background` löschen oder ersetzen  
+2. Neue Datei [`app_background.jpg`](app_background.jpg) hineinziehen, Name **`app_background`**  
+3. **`LoginView.swift`** öffnen → **Cmd+A** → alles löschen → neuen Inhalt **komplett einfügen** → **Cmd+S**  
+4. Stopp ■ → Play ▶  
 
-Ohne kompletten Ersatz bleibt der alte helle Screen.
+Ohne kompletten Ersatz von Code **und** Bild bleibt der alte, weiche Screen.
 
-**Layout jetzt:** TAXI-Foto oben frei sichtbar, unten dunkle Navy-Karte mit:
-- Titel gelb, **Anmelden** weiß  
-- **E-Mail-Adresse** / **Passwort** gelb, fett  
-- Felder creme mit **schwarzem Rand** und schwarzer Schrift  
-
-**Asset:**
-1. [`app_background.jpg`](app_background.jpg) in **Assets** ziehen, Name **`app_background`**  
-2. [`HomeView.swift`](HomeView.swift) ebenfalls ersetzen (gleicher `TaxiHintergrund`)  
-
-Ohne Asset: Taxi-Gelb. Mit Asset: TAXI-Schild.
+**Layout:** TAXI-Schild groß oben (Zoom), unten dunkle Navy-Karte mit lesbaren Labels **E-Mail-Adresse** / **Passwort**.
 
 ## Firestore-Regeln (4 Klicks, nötig fürs Login)
 

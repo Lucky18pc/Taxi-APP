@@ -208,8 +208,12 @@ struct LoginView: View {
 }
 
 /// TAXI-Hintergrund für Startseite + Home.
-/// Bild aus Assets: Name genau `app_background` (wie Fahrgast-App).
+/// Asset-Name: `app_background` — Zoom aufs Dachschild, damit TAXI groß und scharf wirkt.
 struct TaxiHintergrund: View {
+    /// Näher an das Schild zoomen (Originalfoto war zu klein/weich auf dem iPhone).
+    private let zoom: CGFloat = 1.35
+    private let offsetY: CGFloat = -40
+
     private var taxiImage: UIImage? {
         if let named = UIImage(named: "app_background") {
             return named
@@ -224,13 +228,14 @@ struct TaxiHintergrund: View {
 
     var body: some View {
         ZStack {
-            // Immer sichtbar — auch ohne Asset (dann reines Taxi-Gelb)
             Color(red: 1, green: 0.8, blue: 0)
 
             if let taxiImage {
                 Image(uiImage: taxiImage)
                     .resizable()
                     .scaledToFill()
+                    .scaleEffect(zoom)
+                    .offset(y: offsetY)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .clipped()
             }
