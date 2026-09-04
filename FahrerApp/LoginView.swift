@@ -2,135 +2,1239 @@
 //  LoginView.swift
 //  Luckys Taxi Fahrer
 //
+// === EINE DATEI FÜR ALLES (Login + Home + GPS + API) ===
+// In Xcode: NUR diese Datei ersetzen (Cmd+A → einfügen).
+// DANN LÖSCHEN (sonst rot): alte TaxiUI, HomeView, FahrerGPSTracker,
+// zweite LoginView, alte Dateien mit TaxiBild / FahrerGPSTracker.
+// Asset: app_background
+//
 
 import SwiftUI
+import UIKit
 import FirebaseAuth
 import FirebaseFirestore
+import Foundation
+import CoreLocation
+import Combine
+import UserNotifications
+import AudioToolbox
 
 struct LoginView: View {
-    @State private var email = ""
+    @State private var email = "fahrer@test.de"
     @State private var password = ""
     @State private var errorMessage: String?
+    @State private var statusText = "Status: bereit"
+    @State private var showErrorAlert = false
     @State private var isLoggedIn = false
     @State private var driverName = ""
     @State private var driverUid = ""
     @State private var isLoading = false
+    @State private var loginGeneration = 0
+
+    private let loginTimeoutSeconds: TimeInterval = 20
 
     var body: some View {
         Group {
             if isLoggedIn {
-                HomeView(driverUid: driverUid, driverName: driverName)
+                // Binding statt Closure: Abmelden setzt isLoggedIn direkt → Startseite.
+                LoginHomeScreen(
+                    driverUid: driverUid,
+                    driverName: driverName,
+                    isLoggedIn: $isLoggedIn
+                )
             } else {
-                loginForm
+                startPage
             }
+        }
+        .preferredColorScheme(.light)
+        .onChange(of: isLoggedIn) { loggedIn in
+            // Nach Abmelden State aufräumen (Home setzt nur isLoggedIn = false).
+            guard !loggedIn else { return }
+            driverUid = ""
+            driverName = ""
+            password = ""
+            isLoading = false
+            statusText = "Status: abgemeldet"
+            errorMessage = nil
+            showErrorAlert = false
+        }
+        .alert("Login-Fehler", isPresented: $showErrorAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "Unbekannter Fehler")
         }
     }
 
-    private var loginForm: some View {
-        VStack(spacing: 20) {
-            Text("Luckys Taxi Fahrer")
-                .font(.largeTitle.bold())
+    /// Oben: klares TAXI-Foto. Unten: Login (scrollbar, Return = Einloggen).
+    private var startPage: some View {
+        let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
+        let taxiYellow = Color(red: 1, green: 0.8, blue: 0)
+        let cream = Color(red: 1.0, green: 0.96, blue: 0.82)
 
-            Text("Anmelden")
-                .font(.title2)
+        return GeometryReader { geo in
+            VStack(spacing: 0) {
+                // Weniger Höhe oben, damit Tastatur den Button nicht verdeckt
+                LoginTaxiHeroFoto()
+                    .frame(width: geo.size.width, height: max(160, geo.size.height * 0.32))
+                    .clipped()
 
-            TextField("E-Mail", text: $email)
-                .textInputAutocapitalization(.never)
-                .keyboardType(.emailAddress)
-                .textFieldStyle(.roundedBorder)
-                .disabled(isLoading)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Luckys Taxi Fahrer")
+                            .font(.system(size: 24, weight: .black))
+                            .foregroundStyle(taxiYellow)
+                            .frame(maxWidth: .infinity)
 
-            SecureField("Passwort", text: $password)
-                .textFieldStyle(.roundedBorder)
-                .disabled(isLoading)
+                        Text("Anmelden")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
 
-            if let errorMessage {
-                Text(errorMessage)
-                    .foregroundStyle(.red)
-                    .font(.footnote)
-                    .multilineTextAlignment(.center)
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .foregroundStyle(.white)
+                                .font(.subheadline.weight(.bold))
+                                .multilineTextAlignment(.center)
+                                .padding(12)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(red: 0.75, green: 0.1, blue: 0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+
+                        Text("E-Mail-Adresse")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(taxiYellow)
+
+                        TextField("fahrer@test.de", text: $email)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                            .textContentType(.username)
+                            .submitLabel(.next)
+                            .foregroundColor(.black)
+                            .tint(.black)
+                            .padding(12)
+                            .background(cream)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 2.5)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .disabled(isLoading)
+
+                        Text("Passwort")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(taxiYellow)
+
+                        SecureField("Passwort eingeben", text: $password)
+                            .textContentType(.password)
+                            .submitLabel(.go)
+                            .onSubmit { login() }
+                            .foregroundColor(.black)
+                            .tint(.black)
+                            .padding(12)
+                            .background(cream)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 2.5)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .disabled(isLoading)
+
+                        Button(isLoading ? "Bitte warten…" : "Einloggen") {
+                            login()
+                        }
+                        .font(.headline.weight(.bold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(taxiYellow)
+                        .foregroundStyle(Color.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .disabled(isLoading)
+
+                        Text(statusText)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(taxiYellow)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+
+                        Text("Ohne Passwort erscheint ein Fehlerfenster (kein stiller Button mehr). Tastatur nach unten wischen, dann Einloggen.")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.75))
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 4)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .padding(.bottom, 40)
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(navy)
             }
-
-            Button(isLoading ? "Bitte warten…" : "Einloggen") {
-                login()
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .disabled(isLoading)
+            .ignoresSafeArea(edges: .bottom)
         }
-        .padding()
+        .ignoresSafeArea(edges: .top)
     }
 
     private func login() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil, from: nil, for: nil
+        )
+
         errorMessage = nil
+        showErrorAlert = false
+        loginGeneration += 1
+        let generation = loginGeneration
+
+        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.contains("@") {
+            failLogin(
+                "In der E-Mail fehlt @. Nutze fahrer@test.de",
+                status: "Status: E-Mail ungültig"
+            )
+            return
+        }
+        if password.isEmpty {
+            failLogin(
+                "Bitte Passwort eingeben.",
+                status: "Status: Passwort fehlt"
+            )
+            return
+        }
+
         isLoading = true
+        statusText = "Status: Firebase…"
 
-        Auth.auth().signIn(withEmail: email.trimmingCharacters(in: .whitespacesAndNewlines),
-                           password: password) { result, error in
-            if let error {
-                isLoading = false
-                errorMessage = error.localizedDescription
-                return
-            }
+        scheduleLoginTimeout(generation: generation)
 
-            guard let uid = result?.user.uid else {
-                isLoading = false
-                errorMessage = "Login fehlgeschlagen (keine UID)."
-                return
-            }
+        Auth.auth().signIn(withEmail: trimmed, password: password) { result, error in
+            DispatchQueue.main.async {
+                guard generation == loginGeneration else { return }
 
-            // Zuerst "user", dann Fallback "users"
-            loadDriverProfile(uid: uid, collectionName: "user") { found in
-                if found { return }
-                loadDriverProfile(uid: uid, collectionName: "users") { foundSecond in
-                    if foundSecond { return }
-                    isLoading = false
-                    try? Auth.auth().signOut()
-                    errorMessage = "Kein Fahrer-Dokument für UID \(uid) in user/ oder users/. Firestore prüfen."
+                if let error {
+                    failLogin(germanAuthMessage(error), status: "Status: Auth fehlgeschlagen")
+                    return
+                }
+
+                guard let uid = result?.user.uid else {
+                    failLogin(
+                        "Login fehlgeschlagen (keine UID).",
+                        status: "Status: keine UID"
+                    )
+                    return
+                }
+
+                statusText = "Status: Firestore…"
+                loadDriverProfile(uid: uid, collectionName: "user", generation: generation) { found in
+                    guard generation == loginGeneration else { return }
+                    if found { return }
+                    loadDriverProfile(uid: uid, collectionName: "users", generation: generation) { foundSecond in
+                        guard generation == loginGeneration else { return }
+                        if foundSecond { return }
+                        try? Auth.auth().signOut()
+                        failLogin(
+                            "Kein Fahrer-Dokument für UID \(uid) in user/ oder users/. Firestore prüfen.",
+                            status: "Status: kein Fahrer-Dokument"
+                        )
+                    }
                 }
             }
         }
     }
 
-    private func loadDriverProfile(uid: String, collectionName: String, completion: @escaping (Bool) -> Void) {
+    private func scheduleLoginTimeout(generation: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + loginTimeoutSeconds) {
+            guard generation == loginGeneration, isLoading, !isLoggedIn else { return }
+            failLogin(
+                "Antwort von Firebase kommt nicht – Netz / GoogleService-Info.plist prüfen.",
+                status: "Status: Timeout"
+            )
+        }
+    }
+
+    private func failLogin(_ message: String, status: String) {
+        isLoading = false
+        errorMessage = message
+        statusText = status
+        showErrorAlert = true
+    }
+
+    private func germanAuthMessage(_ error: Error) -> String {
+        let text = error.localizedDescription
+        if text.localizedCaseInsensitiveContains("password")
+            || text.localizedCaseInsensitiveContains("credential")
+            || text.localizedCaseInsensitiveContains("invalid") {
+            return "Passwort oder E-Mail stimmt nicht. In Firebase Authentication prüfen (Anleitung: PASSWORT-SCHRITT-FUER-SCHRITT.md)."
+        }
+        if text.localizedCaseInsensitiveContains("network") {
+            return "Kein Netz. WLAN/Internet prüfen und nochmal Einloggen."
+        }
+        if text.localizedCaseInsensitiveContains("badly formatted") {
+            return "E-Mail ungültig. Es muss ein @ drinstehen: fahrer@test.de"
+        }
+        return text
+    }
+
+    private func loadDriverProfile(
+        uid: String,
+        collectionName: String,
+        generation: Int,
+        completion: @escaping (Bool) -> Void
+    ) {
         Firestore.firestore().collection(collectionName).document(uid).getDocument { snap, error in
-            if let error {
-                let nsError = error as NSError
-                isLoading = false
-                try? Auth.auth().signOut()
-                if nsError.domain == FirestoreErrorDomain,
-                   nsError.code == FirestoreErrorCode.permissionDenied.rawValue {
-                    errorMessage = "Keine Berechtigung für Firestore (\(collectionName)). Tab Regeln prüfen."
-                } else {
-                    errorMessage = "Firestore-Fehler (\(collectionName)): \(error.localizedDescription)"
+            DispatchQueue.main.async {
+                guard generation == loginGeneration else {
+                    completion(true)
+                    return
                 }
-                completion(true) // stop — echter Fehler, nicht „nicht gefunden“
-                return
-            }
 
-            guard let data = snap?.data(), snap?.exists == true else {
-                completion(false) // in anderer Collection weiterversuchen
-                return
-            }
+                if let error {
+                    let nsError = error as NSError
+                    try? Auth.auth().signOut()
+                    if nsError.domain == FirestoreErrorDomain,
+                       nsError.code == FirestoreErrorCode.permissionDenied.rawValue {
+                        failLogin(
+                            "Keine Berechtigung für Firestore (\(collectionName)). Tab Regeln prüfen.",
+                            status: "Status: Firestore-Regel fehlt"
+                        )
+                    } else {
+                        failLogin(
+                            "Firestore-Fehler (\(collectionName)): \(error.localizedDescription)",
+                            status: "Status: Firestore-Fehler"
+                        )
+                    }
+                    completion(true)
+                    return
+                }
 
-            let role = (data["role"] as? String ?? "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-                .lowercased()
-            let name = (data["displayName"] as? String)?
-                .trimmingCharacters(in: .whitespacesAndNewlines) ?? "Fahrer"
+                guard let data = snap?.data(), snap?.exists == true else {
+                    completion(false)
+                    return
+                }
 
-            if role == "driver" {
-                driverUid = uid
-                driverName = name
-                isLoggedIn = true
-                isLoading = false
-                completion(true)
-            } else {
-                isLoading = false
-                try? Auth.auth().signOut()
-                errorMessage = "Dokument \(collectionName)/\(uid) gefunden, aber role=\(role.isEmpty ? "leer" : role) (erwartet: driver)."
-                completion(true)
+                let role = (data["role"] as? String ?? "")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .lowercased()
+                let name = (data["displayName"] as? String)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? "Fahrer"
+
+                if role == "driver" {
+                    driverUid = uid
+                    driverName = name
+                    isLoggedIn = true
+                    isLoading = false
+                    statusText = "Status: angemeldet"
+                    completion(true)
+                } else {
+                    try? Auth.auth().signOut()
+                    failLogin(
+                        "Dokument \(collectionName)/\(uid) gefunden, aber role=\(role.isEmpty ? "leer" : role) (erwartet: driver).",
+                        status: "Status: role falsch"
+                    )
+                    completion(true)
+                }
             }
         }
     }
 }
+
+// MARK: - Taxi Hero (LoginTaxi* = einzigartige Namen, keine Redeclaration)
+
+enum LoginTaxiBild {
+    static var uiImage: UIImage? {
+        if let named = UIImage(named: "app_background") {
+            return named
+        }
+        if let url = Bundle.main.url(forResource: "app_background", withExtension: "jpg"),
+           let data = try? Data(contentsOf: url),
+           let image = UIImage(data: data) {
+            return image
+        }
+        return nil
+    }
+}
+
+struct LoginTaxiHeroFoto: View {
+    private let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
+    private let yellow = Color(red: 1, green: 0.8, blue: 0)
+
+    var body: some View {
+        ZStack {
+            yellow
+            if let image = LoginTaxiBild.uiImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .clipped()
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "car.side.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(navy)
+                    Text("TAXI")
+                        .font(.system(size: 48, weight: .black))
+                        .foregroundStyle(navy)
+                    Text("Asset „app_background“ in Xcode Assets einfügen")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(navy)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - GPS (vor LoginHomeScreen)
+
+final class LoginGPSTracker: NSObject, ObservableObject {
+    @Published var lastError: String?
+    @Published var isSharing = false
+
+    private let manager = CLLocationManager()
+    private var driverUid = ""
+    private var bookingId: String?
+    private var operatorSlug = LoginBackendConfig.defaultOperatorSlug
+    private var lastSentAt: Date?
+    private let minInterval: TimeInterval = 4
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 15
+        manager.pausesLocationUpdatesAutomatically = true
+    }
+
+    func start(driverUid: String, bookingId: String, operatorSlug: String) {
+        self.driverUid = driverUid
+        self.bookingId = bookingId
+        self.operatorSlug = operatorSlug
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            lastError = nil
+            isSharing = true
+
+            switch manager.authorizationStatus {
+            case .authorizedWhenInUse, .authorizedAlways:
+                manager.startUpdatingLocation()
+            case .denied, .restricted:
+                lastError = "Standort-Zugriff verweigert. In iOS-Einstellungen erlauben."
+                isSharing = false
+            default:
+                manager.requestWhenInUseAuthorization()
+            }
+        }
+    }
+
+    func stop() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            isSharing = false
+            bookingId = nil
+            manager.stopUpdatingLocation()
+        }
+    }
+
+    private func send(_ location: CLLocation) {
+        guard isSharing, !driverUid.isEmpty else { return }
+        if let last = lastSentAt, Date().timeIntervalSince(last) < minInterval {
+            return
+        }
+        lastSentAt = Date()
+
+        let uid = driverUid
+        let booking = bookingId
+        let slug = operatorSlug
+        let lat = location.coordinate.latitude
+        let lng = location.coordinate.longitude
+
+        Task {
+            do {
+                try await LoginDriverAPI.postLocation(
+                    driverUid: uid,
+                    latitude: lat,
+                    longitude: lng,
+                    bookingId: booking,
+                    operatorSlug: slug
+                )
+                await MainActor.run { [weak self] in
+                    self?.lastError = nil
+                }
+            } catch {
+                let message = error.localizedDescription
+                await MainActor.run { [weak self] in
+                    self?.lastError = message
+                }
+            }
+        }
+    }
+}
+
+extension LoginGPSTracker: CLLocationManagerDelegate {
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, isSharing else { return }
+            switch manager.authorizationStatus {
+            case .authorizedWhenInUse, .authorizedAlways:
+                self.manager.startUpdatingLocation()
+            case .denied, .restricted:
+                lastError = "Standort-Zugriff verweigert."
+                isSharing = false
+            default:
+                break
+            }
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        DispatchQueue.main.async { [weak self] in
+            self?.send(location)
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        let message = error.localizedDescription
+        DispatchQueue.main.async { [weak self] in
+            self?.lastError = message
+        }
+    }
+}
+
+// MARK: - Home Screen (in LoginView, kein externes FahrerHomeView nötig)
+
+struct LoginHomeScreen: View {
+    let driverUid: String
+    let driverName: String
+    @Binding var isLoggedIn: Bool
+
+    @StateObject private var gps = LoginGPSTracker()
+
+    @State private var isOnline = false
+    @State private var bookings: [LoginDriverBooking] = []
+    @State private var statusText = "Du bist offline."
+    @State private var errorMessage: String?
+    @State private var isBusy = false
+    @State private var acceptedBookingId: String?
+    @State private var suppressOnlineWrite = false
+    @State private var onlineWriteGeneration = 0
+    @State private var knownBookingIds: Set<String> = []
+    @State private var hasSeededBookingIds = false
+    @State private var newRideBanner: String?
+    @State private var bannerDismissTask: Task<Void, Never>?
+
+    private let operatorSlug = LoginBackendConfig.defaultOperatorSlug
+    private let taxiYellow = Color(red: 1, green: 0.8, blue: 0)
+    private let cream = Color(red: 1.0, green: 0.96, blue: 0.82)
+    private let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Hallo, \(driverName)")
+                        .font(.title2.bold())
+                        .foregroundStyle(navy)
+
+                    Button(action: logout) {
+                        Text("Abmelden")
+                            .font(.title3.weight(.black))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(taxiYellow)
+                            .foregroundStyle(navy)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(navy, lineWidth: 2.5)
+                                    .allowsHitTesting(false)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+
+                    Toggle("Online / Schicht", isOn: $isOnline)
+                        .foregroundStyle(navy)
+                        .padding()
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(navy.opacity(0.35), lineWidth: 1.5)
+                                .allowsHitTesting(false)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .disabled(isBusy)
+                        .onChange(of: isOnline) { newValue in
+                            if suppressOnlineWrite {
+                                suppressOnlineWrite = false
+                                return
+                            }
+                            onlineWriteGeneration += 1
+                            let generation = onlineWriteGeneration
+                            Task { await writeOnline(newValue, generation: generation) }
+                        }
+
+                    Text(statusText)
+                        .foregroundStyle(navy.opacity(0.85))
+
+                    if let newRideBanner {
+                        bannerView(newRideBanner)
+                    }
+
+                    NavigationLink {
+                        LoginPauseSpieleView()
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Pause-Spiele")
+                                    .font(.headline.weight(.bold))
+                                    .foregroundStyle(navy)
+                                Text("Bei Langeweile: Taxi tippen, Memory, Tarif rechnen")
+                                    .font(.caption)
+                                    .foregroundStyle(navy.opacity(0.75))
+                            }
+                            Spacer()
+                            Text("▶").foregroundStyle(navy)
+                        }
+                        .padding(14)
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(navy.opacity(0.35), lineWidth: 1.5)
+                                .allowsHitTesting(false)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
+                            .font(.footnote.weight(.semibold))
+                    }
+
+                    if gps.isSharing {
+                        Text("Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(navy.opacity(0.85))
+                    }
+                    if let locError = gps.lastError {
+                        Text("GPS: \(locError)")
+                            .font(.caption)
+                            .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
+                    }
+
+                    if isOnline {
+                        ridesSection
+                    }
+                }
+                .padding()
+                .animation(.easeInOut(duration: 0.25), value: newRideBanner)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background {
+                ZStack {
+                    LoginTaxiHintergrund()
+                    taxiYellow.opacity(0.72).ignoresSafeArea()
+                }
+                .allowsHitTesting(false)
+            }
+            .navigationTitle("Fahrer")
+            .toolbarBackground(taxiYellow.opacity(0.9), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.light, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Abmelden", action: logout)
+                        .fontWeight(.bold)
+                        .foregroundStyle(navy)
+                }
+            }
+            .task { await refreshOnlineFromFirestore() }
+            .task(id: isOnline) { await pollWhileOnline() }
+        }
+        .background(taxiYellow)
+        .preferredColorScheme(.light)
+    }
+
+    private var ridesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Offene Fahrten")
+                    .font(.headline)
+                    .foregroundStyle(navy)
+                Spacer()
+                Button("Aktualisieren") {
+                    Task { await fetchBookings(silent: false) }
+                }
+                .foregroundStyle(navy)
+                .disabled(isBusy)
+            }
+
+            if bookings.isEmpty {
+                Text("Keine offenen Buchungen.")
+                    .foregroundStyle(navy.opacity(0.75))
+            } else {
+                ForEach(bookings) { booking in
+                    rideCard(booking)
+                }
+            }
+        }
+    }
+
+    private func bannerView(_ message: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Neue Fahrt!")
+                    .font(.headline.weight(.black))
+                    .foregroundStyle(.white)
+                Text(message)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.95))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            Button("OK") { clearBanner() }
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(navy)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(taxiYellow)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(red: 0.85, green: 0.35, blue: 0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func rideCard(_ booking: LoginDriverBooking) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(booking.titleLine)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(navy)
+            if let pickupDate = booking.pickupDate {
+                Text(pickupDate)
+                    .font(.caption)
+                    .foregroundStyle(navy.opacity(0.7))
+            }
+            if let paymentMethod = booking.paymentMethod {
+                Text("Zahlung: \(paymentMethod)")
+                    .font(.caption)
+                    .foregroundStyle(navy.opacity(0.85))
+            }
+
+            if acceptedBookingId == booking.bookingId {
+                Button("Fahrt erledigt") {
+                    Task { await finishRide(booking) }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+            } else {
+                Button("Annehmen") {
+                    Task { await takeRide(booking) }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+                .disabled(acceptedBookingId != nil || isBusy)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(cream.opacity(0.95))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    // MARK: Actions
+
+    private func logout() {
+        onlineWriteGeneration += 1
+        suppressOnlineWrite = true
+        isOnline = false
+        bookings = []
+        acceptedBookingId = nil
+        errorMessage = nil
+        statusText = "Abgemeldet."
+        gps.stop()
+        knownBookingIds = []
+        hasSeededBookingIds = false
+        clearBanner()
+        try? Auth.auth().signOut()
+        isLoggedIn = false
+    }
+
+    private func clearBanner() {
+        bannerDismissTask?.cancel()
+        bannerDismissTask = nil
+        newRideBanner = nil
+    }
+
+    private func showBanner(_ message: String) {
+        bannerDismissTask?.cancel()
+        newRideBanner = message
+        bannerDismissTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 12_000_000_000)
+            guard !Task.isCancelled else { return }
+            newRideBanner = nil
+        }
+    }
+
+    private func setOnlineLocal(_ online: Bool, status: String? = nil) {
+        if let status { statusText = status }
+        guard isOnline != online else { return }
+        suppressOnlineWrite = true
+        isOnline = online
+    }
+
+    private func refreshOnlineFromFirestore() async {
+        do {
+            let snap = try await Firestore.firestore()
+                .collection("user")
+                .document(driverUid)
+                .getDocument()
+            let online = snap.data()?["isOnline"] as? Bool ?? false
+            await MainActor.run {
+                setOnlineLocal(online, status: online ? "Online — bereit." : "Du bist offline.")
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = "Status laden: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    private func writeOnline(_ online: Bool, generation: Int) async {
+        await MainActor.run {
+            isBusy = true
+            errorMessage = nil
+            if !online {
+                knownBookingIds = []
+                hasSeededBookingIds = false
+                clearBanner()
+            }
+        }
+
+        do {
+            try await Firestore.firestore()
+                .collection("user")
+                .document(driverUid)
+                .setData([
+                    "isOnline": online,
+                    "onlineUpdatedAt": FieldValue.serverTimestamp(),
+                ], merge: true)
+
+            if await MainActor.run(body: { generation != onlineWriteGeneration }) { return }
+
+            await MainActor.run {
+                statusText = online ? "Online — bereit." : "Du bist offline."
+                if !online {
+                    bookings = []
+                    acceptedBookingId = nil
+                    gps.stop()
+                }
+                isBusy = false
+            }
+        } catch {
+            if await MainActor.run(body: { generation != onlineWriteGeneration }) { return }
+            await MainActor.run {
+                setOnlineLocal(!online)
+                errorMessage = "Status speichern fehlgeschlagen: \(error.localizedDescription)."
+                isBusy = false
+            }
+        }
+    }
+
+    private func pollWhileOnline() async {
+        guard isOnline else { return }
+        await MainActor.run {
+            knownBookingIds = []
+            hasSeededBookingIds = false
+            clearBanner()
+        }
+        await LoginBenachrichtigung.requestPermissionIfNeeded()
+        await fetchBookings(silent: true)
+        while !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: LoginBenachrichtigung.pollIntervalNanoseconds)
+            guard !Task.isCancelled else { break }
+            guard await MainActor.run(body: { isOnline }) else { break }
+            await fetchBookings(silent: true)
+        }
+    }
+
+    private func fetchBookings(silent: Bool) async {
+        guard await MainActor.run(body: { isOnline }) else { return }
+
+        if !silent {
+            await MainActor.run {
+                isBusy = true
+                errorMessage = nil
+            }
+        }
+        defer {
+            if !silent {
+                Task { @MainActor in isBusy = false }
+            }
+        }
+
+        do {
+            let list = try await LoginDriverAPI.openBookings(operatorSlug: operatorSlug)
+            await MainActor.run {
+                guard isOnline else { return }
+                applyBookings(list)
+            }
+        } catch {
+            if !silent {
+                await MainActor.run { errorMessage = error.localizedDescription }
+            }
+        }
+    }
+
+    @MainActor
+    private func applyBookings(_ list: [LoginDriverBooking]) {
+        let incomingIds = Set(list.map(\.bookingId))
+        let fresh = list.filter { !knownBookingIds.contains($0.bookingId) }
+
+        let next: [LoginDriverBooking]
+        let nextStatus: String
+        if let acceptedBookingId,
+           let kept = bookings.first(where: { $0.bookingId == acceptedBookingId }),
+           !list.contains(where: { $0.bookingId == acceptedBookingId }) {
+            next = [kept] + list
+            nextStatus = "Fahrt aktiv — plus \(list.count) weitere offen."
+        } else {
+            next = list
+            nextStatus = list.isEmpty
+                ? "Online — keine offenen Fahrten."
+                : "Online — \(list.count) offene Fahrt(en)."
+        }
+
+        if bookings.map(\.bookingId) != next.map(\.bookingId)
+            || bookings.map(\.status) != next.map(\.status) {
+            bookings = next
+        }
+        if statusText != nextStatus {
+            statusText = nextStatus
+        }
+
+        if !hasSeededBookingIds {
+            knownBookingIds = incomingIds
+            hasSeededBookingIds = true
+            return
+        }
+
+        if !fresh.isEmpty {
+            knownBookingIds.formUnion(incomingIds)
+            showBanner(LoginBenachrichtigung.bannerMessage(newBookings: fresh))
+            LoginBenachrichtigung.announceNewRide(
+                count: fresh.count,
+                preview: fresh.first?.titleLine
+            )
+        } else {
+            knownBookingIds.formUnion(incomingIds)
+            if let acceptedBookingId {
+                knownBookingIds.insert(acceptedBookingId)
+            }
+        }
+    }
+
+    private func takeRide(_ booking: LoginDriverBooking) async {
+        await MainActor.run {
+            isBusy = true
+            errorMessage = nil
+        }
+        defer { Task { @MainActor in isBusy = false } }
+
+        do {
+            try await LoginDriverAPI.acceptBooking(
+                bookingId: booking.bookingId,
+                driverUid: driverUid,
+                driverName: driverName,
+                operatorSlug: operatorSlug
+            )
+            await MainActor.run {
+                acceptedBookingId = booking.bookingId
+                knownBookingIds.insert(booking.bookingId)
+                statusText = "Fahrt angenommen — GPS-Tracking aktiv. Nach Abschluss unten tippen."
+                bookings = [booking]
+                clearBanner()
+                gps.start(
+                    driverUid: driverUid,
+                    bookingId: booking.bookingId,
+                    operatorSlug: operatorSlug
+                )
+            }
+        } catch {
+            await MainActor.run { errorMessage = error.localizedDescription }
+        }
+    }
+
+    private func finishRide(_ booking: LoginDriverBooking) async {
+        await MainActor.run {
+            isBusy = true
+            errorMessage = nil
+        }
+        defer { Task { @MainActor in isBusy = false } }
+
+        do {
+            try await LoginDriverAPI.completeBooking(
+                bookingId: booking.bookingId,
+                driverUid: driverUid,
+                operatorSlug: operatorSlug
+            )
+            await MainActor.run {
+                acceptedBookingId = nil
+                knownBookingIds.remove(booking.bookingId)
+                statusText = "Fahrt erledigt."
+                gps.stop()
+            }
+            await fetchBookings(silent: false)
+        } catch {
+            await MainActor.run { errorMessage = error.localizedDescription }
+        }
+    }
+}
+
+
+// MARK: - Hintergrund (eigener Name → keine Redeclaration mit TaxiUI.swift)
+
+struct LoginTaxiHintergrund: View {
+    private let yellow = Color(red: 1, green: 0.8, blue: 0)
+
+    private var backgroundImage: UIImage? {
+        if let named = UIImage(named: "app_background") { return named }
+        if let url = Bundle.main.url(forResource: "app_background", withExtension: "jpg"),
+           let data = try? Data(contentsOf: url),
+           let image = UIImage(data: data) {
+            return image
+        }
+        return nil
+    }
+
+    var body: some View {
+        ZStack {
+            yellow.allowsHitTesting(false)
+            if let image = backgroundImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .clipped()
+                    .allowsHitTesting(false)
+            }
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+
+// MARK: - Config / API / Modelle (nur Login*-Namen → keine Doppel-Typen)
+
+enum LoginBackendConfig {
+    static let baseURL = "https://taxiapp-api.onrender.com"
+    static let defaultOperatorSlug = "mannheim"
+    static let driverApiKey = "luckys-fahrer-pilot-k7m2p9qx"
+}
+
+struct LoginDriverBooking: Identifiable, Decodable {
+    let bookingId: String
+    let pickupDate: String?
+    let addressLine: String
+    let destinationAddressLine: String?
+    let paymentMethod: String?
+    let latitude: Double?
+    let longitude: Double?
+    let status: String
+    let createdAt: String?
+
+    var id: String { bookingId }
+
+    var titleLine: String {
+        if let destinationAddressLine, !destinationAddressLine.isEmpty {
+            return "\(addressLine) → \(destinationAddressLine)"
+        }
+        return addressLine
+    }
+}
+
+struct LoginOpenBookingsResponse: Decodable {
+    let bookings: [LoginDriverBooking]
+}
+
+enum LoginDriverAPIError: LocalizedError {
+    case badURL
+    case http(Int, String)
+    case decoding
+
+    var errorDescription: String? {
+        switch self {
+        case .badURL: return "Ungültige Backend-URL."
+        case .http(let code, let body): return "Server \(code): \(body)"
+        case .decoding: return "Antwort konnte nicht gelesen werden."
+        }
+    }
+}
+
+enum LoginDriverAPI {
+    private static func authorizedRequest(url: URL, method: String = "GET", jsonBody: [String: Any]? = nil) throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("Bearer \(LoginBackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
+        if let jsonBody {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
+        }
+        return request
+    }
+
+    static func openBookings(operatorSlug: String) async throws -> [LoginDriverBooking] {
+        guard var components = URLComponents(string: "\(LoginBackendConfig.baseURL)/api/driver/open-bookings") else {
+            throw LoginDriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw LoginDriverAPIError.badURL }
+        let request = try authorizedRequest(url: url)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw LoginDriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+        do {
+            return try JSONDecoder().decode(LoginOpenBookingsResponse.self, from: data).bookings
+        } catch {
+            throw LoginDriverAPIError.decoding
+        }
+    }
+
+    static func acceptBooking(bookingId: String, driverUid: String, driverName: String, operatorSlug: String) async throws {
+        guard var components = URLComponents(string: "\(LoginBackendConfig.baseURL)/api/driver/bookings/\(bookingId)/accept") else {
+            throw LoginDriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw LoginDriverAPIError.badURL }
+        let request = try authorizedRequest(url: url, method: "PATCH", jsonBody: [
+            "driverUid": driverUid,
+            "driverName": driverName,
+        ])
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw LoginDriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
+
+    static func completeBooking(bookingId: String, driverUid: String, operatorSlug: String) async throws {
+        guard var components = URLComponents(string: "\(LoginBackendConfig.baseURL)/api/driver/bookings/\(bookingId)/complete") else {
+            throw LoginDriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw LoginDriverAPIError.badURL }
+        let request = try authorizedRequest(url: url, method: "PATCH", jsonBody: [
+            "driverUid": driverUid,
+        ])
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw LoginDriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
+
+    static func postLocation(
+        driverUid: String,
+        latitude: Double,
+        longitude: Double,
+        bookingId: String?,
+        operatorSlug: String
+    ) async throws {
+        guard var components = URLComponents(string: "\(LoginBackendConfig.baseURL)/api/driver/location") else {
+            throw LoginDriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw LoginDriverAPIError.badURL }
+        var body: [String: Any] = [
+            "driverUid": driverUid,
+            "latitude": latitude,
+            "longitude": longitude,
+        ]
+        if let bookingId, !bookingId.isEmpty {
+            body["bookingId"] = bookingId
+        }
+        let request = try authorizedRequest(url: url, method: "POST", jsonBody: body)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw LoginDriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
+}
+
+enum LoginBenachrichtigung {
+    static let pollIntervalNanoseconds: UInt64 = 18_000_000_000
+
+    @MainActor
+    static func requestPermissionIfNeeded() async {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        if settings.authorizationStatus == .notDetermined {
+            _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
+        }
+        if center.delegate == nil {
+            center.delegate = LoginForegroundNotificationDelegate.shared
+        }
+    }
+
+    static func announceNewRide(count: Int, preview: String?) {
+        AudioServicesPlaySystemSound(1007)
+        let content = UNMutableNotificationContent()
+        content.title = count == 1 ? "Neue Fahrt!" : "\(count) neue Fahrten!"
+        content.body = (preview?.isEmpty == false) ? (preview ?? "Offene Buchung prüfen.") : "Eine neue offene Buchung ist verfügbar."
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: "new-ride-\(UUID().uuidString)", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    static func bannerMessage(newBookings: [LoginDriverBooking]) -> String {
+        if newBookings.count == 1, let first = newBookings.first {
+            return "Neue Fahrt: \(first.titleLine)"
+        }
+        return "\(newBookings.count) neue offene Fahrten!"
+    }
+}
+
+final class LoginForegroundNotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = LoginForegroundNotificationDelegate()
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .list])
+    }
+}
+
+struct LoginPauseSpieleView: View {
+    private let navy = Color(red: 12 / 255, green: 28 / 255, blue: 52 / 255)
+    private let yellow = Color(red: 1, green: 0.8, blue: 0)
+    var body: some View {
+        ZStack {
+            yellow.ignoresSafeArea()
+            VStack(spacing: 12) {
+                Text("Pause-Spiele")
+                    .font(.largeTitle.weight(.black))
+                    .foregroundStyle(navy)
+                Text("Spiele folgen in einem Update. Bei neuer Fahrt zurück zur Liste.")
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(navy.opacity(0.8))
+                    .padding()
+            }
+        }
+        .navigationTitle("Pause")
+    }
+}
+
+
