@@ -15,14 +15,29 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 |-------|--------|
 | `Luckys_Taxi_FahrerApp.swift` | App-Start + Firebase |
 | `LoginView.swift` | Login |
-| `HomeView.swift` | Online + Fahrtenliste |
+| `HomeView.swift` | Online + Fahrtenliste (+ TAXI-Hintergrund) |
 | `BackendConfig.swift` | Backend-URL + Operator-Slug |
 | `DriverBooking.swift` | Modelle |
 | `DriverAPI.swift` | API-Aufrufe |
+| `Assets.xcassets/app_background.imageset/` | TAXI-Dachschild (wie Fahrgast-App) |
+| `app_background.jpg` | Kopie zum Ziehen in Xcode-Assets |
 | `firestore-user-rule.txt` | Firestore-Regel für Collection `user` (nicht in Xcode) |
 
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
 Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
+
+## TAXI-Hintergrund speichern (wie die anderen Bilder)
+
+Gleiches Foto wie die **Fahrgast-App** (`TaxiApp` → Assets → **`app_background`**).
+
+1. Xcode: Projekt **Luckys Taxi Fahrer** öffnen.  
+2. Links den bestehenden Ordner **Assets** (`Assets.xcassets`) anklicken — dort liegen schon App-Icon usw.  
+3. Datei [`app_background.jpg`](app_background.jpg) **oder** den Ordner [`Assets.xcassets/app_background.imageset`](Assets.xcassets/app_background.imageset) in diesen Assets-Ordner ziehen.  
+4. Name im Katalog: **`app_background`** (ohne `.jpg`). Target **Luckys Taxi Fahrer** angehakt.  
+5. `HomeView.swift` aus diesem Ordner übernehmen (nutzt `Image("app_background")`).  
+6. Cmd+S → Stopp ■ → Play ▶ → einloggen.
+
+Ohne dieses Asset im Target bleibt der Screen schwarz bzw. nur gelb. Mit Asset siehst du das gelbe TAXI-Dachschild hinter Hallo / Online.
 
 ## Firestore-Regeln (4 Klicks, nötig fürs Login)
 

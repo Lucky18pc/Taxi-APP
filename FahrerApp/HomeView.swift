@@ -242,16 +242,21 @@ struct HomeView: View {
     }
 }
 
-/// Gleiches gelbes TAXI-Dachschild wie in der Fahrgast-App (Asset-Name: app_background).
+/// Gleiches gelbes TAXI-Dachschild wie in der Fahrgast-App.
+/// Asset-Name genau wie dort: `app_background` (Assets.xcassets).
 struct TaxiHintergrund: View {
     var body: some View {
-        ZStack {
-            Color(red: 1, green: 0.8, blue: 0)
-            Image("app_background")
-                .resizable()
-                .scaledToFill()
-        }
-        .ignoresSafeArea()
-        .allowsHitTesting(false)
+        Image("app_background")
+            .resizable()
+            .scaledToFill()
+            .frame(
+                minWidth: 0, maxWidth: .infinity,
+                minHeight: 0, maxHeight: .infinity,
+                alignment: .center
+            )
+            .clipped()
+            .background(Color(red: 1, green: 0.8, blue: 0))
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
     }
 }
