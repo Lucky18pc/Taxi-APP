@@ -31,7 +31,7 @@ struct HomeView: View {
     @State private var newRideBanner: String?
     @State private var bannerDismissTask: Task<Void, Never>?
 
-    private let operatorSlug = BackendConfig.defaultOperatorSlug
+    private let operatorSlug = FahrerBackendConfig.defaultOperatorSlug
 
     private let taxiYellow = Color(red: 1, green: 0.8, blue: 0)
     private let cream = Color(red: 1.0, green: 0.96, blue: 0.82)

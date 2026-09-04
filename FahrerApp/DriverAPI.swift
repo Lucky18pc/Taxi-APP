@@ -23,7 +23,7 @@ enum DriverAPI {
     private static func authorizedRequest(url: URL, method: String = "GET", jsonBody: [String: Any]? = nil) throws -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.setValue("Bearer \(BackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(FahrerBackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
         if let jsonBody {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
@@ -32,7 +32,7 @@ enum DriverAPI {
     }
 
     static func openBookings(operatorSlug: String) async throws -> [DriverBooking] {
-        var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/open-bookings")
+        var components = URLComponents(string: "\(FahrerBackendConfig.baseURL)/api/driver/open-bookings")
         components?.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
         guard let url = components?.url else { throw DriverAPIError.badURL }
 
@@ -50,7 +50,7 @@ enum DriverAPI {
     }
 
     static func acceptBooking(bookingId: String, driverUid: String, driverName: String, operatorSlug: String) async throws {
-        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/bookings/\(bookingId)/accept") else {
+        guard var components = URLComponents(string: "\(FahrerBackendConfig.baseURL)/api/driver/bookings/\(bookingId)/accept") else {
             throw DriverAPIError.badURL
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
@@ -73,7 +73,7 @@ enum DriverAPI {
     }
 
     static func completeBooking(bookingId: String, driverUid: String, operatorSlug: String) async throws {
-        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/bookings/\(bookingId)/complete") else {
+        guard var components = URLComponents(string: "\(FahrerBackendConfig.baseURL)/api/driver/bookings/\(bookingId)/complete") else {
             throw DriverAPIError.badURL
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
@@ -102,7 +102,7 @@ enum DriverAPI {
         bookingId: String?,
         operatorSlug: String
     ) async throws {
-        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/location") else {
+        guard var components = URLComponents(string: "\(FahrerBackendConfig.baseURL)/api/driver/location") else {
             throw DriverAPIError.badURL
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]

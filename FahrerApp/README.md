@@ -16,6 +16,8 @@ Nach Tippen auf **Einloggen** muss passieren: Home **oder** ein Alert mit konkre
 
 **Abmelden:** `HomeView.swift` **und** `LoginView.swift` zusammen ersetzen. Home bekommt `@Binding var isLoggedIn` (kein fragiler `onLogout`-Callback mehr). Großer gelber **Abmelden**-Button oben im Content + Toolbar. Erwartung: Tippen → sofort Login-Startseite, Status „Status: abgemeldet“.
 
+**Compile-Fehler „Invalid redeclaration of BackendConfig“:** In Xcode alle Dateien namens `BackendConfig` suchen → **alle löschen** bis auf eine. Inhalt muss `enum FahrerBackendConfig` sein (nicht `enum BackendConfig`). Dann Clean Build.
+
 **Pause-Spiele:** Neue Datei `FahrerSpiele.swift` in Xcode anlegen (File → New → Swift File), kompletten Code einfügen, Target abhaken. Danach `HomeView.swift` ersetzen → Button **Pause-Spiele** erscheint.
 
 **Fahrt-Benachrichtigung:** Neue Datei `FahrerBenachrichtigung.swift` anlegen + Target abhaken, danach `HomeView.swift` **komplett ersetzen**. Beim ersten Online-Schalten fragt iOS nach Mitteilungen → **Erlauben**. Neue Testbuchung → ohne Tippen auf „Aktualisieren“ erscheint Banner + Ton (App offen) bzw. lokale Notification.
@@ -44,7 +46,7 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | `FahrerBenachrichtigung.swift` | Permission, Sound, lokale Notification |
 | `FahrerLocationTracker.swift` | GPS während angenommener Fahrt (**neu**) |
 | `FahrerSpiele.swift` | Pause-Spiele |
-| `BackendConfig.swift` | Backend-URL + Operator-Slug + API-Key |
+| `BackendConfig.swift` | `FahrerBackendConfig` (URL, Operator, API-Key) — alte doppelte BackendConfig löschen! |
 | `DriverBooking.swift` | Modelle |
 | `DriverAPI.swift` | API-Aufrufe inkl. Location |
 | `Assets.xcassets/app_background.imageset/` | TAXI-Dachschild (wie Fahrgast-App) |
@@ -96,7 +98,7 @@ Auth-Header Pflicht: `Authorization: Bearer <DRIVER_API_KEY>` (oder `X-Driver-Ke
 - `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid" }`
 - `POST /api/driver/location` — Body: `{ "driverUid", "latitude", "longitude", "bookingId?" }` (GPS für Fahrgast-Karte)
 
-Key in der App: `BackendConfig.driverApiKey`  
+Key in der App: `FahrerBackendConfig.driverApiKey`  
 Key auf dem Server: Env `DRIVER_API_KEY` (sonst Pilot-Default in `server.js`).  
 Beide müssen übereinstimmen. Nach Backend-Deploy auf Render: Env-Var setzen oder Default nutzen.
 

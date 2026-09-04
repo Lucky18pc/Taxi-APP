@@ -19,7 +19,7 @@ final class FahrerLocationTracker: NSObject, ObservableObject {
     private let manager = CLLocationManager()
     private var driverUid = ""
     private var bookingId: String?
-    private var operatorSlug = BackendConfig.defaultOperatorSlug
+    private var operatorSlug = FahrerBackendConfig.defaultOperatorSlug
     private var lastSentAt: Date?
     private let minInterval: TimeInterval = 4
 
