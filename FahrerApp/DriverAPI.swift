@@ -32,9 +32,11 @@ enum DriverAPI {
     }
 
     static func openBookings(operatorSlug: String) async throws -> [DriverBooking] {
-        var components = URLComponents(string: "\(FahrerBackendConfig.baseURL)/api/driver/open-bookings")
-        components?.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
-        guard let url = components?.url else { throw DriverAPIError.badURL }
+        guard var components = URLComponents(string: "\(FahrerBackendConfig.baseURL)/api/driver/open-bookings") else {
+            throw DriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw DriverAPIError.badURL }
 
         let request = try authorizedRequest(url: url)
         let (data, response) = try await URLSession.shared.data(for: request)

@@ -2,14 +2,19 @@
 //  FahrerHomeView.swift
 //  Luckys Taxi Fahrer
 //
-// NEU — ersetzt die alte HomeView.swift komplett.
-// In Xcode: Datei „HomeView.swift“ LÖSCHEN, diese Datei NEU anlegen.
-// Benötigt außerdem: TaxiUI.swift + FahrerGPSTracker.swift
+// KOMPLETT NEU — ersetzt HomeView.swift
+// GPS-Tracker ist UNTEN in DIESER Datei (kein extra FahrerGPSTracker.swift nötig).
+// Braucht noch: TaxiUI.swift (TaxiHintergrund) + FahrerBackendConfig + DriverAPI
 //
 
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
+import Foundation
+import CoreLocation
+import Combine
+
+// MARK: - Home
 
 struct FahrerHomeView: View {
     let driverUid: String
@@ -40,17 +45,98 @@ struct FahrerHomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    headerBlock
-                    logoutBlock
-                    onlineBlock
+                    Text("Hallo, \(driverName)")
+                        .font(.title2.bold())
+                        .foregroundStyle(navy)
+
+                    Button(action: logout) {
+                        Text("Abmelden")
+                            .font(.title3.weight(.black))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(taxiYellow)
+                            .foregroundStyle(navy)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(navy, lineWidth: 2.5)
+                                    .allowsHitTesting(false)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+
+                    Toggle("Online / Schicht", isOn: $isOnline)
+                        .foregroundStyle(navy)
+                        .padding()
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(navy.opacity(0.35), lineWidth: 1.5)
+                                .allowsHitTesting(false)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .disabled(isBusy)
+                        .onChange(of: isOnline) { newValue in
+                            if suppressOnlineWrite {
+                                suppressOnlineWrite = false
+                                return
+                            }
+                            onlineWriteGeneration += 1
+                            let generation = onlineWriteGeneration
+                            Task { await writeOnline(newValue, generation: generation) }
+                        }
+
                     Text(statusText)
                         .foregroundStyle(navy.opacity(0.85))
-                    bannerBlock
-                    gamesBlock
-                    errorBlock
-                    gpsBlock
+
+                    if let newRideBanner {
+                        bannerView(newRideBanner)
+                    }
+
+                    NavigationLink {
+                        FahrerSpieleHubView()
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Pause-Spiele")
+                                    .font(.headline.weight(.bold))
+                                    .foregroundStyle(navy)
+                                Text("Bei Langeweile: Taxi tippen, Memory, Tarif rechnen")
+                                    .font(.caption)
+                                    .foregroundStyle(navy.opacity(0.75))
+                            }
+                            Spacer()
+                            Text("▶").foregroundStyle(navy)
+                        }
+                        .padding(14)
+                        .background(cream)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(navy.opacity(0.35), lineWidth: 1.5)
+                                .allowsHitTesting(false)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
+                            .font(.footnote.weight(.semibold))
+                    }
+
+                    if gps.isSharing {
+                        Text("Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(navy.opacity(0.85))
+                    }
+                    if let locError = gps.lastError {
+                        Text("GPS: \(locError)")
+                            .font(.caption)
+                            .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
+                    }
+
                     if isOnline {
-                        ridesBlock
+                        ridesSection
                     }
                 }
                 .padding()
@@ -82,136 +168,7 @@ struct FahrerHomeView: View {
         .preferredColorScheme(.light)
     }
 
-    // MARK: - UI
-
-    private var headerBlock: some View {
-        Text("Hallo, \(driverName)")
-            .font(.title2.bold())
-            .foregroundStyle(navy)
-    }
-
-    private var logoutBlock: some View {
-        Button(action: logout) {
-            Text("Abmelden")
-                .font(.title3.weight(.black))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(taxiYellow)
-                .foregroundStyle(navy)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(navy, lineWidth: 2.5)
-                        .allowsHitTesting(false)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var onlineBlock: some View {
-        Toggle("Online / Schicht", isOn: $isOnline)
-            .foregroundStyle(navy)
-            .padding()
-            .background(cream)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(navy.opacity(0.35), lineWidth: 1.5)
-                    .allowsHitTesting(false)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .disabled(isBusy)
-            .onChange(of: isOnline) { newValue in
-                if suppressOnlineWrite {
-                    suppressOnlineWrite = false
-                    return
-                }
-                onlineWriteGeneration += 1
-                let generation = onlineWriteGeneration
-                Task { await writeOnline(newValue, generation: generation) }
-            }
-    }
-
-    @ViewBuilder
-    private var bannerBlock: some View {
-        if let newRideBanner {
-            HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Neue Fahrt!")
-                        .font(.headline.weight(.black))
-                        .foregroundStyle(.white)
-                    Text(newRideBanner)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.95))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 8)
-                Button("OK") { clearBanner() }
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(navy)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(taxiYellow)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(red: 0.85, green: 0.35, blue: 0.05))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .transition(.move(edge: .top).combined(with: .opacity))
-        }
-    }
-
-    private var gamesBlock: some View {
-        NavigationLink {
-            FahrerSpieleHubView()
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Pause-Spiele")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(navy)
-                    Text("Bei Langeweile: Taxi tippen, Memory, Tarif rechnen")
-                        .font(.caption)
-                        .foregroundStyle(navy.opacity(0.75))
-                }
-                Spacer()
-                Text("▶").foregroundStyle(navy)
-            }
-            .padding(14)
-            .background(cream)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(navy.opacity(0.35), lineWidth: 1.5)
-                    .allowsHitTesting(false)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-
-    @ViewBuilder
-    private var errorBlock: some View {
-        if let errorMessage {
-            Text(errorMessage)
-                .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
-                .font(.footnote.weight(.semibold))
-        }
-    }
-
-    @ViewBuilder
-    private var gpsBlock: some View {
-        if gps.isSharing {
-            Text("Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(navy.opacity(0.85))
-        }
-        if let locError = gps.lastError {
-            Text("GPS: \(locError)")
-                .font(.caption)
-                .foregroundStyle(Color(red: 0.75, green: 0.1, blue: 0.1))
-        }
-    }
-
-    private var ridesBlock: some View {
+    private var ridesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Offene Fahrten")
@@ -234,6 +191,32 @@ struct FahrerHomeView: View {
                 }
             }
         }
+    }
+
+    private func bannerView(_ message: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Neue Fahrt!")
+                    .font(.headline.weight(.black))
+                    .foregroundStyle(.white)
+                Text(message)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.95))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            Button("OK") { clearBanner() }
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(navy)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(taxiYellow)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(red: 0.85, green: 0.35, blue: 0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func rideCard(_ booking: DriverBooking) -> some View {
@@ -273,7 +256,7 @@ struct FahrerHomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    // MARK: - Logout / Banner
+    // MARK: Actions
 
     private func logout() {
         onlineWriteGeneration += 1
@@ -284,15 +267,11 @@ struct FahrerHomeView: View {
         errorMessage = nil
         statusText = "Abgemeldet."
         gps.stop()
-        resetNotifyState()
-        try? Auth.auth().signOut()
-        isLoggedIn = false
-    }
-
-    private func resetNotifyState() {
         knownBookingIds = []
         hasSeededBookingIds = false
         clearBanner()
+        try? Auth.auth().signOut()
+        isLoggedIn = false
     }
 
     private func clearBanner() {
@@ -318,8 +297,6 @@ struct FahrerHomeView: View {
         isOnline = online
     }
 
-    // MARK: - Online / Polling
-
     private func refreshOnlineFromFirestore() async {
         do {
             let snap = try await Firestore.firestore()
@@ -341,7 +318,11 @@ struct FahrerHomeView: View {
         await MainActor.run {
             isBusy = true
             errorMessage = nil
-            if !online { resetNotifyState() }
+            if !online {
+                knownBookingIds = []
+                hasSeededBookingIds = false
+                clearBanner()
+            }
         }
 
         do {
@@ -467,8 +448,6 @@ struct FahrerHomeView: View {
         }
     }
 
-    // MARK: - Accept / Complete
-
     private func takeRide(_ booking: DriverBooking) async {
         await MainActor.run {
             isBusy = true
@@ -522,6 +501,124 @@ struct FahrerHomeView: View {
             await fetchBookings(silent: false)
         } catch {
             await MainActor.run { errorMessage = error.localizedDescription }
+        }
+    }
+}
+
+// MARK: - GPS (in derselben Datei → kein „Cannot find FahrerGPSTracker“)
+
+final class FahrerGPSTracker: NSObject, ObservableObject {
+    @Published var lastError: String?
+    @Published var isSharing = false
+
+    private let manager = CLLocationManager()
+    private var driverUid = ""
+    private var bookingId: String?
+    private var operatorSlug = FahrerBackendConfig.defaultOperatorSlug
+    private var lastSentAt: Date?
+    private let minInterval: TimeInterval = 4
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 15
+        manager.pausesLocationUpdatesAutomatically = true
+    }
+
+    func start(driverUid: String, bookingId: String, operatorSlug: String) {
+        self.driverUid = driverUid
+        self.bookingId = bookingId
+        self.operatorSlug = operatorSlug
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            lastError = nil
+            isSharing = true
+
+            switch manager.authorizationStatus {
+            case .authorizedWhenInUse, .authorizedAlways:
+                manager.startUpdatingLocation()
+            case .denied, .restricted:
+                lastError = "Standort-Zugriff verweigert. In iOS-Einstellungen erlauben."
+                isSharing = false
+            default:
+                manager.requestWhenInUseAuthorization()
+            }
+        }
+    }
+
+    func stop() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            isSharing = false
+            bookingId = nil
+            manager.stopUpdatingLocation()
+        }
+    }
+
+    private func send(_ location: CLLocation) {
+        guard isSharing, !driverUid.isEmpty else { return }
+        if let last = lastSentAt, Date().timeIntervalSince(last) < minInterval {
+            return
+        }
+        lastSentAt = Date()
+
+        let uid = driverUid
+        let booking = bookingId
+        let slug = operatorSlug
+        let lat = location.coordinate.latitude
+        let lng = location.coordinate.longitude
+
+        Task {
+            do {
+                try await DriverAPI.postLocation(
+                    driverUid: uid,
+                    latitude: lat,
+                    longitude: lng,
+                    bookingId: booking,
+                    operatorSlug: slug
+                )
+                await MainActor.run { [weak self] in
+                    self?.lastError = nil
+                }
+            } catch {
+                let message = error.localizedDescription
+                await MainActor.run { [weak self] in
+                    self?.lastError = message
+                }
+            }
+        }
+    }
+}
+
+extension FahrerGPSTracker: CLLocationManagerDelegate {
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, isSharing else { return }
+            switch manager.authorizationStatus {
+            case .authorizedWhenInUse, .authorizedAlways:
+                self.manager.startUpdatingLocation()
+            case .denied, .restricted:
+                lastError = "Standort-Zugriff verweigert."
+                isSharing = false
+            default:
+                break
+            }
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        DispatchQueue.main.async { [weak self] in
+            self?.send(location)
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        let message = error.localizedDescription
+        DispatchQueue.main.async { [weak self] in
+            self?.lastError = message
         }
     }
 }

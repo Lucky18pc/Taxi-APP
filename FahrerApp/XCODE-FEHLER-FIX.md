@@ -1,27 +1,19 @@
-# Xcode: Home neu einfügen (Compile-Fehler weg)
+# Xcode — Code neu (Home + GPS in einer Datei)
 
-Branch: `cursor/fahrer-homeview-rewrite-a9f4`
+Branch: `cursor/fahrer-home-gps-combined-a9f4`
 
-## Wichtig
+## Löschen in Xcode (Move to Trash)
+- `HomeView.swift`
+- `FahrerGPSTracker.swift` (GPS steckt jetzt in FahrerHomeView)
+- `FahrerLocationTracker.swift` (falls noch da)
 
-Alte Datei **`HomeView.swift` komplett löschen** (Move to Trash).  
-Nicht den alten Code behalten — der Name `struct HomeView` macht den Fehler „Invalid redeclaration“.
+## Ersetzen / neu anlegen
 
-Ebenso löschen falls vorhanden:
-- `FahrerLocationTracker.swift`
-- `BackendConfig.swift`
-- Jede Datei, die **zweimal** im Navigator steht
+| Datei | Link |
+|-------|------|
+| **FahrerHomeView.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/FahrerHomeView.swift |
+| **TaxiUI.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/TaxiUI.swift |
+| **DriverAPI.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/DriverAPI.swift |
+| **LoginView.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-home-gps-combined-a9f4/FahrerApp/LoginView.swift |
 
-## Neue Dateien (Raw → Cmd+A → Cmd+C → in Xcode einfügen)
-
-| Datei | Raw-Link |
-|-------|----------|
-| **FahrerHomeView.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-homeview-rewrite-a9f4/FahrerApp/FahrerHomeView.swift |
-| **TaxiUI.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-homeview-rewrite-a9f4/FahrerApp/TaxiUI.swift |
-| **FahrerGPSTracker.swift** | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-homeview-rewrite-a9f4/FahrerApp/FahrerGPSTracker.swift |
-| **LoginView.swift** (ersetzen) | https://raw.githubusercontent.com/Lucky18pc/Taxi-APP/cursor/fahrer-homeview-rewrite-a9f4/FahrerApp/LoginView.swift |
-
-## Danach
-
-1. Target → Info → `Privacy - Location When In Use Usage Description` = `Standort wird während der Fahrt an den Fahrgast gesendet.`
-2. Shift+Cmd+K (Clean) → Play ▶
+Danach: Shift+Cmd+K → Play ▶
