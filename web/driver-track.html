@@ -380,7 +380,9 @@
       gap: 0.85rem;
     }
     .game-card {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
       width: 100%;
       text-align: left;
       border: 1.5px solid rgba(12,28,52,0.3);
@@ -390,8 +392,10 @@
       color: var(--navy);
       cursor: pointer;
     }
+    .game-card .game-card-text { flex: 1; min-width: 0; }
     .game-card strong { display: block; font-size: 1.05rem; margin-bottom: 0.25rem; }
     .game-card span { font-size: 0.82rem; color: rgba(12,28,52,0.75); }
+    .game-card .chev { font-weight: 800; flex-shrink: 0; }
     .game-stats {
       display: flex;
       flex-wrap: wrap;
@@ -567,20 +571,32 @@
     <div class="game-body">
       <p class="status-line">Für lange Wartezeiten. Bei neuer Fahrt zurück zur Liste.</p>
       <button type="button" class="game-card" data-game="tipp">
-        <strong>Taxi tippen</strong>
-        <span>Gelbe Taxis antippen, bevor sie weg sind.</span>
+        <div class="game-card-text">
+          <strong>Taxi tippen</strong>
+          <span>Gelbe Taxis antippen, bevor sie weg sind.</span>
+        </div>
+        <span class="chev">▶</span>
       </button>
       <button type="button" class="game-card" data-game="memory">
-        <strong>Taxi Memory</strong>
-        <span>Paare finden — 8 Karten, ruhiges Tempo.</span>
+        <div class="game-card-text">
+          <strong>Taxi Memory</strong>
+          <span>Paare finden — 8 Karten, ruhiges Tempo.</span>
+        </div>
+        <span class="chev">▶</span>
       </button>
       <button type="button" class="game-card" data-game="tarif">
-        <strong>Tarif rechnen</strong>
-        <span>Schnelle Kopfrechnung wie am Taxameter.</span>
+        <div class="game-card-text">
+          <strong>Tarif rechnen</strong>
+          <span>Schnelle Kopfrechnung wie am Taxameter.</span>
+        </div>
+        <span class="chev">▶</span>
       </button>
       <button type="button" class="game-card" data-game="naechste">
-        <strong>Nächste Fahrt</strong>
-        <span>Funkspruch lesen — richtiges Ziel antippen, bevor die Zeit abläuft.</span>
+        <div class="game-card-text">
+          <strong>Nächste Fahrt</strong>
+          <span>Funkspruch lesen — richtiges Ziel antippen, bevor die Zeit abläuft.</span>
+        </div>
+        <span class="chev">▶</span>
       </button>
     </div>
   </section>
@@ -659,7 +675,7 @@
       gameRoot: document.getElementById("game-root"),
       gameTitle: document.getElementById("game-title"),
       gamesBackHome: document.getElementById("games-back-home"),
-      gameBackHub: document.getElementById("game-back-hub"),
+      gameBackHub: document.getElementById("games-back-hub"),
     };
 
     const state = {
