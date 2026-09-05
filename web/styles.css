@@ -725,8 +725,8 @@ ul.checklist li::before {
 
 .legal-page {
   max-width: 720px;
-  margin: 2rem auto 3rem;
-  padding: 0 1.25rem;
+  margin: 0 auto 3rem;
+  padding: 0 1.25rem 2rem;
 }
 
 .legal-page h1 { margin-bottom: 0.25rem; }
@@ -758,6 +758,80 @@ ul.checklist li::before {
 }
 
 .legal-card li { margin: 0.35rem 0; }
+
+/* Rechtstexte: Gelb/Schwarz wie Onboarding */
+body.legal-taxi {
+  background: #0c1c34;
+  color: #0c1c34;
+}
+
+.legal-taxi-hero {
+  background: #ffcc00;
+  color: #0c1c34;
+  padding: 2rem 1.25rem 2.25rem;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.legal-taxi-hero h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0c1c34;
+}
+
+.legal-taxi-hero .note {
+  margin: 0 auto;
+  max-width: 36rem;
+  color: #0c1c34;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.legal-taxi-hero .note a {
+  color: #0c1c34;
+  font-weight: 800;
+}
+
+body.legal-taxi .legal-page {
+  margin-top: -1rem;
+  position: relative;
+  z-index: 1;
+}
+
+body.legal-taxi .legal-card {
+  border: 3px solid #ffcc00;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+body.legal-taxi .legal-card a {
+  color: #0c1c34;
+  font-weight: 700;
+  text-decoration-color: #ffcc00;
+}
+
+body.legal-taxi .legal-back {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+body.legal-taxi .legal-back a {
+  color: #ffcc00;
+  font-weight: 700;
+}
+
+body.legal-taxi .site-footer {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+body.legal-taxi .site-footer a {
+  color: #ffcc00;
+}
+
+body.legal-taxi .legal-page > .note {
+  display: none;
+}
 
 .legal-hint {
   color: #92400e;
