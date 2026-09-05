@@ -129,6 +129,30 @@ a { color: var(--primary); }
   font-weight: 800;
 }
 
+.hero-pitch {
+  max-width: 36rem;
+  margin: 0 auto 0.85rem;
+  padding: 0.85rem 1rem;
+  background: #ffcc00;
+  color: #0c1c34;
+  border-radius: 12px;
+  border: 2px solid #0c1c34;
+  font-size: clamp(1rem, 2.8vw, 1.12rem);
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.hero-pitch strong {
+  color: #0c1c34;
+  font-weight: 900;
+}
+
+.hero-pitch-design {
+  margin-bottom: 1.25rem;
+  background: #fff;
+}
+
 .hero-note {
   max-width: 30rem;
   margin: 0 auto 1.25rem;
