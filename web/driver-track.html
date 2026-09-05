@@ -177,7 +177,8 @@
       }
     }
 
-    function stopSharing() {
+    function stopSharing(options = {}) {
+      const { keepStatus = false } = options;
       isSharing = false;
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
@@ -189,7 +190,9 @@
       }
       btnToggle.textContent = "GPS-Tracking starten";
       btnToggle.className = "btn-start";
-      showStatus("Tracking gestoppt.", "warn");
+      if (!keepStatus) {
+        showStatus("Tracking gestoppt.", "warn");
+      }
     }
 
     function startSharing() {
@@ -203,12 +206,16 @@
         showStatus("GPS wird von diesem Gerät nicht unterstützt.", "err");
         return;
       }
+      if (!window.isSecureContext && !location.hostname.includes("localhost")) {
+        showStatus("Standort nur über https:// möglich. Seite über luckystaxiapp.de öffnen.", "err");
+        return;
+      }
 
       saveLocal();
       isSharing = true;
       btnToggle.textContent = "GPS-Tracking stoppen";
       btnToggle.className = "btn-stop";
-      showStatus("Standort wird ermittelt…", "warn");
+      showStatus("Standort wird ermittelt… Bitte „Erlauben“ tippen, falls gefragt.", "warn");
 
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
@@ -220,8 +227,14 @@
           sendLocation();
         },
         (err) => {
-          showStatus(`GPS-Fehler: ${err.message}`, "err");
-          stopSharing();
+          const hint =
+            err.code === 1
+              ? "Standort verweigert. In den Browser-/System-Einstellungen Ortung erlauben, Seite neu laden, erneut starten."
+              : err.code === 3
+                ? "GPS-Timeout. Features → Location im Simulator setzen oder am echten Handy testen."
+                : err.message || "Unbekannter GPS-Fehler";
+          showStatus(`GPS-Fehler: ${hint}`, "err");
+          stopSharing({ keepStatus: true });
         },
         { enableHighAccuracy: true, maximumAge: 4000, timeout: 15000 }
       );
