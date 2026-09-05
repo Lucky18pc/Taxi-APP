@@ -1848,3 +1848,5 @@ app.listen(port, host, () => {
 // redeploy: book.html yellow black 2026-09-05T20:31:00Z
 
 // redeploy: hero pitch readable yellow 2026-09-05T20:45:00Z
+
+// redeploy: restore pause-games brain training blurb 2026-09-05T20:49:00Z
