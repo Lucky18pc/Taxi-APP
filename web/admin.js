@@ -2,14 +2,17 @@
   const STORAGE_KEY = "taxiapp_platform_admin_pin";
 
   function getPin() {
-    return sessionStorage.getItem(STORAGE_KEY) || "";
+    return localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY) || "";
   }
 
-  function setPin(pin) {
-    sessionStorage.setItem(STORAGE_KEY, pin);
+  function setPin(pin, remember) {
+    clearPin();
+    if (remember) localStorage.setItem(STORAGE_KEY, pin);
+    else sessionStorage.setItem(STORAGE_KEY, pin);
   }
 
   function clearPin() {
+    localStorage.removeItem(STORAGE_KEY);
     sessionStorage.removeItem(STORAGE_KEY);
   }
 
@@ -206,7 +209,8 @@
     const errEl = document.getElementById("admin-login-error");
     errEl.classList.add("hidden");
     const pin = document.getElementById("admin-pin").value.trim();
-    setPin(pin);
+    const remember = document.getElementById("admin-remember")?.checked !== false;
+    setPin(pin, remember);
     try {
       const res = await apiFetch("/api/fleet/operators");
       if (!res.ok) throw new Error("Zugriff verweigert");

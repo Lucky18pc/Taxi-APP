@@ -44,11 +44,15 @@
   <div id="admin-login" class="admin-wrap">
     <div class="admin-card" style="max-width:400px;margin:4rem auto">
       <h1 style="margin:0 0 0.5rem;font-size:1.25rem">Plattform-Admin</h1>
-      <p class="field-hint">ADMIN_PIN von Render eingeben.</p>
+      <p class="field-hint">ADMIN_PIN von Render eingeben. Mit „Angemeldet bleiben“ bleibst du auf diesem Mac angemeldet.</p>
       <form id="admin-login-form">
         <div class="field">
           <label for="admin-pin">PIN</label>
           <input id="admin-pin" type="password" required autocomplete="current-password">
+        </div>
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem;margin-top:0.75rem">
+          <input id="admin-remember" type="checkbox" checked style="width:auto">
+          <label for="admin-remember" style="margin:0;font-weight:600">Angemeldet bleiben (auf diesem Gerät speichern)</label>
         </div>
         <button type="submit" class="btn btn-primary">Anmelden</button>
         <p id="admin-login-error" class="login-error hidden"></p>
