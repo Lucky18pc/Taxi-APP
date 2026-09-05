@@ -1344,91 +1344,124 @@ body.home-taxi .wrap {
   margin-top: -1.5rem;
 }
 
+/* Gelbe Abschnitte (Fahrgäste usw.) */
 body.home-taxi .wrap > section:not(.ops-rent) {
-  background: #ffcc00;
+  background: #ffcc00 !important;
   color: #0c1c34;
   border: 3px solid #0c1c34;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
 }
 
-body.home-taxi .wrap > section:not(.ops-rent) h2,
-body.home-taxi .wrap > section:not(.ops-rent) h3,
-body.home-taxi .wrap > section:not(.ops-rent) h4,
-body.home-taxi .wrap > section:not(.ops-rent) .sales-sub,
-body.home-taxi .wrap > section:not(.ops-rent) .app-screens-title {
-  color: #0c1c34;
-  font-weight: 800;
+body.home-taxi .wrap > section:not(.ops-rent) > h2,
+body.home-taxi .wrap > section:not(.ops-rent) > .app-screens-title,
+body.home-taxi .wrap > section:not(.ops-rent) > .sales-sub {
+  color: #0c1c34 !important;
+  font-weight: 900;
+  font-size: clamp(1.4rem, 3.5vw, 1.85rem);
 }
 
-body.home-taxi .wrap > section:not(.ops-rent) .lead,
-body.home-taxi .wrap > section:not(.ops-rent) p,
-body.home-taxi .wrap > section:not(.ops-rent) li,
-body.home-taxi .wrap > section:not(.ops-rent) .note,
-body.home-taxi .wrap > section:not(.ops-rent) .meta {
-  color: #0c1c34;
-}
-
-body.home-taxi .wrap > section:not(.ops-rent) a {
-  color: #0c1c34;
+body.home-taxi .wrap > section:not(.ops-rent) > .lead {
+  color: #0c1c34 !important;
   font-weight: 700;
-  text-decoration-color: rgba(12, 28, 52, 0.45);
+  font-size: 1.08rem;
 }
 
+/* Innere Karten: dunkel + weiße Schrift */
 body.home-taxi .app-access-card,
 body.home-taxi .app-screen,
-body.home-taxi .sales-card,
+body.home-taxi .wrap > section:not(.ops-rent) .sales-card,
 body.home-taxi .step,
 body.home-taxi .founder-card {
-  background: #fff8d6;
-  border: 2px solid #0c1c34;
-  box-shadow: none;
+  background: #0c1c34 !important;
+  border: 2px solid #0c1c34 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  color: #fff !important;
 }
 
 body.home-taxi .app-access-card h3,
-body.home-taxi .sales-card h3,
-body.home-taxi .sales-card p,
+body.home-taxi .app-access-card p,
+body.home-taxi .wrap > section:not(.ops-rent) .sales-card h3,
+body.home-taxi .wrap > section:not(.ops-rent) .sales-card p,
+body.home-taxi .wrap > section:not(.ops-rent) .sales-card li,
 body.home-taxi .step h3,
 body.home-taxi .step p,
-body.home-taxi .app-screen-body p {
-  color: #0c1c34;
+body.home-taxi .app-screen-body h4,
+body.home-taxi .app-screen-body p,
+body.home-taxi .founder-card p,
+body.home-taxi .founder-card strong {
+  color: #fff !important;
+  font-weight: 700;
+}
+
+body.home-taxi .wrap > section:not(.ops-rent) .sales-card a,
+body.home-taxi .app-access-card a {
+  color: #ffcc00 !important;
+}
+
+body.home-taxi .wrap > section:not(.ops-rent) .sales-card ul.checklist li,
+body.home-taxi .app-access-card ul.checklist li {
+  color: #fff !important;
+  font-weight: 700;
+}
+
+body.home-taxi .wrap > section:not(.ops-rent) .sales-card ul.checklist li::before,
+body.home-taxi .app-access-card ul.checklist li::before {
+  color: #ffcc00 !important;
+}
+
+body.home-taxi #customers ul.checklist li,
+body.home-taxi #customers .note,
+body.home-taxi #customers .price-tag,
+body.home-taxi #warum-luckys > ul.checklist li {
+  color: #0c1c34 !important;
+  font-weight: 800;
+}
+
+body.home-taxi #customers ul.checklist li::before,
+body.home-taxi #warum-luckys > ul.checklist li::before {
+  color: #0c1c34 !important;
 }
 
 body.home-taxi .step-num,
 body.home-taxi .app-screen-num {
-  background: #0c1c34;
-  color: #ffcc00;
+  background: #ffcc00;
+  color: #0c1c34;
+  font-weight: 900;
 }
 
 body.home-taxi .btn {
-  background: #0c1c34;
-  color: #ffcc00 !important;
-  font-weight: 800;
+  background: #ffcc00;
+  color: #0c1c34 !important;
+  font-weight: 900;
 }
 
-body.home-taxi .btn.secondary {
-  background: #fff;
+body.home-taxi .app-access-card .btn,
+body.home-taxi .app-access-card .btn.secondary {
+  background: #ffcc00 !important;
   color: #0c1c34 !important;
-  border: 2px solid #0c1c34;
+  border: 2px solid #fff;
 }
 
 body.home-taxi .btn-label {
-  background: #0c1c34;
-  color: #ffcc00;
+  background: #ffcc00;
+  color: #0c1c34;
+  font-weight: 800;
 }
 
 body.home-taxi .screen-tag {
-  background: #0c1c34;
-  color: #ffcc00;
+  background: #ffcc00;
+  color: #0c1c34;
 }
 
 body.home-taxi .sales-quote {
   background: #0c1c34;
-  color: #ffcc00;
-  border-left-color: #fff;
+  color: #fff !important;
+  border-left: 4px solid #ffcc00;
+  font-weight: 700;
 }
 
 body.home-taxi .sales-quote strong {
-  color: #fff;
+  color: #ffcc00;
 }
 
 body.home-taxi .price-tag {
@@ -1436,43 +1469,48 @@ body.home-taxi .price-tag {
   font-size: 2rem;
 }
 
-body.home-taxi ul.checklist li::before {
+/* Plattform mieten: gelber Block, dunkle Karten, weiße Schrift */
+body.home-taxi .ops-rent {
+  background: #ffcc00 !important;
+  border: 3px solid #0c1c34;
+  margin-bottom: 1.25rem;
   color: #0c1c34;
 }
 
-body.home-taxi .ops-rent {
-  background: #0c1c34;
-  border: 3px solid #ffcc00;
-  margin-bottom: 1.25rem;
-}
-
 body.home-taxi .ops-rent h2 {
-  color: #fff;
-  font-size: clamp(1.55rem, 4vw, 2.1rem);
+  color: #0c1c34 !important;
+  font-size: clamp(1.65rem, 4.5vw, 2.25rem);
   font-weight: 900;
   letter-spacing: -0.02em;
 }
 
-body.home-taxi .ops-rent .lead,
-body.home-taxi .ops-rent .sales-sub,
-body.home-taxi .ops-rent p {
-  color: #fff;
-  font-size: 1.05rem;
-  font-weight: 600;
+body.home-taxi .ops-rent > .lead,
+body.home-taxi .ops-rent > .sales-sub,
+body.home-taxi .ops-rent > p:not(.note) {
+  color: #0c1c34 !important;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 body.home-taxi .ops-rent .sales-sub {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 900;
 }
 
-body.home-taxi .ops-rent .badge {
-  background: #ffcc00;
-  color: #0c1c34;
-  font-weight: 800;
-  font-size: 0.95rem;
-  padding: 0.4rem 0.85rem;
+body.home-taxi .ops-rent > .badge {
+  background: #0c1c34;
+  color: #fff !important;
+  font-weight: 900;
+  font-size: 1rem;
+  padding: 0.45rem 0.9rem;
+}
+
+body.home-taxi .ops-rent .btn-ops-cta {
+  background: #0c1c34;
+  color: #fff !important;
+  border-color: #0c1c34;
+  font-size: 1.1rem;
+  font-weight: 900;
 }
 
 body.home-taxi .ops-rent .plans {
@@ -1481,56 +1519,61 @@ body.home-taxi .ops-rent .plans {
 }
 
 body.home-taxi .ops-rent .plan {
-  background: #132744;
-  color: #fff;
-  border: 3px solid #ffcc00;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  background: #0c1c34 !important;
+  color: #fff !important;
+  border: 3px solid #0c1c34;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
   padding: 1.6rem 1.45rem;
 }
 
 body.home-taxi .ops-rent .plan.highlight {
-  background: #1a3358;
-  border: 3px solid #ffcc00;
-  box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.35), 0 14px 32px rgba(0, 0, 0, 0.4);
+  background: #0c1c34 !important;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px #0c1c34, 0 14px 32px rgba(0, 0, 0, 0.35);
   transform: scale(1.02);
 }
 
 body.home-taxi .ops-rent .plan h3 {
-  color: #fff;
-  font-size: clamp(1.45rem, 3.5vw, 1.85rem);
+  color: #fff !important;
+  font-size: clamp(1.5rem, 3.5vw, 1.95rem);
   font-weight: 900;
   margin: 0 0 0.45rem;
-  letter-spacing: -0.02em;
 }
 
 body.home-taxi .ops-rent .plan .price {
-  color: #fff;
-  font-size: clamp(2.15rem, 5.5vw, 2.85rem);
+  color: #fff !important;
+  font-size: clamp(2.2rem, 5.5vw, 2.9rem);
   font-weight: 900;
   letter-spacing: -0.03em;
   margin: 0.55rem 0 0.75rem;
   line-height: 1.1;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
 body.home-taxi .ops-rent .plan .meta,
-body.home-taxi .ops-rent .plan li {
-  color: #fff;
-  font-size: 1.02rem;
+body.home-taxi .ops-rent .plan li,
+body.home-taxi .ops-rent .plan p,
+body.home-taxi .ops-rent .plan label,
+body.home-taxi .ops-rent .plan ul.checklist li {
+  color: #fff !important;
+  font-size: 1.05rem;
   font-weight: 700;
-  opacity: 0.95;
+  opacity: 1 !important;
+}
+
+body.home-taxi .ops-rent .plan ul.checklist li::before {
+  color: #ffcc00 !important;
 }
 
 body.home-taxi .ops-rent .plan .badge {
   background: #ffcc00;
-  color: #0c1c34;
+  color: #0c1c34 !important;
   font-weight: 900;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 body.home-taxi .ops-rent .billing-form label {
-  color: #fff;
+  color: #fff !important;
   font-weight: 700;
   font-size: 0.95rem;
 }
@@ -1538,62 +1581,61 @@ body.home-taxi .ops-rent .billing-form label {
 body.home-taxi .ops-rent .billing-form input,
 body.home-taxi .ops-rent .billing-form textarea {
   border: 2px solid #ffcc00;
-  background: #0c1c34;
-  color: #fff;
+  background: #132744;
+  color: #fff !important;
 }
 
 body.home-taxi .ops-rent .billing-form input::placeholder,
 body.home-taxi .ops-rent .billing-form textarea::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
 }
 
-body.home-taxi .ops-rent .plan .btn {
-  background: #ffcc00;
+body.home-taxi .ops-rent .plan .btn,
+body.home-taxi .ops-rent .plan .btn.secondary {
+  background: #ffcc00 !important;
   color: #0c1c34 !important;
   font-weight: 900;
   font-size: 1.1rem;
   padding: 0.95rem 1rem;
-}
-
-body.home-taxi .ops-rent .plan .btn.secondary {
-  background: #ffcc00;
-  color: #0c1c34 !important;
   border: none;
 }
 
-body.home-taxi .ops-rent .note {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
+body.home-taxi .ops-rent > .note {
+  color: #0c1c34 !important;
+  font-weight: 700;
 }
 
-body.home-taxi .ops-rent .note a {
-  color: #ffcc00;
+body.home-taxi .ops-rent > .note a {
+  color: #0c1c34 !important;
+  text-decoration: underline;
 }
 
 body.home-taxi .ops-rent .sales-card {
-  background: #132744;
-  border: 2px solid #ffcc00;
-  color: #fff;
+  background: #0c1c34 !important;
+  border: 2px solid #0c1c34 !important;
+  color: #fff !important;
+}
+
+body.home-taxi .ops-rent .sales-card h3,
+body.home-taxi .ops-rent .sales-card li,
+body.home-taxi .ops-rent .sales-card p,
+body.home-taxi .ops-rent .sales-card ul.checklist li {
+  color: #fff !important;
+  font-weight: 700;
 }
 
 body.home-taxi .ops-rent .sales-card h3 {
-  color: #fff;
-  font-size: 1.2rem;
-  font-weight: 800;
-}
-
-body.home-taxi .ops-rent .sales-card li,
-body.home-taxi .ops-rent .sales-card p {
-  color: #fff;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 900;
 }
 
 body.home-taxi .ops-rent .sales-card a {
-  color: #ffcc00;
+  color: #ffcc00 !important;
 }
 
+body.home-taxi .ops-rent .sales-card ul.checklist li::before,
 body.home-taxi .ops-rent ul.checklist li::before {
-  color: #ffcc00;
+  color: #ffcc00 !important;
 }
 
 body.home-taxi .cities-seo {
@@ -1601,14 +1643,14 @@ body.home-taxi .cities-seo {
 }
 
 body.home-taxi .cities-seo-list a {
-  color: #0c1c34;
-  font-weight: 800;
+  color: #0c1c34 !important;
+  font-weight: 900;
   font-size: 1.05rem;
 }
 
 body.home-taxi .site-footer {
   background: #0c1c34;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.85);
   border-top: 3px solid #ffcc00;
 }
 
@@ -1619,5 +1661,15 @@ body.home-taxi .site-footer a {
 
 body.home-taxi .stripe-note {
   border-top-color: rgba(12, 28, 52, 0.25);
+  color: #0c1c34 !important;
 }
 
+body.home-taxi .stripe-note a {
+  color: #0c1c34 !important;
+  font-weight: 800;
+}
+
+body.home-taxi .billing-status.ok {
+  background: #0c1c34;
+  color: #fff !important;
+}
