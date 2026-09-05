@@ -1448,17 +1448,48 @@
     }
 
     async function finishRide(bookingId) {
+      const booking = state.bookings.find((b) => b.bookingId === bookingId) || {};
+      const isCard = /karte|card/i.test(String(booking.paymentMethod || ""));
+      const promptText = isCard
+        ? "Taxameter-Betrag in Euro (Pflicht für Kartenzahlung), z.B. 18.50:"
+        : "Taxameter-Betrag in Euro (optional), z.B. 18.50 — Abbrechen = ohne Betrag:";
+      const raw = window.prompt(promptText, "");
+      if (isCard && (raw === null || !String(raw).trim())) {
+        setError("Kartenzahlung: Betrag erforderlich.");
+        return;
+      }
+      let totalAmount;
+      if (raw !== null && String(raw).trim()) {
+        totalAmount = Number(String(raw).replace(",", "."));
+        if (!Number.isFinite(totalAmount) || totalAmount < 0.5) {
+          setError("Ungültiger Betrag (mindestens 0,50 €).");
+          return;
+        }
+      }
+
       setBusy(true);
       setError("");
       try {
-        await api(`/api/driver/bookings/${encodeURIComponent(bookingId)}/complete`, {
+        const body = { driverUid: state.driverUid };
+        if (Number.isFinite(totalAmount)) body.totalAmount = totalAmount;
+        const data = await api(`/api/driver/bookings/${encodeURIComponent(bookingId)}/complete`, {
           method: "PATCH",
           headers: await driverHeaders(),
-          body: JSON.stringify({ driverUid: state.driverUid }),
+          body: JSON.stringify(body),
         });
         state.acceptedBookingId = null;
         state.knownIds.delete(bookingId);
-        el.statusText.textContent = "Fahrt erledigt.";
+        if (data && data.payUrl) {
+          el.statusText.textContent = "Fahrt erledigt — Zahlungslink bereit.";
+          try {
+            await navigator.clipboard.writeText(data.payUrl);
+            el.statusText.textContent = "Fahrt erledigt — Zahlungslink in Zwischenablage kopiert.";
+          } catch (_) {
+            window.prompt("Zahlungslink für den Fahrgast (kopieren):", data.payUrl);
+          }
+        } else {
+          el.statusText.textContent = "Fahrt erledigt.";
+        }
         stopGps();
         await fetchBookings(false);
       } catch (err) {

@@ -59,7 +59,12 @@ enum DriverAPI {
         }
     }
 
-    static func completeBooking(bookingId: String, driverUid: String, operatorSlug: String) async throws {
+    static func completeBooking(
+        bookingId: String,
+        driverUid: String,
+        operatorSlug: String,
+        totalAmount: Double? = nil
+    ) async throws -> CompleteBookingResponse {
         guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/bookings/\(bookingId)/complete") else {
             throw DriverAPIError.badURL
         }
@@ -69,14 +74,24 @@ enum DriverAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: [
-            "driverUid": driverUid,
-        ])
+        var body: [String: Any] = ["driverUid": driverUid]
+        if let totalAmount {
+            body["totalAmount"] = totalAmount
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard (200..<300).contains(code) else {
             throw DriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
         }
+        if let decoded = try? JSONDecoder().decode(CompleteBookingResponse.self, from: data) {
+            return decoded
+        }
+        return CompleteBookingResponse(payUrl: nil)
     }
+}
+
+struct CompleteBookingResponse: Decodable {
+    let payUrl: String?
 }

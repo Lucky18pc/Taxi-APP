@@ -269,8 +269,13 @@
         <label for="paymentMethod" data-i18n="book.payment">Zahlung</label>
         <select id="paymentMethod" name="paymentMethod">
           <option value="Bar" selected data-i18n="book.payCash">Bar — Preis nach Taxameter beim Fahrer</option>
+          <option value="Karte" data-i18n="book.payCard">Karte — nach der Fahrt online bezahlen</option>
         </select>
-        <p class="book-hint" data-i18n="book.payHint">Kein Festpreis in der App. Kartenzahlung folgt später.</p>
+        <p class="book-hint" data-i18n="book.payHint">Kein Festpreis bei Buchung. Bei Karte: Zahlungslink nach Taxameter-Betrag.</p>
+      </div>
+      <div class="book-field" id="passenger-email-field" hidden>
+        <label for="passengerEmail" data-i18n="book.email">E-Mail (für Quittung, optional)</label>
+        <input id="passengerEmail" name="passengerEmail" type="email" autocomplete="email" placeholder="name@example.com">
       </div>
       <div class="book-actions">
         <button type="submit" class="btn-book btn-book-primary" id="btn-submit" data-i18n="book.submit">Taxi bestellen</button>
@@ -538,6 +543,7 @@
           postalCode: document.getElementById("postalCode").value.trim() || null,
           destinationAddressLine: document.getElementById("destination").value.trim() || null,
           paymentMethod: document.getElementById("paymentMethod").value,
+          passengerEmail: document.getElementById("passengerEmail").value.trim() || null,
           totalAmount: 0,
           tariffAmount: 0,
           tipAmount: 0,
@@ -572,6 +578,17 @@
     });
 
     defaultPickupTime();
+
+    (function setupPaymentMethodToggle() {
+      const select = document.getElementById("paymentMethod");
+      const emailField = document.getElementById("passenger-email-field");
+      function sync() {
+        const isCard = String(select.value || "").toLowerCase().includes("karte");
+        emailField.hidden = !isCard;
+      }
+      select.addEventListener("change", sync);
+      sync();
+    })();
 
     (function setupPassengerInstall() {
       const btn = document.getElementById("btn-install");

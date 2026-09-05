@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fahrt bezahlen — Luckys Taxi App</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body.pay-page {
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(165deg, #111827 0%, #1f2937 45%, #0f172a 100%);
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .pay-wrap {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+    .pay-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .pay-brand img {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: #facc15;
+    }
+    .pay-brand h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #facc15;
+    }
+    .pay-brand p {
+      margin: 0.15rem 0 0;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+    .pay-card {
+      background: #fff;
+      color: #0f172a;
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    }
+    .pay-amount {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0.25rem 0 0.75rem;
+    }
+    .pay-meta {
+      font-size: 0.88rem;
+      color: #64748b;
+      margin: 0 0 1rem;
+      line-height: 1.4;
+    }
+    #payment-element { margin: 1rem 0; }
+    .pay-btn {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      font: inherit;
+      font-weight: 800;
+      background: #facc15;
+      color: #0f172a;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #ca8a04;
+    }
+    .pay-btn:disabled { opacity: 0.6; cursor: wait; }
+    .pay-msg { margin-top: 0.85rem; font-size: 0.9rem; font-weight: 600; }
+    .pay-msg.error { color: #991b1b; }
+    .pay-msg.ok { color: #065f46; }
+    .pay-foot { margin-top: 1.25rem; font-size: 0.78rem; color: #94a3b8; text-align: center; }
+  </style>
+</head>
+<body class="pay-page">
+  <div class="pay-wrap">
+    <div class="pay-brand">
+      <img src="luckys-taxi-admin-logo.svg" width="56" height="56" alt="">
+      <div>
+        <h1>Luckys Taxi App</h1>
+        <p>Fahrt per Karte bezahlen</p>
+      </div>
+    </div>
+    <div class="pay-card">
+      <p class="pay-meta" id="status">Lade Zahlungsdaten…</p>
+      <p class="pay-amount" id="amount" hidden></p>
+      <p class="pay-meta" id="trip" hidden></p>
+      <div id="payment-element"></div>
+      <button type="button" class="pay-btn" id="pay-btn" hidden>Jetzt bezahlen</button>
+      <p class="pay-msg" id="msg" hidden></p>
+    </div>
+    <p class="pay-foot">Sichere Zahlung über Stripe · Apple Pay / Google Pay wenn verfügbar</p>
+  </div>
+  <script>
+    (async function () {
+      const params = new URLSearchParams(location.search);
+      const bookingId = String(params.get("b") || params.get("bookingId") || "").trim();
+      const token = String(params.get("t") || params.get("token") || "").trim();
+      const statusEl = document.getElementById("status");
+      const amountEl = document.getElementById("amount");
+      const tripEl = document.getElementById("trip");
+      const msgEl = document.getElementById("msg");
+      const payBtn = document.getElementById("pay-btn");
+
+      function showMsg(text, kind) {
+        msgEl.hidden = false;
+        msgEl.textContent = text;
+        msgEl.className = "pay-msg" + (kind ? " " + kind : "");
+      }
+
+      if (!bookingId || !token) {
+        statusEl.textContent = "Ungültiger Zahlungslink.";
+        return;
+      }
+
+      try {
+        const [cfgRes, payRes] = await Promise.all([
+          fetch("/api/stripe/config"),
+          fetch(`/api/pay/${encodeURIComponent(bookingId)}?token=${encodeURIComponent(token)}`),
+        ]);
+        const cfg = await cfgRes.json();
+        const pay = await payRes.json();
+        if (!payRes.ok) throw new Error(pay.error || "Zahlung nicht gefunden");
+
+        if (pay.paymentStatus === "paid") {
+          statusEl.textContent = "Diese Fahrt ist bereits bezahlt.";
+          amountEl.hidden = false;
+          amountEl.textContent = Number(pay.totalAmount).toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          });
+          showMsg("Vielen Dank — Zahlung eingegangen.", "ok");
+          return;
+        }
+
+        if (!cfg.paymentsEnabled || !cfg.publishableKey) {
+          statusEl.textContent = "Kartenzahlung ist noch nicht konfiguriert (Stripe-Keys fehlen).";
+          return;
+        }
+
+        statusEl.textContent = "Zu zahlen";
+        amountEl.hidden = false;
+        amountEl.textContent = Number(pay.totalAmount).toLocaleString("de-DE", {
+          style: "currency",
+          currency: "EUR",
+        });
+        const parts = [pay.addressLine, pay.destinationAddressLine].filter(Boolean);
+        if (parts.length) {
+          tripEl.hidden = false;
+          tripEl.textContent = parts.join(" → ");
+        }
+
+        const intentRes = await fetch(`/api/pay/${encodeURIComponent(bookingId)}/intent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        const intent = await intentRes.json();
+        if (!intentRes.ok) throw new Error(intent.error || "PaymentIntent fehlgeschlagen");
+        if (intent.alreadyPaid) {
+          showMsg("Bereits bezahlt.", "ok");
+          return;
+        }
+
+        const stripe = Stripe(cfg.publishableKey);
+        const elements = stripe.elements({
+          clientSecret: intent.clientSecret,
+          appearance: { theme: "stripe" },
+        });
+        const paymentElement = elements.create("payment");
+        paymentElement.mount("#payment-element");
+        payBtn.hidden = false;
+
+        payBtn.addEventListener("click", async () => {
+          payBtn.disabled = true;
+          showMsg("Zahlung wird verarbeitet…");
+          const { error, paymentIntent } = await stripe.confirmPayment({
+            elements,
+            redirect: "if_required",
+            confirmParams: {
+              return_url: location.href,
+            },
+          });
+          if (error) {
+            showMsg(error.message || "Zahlung fehlgeschlagen", "error");
+            payBtn.disabled = false;
+            return;
+          }
+          if (paymentIntent && paymentIntent.status === "succeeded") {
+            showMsg("Zahlung erfolgreich. Gute Fahrt!", "ok");
+            payBtn.hidden = true;
+            statusEl.textContent = "Bezahlt";
+          } else {
+            showMsg("Zahlung abgeschlossen — Status: " + (paymentIntent && paymentIntent.status), "ok");
+          }
+        });
+      } catch (err) {
+        statusEl.textContent = err.message || "Fehler beim Laden";
+      }
+    })();
+  </script>
+</body>
+</html>

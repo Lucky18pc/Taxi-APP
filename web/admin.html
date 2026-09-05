@@ -38,12 +38,68 @@
     .section-header h2 { margin: 0; font-size: 1.05rem; }
     .inquiry-message { max-width: 220px; white-space: pre-wrap; word-break: break-word; font-size: 0.82rem; color: #374151; }
     .empty-hint { color: #6b7280; font-size: 0.9rem; margin: 0; }
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+    .admin-brand img {
+      width: 72px;
+      height: 72px;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+      flex-shrink: 0;
+    }
+    .admin-brand-login {
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      margin-bottom: 1.15rem;
+    }
+    .admin-brand-login img {
+      width: 96px;
+      height: 96px;
+      border-radius: 22px;
+    }
+    .admin-brand-login .admin-brand-text h1 {
+      margin: 0.35rem 0 0;
+      font-size: 1.35rem;
+    }
+    .admin-brand-text h1 { margin: 0; font-size: 1.25rem; line-height: 1.2; }
+    .admin-brand-text p { margin: 0.2rem 0 0; color: #6b7280; font-size: 0.85rem; }
+    .btn-admin-login {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      background: #facc15;
+      color: #0f172a;
+      border: none;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #ca8a04;
+    }
+    .btn-admin-login:hover { filter: brightness(0.97); }
+    .btn-admin-login:active { transform: translateY(1px); box-shadow: 0 2px 0 #ca8a04; }
+    .btn-admin-login .star { color: #0f172a; letter-spacing: 0.05em; }
   </style>
+  <link rel="icon" href="luckys-taxi-admin-logo.svg" type="image/svg+xml">
 </head>
 <body>
   <div id="admin-login" class="admin-wrap">
     <div class="admin-card" style="max-width:400px;margin:4rem auto">
-      <h1 style="margin:0 0 0.5rem;font-size:1.25rem">Plattform-Admin</h1>
+      <div class="admin-brand admin-brand-login">
+        <img src="luckys-taxi-admin-logo.svg" width="96" height="96" alt="Luckys Taxi Admin">
+        <div class="admin-brand-text">
+          <h1>Luckys Taxi Admin</h1>
+          <p>Plattform-Freischaltung</p>
+        </div>
+      </div>
       <p class="field-hint">ADMIN_PIN von Render eingeben. Mit „Angemeldet bleiben“ bleibst du auf diesem Mac angemeldet.</p>
       <form id="admin-login-form">
         <div class="field">
@@ -54,7 +110,11 @@
           <input id="admin-remember" type="checkbox" checked style="width:auto">
           <label for="admin-remember" style="margin:0;font-weight:600">Angemeldet bleiben (auf diesem Gerät speichern)</label>
         </div>
-        <button type="submit" class="btn btn-primary">Anmelden</button>
+        <button type="submit" class="btn-admin-login">
+          <span class="star" aria-hidden="true">★</span>
+          Anmelden
+          <span class="star" aria-hidden="true">★</span>
+        </button>
         <p id="admin-login-error" class="login-error hidden"></p>
       </form>
     </div>
@@ -62,9 +122,12 @@
 
   <div id="admin-app" class="admin-wrap hidden">
     <div class="admin-header">
-      <div>
-        <h1 style="margin:0;font-size:1.35rem">Mandanten-Verwaltung</h1>
-        <p class="field-hint" style="margin:0.25rem 0 0">Manuelle Vermietung — Betriebe anlegen, freischalten, Links kopieren.</p>
+      <div class="admin-brand" style="margin-bottom:0">
+        <img src="luckys-taxi-admin-logo.svg" width="72" height="72" alt="Luckys Taxi Admin">
+        <div class="admin-brand-text">
+          <h1>Mandanten-Verwaltung</h1>
+          <p>Manuelle Vermietung — Betriebe anlegen, freischalten, Links kopieren.</p>
+        </div>
       </div>
       <button type="button" class="btn-sm btn-secondary" id="admin-logout">Abmelden</button>
     </div>

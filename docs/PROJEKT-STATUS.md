@@ -88,7 +88,8 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 
 - [ ] PostgreSQL statt JSON-Dateien
 - [ ] Native Fahrer-iOS-App
-- [ ] Kartenzahlung Fahrgast (Stripe live)
+- [ ] Kartenzahlung Fahrgast (Stripe live) — MVP-Code da, siehe `docs/KARTENZAHLUNG-FAHRGAST.md`
+- [ ] Tap to Pay am Fahrer-Handy — geplant `docs/TAP-TO-PAY.md`
 - [ ] Automatische Fahrerzuweisung
 - [ ] Krankenfahrt / Kostenträger (`docs/KRANKENFAHRTEN-KOSTENTRAEGER.md`)
 - [ ] Rechnungen / Mahnwesen (`docs/FAHRT-AUF-RECHNUNG-MAHNWESEN.md`)

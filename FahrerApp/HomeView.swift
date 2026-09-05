@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 import FirebaseAuth
 import FirebaseFirestore
 
@@ -17,6 +18,9 @@ struct HomeView: View {
     @State private var errorMessage: String?
     @State private var isBusy = false
     @State private var acceptedBookingId: String?
+    @State private var completeTarget: DriverBooking?
+    @State private var meterAmountText = ""
+    @State private var payUrlMessage: String?
 
     private let operatorSlug = BackendConfig.defaultOperatorSlug
 
@@ -41,6 +45,13 @@ struct HomeView: View {
                     Text(errorMessage)
                         .foregroundStyle(.red)
                         .font(.footnote)
+                }
+
+                if let payUrlMessage {
+                    Text(payUrlMessage)
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                        .textSelection(.enabled)
                 }
 
                 if isOnline {
@@ -74,7 +85,8 @@ struct HomeView: View {
 
                                 if acceptedBookingId == booking.bookingId {
                                     Button("Fahrt erledigt") {
-                                        Task { await complete(booking) }
+                                        completeTarget = booking
+                                        meterAmountText = ""
                                     }
                                     .buttonStyle(.borderedProminent)
                                     .tint(.green)
@@ -106,6 +118,26 @@ struct HomeView: View {
             }
             .task {
                 await loadOnlineStatus()
+            }
+            .alert("Taxameter-Betrag", isPresented: Binding(
+                get: { completeTarget != nil },
+                set: { if !$0 { completeTarget = nil } }
+            )) {
+                TextField("Betrag in € (z.B. 18.50)", text: $meterAmountText)
+                    .keyboardType(.decimalPad)
+                Button("Abschließen") {
+                    if let booking = completeTarget {
+                        Task { await complete(booking) }
+                    }
+                }
+                Button("Abbrechen", role: .cancel) {
+                    completeTarget = nil
+                }
+            } message: {
+                let needsCard = (completeTarget?.paymentMethod ?? "").localizedCaseInsensitiveContains("karte")
+                Text(needsCard
+                    ? "Bei Kartenzahlung ist der Betrag Pflicht — danach Zahlungslink."
+                    : "Optional bei Bar. Bei Karte Pflicht.")
             }
         }
     }
@@ -212,17 +244,40 @@ struct HomeView: View {
     private func complete(_ booking: DriverBooking) async {
         isBusy = true
         errorMessage = nil
-        defer { isBusy = false }
+        payUrlMessage = nil
+        defer {
+            isBusy = false
+            completeTarget = nil
+        }
+
+        let wantsCard = (booking.paymentMethod ?? "").localizedCaseInsensitiveContains("karte")
+        let normalized = meterAmountText.replacingOccurrences(of: ",", with: ".")
+        let amount = Double(normalized)
+        if wantsCard {
+            guard let amount, amount >= 0.5 else {
+                await MainActor.run {
+                    errorMessage = "Kartenzahlung: Betrag ab 0,50 € erforderlich."
+                }
+                return
+            }
+        }
 
         do {
-            try await DriverAPI.completeBooking(
+            let result = try await DriverAPI.completeBooking(
                 bookingId: booking.bookingId,
                 driverUid: driverUid,
-                operatorSlug: operatorSlug
+                operatorSlug: operatorSlug,
+                totalAmount: amount
             )
             await MainActor.run {
                 acceptedBookingId = nil
-                statusText = "Fahrt erledigt."
+                if let payUrl = result.payUrl, !payUrl.isEmpty {
+                    statusText = "Fahrt erledigt — Zahlungslink bereit."
+                    payUrlMessage = payUrl
+                    UIPasteboard.general.string = payUrl
+                } else {
+                    statusText = "Fahrt erledigt."
+                }
             }
             await loadBookings()
         } catch {

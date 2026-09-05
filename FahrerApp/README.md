@@ -33,7 +33,7 @@ Der Block erlaubt Lesen + Update von `isOnline` / `onlineUpdatedAt` nur für das
 
 - `GET /api/driver/open-bookings?operator=mannheim`
 - `PATCH /api/driver/bookings/:id/accept` — Body: `{ "driverUid", "driverName" }`
-- `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid" }`
+- `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid", "totalAmount"? }` → optional `payUrl` bei Kartenzahlung
 
 Nach Deploy auf Render sind die Endpunkte live. Lokal: `cd backend && npm start`.
 

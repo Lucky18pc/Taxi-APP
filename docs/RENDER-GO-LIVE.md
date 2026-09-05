@@ -11,7 +11,7 @@
 | Startseite | https://taxiapp-api.onrender.com/index.html |
 | Leitstelle | https://taxiapp-api.onrender.com/dispatch.html |
 | Einstellungen | https://taxiapp-api.onrender.com/settings.html |
-| Impressum | https://taxiapp-api.onrender.com/impressum.html |
+| Payment | https://luckystaxiapp.de/pay.html (nach Fahrt, mit Token) |
 
 iOS-App: `TaxiConfig.swift` → `cloudBackendURL = "https://taxiapp-api.onrender.com"`
 
@@ -25,10 +25,11 @@ iOS-App: `TaxiConfig.swift` → `cloudBackendURL = "https://taxiapp-api.onrender
 | Variable | Pflicht | Zweck |
 |----------|---------|--------|
 | `ADMIN_PIN` | **Ja (empfohlen)** | PIN für Leitstelle & Einstellungen |
-| `STRIPE_SECRET_KEY` | Nein | Nur Unternehmer-Abo (49/99 €/Monat) — nicht für Fahrgast-Barzahlung |
+| `STRIPE_SECRET_KEY` | Nein* | Stripe Secret — Abo + Fahrgast-Kartenzahlung |
+| `STRIPE_PUBLISHABLE_KEY` | Nein* | `pk_test_…` / `pk_live_…` für `pay.html` |
 | `STRIPE_PRICE_STARTER` | Nein | Stripe Price-ID Starter (49 €/Monat) |
 | `STRIPE_PRICE_BUSINESS` | Nein | Stripe Price-ID Business (99 €/Monat) |
-| `STRIPE_WEBHOOK_SECRET` | Nein | Webhook für Abo-Events |
+| `STRIPE_WEBHOOK_SECRET` | Nein* | Webhook: Abo + `payment_intent.succeeded` |
 | `PUBLIC_BASE_URL` | Nein | Checkout-Redirect (z. B. `https://taxiapp-api.onrender.com`) |
 | `RESEND_API_KEY` | Nein | E-Mail bei Tarif-Anfragen (Fallback ohne Stripe) |
 | `CONTACT_NOTIFY_EMAIL` | Nein | Ziel-Adresse für Anfragen (Standard: luckypc81@gmail.com) |

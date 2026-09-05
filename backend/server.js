@@ -10,6 +10,7 @@ const { mountPwaBrandRoutes } = require("./pwa-brand");
 
 const port = process.env.PORT || 4242;
 const secretKey = process.env.STRIPE_SECRET_KEY;
+const stripePublishableKey = String(process.env.STRIPE_PUBLISHABLE_KEY || "").trim();
 const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const publicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
 const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
@@ -23,6 +24,109 @@ const billingPriceIds = {
 
 function isBillingConfigured() {
   return Boolean(stripe && billingPriceIds.starter && billingPriceIds.business);
+}
+
+function isCardPaymentMethod(method) {
+  const s = String(method || "").toLowerCase();
+  return s.includes("karte") || s.includes("card") || s === "stripe";
+}
+
+function resolvePublicBase(req) {
+  if (publicBaseUrl) return publicBaseUrl;
+  const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "https")
+    .split(",")[0]
+    .trim();
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "")
+    .split(",")[0]
+    .trim();
+  if (!host) return "";
+  return `${proto}://${host}`;
+}
+
+function eurosToCents(euros) {
+  return Math.round(Number(euros) * 100);
+}
+
+function buildPayUrl(req, booking) {
+  const base = resolvePublicBase(req);
+  if (!base || !booking?.paymentAccessToken || !booking?.bookingId) return null;
+  return `${base}/pay.html?b=${encodeURIComponent(booking.bookingId)}&t=${encodeURIComponent(booking.paymentAccessToken)}`;
+}
+
+function markBookingPaid(booking, paymentIntentId) {
+  if (!booking) return false;
+  booking.paymentStatus = "paid";
+  booking.paymentIntentId = paymentIntentId || booking.paymentIntentId || null;
+  booking.paidAt = new Date().toISOString();
+  booking.updatedAt = booking.paidAt;
+  return true;
+}
+
+async function ensureRidePaymentIntent(booking, { receiptEmail } = {}) {
+  const amountCents = eurosToCents(booking.totalAmount);
+  if (!stripe) {
+    const err = new Error("Stripe not configured");
+    err.code = "stripe_missing";
+    throw err;
+  }
+  if (!Number.isInteger(amountCents) || amountCents < 50) {
+    const err = new Error("amount must be >= 0.50 EUR");
+    err.code = "invalid_amount";
+    throw err;
+  }
+  if (booking.paymentStatus === "paid") {
+    return { alreadyPaid: true };
+  }
+
+  if (!booking.paymentAccessToken) {
+    booking.paymentAccessToken = crypto.randomBytes(16).toString("hex");
+  }
+
+  if (booking.paymentIntentId) {
+    try {
+      const existing = await stripe.paymentIntents.retrieve(booking.paymentIntentId);
+      if (existing.status === "succeeded") {
+        markBookingPaid(booking, existing.id);
+        saveBookings();
+        return { alreadyPaid: true };
+      }
+      if (
+        existing.amount === amountCents &&
+        ["requires_payment_method", "requires_confirmation", "requires_action", "processing"].includes(
+          existing.status
+        )
+      ) {
+        booking.paymentStatus = "pending";
+        booking.paymentAmountCents = amountCents;
+        saveBookings();
+        return { clientSecret: existing.client_secret, paymentIntentId: existing.id };
+      }
+    } catch (error) {
+      console.warn("PaymentIntent retrieve:", error.message);
+    }
+  }
+
+  const params = {
+    amount: amountCents,
+    currency: "eur",
+    automatic_payment_methods: { enabled: true },
+    metadata: {
+      bookingId: booking.bookingId,
+      operatorId: booking.operatorId || "",
+    },
+  };
+  const email = String(receiptEmail || booking.passengerEmail || "").trim();
+  if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    params.receipt_email = email;
+  }
+
+  const paymentIntent = await stripe.paymentIntents.create(params);
+  booking.paymentIntentId = paymentIntent.id;
+  booking.paymentStatus = "pending";
+  booking.paymentAmountCents = amountCents;
+  booking.updatedAt = new Date().toISOString();
+  saveBookings();
+  return { clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id };
 }
 
 let stripe = null;
@@ -792,6 +896,30 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
         console.log(`Rechnung ${event.type}: ${invoice.id} · ${invoice.customer_email || "—"}`);
         break;
       }
+      case "payment_intent.succeeded": {
+        const intent = event.data.object;
+        const bookingId = String(intent.metadata?.bookingId || "").trim();
+        const booking = bookingId ? findBooking(bookingId) : null;
+        if (booking) {
+          markBookingPaid(booking, intent.id);
+          saveBookings();
+          console.log(`Fahrgastzahlung OK: ${bookingId} · ${intent.id}`);
+        } else {
+          console.log(`payment_intent.succeeded ohne Buchung: ${intent.id}`);
+        }
+        break;
+      }
+      case "payment_intent.payment_failed": {
+        const intent = event.data.object;
+        const bookingId = String(intent.metadata?.bookingId || "").trim();
+        const booking = bookingId ? findBooking(bookingId) : null;
+        if (booking && booking.paymentStatus !== "paid") {
+          booking.paymentStatus = "failed";
+          booking.updatedAt = new Date().toISOString();
+          saveBookings();
+        }
+        break;
+      }
       default:
         break;
     }
@@ -1428,6 +1556,9 @@ app.post("/api/bookings", (req, res) => {
     totalAmount: Number(req.body.totalAmount) || 0,
     tariffAmount: Number(req.body.tariffAmount) || 0,
     tipAmount: Number(req.body.tipAmount) || 0,
+    paymentStatus: isCardPaymentMethod(req.body.paymentMethod) ? "awaiting_fare" : null,
+    paymentIntentId: null,
+    paymentAccessToken: null,
     nightSurchargeApplies,
     status: "confirmed",
     assignedDriverId: null,
@@ -1609,7 +1740,7 @@ app.patch("/api/driver/bookings/:id/accept", requireDriverApp, (req, res) => {
   });
 });
 
-app.patch("/api/driver/bookings/:id/complete", requireDriverApp, (req, res) => {
+app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found" });
@@ -1623,12 +1754,69 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, (req, res) => {
     return res.status(403).json({ error: "Not your booking" });
   }
 
+  const wantsCard = isCardPaymentMethod(booking.paymentMethod);
+  const rawTotal = req.body.totalAmount;
+  const hasTotal = rawTotal !== undefined && rawTotal !== null && String(rawTotal).trim() !== "";
+  const totalEuros = hasTotal ? Number(String(rawTotal).replace(",", ".")) : NaN;
+  const tipEuros =
+    req.body.tipAmount !== undefined && req.body.tipAmount !== null && String(req.body.tipAmount).trim() !== ""
+      ? Number(String(req.body.tipAmount).replace(",", "."))
+      : Number(booking.tipAmount) || 0;
+
+  if (wantsCard) {
+    if (!Number.isFinite(totalEuros) || totalEuros < 0.5) {
+      return res.status(400).json({
+        error: "totalAmount required for card payment (EUR, min 0.50)",
+      });
+    }
+  }
+
+  if (Number.isFinite(totalEuros) && totalEuros >= 0) {
+    booking.totalAmount = Math.round(totalEuros * 100) / 100;
+    booking.tariffAmount = Math.max(0, Math.round((booking.totalAmount - (Number.isFinite(tipEuros) ? tipEuros : 0)) * 100) / 100);
+    if (Number.isFinite(tipEuros) && tipEuros >= 0) {
+      booking.tipAmount = Math.round(tipEuros * 100) / 100;
+    }
+  }
+
   releaseDriverFromBooking(booking);
   booking.status = "completed";
   booking.updatedAt = new Date().toISOString();
+
+  let payUrl = null;
+  if (wantsCard && Number.isFinite(booking.totalAmount) && booking.totalAmount >= 0.5) {
+    if (!stripe) {
+      booking.paymentStatus = "awaiting_fare";
+      saveBookings();
+      saveDriversConfig();
+      return res.status(503).json({
+        error: "Stripe not configured — Kartenzahlung nicht möglich",
+        booking,
+      });
+    }
+    try {
+      const result = await ensureRidePaymentIntent(booking);
+      payUrl = buildPayUrl(req, booking);
+      if (result.alreadyPaid) {
+        payUrl = null;
+      }
+    } catch (error) {
+      console.error("complete+payment:", error);
+      saveBookings();
+      saveDriversConfig();
+      return res.status(500).json({
+        error: error.message || "PaymentIntent failed",
+        booking,
+      });
+    }
+  }
+
   saveBookings();
   saveDriversConfig();
-  res.json(booking);
+  res.json({
+    ...booking,
+    payUrl,
+  });
 });
 
 /** Fahrer-App sendet GPS (Auth: DRIVER_API_KEY + Firebase-UID). */
@@ -1791,12 +1979,90 @@ app.patch("/api/calls/:id/status", requireAdmin, (req, res) => {
   res.json(call);
 });
 
+app.get("/api/stripe/config", (_req, res) => {
+  res.json({
+    paymentsEnabled: Boolean(stripe && stripePublishableKey),
+    publishableKey: stripePublishableKey || null,
+  });
+});
+
+app.get("/api/pay/:bookingId", (req, res) => {
+  const booking = findBooking(req.params.bookingId);
+  const token = String(req.query.token || "").trim();
+  if (!booking || !booking.paymentAccessToken || token !== booking.paymentAccessToken) {
+    return res.status(404).json({ error: "Payment not found" });
+  }
+  res.json({
+    bookingId: booking.bookingId,
+    paymentStatus: booking.paymentStatus || null,
+    totalAmount: Number(booking.totalAmount) || 0,
+    currency: "eur",
+    paymentMethod: booking.paymentMethod || null,
+    addressLine: booking.addressLine || null,
+    destinationAddressLine: booking.destinationAddressLine || null,
+    paidAt: booking.paidAt || null,
+    paymentsEnabled: Boolean(stripe && stripePublishableKey),
+  });
+});
+
+app.post("/api/pay/:bookingId/intent", async (req, res) => {
+  const booking = findBooking(req.params.bookingId);
+  const token = String(req.body.token || req.query.token || "").trim();
+  if (!booking || !booking.paymentAccessToken || token !== booking.paymentAccessToken) {
+    return res.status(404).json({ error: "Payment not found" });
+  }
+  if (booking.paymentStatus === "paid") {
+    return res.json({ alreadyPaid: true, paymentStatus: "paid" });
+  }
+  if (!Number.isFinite(Number(booking.totalAmount)) || Number(booking.totalAmount) < 0.5) {
+    return res.status(400).json({ error: "Fare not set yet" });
+  }
+  try {
+    const result = await ensureRidePaymentIntent(booking, {
+      receiptEmail: req.body.receiptEmail || booking.passengerEmail,
+    });
+    if (result.alreadyPaid) {
+      return res.json({ alreadyPaid: true, paymentStatus: "paid" });
+    }
+    res.json({
+      clientSecret: result.clientSecret,
+      paymentIntentId: result.paymentIntentId,
+      paymentStatus: booking.paymentStatus,
+    });
+  } catch (error) {
+    console.error(error);
+    const status = error.code === "stripe_missing" ? 503 : 500;
+    res.status(status).json({ error: error.message || "PaymentIntent failed" });
+  }
+});
+
 app.post("/create-payment-intent", async (req, res) => {
   if (!stripe) {
     return res.status(503).json({ error: "Stripe not configured (STRIPE_SECRET_KEY missing)" });
   }
 
   try {
+    const bookingId = String(req.body.bookingId || "").trim();
+    if (bookingId) {
+      const booking = findBooking(bookingId);
+      const token = String(req.body.token || "").trim();
+      if (!booking || !booking.paymentAccessToken || token !== booking.paymentAccessToken) {
+        return res.status(404).json({ error: "Booking payment not found" });
+      }
+      if (Number.isFinite(Number(req.body.amountEuros))) {
+        booking.totalAmount = Math.round(Number(req.body.amountEuros) * 100) / 100;
+      } else if (Number.isInteger(Number(req.body.amount)) && Number(req.body.amount) >= 50) {
+        booking.totalAmount = Number(req.body.amount) / 100;
+      }
+      const result = await ensureRidePaymentIntent(booking, {
+        receiptEmail: req.body.receiptEmail || req.body.passengerEmail,
+      });
+      if (result.alreadyPaid) {
+        return res.json({ alreadyPaid: true, clientSecret: null });
+      }
+      return res.json({ clientSecret: result.clientSecret, paymentIntentId: result.paymentIntentId });
+    }
+
     const amount = Number(req.body.amount);
     const currency = (req.body.currency || "eur").toLowerCase();
     const receiptEmail = String(req.body.receiptEmail || req.body.passengerEmail || "").trim();
@@ -1831,7 +2097,7 @@ app.listen(port, host, () => {
   console.log(`TaxiApp backend listening on ${publicUrl}`);
 });
 
-// redeploy: sync web/driver-track GPS error UX 2026-09-05T08:35:02Z
+// redeploy: passenger card pay + tap-to-pay docs 2026-09-05T21:20:00Z
 
 // redeploy: home-screen look 2026-09-05T09:07:16Z
 

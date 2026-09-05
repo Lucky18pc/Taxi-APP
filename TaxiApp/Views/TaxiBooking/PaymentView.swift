@@ -170,6 +170,8 @@ struct PaymentView: View {
     @State private var selectedTipId: String = "none"
     @State private var useVoucher = false
     @State private var voucherText = ""
+    @State private var selectedPaymentMethod: TaxiPaymentMethod = .cash
+    @State private var passengerEmail = ""
 
     private let fixedTips: [TipOption] = tipOptions
 
@@ -247,7 +249,7 @@ struct PaymentView: View {
                     tipCard
                     voucherCard
                     totalBar
-                    barPaymentInfoCard
+                    paymentMethodCard
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -480,7 +482,11 @@ struct PaymentView: View {
                     .foregroundStyle(.white)
             }
 
-            Text("Taxameter + Trinkgeld zahlen Sie bar beim Fahrer nach der Fahrt.")
+            Text(
+                selectedPaymentMethod == .card
+                    ? "Taxameter-Betrag zahlst du nach der Fahrt per Kartenzahlungs-Link."
+                    : "Taxameter + Trinkgeld zahlen Sie bar beim Fahrer nach der Fahrt."
+            )
                 .font(.caption2)
                 .foregroundStyle(.white.opacity(0.85))
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -493,18 +499,52 @@ struct PaymentView: View {
         .animation(.easeInOut(duration: 0.2), value: selectedTipId)
     }
 
-    private var barPaymentInfoCard: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "banknote.fill")
-                .font(.title2)
+    private var paymentMethodCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Zahlungsart")
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(Brand.primary)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Zahlung bar beim Fahrer")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Brand.primary)
-                Text("Fahrtpreis laut Taxameter am Ende der Fahrt — jetzt nur die Fahrt buchen.")
-                    .font(.caption)
-                    .foregroundStyle(Brand.primary.opacity(0.85))
+
+            ForEach(TaxiPaymentMethod.allCases) { method in
+                Button {
+                    selectedPaymentMethod = method
+                } label: {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: method.icon)
+                            .font(.title3)
+                            .foregroundStyle(Brand.primary)
+                            .frame(width: 28)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(method.title)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Brand.primary)
+                            Text(method.detail)
+                                .font(.caption)
+                                .foregroundStyle(Brand.primary.opacity(0.85))
+                                .multilineTextAlignment(.leading)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: selectedPaymentMethod == method ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(selectedPaymentMethod == method ? Brand.accent : Brand.primary.opacity(0.35))
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(selectedPaymentMethod == method ? Brand.accent.opacity(0.12) : Color.clear)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
+            if selectedPaymentMethod == .card {
+                TextField("E-Mail für Quittung (optional)", text: $passengerEmail)
+                    .textContentType(.emailAddress)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .padding(10)
+                    .background(Color.white.opacity(0.9))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
         .padding(.horizontal, 16)
@@ -531,8 +571,9 @@ struct PaymentView: View {
                 case .failure(let message):
                     submitError = message
                 case .success:
-                    confirmedMessage =
-                        "Ihr Taxi ist bestellt. Die Zahlung erfolgt nach der Fahrt — Betrag laut Taxameter, bar beim Fahrer."
+                    confirmedMessage = selectedPaymentMethod == .card
+                        ? "Ihr Taxi ist bestellt. Nach der Fahrt zahlen Sie per Kartenzahlungs-Link (Betrag laut Taxameter)."
+                        : "Ihr Taxi ist bestellt. Die Zahlung erfolgt nach der Fahrt — Betrag laut Taxameter, bar beim Fahrer."
                     showConfirmedAlert = true
                 }
             }
@@ -547,9 +588,10 @@ struct PaymentView: View {
             tipAmount: tipAmount,
             voucherAmount: voucherAmount,
             useVoucher: useVoucher,
-            paymentMethodLabel: "Bar",
+            paymentMethodLabel: selectedPaymentMethod.rawValue,
             nightSurchargeApplies: centralStore.nightSurchargeApplies(for: pickupDate),
-            isImmediatePickup: isImmediatePickup
+            isImmediatePickup: isImmediatePickup,
+            passengerEmail: passengerEmail.trimmingCharacters(in: .whitespacesAndNewlines)
         )
     }
 }
