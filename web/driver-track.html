@@ -73,19 +73,44 @@
     .hint { font-size: 0.85rem; color: #6b7280; margin: 0; }
     .coords { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
     a { color: var(--navy); }
+    .home-preview {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+      padding: 0.75rem;
+      border-radius: 12px;
+      background: #0c1c34;
+      color: #fff;
+    }
+    .home-preview img {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+    .home-preview strong { display: block; font-size: 0.95rem; }
+    .home-preview span { font-size: 0.75rem; opacity: 0.75; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Fahrer GPS senden</h1>
-    <p>Standort für Live-Tracking an Fahrgäste — Seite offen lassen während der Fahrt.</p>
+  <header style="background:#ffcc00;color:#0c1c34">
+    <h1>Luckys Taxi Fahrer</h1>
+    <p>Deine App in der Hand — GPS an Fahrgäste senden. Seite offen lassen während der Fahrt.</p>
   </header>
 
   <main>
     <section class="card">
+      <div class="home-preview" aria-label="So erscheint die Seite auf dem Home-Bildschirm">
+        <img src="icon-taxi-192.png" width="56" height="56" alt="">
+        <div>
+          <strong>Fahrer GPS</strong>
+          <span>Home-Bildschirm · Teilen → Zum Home-Bildschirm</span>
+        </div>
+      </div>
       <p class="hint" style="margin-bottom:0.85rem">
-        PIN und Fahrer-ID stehen in den <a href="settings.html">Einstellungen → Fahrer</a>.
-        Nach der Zuweisung in der Leitstelle hier starten.
+        So hält der Taxifahrer das Projekt in der Hand — gleiche Marke wie die Bestell-App.
+        PIN und Fahrer-ID: <a href="settings.html">Einstellungen → Fahrer</a>.
       </p>
 
       <label for="driver-id">Fahrer-ID</label>

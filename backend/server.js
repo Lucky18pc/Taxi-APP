@@ -1834,3 +1834,5 @@ app.listen(port, host, () => {
 // redeploy: sync web/driver-track GPS error UX 2026-09-05T08:35:02Z
 
 // redeploy: home-screen look 2026-09-05T09:07:16Z
+
+// redeploy: driver home-screen parity 2026-09-05T09:30:29Z

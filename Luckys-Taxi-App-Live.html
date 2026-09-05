@@ -97,6 +97,55 @@
       padding: 1.15rem 1rem;
       box-shadow: 0 8px 20px rgba(255, 204, 0, 0.35);
     }
+    .btn-driver {
+      background: #ffcc00;
+      color: #0c1c34;
+      font-size: 1.15rem;
+      padding: 1.15rem 1rem;
+      box-shadow: 0 8px 20px rgba(255, 204, 0, 0.35);
+      border: 3px solid #0c1c34;
+    }
+    .role-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 0.65rem;
+      box-shadow: 0 4px 14px rgba(12, 28, 52, 0.08);
+    }
+    .role-card .phone-home {
+      max-width: 160px;
+      margin: 0 auto 0.75rem;
+      padding: 0.75rem 0.6rem 0.85rem;
+      border-radius: 14px;
+      background: #0c1c34;
+      color: #fff;
+      text-align: center;
+    }
+    .role-card .phone-home p {
+      margin: 0 0 0.45rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    .role-card .phone-home img {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: block;
+      margin: 0 auto 0.35rem;
+    }
+    .role-card .phone-home span {
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .role-card .role-hint {
+      margin: 0.5rem 0 0;
+      font-size: 0.8rem;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.4;
+    }
     .btn-accent { background: #612eb8; color: #fff; }
     .hint {
       font-size: 0.8rem;
@@ -127,7 +176,26 @@
     </header>
 
     <h2 data-i18n="live.guests">Fahrgäste (in der App)</h2>
-    <a class="btn btn-guest" href="https://luckystaxiapp.de/book.html" target="_blank" rel="noopener" data-i18n="live.book">Bestellseite — wie book.html, Sprachen oben</a>
+    <div class="role-card">
+      <div class="phone-home" aria-hidden="true">
+        <p>Home-Bildschirm</p>
+        <img src="https://luckystaxiapp.de/icon-taxi-192.png" width="56" height="56" alt="">
+        <span>Luckys Taxi</span>
+      </div>
+      <a class="btn btn-guest" href="https://luckystaxiapp.de/book.html" target="_blank" rel="noopener" data-i18n="live.book">Bestell-App aufs Handy</a>
+      <p class="role-hint" data-i18n="live.guestHint">Fahrgast: Bestellen &amp; verfolgen — Teilen → Zum Home-Bildschirm.</p>
+    </div>
+
+    <h2 data-i18n="live.drivers">Fahrer (in der Hand)</h2>
+    <div class="role-card">
+      <div class="phone-home" aria-hidden="true">
+        <p>Home-Bildschirm</p>
+        <img src="https://luckystaxiapp.de/icon-taxi-192.png" width="56" height="56" alt="">
+        <span>Fahrer GPS</span>
+      </div>
+      <a class="btn btn-driver" href="https://luckystaxiapp.de/driver-track.html" target="_blank" rel="noopener" data-i18n="live.driverApp">Fahrer-App aufs Handy</a>
+      <p class="role-hint" data-i18n="live.driverHint">Taxifahrer: GPS während der Fahrt — gleiche Marke, eigene App auf dem Home-Bildschirm. PIN in den Einstellungen.</p>
+    </div>
 
     <h2 data-i18n="live.sales">Verkauf &amp; Demo</h2>
     <a class="btn btn-primary" href="https://luckystaxiapp.de/" target="_blank" rel="noopener" data-i18n="live.home">Startseite (Unternehmer)</a>
@@ -136,7 +204,6 @@
     <h2 data-i18n="live.ops">Betrieb</h2>
     <a class="btn btn-secondary" href="https://luckystaxiapp.de/dispatch.html" target="_blank" rel="noopener" data-i18n="live.dispatch">Leitstelle (dispatch)</a>
     <a class="btn btn-secondary" href="https://luckystaxiapp.de/settings.html" target="_blank" rel="noopener" data-i18n="live.settings">Einstellungen (settings)</a>
-    <a class="btn btn-secondary" href="https://luckystaxiapp.de/driver-track.html" target="_blank" rel="noopener">Fahrer GPS</a>
 
     <h2 data-i18n="live.legal">Rechtliches</h2>
     <a class="btn btn-secondary" href="https://luckystaxiapp.de/impressum.html" target="_blank" rel="noopener" data-i18n="live.imprint">Impressum</a>
@@ -156,7 +223,11 @@
       de: {
         "live.sub": "Live — luckystaxiapp.de",
         "live.guests": "Fahrgäste (in der App)",
-        "live.book": "Bestellseite — wie book.html, Sprachen oben",
+        "live.book": "Bestell-App aufs Handy",
+        "live.guestHint": "Fahrgast: Bestellen & verfolgen — Teilen → Zum Home-Bildschirm.",
+        "live.drivers": "Fahrer (in der Hand)",
+        "live.driverApp": "Fahrer-App aufs Handy",
+        "live.driverHint": "Taxifahrer: GPS während der Fahrt — gleiche Marke, eigene App auf dem Home-Bildschirm. PIN in den Einstellungen.",
         "live.sales": "Verkauf & Demo",
         "live.home": "Startseite (Unternehmer)",
         "live.partner": "Partner werden",
@@ -167,7 +238,7 @@
         "live.imprint": "Impressum",
         "live.terms": "AGB",
         "live.tech": "Technik",
-        "live.hint": "Neue Leiste (wie book.html). Diese Datei liegt auf dem Mac-Schreibtisch. Doppelklick öffnet die Buttons.",
+        "live.hint": "Zwei Apps in der Hand: Fahrgast bestellt, Fahrer sendet GPS. Doppelklick öffnet die Buttons.",
         "live.check": "Server wird geprüft…",
         "live.ok": "Server live ✓",
         "live.warn": "Server antwortet — prüfen",
@@ -176,7 +247,11 @@
       en: {
         "live.sub": "Live — luckystaxiapp.de",
         "live.guests": "Passengers (in the app)",
-        "live.book": "Booking page — same as book.html, languages at the top",
+        "live.book": "Put booking app on phone",
+        "live.guestHint": "Passenger: book & track — Share → Add to Home Screen.",
+        "live.drivers": "Drivers (in your hand)",
+        "live.driverApp": "Put driver app on phone",
+        "live.driverHint": "Driver: GPS during the ride — same brand, own home-screen app. PIN in settings.",
         "live.sales": "Sales & demo",
         "live.home": "Homepage (operators)",
         "live.partner": "Become a partner",
@@ -187,7 +262,7 @@
         "live.imprint": "Imprint",
         "live.terms": "Terms",
         "live.tech": "Technical",
-        "live.hint": "New bar (same as book.html). This file is on your Mac desktop. Double-click to open the buttons.",
+        "live.hint": "Two apps in hand: passenger books, driver sends GPS.",
         "live.check": "Checking server…",
         "live.ok": "Server live ✓",
         "live.warn": "Server replied — check",
