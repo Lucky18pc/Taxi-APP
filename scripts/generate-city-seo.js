@@ -724,7 +724,7 @@ function renderHub(all) {
   <meta name="description" content="Taxi online bestellen in Deutschland und Nachbarländern. Lokale Seiten für Fahrgäste und Taxi-Betriebe — Luckys Taxi App.">
   <link rel="canonical" href="${BASE}/staedte/">
   <meta name="robots" content="index,follow">
-  <meta name="theme-color" content="#1c304f">
+  <meta name="theme-color" content="#ffcc00">
   <meta property="og:title" content="Taxi bestellen: Städte &amp; Länder | Luckys Taxi App">
   <meta property="og:description" content="Deutschland und Europa: lokale Taxi-Seiten für Fahrgäste und Betriebe.">
   <meta property="og:type" content="website">
@@ -734,7 +734,7 @@ function renderHub(all) {
   <link rel="stylesheet" href="../styles.css">
   <script src="../analytics.js" defer></script>
 </head>
-<body class="city-page">
+<body class="city-page cities-hub">
   <header class="city-hero">
     <div class="city-hero-inner">
       <p class="city-brand"><a href="../index.html">Luckys Taxi App</a></p>
@@ -742,7 +742,7 @@ function renderHub(all) {
       <p class="city-sub">Deutschland bundesweit und Nachbarländer — Seiten für Fahrgäste und Taxi-Betriebe.</p>
       <div class="city-ctas">
         <a class="btn" href="../book.html">Taxi bestellen</a>
-        <a class="btn secondary" href="../onboard.html">Für Betriebe</a>
+        <a class="btn secondary" href="../onboard.html">Plattform mieten</a>
       </div>
     </div>
   </header>
@@ -754,7 +754,7 @@ function renderHub(all) {
     <nav>
       <a href="../index.html">Start</a>
       <a href="../book.html">Taxi bestellen</a>
-      <a href="../onboard.html">Partner werden</a>
+      <a href="../onboard.html">Plattform mieten</a>
       <a href="../impressum.html">Impressum</a>
       <a href="../datenschutz.html">Datenschutz</a>
     </nav>

@@ -1149,6 +1149,72 @@ body.legal-taxi .legal-page > .note {
   color: var(--secondary);
 }
 
+/* Städte-&-Länder-Hub: Gelb/Schwarz */
+body.cities-hub {
+  background: #0c1c34;
+  color: #0c1c34;
+}
+
+body.cities-hub .city-hero {
+  background: #ffcc00;
+  color: #0c1c34;
+}
+
+body.cities-hub .city-brand a {
+  color: #0c1c34;
+  font-weight: 800;
+}
+
+body.cities-hub .city-hero h1,
+body.cities-hub .city-sub {
+  color: #0c1c34;
+}
+
+body.cities-hub .city-sub {
+  opacity: 0.9;
+}
+
+body.cities-hub .city-ctas .btn {
+  background: #0c1c34;
+  color: #ffcc00 !important;
+}
+
+body.cities-hub .city-ctas .btn.secondary {
+  background: transparent;
+  color: #0c1c34 !important;
+  border: 2px solid #0c1c34;
+}
+
+body.cities-hub .city-main {
+  margin-top: -0.5rem;
+}
+
+body.cities-hub .city-main > .lead {
+  color: #ffcc00;
+  font-weight: 600;
+}
+
+body.cities-hub .city-block {
+  border: 3px solid #ffcc00;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+body.cities-hub .city-block h2 {
+  color: #0c1c34;
+}
+
+body.cities-hub .cities-seo-list a {
+  color: #0c1c34;
+}
+
+body.cities-hub .site-footer {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+body.cities-hub .site-footer a {
+  color: #ffcc00;
+}
+
 .cities-seo {
   margin: 2rem 0 0;
   padding: 1.25rem 0 0;
