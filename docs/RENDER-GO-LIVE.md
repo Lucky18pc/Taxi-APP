@@ -27,6 +27,7 @@ iOS-App: `TaxiConfig.swift` → `cloudBackendURL = "https://taxiapp-api.onrender
 | `ADMIN_PIN` | **Ja (empfohlen)** | PIN für Leitstelle & Einstellungen |
 | `STRIPE_SECRET_KEY` | Nein* | Stripe Secret — Abo + Fahrgast-Kartenzahlung |
 | `STRIPE_PUBLISHABLE_KEY` | Nein* | `pk_test_…` / `pk_live_…` für `pay.html` |
+| `STRIPE_TERMINAL_LOCATION_ID` | Nein* | Tap to Pay — Stripe Terminal Location (`tml_…`) |
 | `STRIPE_PRICE_STARTER` | Nein | Stripe Price-ID Starter (49 €/Monat) |
 | `STRIPE_PRICE_BUSINESS` | Nein | Stripe Price-ID Business (99 €/Monat) |
 | `STRIPE_WEBHOOK_SECRET` | Nein* | Webhook: Abo + `payment_intent.succeeded` |

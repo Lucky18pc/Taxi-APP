@@ -41,9 +41,12 @@ Server läuft auf `http://127.0.0.1:4242`.
 - `POST /api/calls/incoming` — VoIP-Stub: eingehender Anruf (Body: `{ "from": "+49…" }`)
 - `GET /api/calls` — Telefon-Anrufe für dispatch.html
 - `POST /create-payment-intent` — Body: `{ "amount": 1450, "currency": "eur", "receiptEmail": "…" }` oder mit `bookingId`+`token`
-- `GET /api/stripe/config` — `{ paymentsEnabled, publishableKey }`
+- `GET /api/stripe/config` — `{ paymentsEnabled, publishableKey, terminalEnabled }`
 - `GET /api/pay/:bookingId?token=` — Öffentliche Zahlungsinfos
 - `POST /api/pay/:bookingId/intent` — Body: `{ "token" }` → clientSecret
+- `GET /api/terminal/config` — Tap to Pay Status (Driver-Key)
+- `POST /api/terminal/connection-token` — Stripe Terminal Token (Driver-Key)
+- `POST /api/driver/bookings/:id/tap-pay` — Body: `{ "driverUid", "totalAmount" }` → card_present Intent
 - `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid", "totalAmount"? }` → ggf. `payUrl`
 - `GET /api/billing/config` — Ob Stripe-Abo-Checkout aktiv ist
 - `POST /api/billing/checkout` — Body: `{ "planId": "starter"|"business", "email", "companyName" }` → Stripe Checkout URL

@@ -47,6 +47,8 @@ enum DriverAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.driverApiKey, forHTTPHeaderField: "X-Driver-Key")
+        request.setValue("Bearer \(BackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "driverUid": driverUid,
             "driverName": driverName,
@@ -74,6 +76,8 @@ enum DriverAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.driverApiKey, forHTTPHeaderField: "X-Driver-Key")
+        request.setValue("Bearer \(BackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
         var body: [String: Any] = ["driverUid": driverUid]
         if let totalAmount {
             body["totalAmount"] = totalAmount

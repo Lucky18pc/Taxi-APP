@@ -21,6 +21,9 @@ struct HomeView: View {
     @State private var completeTarget: DriverBooking?
     @State private var meterAmountText = ""
     @State private var payUrlMessage: String?
+    @State private var showPayMethodDialog = false
+    @State private var pendingAmount: Double?
+    @State private var terminalEnabled = false
 
     private let operatorSlug = BackendConfig.defaultOperatorSlug
 
@@ -40,6 +43,12 @@ struct HomeView: View {
 
                 Text(statusText)
                     .foregroundStyle(.secondary)
+
+                if terminalEnabled {
+                    Text("Tap to Pay: Server bereit (NFC braucht Stripe-Terminal-SDK + Apple-Freigabe).")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
 
                 if let errorMessage {
                     Text(errorMessage)
@@ -118,26 +127,55 @@ struct HomeView: View {
             }
             .task {
                 await loadOnlineStatus()
+                terminalEnabled = await TapToPayService.isEnabled(operatorSlug: operatorSlug)
             }
             .alert("Taxameter-Betrag", isPresented: Binding(
-                get: { completeTarget != nil },
+                get: { completeTarget != nil && !showPayMethodDialog },
                 set: { if !$0 { completeTarget = nil } }
             )) {
                 TextField("Betrag in € (z.B. 18.50)", text: $meterAmountText)
                     .keyboardType(.decimalPad)
-                Button("Abschließen") {
-                    if let booking = completeTarget {
-                        Task { await complete(booking) }
+                Button("Weiter") {
+                    let normalized = meterAmountText.replacingOccurrences(of: ",", with: ".")
+                    let amount = Double(normalized)
+                    let needsAmount = (completeTarget?.paymentMethod ?? "")
+                        .localizedCaseInsensitiveContains("karte")
+                    if needsAmount, amount == nil || (amount ?? 0) < 0.5 {
+                        errorMessage = "Kartenzahlung: Betrag ab 0,50 € erforderlich."
+                        completeTarget = nil
+                        return
                     }
+                    pendingAmount = amount
+                    showPayMethodDialog = true
                 }
                 Button("Abbrechen", role: .cancel) {
                     completeTarget = nil
                 }
             } message: {
-                let needsCard = (completeTarget?.paymentMethod ?? "").localizedCaseInsensitiveContains("karte")
-                Text(needsCard
-                    ? "Bei Kartenzahlung ist der Betrag Pflicht — danach Zahlungslink."
-                    : "Optional bei Bar. Bei Karte Pflicht.")
+                Text("Betrag laut Taxameter eingeben, danach Zahlungsart wählen.")
+            }
+            .confirmationDialog("Zahlungsart", isPresented: $showPayMethodDialog, titleVisibility: .visible) {
+                Button("Bar / ohne Online-Zahlung") {
+                    if let booking = completeTarget {
+                        Task { await complete(booking, shareLink: false) }
+                    }
+                }
+                Button("Zahlungslink für Fahrgast") {
+                    if let booking = completeTarget {
+                        Task { await complete(booking, shareLink: true) }
+                    }
+                }
+                Button("Karte tippen (Tap to Pay)") {
+                    if let booking = completeTarget {
+                        Task { await runTapToPay(booking) }
+                    }
+                }
+                Button("Abbrechen", role: .cancel) {
+                    completeTarget = nil
+                    pendingAmount = nil
+                }
+            } message: {
+                Text("Tap to Pay: Gast hält die Karte an dein iPhone (nach SDK + Apple-Freigabe).")
             }
         }
     }
@@ -241,25 +279,14 @@ struct HomeView: View {
         }
     }
 
-    private func complete(_ booking: DriverBooking) async {
+    private func complete(_ booking: DriverBooking, shareLink: Bool) async {
         isBusy = true
         errorMessage = nil
         payUrlMessage = nil
         defer {
             isBusy = false
             completeTarget = nil
-        }
-
-        let wantsCard = (booking.paymentMethod ?? "").localizedCaseInsensitiveContains("karte")
-        let normalized = meterAmountText.replacingOccurrences(of: ",", with: ".")
-        let amount = Double(normalized)
-        if wantsCard {
-            guard let amount, amount >= 0.5 else {
-                await MainActor.run {
-                    errorMessage = "Kartenzahlung: Betrag ab 0,50 € erforderlich."
-                }
-                return
-            }
+            pendingAmount = nil
         }
 
         do {
@@ -267,11 +294,11 @@ struct HomeView: View {
                 bookingId: booking.bookingId,
                 driverUid: driverUid,
                 operatorSlug: operatorSlug,
-                totalAmount: amount
+                totalAmount: pendingAmount
             )
             await MainActor.run {
                 acceptedBookingId = nil
-                if let payUrl = result.payUrl, !payUrl.isEmpty {
+                if shareLink, let payUrl = result.payUrl, !payUrl.isEmpty {
                     statusText = "Fahrt erledigt — Zahlungslink bereit."
                     payUrlMessage = payUrl
                     UIPasteboard.general.string = payUrl
@@ -283,6 +310,74 @@ struct HomeView: View {
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func runTapToPay(_ booking: DriverBooking) async {
+        isBusy = true
+        errorMessage = nil
+        payUrlMessage = nil
+        defer {
+            isBusy = false
+            completeTarget = nil
+        }
+
+        guard let amount = pendingAmount, amount >= 0.5 else {
+            await MainActor.run {
+                errorMessage = "Tap to Pay: Betrag ab 0,50 € erforderlich."
+                pendingAmount = nil
+            }
+            return
+        }
+
+        do {
+            _ = try await TapToPayService.collectWithSdkIfAvailable(
+                bookingId: booking.bookingId,
+                driverUid: driverUid,
+                operatorSlug: operatorSlug,
+                totalAmount: amount
+            )
+            let result = try await DriverAPI.completeBooking(
+                bookingId: booking.bookingId,
+                driverUid: driverUid,
+                operatorSlug: operatorSlug,
+                totalAmount: amount
+            )
+            await MainActor.run {
+                acceptedBookingId = nil
+                pendingAmount = nil
+                statusText = "Tap to Pay erfolgreich — Fahrt erledigt."
+                if let payUrl = result.payUrl {
+                    payUrlMessage = payUrl
+                }
+            }
+            await loadBookings()
+        } catch {
+            // Fallback: Zahlungslink vorbereiten
+            do {
+                let result = try await DriverAPI.completeBooking(
+                    bookingId: booking.bookingId,
+                    driverUid: driverUid,
+                    operatorSlug: operatorSlug,
+                    totalAmount: amount
+                )
+                await MainActor.run {
+                    acceptedBookingId = nil
+                    pendingAmount = nil
+                    errorMessage = error.localizedDescription
+                    if let payUrl = result.payUrl, !payUrl.isEmpty {
+                        payUrlMessage = "Fallback-Link: \(payUrl)"
+                        UIPasteboard.general.string = payUrl
+                        statusText = "NFC noch nicht bereit — Zahlungslink kopiert."
+                    }
+                }
+                await loadBookings()
+            } catch {
+                await MainActor.run {
+                    pendingAmount = nil
+                    errorMessage = error.localizedDescription
+                }
             }
         }
     }

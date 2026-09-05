@@ -11,6 +11,7 @@ const { mountPwaBrandRoutes } = require("./pwa-brand");
 const port = process.env.PORT || 4242;
 const secretKey = process.env.STRIPE_SECRET_KEY;
 const stripePublishableKey = String(process.env.STRIPE_PUBLISHABLE_KEY || "").trim();
+const stripeTerminalLocationId = String(process.env.STRIPE_TERMINAL_LOCATION_ID || "").trim();
 const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const publicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
 const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
@@ -62,8 +63,9 @@ function markBookingPaid(booking, paymentIntentId) {
   return true;
 }
 
-async function ensureRidePaymentIntent(booking, { receiptEmail } = {}) {
+async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "online" } = {}) {
   const amountCents = eurosToCents(booking.totalAmount);
+  const wantTerminal = channel === "terminal";
   if (!stripe) {
     const err = new Error("Stripe not configured");
     err.code = "stripe_missing";
@@ -82,7 +84,8 @@ async function ensureRidePaymentIntent(booking, { receiptEmail } = {}) {
     booking.paymentAccessToken = crypto.randomBytes(16).toString("hex");
   }
 
-  if (booking.paymentIntentId) {
+  const sameChannel = (booking.paymentChannel || "online") === (wantTerminal ? "terminal" : "online");
+  if (booking.paymentIntentId && sameChannel) {
     try {
       const existing = await stripe.paymentIntents.retrieve(booking.paymentIntentId);
       if (existing.status === "succeeded") {
@@ -106,27 +109,44 @@ async function ensureRidePaymentIntent(booking, { receiptEmail } = {}) {
     }
   }
 
-  const params = {
-    amount: amountCents,
-    currency: "eur",
-    automatic_payment_methods: { enabled: true },
-    metadata: {
-      bookingId: booking.bookingId,
-      operatorId: booking.operatorId || "",
-    },
+  const metadata = {
+    bookingId: booking.bookingId,
+    operatorId: booking.operatorId || "",
+    channel: wantTerminal ? "terminal" : "online",
   };
+
+  const params = wantTerminal
+    ? {
+        amount: amountCents,
+        currency: "eur",
+        payment_method_types: ["card_present"],
+        capture_method: "automatic",
+        metadata,
+      }
+    : {
+        amount: amountCents,
+        currency: "eur",
+        automatic_payment_methods: { enabled: true },
+        metadata,
+      };
+
   const email = String(receiptEmail || booking.passengerEmail || "").trim();
-  if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!wantTerminal && email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     params.receipt_email = email;
   }
 
   const paymentIntent = await stripe.paymentIntents.create(params);
   booking.paymentIntentId = paymentIntent.id;
+  booking.paymentChannel = wantTerminal ? "terminal" : "online";
   booking.paymentStatus = "pending";
   booking.paymentAmountCents = amountCents;
   booking.updatedAt = new Date().toISOString();
   saveBookings();
   return { clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id };
+}
+
+function isTerminalConfigured() {
+  return Boolean(stripe && stripeTerminalLocationId);
 }
 
 let stripe = null;
@@ -1983,7 +2003,89 @@ app.get("/api/stripe/config", (_req, res) => {
   res.json({
     paymentsEnabled: Boolean(stripe && stripePublishableKey),
     publishableKey: stripePublishableKey || null,
+    terminalEnabled: isTerminalConfigured(),
+    terminalLocationId: isTerminalConfigured() ? stripeTerminalLocationId : null,
   });
+});
+
+app.get("/api/terminal/config", requireDriverApp, (_req, res) => {
+  res.json({
+    enabled: isTerminalConfigured(),
+    locationId: isTerminalConfigured() ? stripeTerminalLocationId : null,
+    simulated: String(process.env.STRIPE_TERMINAL_SIMULATED || "").trim() === "1",
+  });
+});
+
+app.post("/api/terminal/connection-token", requireDriverApp, async (_req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: "Stripe not configured" });
+  }
+  try {
+    const token = await stripe.terminal.connectionTokens.create();
+    res.json({ secret: token.secret });
+  } catch (error) {
+    console.error("connection-token:", error);
+    res.status(500).json({ error: error.message || "Connection token failed" });
+  }
+});
+
+app.post("/api/driver/bookings/:id/tap-pay", requireDriverApp, async (req, res) => {
+  if (!isTerminalConfigured()) {
+    return res.status(503).json({
+      error:
+        "Tap to Pay nicht konfiguriert — STRIPE_TERMINAL_LOCATION_ID in Render setzen (Stripe → Terminal → Locations)",
+    });
+  }
+
+  const booking = findBooking(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+  if (!bookingMatchesRequest(req, booking)) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+
+  const driverUid = String(req.body.driverUid || "").trim();
+  if (!driverOwnsBooking(booking, driverUid)) {
+    return res.status(403).json({ error: "Not your booking" });
+  }
+
+  const rawTotal = req.body.totalAmount;
+  const totalEuros = Number(String(rawTotal ?? "").replace(",", "."));
+  if (!Number.isFinite(totalEuros) || totalEuros < 0.5) {
+    return res.status(400).json({ error: "totalAmount required (EUR, min 0.50)" });
+  }
+
+  booking.totalAmount = Math.round(totalEuros * 100) / 100;
+  booking.paymentMethod = booking.paymentMethod || "Karte";
+  booking.updatedAt = new Date().toISOString();
+
+  try {
+    const result = await ensureRidePaymentIntent(booking, { channel: "terminal" });
+    if (result.alreadyPaid) {
+      return res.json({
+        alreadyPaid: true,
+        paymentStatus: "paid",
+        bookingId: booking.bookingId,
+        totalAmount: booking.totalAmount,
+      });
+    }
+    console.log(
+      `Tap to Pay PI: ${booking.bookingId} · ${result.paymentIntentId} · ${booking.totalAmount} € · Fahrer ${driverUid}`
+    );
+    res.json({
+      bookingId: booking.bookingId,
+      totalAmount: booking.totalAmount,
+      paymentIntentId: result.paymentIntentId,
+      clientSecret: result.clientSecret,
+      locationId: stripeTerminalLocationId,
+      paymentStatus: booking.paymentStatus,
+    });
+  } catch (error) {
+    console.error("tap-pay:", error);
+    saveBookings();
+    res.status(500).json({ error: error.message || "Tap to Pay PaymentIntent failed" });
+  }
 });
 
 app.get("/api/pay/:bookingId", (req, res) => {
@@ -2096,6 +2198,8 @@ app.listen(port, host, () => {
   const publicUrl = process.env.PUBLIC_BASE_URL || `http://${host}:${port}`;
   console.log(`TaxiApp backend listening on ${publicUrl}`);
 });
+
+// redeploy: Tap to Pay terminal API 2026-09-05T22:10:00Z
 
 // redeploy: passenger card pay + tap-to-pay docs 2026-09-05T21:20:00Z
 

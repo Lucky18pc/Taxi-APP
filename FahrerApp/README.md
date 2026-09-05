@@ -18,10 +18,20 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | `HomeView.swift` | Online + Fahrtenliste |
 | `BackendConfig.swift` | Backend-URL + Operator-Slug |
 | `DriverBooking.swift` | Modelle |
-| `DriverAPI.swift` | API-Aufrufe |
+| `TapToPayService.swift` | Tap to Pay Backend + SDK-Hook |
+| `LuckysTaxiFahrer.entitlements` | Apple Tap-to-Pay Entitlement (nach Freigabe) |
 
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
 Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)
+
+## Tap to Pay (Karte ans iPhone)
+
+1. Render: `STRIPE_TERMINAL_LOCATION_ID` setzen (Stripe → Terminal → Locations)
+2. Xcode: SPM `stripe-terminal-ios` zum Fahrer-Target
+3. Entitlement `LuckysTaxiFahrer.entitlements` zuweisen (Apple muss freigeben)
+4. Details: `docs/TAP-TO-PAY.md`
+
+Ohne SDK zeigt die App bei „Karte tippen“ einen Fehler und kopiert den **Zahlungslink** als Fallback.
 
 ## Firestore-Regeln (wichtig für Online-Schalter)
 
@@ -33,7 +43,10 @@ Der Block erlaubt Lesen + Update von `isOnline` / `onlineUpdatedAt` nur für das
 
 - `GET /api/driver/open-bookings?operator=mannheim`
 - `PATCH /api/driver/bookings/:id/accept` — Body: `{ "driverUid", "driverName" }`
-- `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid", "totalAmount"? }` → optional `payUrl` bei Kartenzahlung
+- `PATCH /api/driver/bookings/:id/complete` — Body: `{ "driverUid", "totalAmount"? }` → optional `payUrl`
+- `POST /api/driver/bookings/:id/tap-pay` — Body: `{ "driverUid", "totalAmount" }` → Terminal PaymentIntent
+- `POST /api/terminal/connection-token` — Stripe Terminal Connection Token
+- `GET /api/terminal/config` — ob Tap to Pay serverseitig bereit ist
 
 Nach Deploy auf Render sind die Endpunkte live. Lokal: `cd backend && npm start`.
 

@@ -1,94 +1,90 @@
 # Tap to Pay — Karte ans Fahrer-Handy
 
-**Status:** geplant (noch nicht gebaut)  
-**Verwandt:** Online-Zahlung `docs/KARTENZAHLUNG-FAHRGAST.md` (bereits MVP)
+**Status:** Backend Phase B implementiert · NFC in der Fahrer-App braucht noch Stripe-Terminal-SDK + Apple-Freigabe  
+**Verwandt:** Online-Zahlung `docs/KARTENZAHLUNG-FAHRGAST.md` (live)
 
 ## Was Fahrgäste meinen
 
-„Neue Handysysteme, Karte drauflegen“ = **SoftPOS / Tap to Pay**:
+„Karte drauflegen“ = **SoftPOS / Tap to Pay**:
 
 - Fahrer öffnet Zahlung in der **Fahrer-App**
-- Fahrgast hält **Bankkarte** oder Handy an das **NFC** des Fahrer-iPhones/Androids
-- Betrag = Taxameter (vom Fahrer bestätigt)
+- Fahrgast hält **Bankkarte** oder Handy an das **NFC** des Fahrer-iPhones
+- Betrag = Taxameter
 
-Das ist **nicht** dasselbe wie Online-Zahlung in der Fahrgast-App — dort zahlt der Gast auf *seinem* Gerät.
+Das ist **nicht** die Online-Zahlung auf dem Handy des Gastes (Zahlungslink).
 
-## Zielprodukt
+## Was schon gebaut ist
 
-| Schritt | Inhalt |
-|---------|--------|
-| 1 | Fahrer tippt „Kartenzahlung“ nach Taxameter-Eingabe |
-| 2 | App startet Stripe Terminal **Tap to Pay** Session |
-| 3 | Gast tippt Karte → Autorisierung → Quittung |
-| 4 | Backend setzt `paymentStatus: paid` + Beleg |
+| Baustein | Status |
+|----------|--------|
+| Online-Zahlungslink `pay.html` | ✅ |
+| `POST /api/terminal/connection-token` | ✅ |
+| `GET /api/terminal/config` | ✅ |
+| `POST /api/driver/bookings/:id/tap-pay` | ✅ (PaymentIntent `card_present`) |
+| Webhook `payment_intent.succeeded` | ✅ |
+| Fahrer-App: Betrag → Bar / Link / Tap to Pay | ✅ UI |
+| Stripe Terminal SDK Collect (NFC-UI) | ⏳ Xcode + Apple Entitlement |
+| Android Tap to Pay | ⏳ später |
 
-## Technik-Stack (Empfehlung)
+## Deine To-dos (ohne die geht NFC nicht)
 
-| Schicht | Wahl |
-|---------|------|
-| PSP | **Stripe Terminal** (passt zu bestehendem Stripe) |
-| iOS | Tap to Pay on iPhone + Stripe Terminal SDK |
-| Android | Tap to Pay on Android + Stripe Terminal SDK |
-| Betrag | gleiche Complete-API wie Online (`totalAmount`) |
-| Multi-Mandant | später **Stripe Connect** (Express) — Geld an Taxi-Betrieb |
+1. **Stripe Dashboard** → Terminal → **Location** anlegen (Adresse DE)  
+2. Location-ID kopieren → Render Environment:  
+   `STRIPE_TERMINAL_LOCATION_ID=tml_…`  
+3. Optional: `STRIPE_TERMINAL_SIMULATED=1` nur für Tests  
+4. **Apple Developer** → Tap to Pay on iPhone **Entitlement** beantragen  
+   (`com.apple.developer.proximity-reader.payment.acceptance`)  
+5. In Xcode (Fahrer-Target): SPM  
+   `https://github.com/stripe/stripe-terminal-ios`  
+6. Entitlement-Datei dem Target zuweisen (Beispiel: `FahrerApp/LuckysTaxiFahrer.entitlements`)  
+7. Gerät: **iPhone XS+**, aktuelles iOS, physisches Gerät (kein Simulator für echtes NFC)
 
-## Voraussetzungen
+Stripe-Anleitung: [Tap to Pay on iPhone](https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=ios)
 
-1. Stripe-Konto (Live) + Terminal aktiviert  
-2. Apple: Tap to Pay on iPhone Entitlement / Partner-Freigabe über Stripe  
-3. Google: Tap to Pay on Android Freigabe  
-4. iPhones mit NFC (iPhone XS+), aktuelle iOS-Version  
-5. AGB / Impressum: Hinweis Kartenzahlung & Stripe  
-6. Entscheidung: wer ist Merchant of Record — **Taxi-Betrieb** (Connect) vs. Plattform (nur Phase 1)
+## API
+
+```text
+GET  /api/terminal/config                 → { enabled, locationId }   (Driver-Key)
+POST /api/terminal/connection-token       → { secret }                (Driver-Key)
+POST /api/driver/bookings/:id/tap-pay     → { clientSecret, paymentIntentId, locationId }
+     Body: { driverUid, totalAmount }
+```
+
+Header: `Authorization: Bearer <DRIVER_API_KEY>` oder `X-Driver-Key`.
+
+## Fahrer-App UX (jetzt)
+
+1. Fahrt annehmen → **Fahrt erledigt**  
+2. Taxameter-Betrag eingeben  
+3. Wählen: **Bar** | **Zahlungslink** | **Karte tippen (Tap to Pay)**  
+4. Ohne SDK: Tap to Pay schlägt fehl → **Fallback Zahlungslink** wird kopiert  
 
 ## Phasen
 
 ### Phase A — Vorbereitung (ohne NFC)
 
-- [x] Online-Zahlung / Zahlungslink nach Fahrt (`pay.html`)
-- [ ] Taxameter-Betrag Pflicht bei `paymentMethod=Karte`
-- [ ] Quittungs-E-Mail (Stripe `receipt_email`)
-- [ ] Connect-Skizze für Mandanten-Auszahlung
+- [x] Online-Zahlung / Zahlungslink
+- [x] Taxameter-Betrag bei Karte
+- [x] Quittungs-E-Mail optional (`receipt_email` Online)
 
-### Phase B — Tap to Pay Pilot (1 Betrieb)
+### Phase B — Tap to Pay Pilot
 
-- [ ] Stripe Terminal Location + ConnectionToken-API im Backend  
-  `POST /api/terminal/connection-token`
-- [ ] Fahrer-App: Screen „Betrag bestätigen → Tippen lassen“
-- [ ] Testmodus mit Stripe-Testkarten / Terminal-Simulator
-- [ ] Logging: `paymentIntentId`, Fahrer-UID, Buchungs-ID
+- [x] Connection-Token + tap-pay PaymentIntent
+- [x] Fahrer-App Zahlungsart-Dialog
+- [ ] Location-ID auf Render
+- [ ] Apple Entitlement + Terminal SDK Collect fertig verdrahten
+- [ ] Test mit Simulator-Reader / Testkarten
 
 ### Phase C — Rollout
 
-- [ ] Live-Keys, Geräteliste, Schulung Fahrer
-- [ ] Fallback: wenn NFC fehlschlägt → Zahlungslink anzeigen/teilen
-- [ ] Provision laut Tarif (1,5–2 % nur Kartenzahlung) via `application_fee` (Connect)
-
-## Backend-Skizze (später)
-
-```text
-POST /api/terminal/connection-token     → Stripe connection_token
-POST /api/driver/bookings/:id/tap-pay   → { totalAmount } → PaymentIntent + Terminal collect
-Webhook payment_intent.succeeded        → paymentStatus=paid (bereits für Online vorbereitet)
-```
-
-## Fahrer-App UX (Skizze)
-
-1. Fahrt aktiv → „Fahrt erledigt“  
-2. Feld: Taxameter €  
-3. Buttons: **Bar** | **Link an Fahrgast** | **Karte tippen (Tap to Pay)**  
-4. Bei Tap: Vollbild „Bitte Karte an die Oberseite halten“  
-5. Erfolg: grün + Betrag; Fehler: erneut / Link
+- [ ] Schulung Fahrer
+- [ ] Fallback Link (teilweise schon)
+- [ ] Stripe Connect / Provision
 
 ## Abgrenzung
 
 | Feature | Online-Link | Tap to Pay |
 |---------|-------------|------------|
 | Gerät | Handy des Fahrgasts | Handy des Fahrers |
-| NFC | nein (Wallet optional) | ja (physische Karte) |
-| Offline im Auto | braucht Netz beim Gast | braucht Netz beim Fahrer |
-| Aufwand | niedrig (MVP da) | hoch (SDK + Freigaben) |
-
-## Nächster konkreter Schritt
-
-Sobald Online-Zahlung live getestet ist: Stripe Terminal im Dashboard aktivieren und Phase-B Connection-Token Endpunkt bauen.
+| Browser `driver-track.html` | Link ja | **nein** (nur native App) |
+| Freigabe Apple/Google | nein | **ja** |
