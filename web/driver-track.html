@@ -278,6 +278,10 @@
       gap: 0.75rem;
       text-decoration: none;
       color: inherit;
+      width: 100%;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
     }
     .panel-link .chev { margin-left: auto; font-weight: 800; }
     .panel-link small {
@@ -343,6 +347,143 @@
       margin: 0;
       color: rgba(12,28,52,0.75);
     }
+
+    /* —— Pause-Spiele —— */
+    #screen-games, #screen-game {
+      min-height: 100dvh;
+      background: var(--yellow);
+    }
+    .games-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1.1rem;
+      background: rgba(255, 204, 0, 0.92);
+      border-bottom: 1px solid rgba(12,28,52,0.12);
+      font-weight: 800;
+    }
+    .game-nav button {
+      border: 0;
+      background: transparent;
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0;
+    }
+    .game-body {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 1rem 1.1rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .game-card {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 1.5px solid rgba(12,28,52,0.3);
+      border-radius: 14px;
+      padding: 1rem;
+      background: var(--cream);
+      color: var(--navy);
+      cursor: pointer;
+    }
+    .game-card strong { display: block; font-size: 1.05rem; margin-bottom: 0.25rem; }
+    .game-card span { font-size: 0.82rem; color: rgba(12,28,52,0.75); }
+    .game-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+    .game-board {
+      position: relative;
+      min-height: 280px;
+      border-radius: 16px;
+      background: rgba(12,28,52,0.92);
+      overflow: hidden;
+    }
+    .taxi-chip {
+      position: absolute;
+      border: 0;
+      border-radius: 8px;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 900;
+      background: var(--yellow);
+      color: #000;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+    }
+    .game-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      text-align: center;
+      background: rgba(12,28,52,0.72);
+      color: var(--yellow);
+    }
+    .game-overlay p { margin: 0; color: rgba(255,255,255,0.85); font-size: 0.85rem; }
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.55rem;
+    }
+    .memory-card {
+      height: 72px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--navy);
+      color: var(--yellow);
+      font-size: 1.4rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .memory-card.open { background: var(--cream); color: var(--navy); }
+    .choice-btn {
+      width: 100%;
+      border: 2.5px solid var(--navy);
+      border-radius: 12px;
+      padding: 0.85rem;
+      font-weight: 800;
+      background: var(--yellow);
+      color: var(--navy);
+      cursor: pointer;
+    }
+    .auftrag-card {
+      padding: 1rem;
+      border-radius: 14px;
+      background: var(--cream);
+      border: 1.5px solid rgba(12,28,52,0.35);
+    }
+    .auftrag-card .label { font-size: 0.75rem; font-weight: 600; opacity: 0.7; }
+    .auftrag-card .route { font-size: 1.15rem; font-weight: 900; margin: 0.25rem 0 0.5rem; }
+    .btn-navy {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 0.85rem;
+      font-weight: 800;
+      background: var(--navy);
+      color: var(--yellow);
+      cursor: pointer;
+    }
+    .tarif-input {
+      width: 100%;
+      padding: 0.85rem;
+      border: 2px solid var(--navy);
+      border-radius: 12px;
+      background: var(--cream);
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -395,13 +536,13 @@
         <button type="button" id="banner-ok">OK</button>
       </div>
 
-      <a class="panel panel-link" href="#spiele" id="games-panel">
+      <button type="button" class="panel panel-link" id="games-panel">
         <div>
           <strong>Pause-Spiele</strong>
-          <small>Bei Langeweile: in der iOS-App verfügbar</small>
+          <small>Bei Langeweile: tippen, Memory, Tarif, nächste Fahrt</small>
         </div>
         <span class="chev">▶</span>
-      </a>
+      </button>
 
       <p class="error-line" id="error-text" hidden></p>
       <p class="gps-line" id="gps-active" hidden>Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.</p>
@@ -416,6 +557,40 @@
         <div id="rides-list"></div>
       </section>
     </main>
+  </section>
+
+  <section id="screen-games" hidden>
+    <div class="game-nav">
+      <button type="button" id="games-back-home">← Zurück</button>
+      <span>Pause-Spiele</span>
+    </div>
+    <div class="game-body">
+      <p class="status-line">Für lange Wartezeiten. Bei neuer Fahrt zurück zur Liste.</p>
+      <button type="button" class="game-card" data-game="tipp">
+        <strong>Taxi tippen</strong>
+        <span>Gelbe Taxis antippen, bevor sie weg sind.</span>
+      </button>
+      <button type="button" class="game-card" data-game="memory">
+        <strong>Taxi Memory</strong>
+        <span>Paare finden — 8 Karten, ruhiges Tempo.</span>
+      </button>
+      <button type="button" class="game-card" data-game="tarif">
+        <strong>Tarif rechnen</strong>
+        <span>Schnelle Kopfrechnung wie am Taxameter.</span>
+      </button>
+      <button type="button" class="game-card" data-game="naechste">
+        <strong>Nächste Fahrt</strong>
+        <span>Funkspruch lesen — richtiges Ziel antippen, bevor die Zeit abläuft.</span>
+      </button>
+    </div>
+  </section>
+
+  <section id="screen-game" hidden>
+    <div class="game-nav">
+      <button type="button" id="games-back-hub">← Spiele</button>
+      <span id="game-title">Spiel</span>
+    </div>
+    <div class="game-body" id="game-root"></div>
   </section>
 
   <script type="module">
@@ -479,6 +654,12 @@
       ridesList: document.getElementById("rides-list"),
       btnRefresh: document.getElementById("btn-refresh"),
       games: document.getElementById("games-panel"),
+      gamesScreen: document.getElementById("screen-games"),
+      gameScreen: document.getElementById("screen-game"),
+      gameRoot: document.getElementById("game-root"),
+      gameTitle: document.getElementById("game-title"),
+      gamesBackHome: document.getElementById("games-back-home"),
+      gameBackHub: document.getElementById("game-back-hub"),
     };
 
     const state = {
@@ -527,16 +708,464 @@
 
     function showHome() {
       el.login.hidden = true;
+      el.gamesScreen.hidden = true;
+      el.gameScreen.hidden = true;
+      stopActiveGame();
       el.home.hidden = false;
       el.hello.textContent = `Hallo, ${state.driverName}`;
     }
 
     function showLogin() {
       el.home.hidden = true;
+      el.gamesScreen.hidden = true;
+      el.gameScreen.hidden = true;
+      stopActiveGame();
       el.login.hidden = false;
       el.loginStatus.textContent = "Status: abgemeldet";
       el.password.value = "";
       setLoginError("");
+    }
+
+    function showGamesHub() {
+      stopActiveGame();
+      el.home.hidden = true;
+      el.gameScreen.hidden = true;
+      el.gamesScreen.hidden = false;
+      setError("");
+    }
+
+    let activeGameCleanup = null;
+    function stopActiveGame() {
+      if (typeof activeGameCleanup === "function") {
+        activeGameCleanup();
+        activeGameCleanup = null;
+      }
+      if (el.gameRoot) el.gameRoot.innerHTML = "";
+    }
+
+    function openGame(id) {
+      const titles = {
+        tipp: "Taxi tippen",
+        memory: "Taxi Memory",
+        tarif: "Tarif rechnen",
+        naechste: "Nächste Fahrt",
+      };
+      el.gamesScreen.hidden = true;
+      el.home.hidden = true;
+      el.gameScreen.hidden = false;
+      el.gameTitle.textContent = titles[id] || "Spiel";
+      stopActiveGame();
+      if (id === "tipp") activeGameCleanup = startTippGame(el.gameRoot);
+      if (id === "memory") activeGameCleanup = startMemoryGame(el.gameRoot);
+      if (id === "tarif") activeGameCleanup = startTarifGame(el.gameRoot);
+      if (id === "naechste") activeGameCleanup = startNaechsteGame(el.gameRoot);
+    }
+
+    function hsGet(key) {
+      return Number(localStorage.getItem(key) || 0);
+    }
+    function hsSet(key, value) {
+      localStorage.setItem(key, String(value));
+    }
+
+    function startTippGame(root) {
+      let score = 0;
+      let lives = 3;
+      let running = false;
+      let taxis = [];
+      let spawnTimer = null;
+      let timers = [];
+      const highKey = "fahrer.web.taxiTipp.highscore";
+      let high = hsGet(highKey);
+
+      root.innerHTML = `
+        <div class="game-stats">
+          <span id="t-score">Punkte 0</span>
+          <span id="t-lives">Leben 3</span>
+          <span id="t-high">Rekord ${high}</span>
+        </div>
+        <div class="game-board" id="t-board">
+          <div class="game-overlay" id="t-overlay">
+            <strong id="t-over-title">Taxi tippen</strong>
+            <p>Tippe die gelben Taxis, bevor sie verschwinden.</p>
+            <button type="button" class="btn-primary" id="t-start" style="width:auto;padding:0.7rem 1.4rem">Start</button>
+          </div>
+        </div>
+      `;
+      const board = root.querySelector("#t-board");
+      const overlay = root.querySelector("#t-overlay");
+
+      function sync() {
+        root.querySelector("#t-score").textContent = `Punkte ${score}`;
+        root.querySelector("#t-lives").textContent = `Leben ${lives}`;
+        root.querySelector("#t-high").textContent = `Rekord ${high}`;
+      }
+
+      function clearTaxis() {
+        timers.forEach(clearTimeout);
+        timers = [];
+        taxis.forEach((t) => t.el.remove());
+        taxis = [];
+      }
+
+      function stop() {
+        running = false;
+        if (spawnTimer) clearInterval(spawnTimer);
+        spawnTimer = null;
+        clearTaxis();
+      }
+
+      function gameOver() {
+        stop();
+        if (score > high) {
+          high = score;
+          hsSet(highKey, high);
+        }
+        sync();
+        overlay.hidden = false;
+        root.querySelector("#t-over-title").textContent = "Game Over";
+        root.querySelector("#t-start").textContent = "Nochmal";
+      }
+
+      function spawn() {
+        if (!running || lives <= 0) return;
+        const rect = board.getBoundingClientRect();
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "taxi-chip";
+        btn.textContent = "TAXI";
+        const x = 40 + Math.random() * Math.max(40, rect.width - 80);
+        const y = 40 + Math.random() * Math.max(40, rect.height - 80);
+        btn.style.left = `${x}px`;
+        btn.style.top = `${y}px`;
+        const item = { el: btn };
+        btn.addEventListener("click", () => {
+          const idx = taxis.indexOf(item);
+          if (idx < 0) return;
+          taxis.splice(idx, 1);
+          btn.remove();
+          score += 1;
+          sync();
+        });
+        board.appendChild(btn);
+        taxis.push(item);
+        const tid = setTimeout(() => {
+          const i = taxis.indexOf(item);
+          if (i < 0) return;
+          taxis.splice(i, 1);
+          btn.remove();
+          lives -= 1;
+          sync();
+          if (lives <= 0) gameOver();
+        }, 1400);
+        timers.push(tid);
+      }
+
+      function start() {
+        stop();
+        score = 0;
+        lives = 3;
+        running = true;
+        overlay.hidden = true;
+        sync();
+        spawn();
+        spawnTimer = setInterval(spawn, 900);
+      }
+
+      root.querySelector("#t-start").addEventListener("click", start);
+      return stop;
+    }
+
+    function startMemoryGame(root) {
+      const symbols = ["🚕", "🚖", "🟡", "⬛"];
+      let karten = [];
+      let erste = null;
+      let gesperrt = false;
+      let zuege = 0;
+
+      function neu() {
+        karten = [];
+        let id = 0;
+        for (const s of symbols) {
+          karten.push({ id: id++, symbol: s, open: false, done: false });
+          karten.push({ id: id++, symbol: s, open: false, done: false });
+        }
+        karten = karten.sort(() => Math.random() - 0.5);
+        erste = null;
+        gesperrt = false;
+        zuege = 0;
+        render();
+      }
+
+      function render() {
+        const fertig = karten.length && karten.every((k) => k.done);
+        root.innerHTML = `
+          <div class="game-stats">
+            <span>Züge: ${zuege}</span>
+            <button type="button" class="btn-text" id="m-neu">Neu</button>
+          </div>
+          <div class="memory-grid" id="m-grid"></div>
+          ${fertig ? `<p class="status-line">Geschafft in ${zuege} Zügen!</p>` : ""}
+        `;
+        const grid = root.querySelector("#m-grid");
+        for (const k of karten) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = `memory-card${k.open || k.done ? " open" : ""}`;
+          b.textContent = k.open || k.done ? k.symbol : "?";
+          b.disabled = k.done || k.open || gesperrt;
+          b.addEventListener("click", () => tippe(k.id));
+          grid.appendChild(b);
+        }
+        root.querySelector("#m-neu").addEventListener("click", neu);
+      }
+
+      function tippe(id) {
+        const k = karten.find((x) => x.id === id);
+        if (!k || k.done || k.open || gesperrt) return;
+        k.open = true;
+        if (erste == null) {
+          erste = id;
+          render();
+          return;
+        }
+        zuege += 1;
+        gesperrt = true;
+        const a = erste;
+        const b = id;
+        render();
+        setTimeout(() => {
+          const ka = karten.find((x) => x.id === a);
+          const kb = karten.find((x) => x.id === b);
+          if (ka && kb && ka.symbol === kb.symbol) {
+            ka.done = true;
+            kb.done = true;
+          } else {
+            if (ka) ka.open = false;
+            if (kb) kb.open = false;
+          }
+          erste = null;
+          gesperrt = false;
+          render();
+        }, 550);
+      }
+
+      neu();
+      return () => {};
+    }
+
+    function startTarifGame(root) {
+      let score = 0;
+      let antwort = 0;
+      let frage = "";
+      const highKey = "fahrer.web.tarif.highscore";
+      let high = hsGet(highKey);
+      let feedback = "Berechne den Fahrpreis.";
+
+      function neueFrage() {
+        const km = 2 + Math.floor(Math.random() * 17);
+        const grund = 3;
+        const proKm = 2 + Math.floor(Math.random() * 2);
+        antwort = grund + km * proKm;
+        frage = `Grundpreis ${grund} € + ${km} km × ${proKm} € = ?`;
+        feedback = "Wie viel kostet die Fahrt?";
+        render();
+      }
+
+      function render() {
+        root.innerHTML = `
+          <div class="game-stats">
+            <span>Richtig: ${score}</span>
+            <span>Rekord: ${high}</span>
+          </div>
+          <div class="auftrag-card"><div class="route">${frage}</div></div>
+          <input class="tarif-input" id="tarif-in" inputmode="numeric" placeholder="Antwort in €">
+          <button type="button" class="btn-navy" id="tarif-check">Prüfen</button>
+          <p class="status-line">${feedback}</p>
+        `;
+        const input = root.querySelector("#tarif-in");
+        root.querySelector("#tarif-check").addEventListener("click", () => {
+          const wert = Number(String(input.value).trim());
+          if (!Number.isFinite(wert)) {
+            feedback = "Bitte eine ganze Zahl eingeben.";
+            render();
+            return;
+          }
+          if (wert === antwort) {
+            score += 1;
+            if (score > high) {
+              high = score;
+              hsSet(highKey, high);
+            }
+            feedback = "Richtig!";
+            neueFrage();
+          } else {
+            feedback = `Leider falsch. Richtig wäre ${antwort} €.`;
+            score = Math.max(0, score - 1);
+            neueFrage();
+          }
+        });
+      }
+
+      neueFrage();
+      return () => {};
+    }
+
+    function startNaechsteGame(root) {
+      const orte = [
+        "Hauptbahnhof", "Wasserturm", "Paradeplatz", "Universität", "SAP Arena",
+        "Flughafen", "Neckarau", "Käfertal", "Luisenpark", "Technoseum",
+        "Schloss", "Rosengarten", "Marktplatz", "Krankenhaus", "Messe", "Rheinau",
+      ];
+      const sprueche = [
+        "Funk: Bitte sofort!",
+        "Neue Bestellung eingegangen.",
+        "Fahrgast wartet schon.",
+        "Leitstelle: nächste Fahrt für dich.",
+        "App-Auftrag — schnell entscheiden!",
+      ];
+      let score = 0;
+      let lives = 3;
+      let streak = 0;
+      let running = false;
+      let pickup = "";
+      let destination = "";
+      let options = [];
+      let spruch = "";
+      let secondsLeft = 8;
+      let feedback = "";
+      let tickTimer = null;
+      const highKey = "fahrer.web.naechsteFahrt.highscore";
+      let high = hsGet(highKey);
+
+      function stopTick() {
+        if (tickTimer) clearInterval(tickTimer);
+        tickTimer = null;
+      }
+
+      function shuffle(arr) {
+        return [...arr].sort(() => Math.random() - 0.5);
+      }
+
+      function renderIdle() {
+        stopTick();
+        running = false;
+        root.innerHTML = `
+          <div class="game-stats">
+            <span>Punkte ${score}</span>
+            <span>Rekord ${high}</span>
+          </div>
+          <div class="auftrag-card">
+            <div class="route">${lives === 0 ? "Schicht vorbei" : "Nächste Fahrt"}</div>
+            <p class="status-line">Abholung lesen, Ziel wählen — bevor die Zeit abläuft.</p>
+          </div>
+          <button type="button" class="btn-navy" id="n-start">${lives === 0 ? "Nochmal" : "Funk an"}</button>
+        `;
+        root.querySelector("#n-start").addEventListener("click", start);
+      }
+
+      function renderRound() {
+        root.innerHTML = `
+          <div class="game-stats">
+            <span>Punkte ${score}</span>
+            <span>Serie ${streak}</span>
+            <span>Leben ${lives}</span>
+            <span>Rekord ${high}</span>
+          </div>
+          <p class="status-line">Noch ${secondsLeft} s</p>
+          <div class="auftrag-card">
+            <div class="label">${spruch}</div>
+            <div class="route">${pickup} → ${destination}</div>
+            <p class="status-line">Wohin als Nächstes? Tippe das Ziel.</p>
+          </div>
+          ${options.map((o) => `<button type="button" class="choice-btn" data-ort="${o.replace(/"/g, "&quot;")}">${o}</button>`).join("")}
+          <p class="status-line">${feedback}</p>
+        `;
+        root.querySelectorAll(".choice-btn").forEach((btn) => {
+          btn.addEventListener("click", () => tippe(btn.getAttribute("data-ort")));
+        });
+      }
+
+      function neueRunde() {
+        stopTick();
+        if (lives <= 0) {
+          if (score > high) {
+            high = score;
+            hsSet(highKey, high);
+          }
+          renderIdle();
+          return;
+        }
+        const gemischt = shuffle(orte);
+        pickup = gemischt[0];
+        destination = gemischt[1];
+        options = shuffle([destination, gemischt[2], gemischt[3]]);
+        spruch = sprueche[Math.floor(Math.random() * sprueche.length)];
+        secondsLeft = Math.max(5, 8 - Math.floor(score / 4));
+        feedback = "Wohin fährst du als Nächstes?";
+        running = true;
+        renderRound();
+        tickTimer = setInterval(() => {
+          secondsLeft -= 1;
+          if (secondsLeft <= 0) {
+            falsch(true);
+            return;
+          }
+          const line = root.querySelector(".status-line");
+          if (line && line.textContent.startsWith("Noch")) {
+            line.textContent = `Noch ${secondsLeft} s`;
+          }
+        }, 1000);
+      }
+
+      function tippe(ort) {
+        if (!running) return;
+        if (ort === destination) {
+          stopTick();
+          score += 1 + Math.floor(streak / 2);
+          streak += 1;
+          if (score > high) {
+            high = score;
+            hsSet(highKey, high);
+          }
+          feedback = streak >= 3 ? "Serie! Weiter so." : "Richtig — Motor an!";
+          running = false;
+          renderRound();
+          setTimeout(neueRunde, 450);
+        } else {
+          falsch(false);
+        }
+      }
+
+      function falsch(timeout) {
+        stopTick();
+        lives -= 1;
+        streak = 0;
+        feedback = timeout
+          ? `Zu langsam — Ziel war ${destination}.`
+          : `Falsch — richtig war ${destination}.`;
+        running = false;
+        renderRound();
+        if (lives <= 0) {
+          if (score > high) {
+            high = score;
+            hsSet(highKey, high);
+          }
+          setTimeout(renderIdle, 700);
+          return;
+        }
+        setTimeout(neueRunde, 700);
+      }
+
+      function start() {
+        score = 0;
+        lives = 3;
+        streak = 0;
+        neueRunde();
+      }
+
+      renderIdle();
+      return stopTick;
     }
 
     async function driverHeaders(json = true) {
@@ -980,7 +1609,14 @@
     el.btnRefresh.addEventListener("click", () => fetchBookings(false));
     el.games.addEventListener("click", (e) => {
       e.preventDefault();
-      setError("Pause-Spiele gibt es in der iOS-App — hier der gleiche Platzhalter.");
+      showGamesHub();
+    });
+    el.gamesBackHome.addEventListener("click", showHome);
+    el.gameBackHub.addEventListener("click", showGamesHub);
+    el.gamesScreen.addEventListener("click", (e) => {
+      const card = e.target.closest("[data-game]");
+      if (!card) return;
+      openGame(card.getAttribute("data-game"));
     });
     el.online.addEventListener("change", () => {
       if (state.suppressOnlineWrite) {
