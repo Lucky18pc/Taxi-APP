@@ -113,11 +113,45 @@
     }
     .assigned-box strong { display: block; margin-bottom: 0.2rem; }
     .club-note { font-size: 0.88rem; color: var(--secondary); margin: 0 0 1rem; }
+    .home-preview {
+      max-width: 220px;
+      margin: 0 auto 1rem;
+      padding: 0.85rem 0.75rem 1rem;
+      border-radius: 16px;
+      background: #0c1c34;
+      color: #fff;
+      text-align: center;
+    }
+    .home-preview-caption {
+      margin: 0 0 0.65rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    .home-preview-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 0.45rem;
+      border-radius: 16px;
+      display: block;
+      object-fit: cover;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    }
+    .home-preview-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body data-i18n-title="meta.bookTitle">
   <header class="book-hero" id="book-hero">
-    <img id="home-screen-icon" src="icon-taxi-192.png" width="72" height="72" alt="Luckys Taxi App" style="display:block;margin:0 auto 0.75rem;border-radius:16px">
+    <div class="home-preview" aria-label="So sieht die App auf dem Home-Bildschirm aus">
+      <p class="home-preview-caption">Home-Bildschirm</p>
+      <img id="home-screen-icon" class="home-preview-icon" src="icon-taxi-192.png" width="72" height="72" alt="Luckys Taxi App">
+      <span class="home-preview-label" id="home-screen-label">Luckys Taxi</span>
+    </div>
     <h1 id="book-title">Luckys Taxi App</h1>
     <p id="book-subtitle" data-i18n="book.subtitle">Deutschlandweit bestellen — ein Knopf, Taxi vor Ort</p>
     <p style="margin:1rem 0 0">
@@ -324,6 +358,10 @@
       if (preview) {
         preview.src = icon;
         preview.alt = name;
+      }
+      const homeLabel = document.getElementById("home-screen-label");
+      if (homeLabel) {
+        homeLabel.textContent = name.length > 12 ? name.split(/\s+/)[0] : name;
       }
       const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
       if (appleTitle) appleTitle.setAttribute("content", name);
