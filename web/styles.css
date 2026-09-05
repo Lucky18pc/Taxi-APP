@@ -1121,3 +1121,77 @@ ul.checklist li::before {
   font-weight: 700;
 }
 
+/* Unternehmer: gelb/schwarz statt unsichtbarem Weiß auf Grau */
+.ops-rent {
+  background: #0c1c34;
+  color: #fff;
+  margin: 2rem -1.25rem 0;
+  padding: 2rem 1.25rem 2.5rem;
+  border-radius: 0;
+}
+
+.wrap .ops-rent {
+  margin-left: -1.25rem;
+  margin-right: -1.25rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+@media (min-width: 980px) {
+  .wrap .ops-rent {
+    margin-left: calc(-50vw + 490px);
+    margin-right: calc(-50vw + 490px);
+    padding-left: calc(50vw - 490px + 1.25rem);
+    padding-right: calc(50vw - 490px + 1.25rem);
+  }
+}
+
+.ops-rent h2,
+.ops-rent .lead,
+.ops-rent .sales-sub {
+  color: #fff;
+}
+
+.ops-rent .lead {
+  opacity: 0.92;
+}
+
+.ops-rent .badge {
+  background: #ffcc00;
+  color: #0c1c34;
+  font-weight: 800;
+}
+
+.btn-ops-cta {
+  display: inline-block;
+  background: #ffcc00;
+  color: #0c1c34 !important;
+  text-decoration: none;
+  font-weight: 800;
+  padding: 0.9rem 1.4rem;
+  border-radius: 12px;
+  border: 2px solid #ffcc00;
+}
+
+.btn-ops-cta:hover {
+  filter: brightness(1.05);
+}
+
+.ops-rent .sales-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 204, 0, 0.35);
+  color: #fff;
+}
+
+.ops-rent .sales-card h3 {
+  color: #ffcc00;
+}
+
+.ops-rent .sales-card a {
+  color: #ffcc00;
+}
+
+.ops-rent .note {
+  color: rgba(255, 255, 255, 0.75);
+}
+

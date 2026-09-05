@@ -7,44 +7,134 @@
   <meta name="description" content="Luckys vermietet die Taxi-Plattform an Betriebe mit Konzession: Leitstelle und Online-Buchung unter Ihrem Namen. Ab 49 €/Monat, monatlich kündbar.">
   <link rel="canonical" href="https://luckystaxiapp.de/onboard.html">
   <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#ffcc00">
+  <link rel="icon" type="image/png" href="icon-taxi-192.png">
   <link rel="stylesheet" href="styles.css">
   <script src="analytics.js" defer></script>
   <script src="i18n.js" defer></script>
   <style>
-    .onboard-wrap { max-width: 640px; margin: 0 auto 3rem; padding: 0 1.25rem; }
+    body.onboard-page {
+      background: #0c1c34;
+      color: #0c1c34;
+    }
+    .onboard-hero {
+      background: #ffcc00;
+      color: #0c1c34;
+      padding: 2.25rem 1.25rem 2.5rem;
+      text-align: center;
+    }
+    .onboard-hero .hero-badge {
+      display: inline-block;
+      margin: 0 0 0.75rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+      background: #0c1c34;
+      color: #ffcc00;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .onboard-hero h1 {
+      margin: 0 0 0.65rem;
+      font-size: clamp(1.75rem, 5vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #0c1c34;
+    }
+    .onboard-hero .onboard-lead {
+      margin: 0 auto;
+      max-width: 34rem;
+      font-size: 1.02rem;
+      line-height: 1.5;
+      font-weight: 500;
+      color: #0c1c34;
+      opacity: 0.92;
+    }
+    .onboard-wrap {
+      max-width: 640px;
+      margin: -1.25rem auto 3rem;
+      padding: 0 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
     .onboard-card {
-      background: var(--card);
-      border-radius: var(--radius);
+      background: #fff;
+      border-radius: 14px;
       padding: 1.35rem 1.5rem;
-      box-shadow: var(--shadow);
-      margin-top: 1rem;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+      border: 3px solid #ffcc00;
     }
-    .onboard-card h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
+    .onboard-card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.1rem;
+      color: #0c1c34;
+    }
     .field { margin-bottom: 1rem; }
-    .field label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
-    .field input, .field textarea, .field select {
-      width: 100%; padding: 0.7rem 0.75rem; border: 1px solid #d1d5db;
-      border-radius: 10px; font: inherit;
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      color: #0c1c34;
     }
-    .field-hint { font-size: 0.8rem; color: #6b7280; margin-top: 0.35rem; }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 0.7rem 0.75rem;
+      border: 2px solid #d1d5db;
+      border-radius: 10px;
+      font: inherit;
+      color: #0c1c34;
+      background: #fff;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none;
+      border-color: #ffcc00;
+      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.35);
+    }
+    .field-hint { font-size: 0.8rem; color: #5b6472; margin-top: 0.35rem; }
+    .onboard-page .btn {
+      background: #0c1c34;
+      color: #ffcc00 !important;
+      border: none;
+      font-weight: 800;
+    }
+    .onboard-page .btn:hover {
+      filter: brightness(1.08);
+    }
     .result-box {
       display: none;
       margin-top: 1.25rem;
       padding: 1rem 1.15rem;
-      background: #eff6ff;
-      border: 1px solid #93c5fd;
+      background: #fff8d6;
+      border: 2px solid #ffcc00;
       border-radius: 12px;
       font-size: 0.9rem;
+      color: #0c1c34;
     }
     .result-box.visible { display: block; }
     .status-error { color: #991b1b; font-weight: 600; margin-top: 0.75rem; }
+    .onboard-note {
+      margin-top: 1.25rem;
+      text-align: center;
+    }
+    .onboard-note a {
+      color: #ffcc00;
+      font-weight: 700;
+    }
+    .onboard-page .site-footer {
+      color: rgba(255, 255, 255, 0.75);
+    }
+    .onboard-page .site-footer a {
+      color: #ffcc00;
+    }
   </style>
 </head>
-<body data-i18n-title="meta.onboardTitle">
-  <header class="hero" style="padding-bottom: 2.5rem">
+<body class="onboard-page" data-i18n-title="meta.onboardTitle">
+  <header class="onboard-hero">
     <p class="hero-badge" data-i18n="onboard.badge">Plattform mieten</p>
     <h1 data-i18n="onboard.h1">Plattform mieten</h1>
-    <p data-i18n="onboard.lead">Luckys ist Plattformanbieter — keine eigene Taxikonzession. Sie mieten Leitstelle, Browser-Buchung und App unter Ihrem Betriebsnamen. Freischaltung nach Prüfung.</p>
+    <p class="onboard-lead" data-i18n="onboard.lead">Luckys ist Plattformanbieter — keine eigene Taxikonzession. Sie mieten Leitstelle, Browser-Buchung und App unter Ihrem Betriebsnamen. Freischaltung nach Prüfung.</p>
   </header>
 
   <main class="onboard-wrap">
@@ -98,7 +188,7 @@
       </div>
     </div>
 
-    <p class="note" style="margin-top:1.25rem">
+    <p class="note onboard-note">
       <a href="dispatch.html" data-i18n="onboard.already">Bereits Kunde? Zur Leitstelle</a>
     </p>
   </main>
@@ -106,7 +196,7 @@
   <footer class="site-footer">
     <nav>
       <a href="index.html" data-i18n="nav.start">Start</a>
-      <a href="onboard.html" data-i18n="nav.partner">Partner werden</a>
+      <a href="onboard.html" data-i18n="nav.partner">Plattform mieten</a>
       <a href="impressum.html" data-i18n="nav.imprint">Impressum</a>
     </nav>
   </footer>
