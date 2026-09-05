@@ -1830,3 +1830,5 @@ app.listen(port, host, () => {
   const publicUrl = process.env.PUBLIC_BASE_URL || `http://${host}:${port}`;
   console.log(`TaxiApp backend listening on ${publicUrl}`);
 });
+
+// redeploy: sync web/driver-track GPS error UX 2026-09-05T08:35:02Z
