@@ -1,11 +1,11 @@
 {
-  "name": "Fahrer GPS — Luckys Taxi",
-  "short_name": "Fahrer GPS",
+  "name": "Luckys Taxi Fahrer",
+  "short_name": "Fahrer",
   "start_url": "./driver-track.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#1c304f",
-  "theme_color": "#1c304f",
+  "background_color": "#ffcc00",
+  "theme_color": "#ffcc00",
   "lang": "de",
   "icons": [
     {

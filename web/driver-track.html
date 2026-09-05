@@ -2,279 +2,1023 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1c304f">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffcc00">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Fahrer GPS">
-  <title>Fahrer GPS | Luckys Taxi App</title>
+  <meta name="apple-mobile-web-app-title" content="Luckys Taxi Fahrer">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Luckys Taxi Fahrer</title>
   <link rel="icon" type="image/png" href="icon-taxi-192.png">
   <link rel="apple-touch-icon" href="icon-taxi-192.png">
   <link rel="manifest" href="driver-track-manifest.json">
   <style>
     :root {
-      --navy: #1c304f;
+      --navy: #0c1c34;
       --yellow: #ffcc00;
-      --bg: #f4f6f9;
+      --cream: #fff5d1;
+      --bg-yellow: #ffcc00;
       --ok: #065f46;
-      --err: #b91c1c;
+      --err: #bf1a1a;
+      --banner: #d9590d;
     }
     * { box-sizing: border-box; }
-    body {
+    html, body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: #111827;
-      line-height: 1.45;
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      color: var(--navy);
+      -webkit-tap-highlight-color: transparent;
     }
-    header {
+    body { background: var(--bg-yellow); }
+    [hidden] { display: none !important; }
+
+    /* —— Login (wie Simulator) —— */
+    #screen-login {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
       background: var(--navy);
-      color: #fff;
-      padding: 1rem 1.25rem;
     }
-    header h1 { margin: 0; font-size: 1.15rem; }
-    header p { margin: 0.35rem 0 0; opacity: 0.85; font-size: 0.9rem; }
-    main { max-width: 520px; margin: 0 auto; padding: 1rem 1.25rem 2rem; }
-    .card {
-      background: #fff;
-      border-radius: 14px;
+    .hero {
+      height: 32vh;
+      min-height: 160px;
+      background:
+        linear-gradient(160deg, rgba(12,28,52,0.25), rgba(12,28,52,0.55)),
+        #1c304f url("icon-taxi-512.png") center / cover no-repeat;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
       padding: 1rem;
-      box-shadow: 0 8px 24px rgba(28, 48, 79, 0.08);
-      margin-bottom: 1rem;
     }
-    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
-    input {
+    .hero-badge {
+      background: var(--yellow);
+      color: var(--navy);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      border: 2.5px solid var(--navy);
+      font-size: 1.1rem;
+    }
+    .login-body {
+      flex: 1;
+      padding: 1rem 1.1rem 2.5rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .login-brand {
+      margin: 0 0 0.35rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--yellow);
+    }
+    .login-sub {
+      margin: 0 0 1rem;
+      text-align: center;
+      font-weight: 700;
+      color: #fff;
+    }
+    .field-label {
+      display: block;
+      margin: 0.75rem 0 0.35rem;
+      font-weight: 800;
+      color: var(--yellow);
+    }
+    .field {
       width: 100%;
-      padding: 0.7rem 0.8rem;
-      border: 1px solid #d1d5db;
+      padding: 0.75rem 0.85rem;
+      border: 2.5px solid #000;
       border-radius: 10px;
+      background: var(--cream);
+      color: #000;
       font-size: 1rem;
-      margin-bottom: 0.85rem;
     }
-    button {
+    .field:disabled { opacity: 0.6; }
+    .btn-primary {
       width: 100%;
+      margin-top: 1rem;
       border: 0;
       border-radius: 12px;
       padding: 0.85rem 1rem;
-      font-size: 1rem;
-      font-weight: 700;
+      font-size: 1.05rem;
+      font-weight: 800;
+      background: var(--yellow);
+      color: #000;
       cursor: pointer;
     }
-    .btn-start { background: var(--yellow); color: var(--navy); }
-    .btn-stop { background: #fee2e2; color: var(--err); }
-    .status {
-      padding: 0.75rem 0.9rem;
-      border-radius: 10px;
-      font-size: 0.92rem;
+    .btn-primary:disabled { opacity: 0.65; cursor: wait; }
+    .login-status {
       margin-top: 0.75rem;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--yellow);
     }
-    .status.ok { background: #d1fae5; color: var(--ok); }
-    .status.warn { background: #fef3c7; color: #92400e; }
-    .status.err { background: #fee2e2; color: var(--err); }
-    .hint { font-size: 0.85rem; color: #6b7280; margin: 0; }
-    .coords { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
-    a { color: var(--navy); }
-    .home-preview {
+    .login-hint {
+      margin-top: 0.75rem;
+      text-align: center;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.35;
+    }
+    .alert-box {
+      margin-bottom: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 10px;
+      background: var(--err);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
+    /* —— Home (wie Simulator) —— */
+    #screen-home {
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,0.35), transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(12,28,52,0.08), transparent 40%),
+        var(--yellow);
+    }
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 0.85rem 1.1rem;
+      background: rgba(255, 204, 0, 0.92);
+      border-bottom: 1px solid rgba(12,28,52,0.12);
+      backdrop-filter: blur(8px);
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+    .home {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 1rem 1.1rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .hello {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+    .btn-logout {
+      width: 100%;
+      border: 2.5px solid var(--navy);
+      border-radius: 12px;
+      padding: 1rem;
+      font-size: 1.15rem;
+      font-weight: 900;
+      background: var(--yellow);
+      color: var(--navy);
+      cursor: pointer;
+    }
+    .panel {
+      padding: 0.9rem 1rem;
+      border-radius: 12px;
+      background: var(--cream);
+      border: 1.5px solid rgba(12,28,52,0.35);
+    }
+    .online-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      font-weight: 700;
+    }
+    .switch {
+      position: relative;
+      width: 52px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch span {
+      position: absolute;
+      inset: 0;
+      background: #c4c9d1;
+      border-radius: 999px;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+    .switch span::before {
+      content: "";
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .switch input:checked + span { background: #34c759; }
+    .switch input:checked + span::before { transform: translateX(20px); }
+    .switch input:disabled + span { opacity: 0.55; cursor: wait; }
+
+    .status-line {
+      margin: 0;
+      font-weight: 600;
+      color: rgba(12,28,52,0.85);
+    }
+    .error-line {
+      margin: 0;
+      color: var(--err);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+    .gps-line {
+      margin: 0;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: rgba(12,28,52,0.85);
+    }
+    .gps-err {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--err);
+    }
+    .coords {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem;
+      color: rgba(12,28,52,0.7);
+    }
+
+    .banner {
+      display: flex;
+      gap: 0.65rem;
+      align-items: flex-start;
+      padding: 0.9rem;
+      border-radius: 12px;
+      background: var(--banner);
+      color: #fff;
+    }
+    .banner strong { display: block; font-size: 1.05rem; margin-bottom: 0.2rem; }
+    .banner p { margin: 0; font-size: 0.9rem; font-weight: 600; opacity: 0.95; }
+    .banner button {
+      margin-left: auto;
+      border: 0;
+      border-radius: 8px;
+      padding: 0.45rem 0.75rem;
+      font-weight: 800;
+      background: var(--yellow);
+      color: var(--navy);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .panel-link {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      margin-bottom: 0.85rem;
-      padding: 0.75rem;
-      border-radius: 12px;
-      background: #0c1c34;
+      text-decoration: none;
+      color: inherit;
+    }
+    .panel-link .chev { margin-left: auto; font-weight: 800; }
+    .panel-link small {
+      display: block;
+      margin-top: 0.2rem;
+      font-weight: 500;
+      color: rgba(12,28,52,0.75);
+      font-size: 0.78rem;
+    }
+
+    .rides-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .rides-head h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+    .btn-text {
+      border: 0;
+      background: transparent;
+      color: var(--navy);
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.25rem 0;
+    }
+    .btn-text:disabled { opacity: 0.5; }
+
+    .ride {
+      padding: 0.85rem;
+      border-radius: 10px;
+      background: rgba(255,245,209,0.95);
+      margin-bottom: 0.65rem;
+    }
+    .ride:last-child { margin-bottom: 0; }
+    .ride-title {
+      margin: 0 0 0.35rem;
+      font-weight: 700;
+    }
+    .ride-meta {
+      margin: 0.15rem 0;
+      font-size: 0.8rem;
+      color: rgba(12,28,52,0.75);
+    }
+    .btn-accept, .btn-done {
+      width: 100%;
+      margin-top: 0.65rem;
+      border: 0;
+      border-radius: 10px;
+      padding: 0.7rem;
+      font-weight: 800;
       color: #fff;
+      cursor: pointer;
     }
-    .home-preview img {
-      width: 56px;
-      height: 56px;
-      border-radius: 12px;
-      flex-shrink: 0;
+    .btn-accept { background: #e67e22; }
+    .btn-done { background: #2ecc71; }
+    .btn-accept:disabled, .btn-done:disabled { opacity: 0.55; cursor: wait; }
+
+    .empty {
+      margin: 0;
+      color: rgba(12,28,52,0.75);
     }
-    .home-preview strong { display: block; font-size: 0.95rem; }
-    .home-preview span { font-size: 0.75rem; opacity: 0.75; }
   </style>
 </head>
 <body>
-  <header style="background:#ffcc00;color:#0c1c34">
-    <h1>Luckys Taxi Fahrer</h1>
-    <p>Deine App in der Hand — GPS an Fahrgäste senden. Seite offen lassen während der Fahrt.</p>
-  </header>
+  <!-- Login wie Simulator -->
+  <section id="screen-login">
+    <div class="hero" aria-hidden="true">
+      <div class="hero-badge">TAXI</div>
+    </div>
+    <div class="login-body">
+      <h1 class="login-brand">Luckys Taxi Fahrer</h1>
+      <p class="login-sub">Anmelden</p>
+      <div id="login-error" class="alert-box" hidden></div>
+      <label class="field-label" for="email">E-Mail-Adresse</label>
+      <input class="field" id="email" type="email" autocomplete="username" value="fahrer@test.de" inputmode="email">
+      <label class="field-label" for="password">Passwort</label>
+      <input class="field" id="password" type="password" autocomplete="current-password" placeholder="Passwort eingeben">
+      <button type="button" class="btn-primary" id="btn-login">Einloggen</button>
+      <p class="login-status" id="login-status">Status: bereit</p>
+      <p class="login-hint">
+        Gleiche Anmeldung wie in der Simulator-App. Nach dem Login: Online schalten, Fahrt annehmen, GPS läuft automatisch.
+        Zum Home-Bildschirm: Teilen → Zum Home-Bildschirm.
+      </p>
+    </div>
+  </section>
 
-  <main>
-    <section class="card">
-      <div class="home-preview" aria-label="So erscheint die Seite auf dem Home-Bildschirm">
-        <img src="icon-taxi-192.png" width="56" height="56" alt="">
-        <div>
-          <strong>Fahrer GPS</strong>
-          <span>Home-Bildschirm · Teilen → Zum Home-Bildschirm</span>
-        </div>
+  <!-- Home wie Simulator -->
+  <section id="screen-home" hidden>
+    <div class="nav">Fahrer</div>
+    <main class="home">
+      <h1 class="hello" id="hello">Hallo</h1>
+      <button type="button" class="btn-logout" id="btn-logout">Abmelden</button>
+
+      <div class="panel">
+        <label class="online-row">
+          <span>Online / Schicht</span>
+          <span class="switch">
+            <input type="checkbox" id="online-toggle" role="switch">
+            <span></span>
+          </span>
+        </label>
       </div>
-      <p class="hint" style="margin-bottom:0.85rem">
-        So hält der Taxifahrer das Projekt in der Hand — gleiche Marke wie die Bestell-App.
-        PIN und Fahrer-ID: <a href="settings.html">Einstellungen → Fahrer</a>.
-      </p>
 
-      <label for="driver-id">Fahrer-ID</label>
-      <input id="driver-id" autocomplete="off" placeholder="z. B. 8f3c…">
+      <p class="status-line" id="status-text">Du bist offline.</p>
 
-      <label for="tracking-pin">Tracking-PIN</label>
-      <input id="tracking-pin" inputmode="numeric" autocomplete="off" placeholder="6-stellig">
+      <div id="banner" class="banner" hidden>
+        <div>
+          <strong>Neue Fahrt!</strong>
+          <p id="banner-text"></p>
+        </div>
+        <button type="button" id="banner-ok">OK</button>
+      </div>
 
-      <label for="booking-id">Buchungs-ID (optional)</label>
-      <input id="booking-id" autocomplete="off" placeholder="Nur bei aktiver Fahrt">
+      <a class="panel panel-link" href="#spiele" id="games-panel">
+        <div>
+          <strong>Pause-Spiele</strong>
+          <small>Bei Langeweile: in der iOS-App verfügbar</small>
+        </div>
+        <span class="chev">▶</span>
+      </a>
 
-      <button type="button" class="btn-start" id="btn-toggle">GPS-Tracking starten</button>
+      <p class="error-line" id="error-text" hidden></p>
+      <p class="gps-line" id="gps-active" hidden>Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.</p>
+      <p class="gps-err" id="gps-error" hidden></p>
+      <p class="coords" id="coords"></p>
 
-      <div id="status" class="status warn" hidden></div>
-      <p id="coords" class="coords hint" style="margin-top:0.75rem"></p>
-    </section>
+      <section id="rides-section" hidden>
+        <div class="rides-head">
+          <h2>Offene Fahrten</h2>
+          <button type="button" class="btn-text" id="btn-refresh">Aktualisieren</button>
+        </div>
+        <div id="rides-list"></div>
+      </section>
+    </main>
+  </section>
 
-    <section class="card">
-      <p class="hint">
-        Tipp: Seite auf dem Home-Bildschirm ablegen (Teilen → Zum Home-Bildschirm).
-        Standort wird alle 5 Sekunden gesendet, solange diese Seite aktiv ist.
-      </p>
-    </section>
-  </main>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp,
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-  <script>
-    const API_BASE = location.origin.includes("localhost") || location.origin.includes("127.0.0.1")
-      ? "http://127.0.0.1:4242"
-      : "https://taxiapp-api.onrender.com";
+    const API_BASE =
+      location.origin.includes("localhost") || location.origin.includes("127.0.0.1")
+        ? "http://127.0.0.1:4242"
+        : "https://taxiapp-api.onrender.com";
+    const OPERATOR = "mannheim";
+    const DRIVER_API_KEY = "luckys-fahrer-pilot-k7m2p9qx";
+    const POLL_MS = 18000;
+    const GPS_MIN_MS = 4000;
 
-    const driverIdInput = document.getElementById("driver-id");
-    const pinInput = document.getElementById("tracking-pin");
-    const bookingIdInput = document.getElementById("booking-id");
-    const btnToggle = document.getElementById("btn-toggle");
-    const statusEl = document.getElementById("status");
-    const coordsEl = document.getElementById("coords");
+    const firebaseConfig = {
+      apiKey: "AIzaSyCNQeXaSHQ1NVUxB_1XuHgRfFgaDc3CBx8",
+      authDomain: "collectionshop-2854d.firebaseapp.com",
+      projectId: "collectionshop-2854d",
+      storageBucket: "collectionshop-2854d.firebasestorage.app",
+      messagingSenderId: "1045076389627",
+      appId: "1:1045076389627:ios:d941e42e519a5d717a0a5e",
+    };
 
-    const params = new URLSearchParams(location.search);
-    if (params.get("driverId")) driverIdInput.value = params.get("driverId");
-    if (params.get("pin")) pinInput.value = params.get("pin");
-    if (params.get("bookingId")) bookingIdInput.value = params.get("bookingId");
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    let watchId = null;
-    let sendTimer = null;
-    let lastCoords = null;
-    let isSharing = false;
+    const el = {
+      login: document.getElementById("screen-login"),
+      home: document.getElementById("screen-home"),
+      email: document.getElementById("email"),
+      password: document.getElementById("password"),
+      btnLogin: document.getElementById("btn-login"),
+      loginStatus: document.getElementById("login-status"),
+      loginError: document.getElementById("login-error"),
+      hello: document.getElementById("hello"),
+      btnLogout: document.getElementById("btn-logout"),
+      online: document.getElementById("online-toggle"),
+      statusText: document.getElementById("status-text"),
+      errorText: document.getElementById("error-text"),
+      banner: document.getElementById("banner"),
+      bannerText: document.getElementById("banner-text"),
+      bannerOk: document.getElementById("banner-ok"),
+      gpsActive: document.getElementById("gps-active"),
+      gpsError: document.getElementById("gps-error"),
+      coords: document.getElementById("coords"),
+      ridesSection: document.getElementById("rides-section"),
+      ridesList: document.getElementById("rides-list"),
+      btnRefresh: document.getElementById("btn-refresh"),
+      games: document.getElementById("games-panel"),
+    };
 
-    function showStatus(message, kind) {
-      statusEl.hidden = false;
-      statusEl.className = `status ${kind}`;
-      statusEl.textContent = message;
-    }
+    const state = {
+      driverUid: "",
+      driverName: "",
+      isOnline: false,
+      isBusy: false,
+      bookings: [],
+      acceptedBookingId: null,
+      knownIds: new Set(),
+      seeded: false,
+      pollTimer: null,
+      bannerTimer: null,
+      suppressOnlineWrite: false,
+      watchId: null,
+      lastSentAt: 0,
+      lastCoords: null,
+    };
 
-    function saveLocal() {
-      localStorage.setItem("driverTrack.driverId", driverIdInput.value.trim());
-      localStorage.setItem("driverTrack.pin", pinInput.value.trim());
-    }
-
-    function loadLocal() {
-      if (!driverIdInput.value) driverIdInput.value = localStorage.getItem("driverTrack.driverId") || "";
-      if (!pinInput.value) pinInput.value = localStorage.getItem("driverTrack.pin") || "";
-    }
-
-    async function sendLocation() {
-      if (!lastCoords) return;
-      const driverId = driverIdInput.value.trim();
-      const trackingPin = pinInput.value.trim();
-      if (!driverId || !trackingPin) return;
-
-      const body = {
-        trackingPin,
-        latitude: lastCoords.latitude,
-        longitude: lastCoords.longitude,
-      };
-      const bookingId = bookingIdInput.value.trim();
-      if (bookingId) body.bookingId = bookingId;
-
-      try {
-        const res = await fetch(`${API_BASE}/api/drivers/${encodeURIComponent(driverId)}/location`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.error || `Fehler ${res.status}`);
-        }
-        showStatus(`Standort gesendet (${new Date().toLocaleTimeString("de-DE")})`, "ok");
-      } catch (error) {
-        showStatus(error.message || "Senden fehlgeschlagen", "err");
-      }
-    }
-
-    function stopSharing(options = {}) {
-      const { keepStatus = false } = options;
-      isSharing = false;
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-      }
-      if (sendTimer) {
-        clearInterval(sendTimer);
-        sendTimer = null;
-      }
-      btnToggle.textContent = "GPS-Tracking starten";
-      btnToggle.className = "btn-start";
-      if (!keepStatus) {
-        showStatus("Tracking gestoppt.", "warn");
-      }
-    }
-
-    function startSharing() {
-      const driverId = driverIdInput.value.trim();
-      const trackingPin = pinInput.value.trim();
-      if (!driverId || !trackingPin) {
-        showStatus("Bitte Fahrer-ID und PIN eintragen.", "err");
+    function setLoginError(msg) {
+      if (!msg) {
+        el.loginError.hidden = true;
+        el.loginError.textContent = "";
         return;
       }
+      el.loginError.hidden = false;
+      el.loginError.textContent = msg;
+    }
+
+    function setError(msg) {
+      if (!msg) {
+        el.errorText.hidden = true;
+        el.errorText.textContent = "";
+        return;
+      }
+      el.errorText.hidden = false;
+      el.errorText.textContent = msg;
+    }
+
+    function setBusy(busy) {
+      state.isBusy = busy;
+      el.online.disabled = busy;
+      el.btnRefresh.disabled = busy;
+      el.btnLogin.disabled = busy;
+    }
+
+    function showHome() {
+      el.login.hidden = true;
+      el.home.hidden = false;
+      el.hello.textContent = `Hallo, ${state.driverName}`;
+    }
+
+    function showLogin() {
+      el.home.hidden = true;
+      el.login.hidden = false;
+      el.loginStatus.textContent = "Status: abgemeldet";
+      el.password.value = "";
+      setLoginError("");
+    }
+
+    async function driverHeaders(json = true) {
+      const headers = { Authorization: `Bearer ${DRIVER_API_KEY}` };
+      if (json) headers["Content-Type"] = "application/json";
+      return headers;
+    }
+
+    async function api(path, options = {}) {
+      const url = `${API_BASE}${path}${path.includes("?") ? "&" : "?"}operator=${encodeURIComponent(OPERATOR)}`;
+      const res = await fetch(url, options);
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+          throw new Error(`Server-Route fehlt (${res.status}). Backend aktualisieren.`);
+        }
+        throw new Error(text || `Fehler ${res.status}`);
+      }
+      if (!res.ok) throw new Error(data.error || `Server ${res.status}`);
+      return data;
+    }
+
+    async function loadDriverProfile(uid) {
+      for (const collectionName of ["user", "users"]) {
+        const snap = await getDoc(doc(db, collectionName, uid));
+        if (!snap.exists()) continue;
+        const data = snap.data() || {};
+        const role = String(data.role || "").trim().toLowerCase();
+        const name = String(data.displayName || "").trim() || "Fahrer";
+        if (role === "driver") return { name };
+        throw new Error(
+          `Dokument ${collectionName}/${uid} gefunden, aber role=${role || "leer"} (erwartet: driver).`
+        );
+      }
+      throw new Error(`Kein Fahrer-Dokument für UID ${uid} in user/ oder users/. Firestore prüfen.`);
+    }
+
+    async function refreshOnlineFromFirestore() {
+      try {
+        const snap = await getDoc(doc(db, "user", state.driverUid));
+        const online = Boolean(snap.data()?.isOnline);
+        setOnlineLocal(online, online ? "Online — bereit." : "Du bist offline.");
+      } catch (err) {
+        setError(`Status laden: ${err.message || err}`);
+      }
+    }
+
+    function setOnlineLocal(online, status) {
+      if (status) el.statusText.textContent = status;
+      if (state.isOnline === online) return;
+      state.suppressOnlineWrite = true;
+      state.isOnline = online;
+      el.online.checked = online;
+      el.ridesSection.hidden = !online;
+      if (!online) {
+        state.bookings = [];
+        state.acceptedBookingId = null;
+        stopGps();
+        resetNotify();
+        renderRides();
+      }
+    }
+
+    async function writeOnline(online) {
+      setBusy(true);
+      setError("");
+      if (!online) resetNotify();
+      try {
+        await setDoc(
+          doc(db, "user", state.driverUid),
+          { isOnline: online, onlineUpdatedAt: serverTimestamp() },
+          { merge: true }
+        );
+        el.statusText.textContent = online ? "Online — bereit." : "Du bist offline.";
+        if (!online) {
+          state.bookings = [];
+          state.acceptedBookingId = null;
+          stopGps();
+          renderRides();
+        }
+        el.ridesSection.hidden = !online;
+        if (online) startPolling();
+        else stopPolling();
+      } catch (err) {
+        setOnlineLocal(!online);
+        setError(`Status speichern fehlgeschlagen: ${err.message || err}`);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function resetNotify() {
+      state.knownIds = new Set();
+      state.seeded = false;
+      clearBanner();
+    }
+
+    function clearBanner() {
+      if (state.bannerTimer) clearTimeout(state.bannerTimer);
+      state.bannerTimer = null;
+      el.banner.hidden = true;
+      el.bannerText.textContent = "";
+    }
+
+    function showBanner(message) {
+      clearBanner();
+      el.bannerText.textContent = message;
+      el.banner.hidden = false;
+      state.bannerTimer = setTimeout(clearBanner, 12000);
+    }
+
+    function startPolling() {
+      stopPolling();
+      resetNotify();
+      fetchBookings(true);
+      state.pollTimer = setInterval(() => {
+        if (state.isOnline) fetchBookings(true);
+      }, POLL_MS);
+    }
+
+    function stopPolling() {
+      if (state.pollTimer) clearInterval(state.pollTimer);
+      state.pollTimer = null;
+    }
+
+    function titleLine(b) {
+      if (b.destinationAddressLine) return `${b.addressLine} → ${b.destinationAddressLine}`;
+      return b.addressLine || "Fahrt";
+    }
+
+    async function fetchBookings(silent) {
+      if (!state.isOnline) return;
+      if (!silent) {
+        setBusy(true);
+        setError("");
+      }
+      try {
+        const data = await api("/api/driver/open-bookings", {
+          headers: await driverHeaders(false),
+        });
+        if (!state.isOnline) return;
+        applyBookings(data.bookings || []);
+      } catch (err) {
+        if (!silent) setError(err.message || String(err));
+      } finally {
+        if (!silent) setBusy(false);
+      }
+    }
+
+    function applyBookings(list) {
+      const incoming = new Set(list.map((b) => b.bookingId));
+      const fresh = list.filter((b) => !state.knownIds.has(b.bookingId));
+
+      let next = list;
+      if (
+        state.acceptedBookingId &&
+        state.bookings.some((b) => b.bookingId === state.acceptedBookingId) &&
+        !list.some((b) => b.bookingId === state.acceptedBookingId)
+      ) {
+        const kept = state.bookings.find((b) => b.bookingId === state.acceptedBookingId);
+        next = kept ? [kept, ...list] : list;
+        el.statusText.textContent = `Fahrt aktiv — plus ${list.length} weitere offen.`;
+      } else if (list.length === 0) {
+        el.statusText.textContent = "Online — keine offenen Fahrten.";
+      } else {
+        el.statusText.textContent = `Online — ${list.length} offene Fahrt(en).`;
+      }
+
+      state.bookings = next;
+      renderRides();
+
+      if (!state.seeded) {
+        state.knownIds = incoming;
+        state.seeded = true;
+        return;
+      }
+
+      if (fresh.length) {
+        fresh.forEach((b) => state.knownIds.add(b.bookingId));
+        incoming.forEach((id) => state.knownIds.add(id));
+        const preview = titleLine(fresh[0]);
+        showBanner(
+          fresh.length === 1
+            ? preview
+            : `${fresh.length} neue Fahrten — z. B. ${preview}`
+        );
+      } else {
+        incoming.forEach((id) => state.knownIds.add(id));
+        if (state.acceptedBookingId) state.knownIds.add(state.acceptedBookingId);
+      }
+    }
+
+    function renderRides() {
+      const list = el.ridesList;
+      list.innerHTML = "";
+      if (!state.bookings.length) {
+        list.innerHTML = `<p class="empty">Keine offenen Buchungen.</p>`;
+        return;
+      }
+      for (const booking of state.bookings) {
+        const card = document.createElement("div");
+        card.className = "ride";
+        const accepted = state.acceptedBookingId === booking.bookingId;
+        const meta = [];
+        if (booking.pickupDate) meta.push(`<p class="ride-meta">${escapeHtml(booking.pickupDate)}</p>`);
+        if (booking.paymentMethod) {
+          meta.push(`<p class="ride-meta">Zahlung: ${escapeHtml(booking.paymentMethod)}</p>`);
+        }
+        const btn = accepted
+          ? `<button type="button" class="btn-done" data-action="done" data-id="${escapeAttr(booking.bookingId)}">Fahrt erledigt</button>`
+          : `<button type="button" class="btn-accept" data-action="accept" data-id="${escapeAttr(booking.bookingId)}" ${
+              state.acceptedBookingId || state.isBusy ? "disabled" : ""
+            }>Annehmen</button>`;
+        card.innerHTML = `
+          <p class="ride-title">${escapeHtml(titleLine(booking))}</p>
+          ${meta.join("")}
+          ${btn}
+        `;
+        list.appendChild(card);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+    function escapeAttr(s) {
+      return escapeHtml(s).replace(/'/g, "&#39;");
+    }
+
+    async function takeRide(bookingId) {
+      const booking = state.bookings.find((b) => b.bookingId === bookingId);
+      if (!booking) return;
+      setBusy(true);
+      setError("");
+      try {
+        await api(`/api/driver/bookings/${encodeURIComponent(bookingId)}/accept`, {
+          method: "PATCH",
+          headers: await driverHeaders(),
+          body: JSON.stringify({
+            driverUid: state.driverUid,
+            driverName: state.driverName,
+          }),
+        });
+        state.acceptedBookingId = bookingId;
+        state.knownIds.add(bookingId);
+        state.bookings = [booking];
+        el.statusText.textContent =
+          "Fahrt angenommen — GPS-Tracking aktiv. Nach Abschluss unten tippen.";
+        clearBanner();
+        renderRides();
+        startGps(bookingId);
+      } catch (err) {
+        setError(err.message || String(err));
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function finishRide(bookingId) {
+      setBusy(true);
+      setError("");
+      try {
+        await api(`/api/driver/bookings/${encodeURIComponent(bookingId)}/complete`, {
+          method: "PATCH",
+          headers: await driverHeaders(),
+          body: JSON.stringify({ driverUid: state.driverUid }),
+        });
+        state.acceptedBookingId = null;
+        state.knownIds.delete(bookingId);
+        el.statusText.textContent = "Fahrt erledigt.";
+        stopGps();
+        await fetchBookings(false);
+      } catch (err) {
+        setError(err.message || String(err));
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function startGps(bookingId) {
+      stopGps();
       if (!navigator.geolocation) {
-        showStatus("GPS wird von diesem Gerät nicht unterstützt.", "err");
+        el.gpsError.hidden = false;
+        el.gpsError.textContent = "GPS: Gerät unterstützt keinen Standort.";
         return;
       }
       if (!window.isSecureContext && !location.hostname.includes("localhost")) {
-        showStatus("Standort nur über https:// möglich. Seite über luckystaxiapp.de öffnen.", "err");
+        el.gpsError.hidden = false;
+        el.gpsError.textContent = "GPS: nur über https:// möglich.";
         return;
       }
-
-      saveLocal();
-      isSharing = true;
-      btnToggle.textContent = "GPS-Tracking stoppen";
-      btnToggle.className = "btn-stop";
-      showStatus("Standort wird ermittelt… Bitte „Erlauben“ tippen, falls gefragt.", "warn");
-
-      watchId = navigator.geolocation.watchPosition(
+      el.gpsActive.hidden = false;
+      el.gpsError.hidden = true;
+      state.watchId = navigator.geolocation.watchPosition(
         (pos) => {
-          lastCoords = {
+          state.lastCoords = {
             latitude: pos.coords.latitude,
             longitude: pos.coords.longitude,
           };
-          coordsEl.textContent = `Lat ${lastCoords.latitude.toFixed(5)}, Lon ${lastCoords.longitude.toFixed(5)}`;
-          sendLocation();
+          el.coords.textContent = `Lat ${state.lastCoords.latitude.toFixed(5)}, Lon ${state.lastCoords.longitude.toFixed(5)}`;
+          sendGps(bookingId);
         },
         (err) => {
-          const hint =
+          el.gpsError.hidden = false;
+          el.gpsError.textContent =
             err.code === 1
-              ? "Standort verweigert. In den Browser-/System-Einstellungen Ortung erlauben, Seite neu laden, erneut starten."
-              : err.code === 3
-                ? "GPS-Timeout. Features → Location im Simulator setzen oder am echten Handy testen."
-                : err.message || "Unbekannter GPS-Fehler";
-          showStatus(`GPS-Fehler: ${hint}`, "err");
-          stopSharing({ keepStatus: true });
+              ? "GPS: Standort verweigert. In Browser-/System-Einstellungen erlauben."
+              : `GPS: ${err.message || "Fehler"}`;
+          el.gpsActive.hidden = true;
         },
         { enableHighAccuracy: true, maximumAge: 4000, timeout: 15000 }
       );
-
-      sendTimer = setInterval(sendLocation, 5000);
     }
 
-    btnToggle.addEventListener("click", () => {
-      if (isSharing) stopSharing();
-      else startSharing();
+    function stopGps() {
+      if (state.watchId !== null) {
+        navigator.geolocation.clearWatch(state.watchId);
+        state.watchId = null;
+      }
+      el.gpsActive.hidden = true;
+      el.gpsError.hidden = true;
+      el.coords.textContent = "";
+      state.lastCoords = null;
+      state.lastSentAt = 0;
+    }
+
+    async function sendGps(bookingId) {
+      if (!state.lastCoords || !state.driverUid) return;
+      const now = Date.now();
+      if (now - state.lastSentAt < GPS_MIN_MS) return;
+      state.lastSentAt = now;
+      try {
+        await api("/api/driver/location", {
+          method: "POST",
+          headers: await driverHeaders(),
+          body: JSON.stringify({
+            driverUid: state.driverUid,
+            latitude: state.lastCoords.latitude,
+            longitude: state.lastCoords.longitude,
+            bookingId,
+          }),
+        });
+        el.gpsError.hidden = true;
+      } catch (err) {
+        el.gpsError.hidden = false;
+        el.gpsError.textContent = `GPS: ${err.message || err}`;
+      }
+    }
+
+    async function login() {
+      setLoginError("");
+      const email = el.email.value.trim();
+      const password = el.password.value;
+      if (!email.includes("@")) {
+        setLoginError("In der E-Mail fehlt @. Nutze fahrer@test.de");
+        el.loginStatus.textContent = "Status: E-Mail ungültig";
+        return;
+      }
+      if (!password) {
+        setLoginError("Bitte Passwort eingeben.");
+        el.loginStatus.textContent = "Status: Passwort fehlt";
+        return;
+      }
+      setBusy(true);
+      el.loginStatus.textContent = "Status: Firebase…";
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        el.loginStatus.textContent = "Status: Firestore…";
+        const profile = await loadDriverProfile(cred.user.uid);
+        state.driverUid = cred.user.uid;
+        state.driverName = profile.name;
+        el.loginStatus.textContent = "Status: angemeldet";
+        showHome();
+        await refreshOnlineFromFirestore();
+        if (state.isOnline) startPolling();
+      } catch (err) {
+        try {
+          await signOut(auth);
+        } catch {
+          /* ignore */
+        }
+        const msg = germanAuthMessage(err);
+        setLoginError(msg);
+        el.loginStatus.textContent = "Status: Auth fehlgeschlagen";
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function germanAuthMessage(error) {
+      const text = String(error?.message || error || "");
+      if (/password|credential|invalid-credential|INVALID/i.test(text)) {
+        return "Passwort oder E-Mail stimmt nicht. In Firebase Authentication prüfen.";
+      }
+      if (/network/i.test(text)) {
+        return "Kein Netz. WLAN/Internet prüfen und nochmal Einloggen.";
+      }
+      if (/auth\/unauthorized-domain|unauthorized-domain/i.test(text)) {
+        return "Diese Domain fehlt in Firebase → Authentication → Settings → Authorized domains (z. B. luckystaxiapp.de).";
+      }
+      if (/badly formatted|invalid-email/i.test(text)) {
+        return "E-Mail ungültig. Es muss ein @ drinstehen: fahrer@test.de";
+      }
+      return text.replace(/^Firebase:\s*/i, "").replace(/\s*\(auth\/.*\)\.?$/, "") || "Login fehlgeschlagen.";
+    }
+
+    async function logout() {
+      stopPolling();
+      stopGps();
+      state.suppressOnlineWrite = true;
+      state.isOnline = false;
+      el.online.checked = false;
+      state.bookings = [];
+      state.acceptedBookingId = null;
+      state.driverUid = "";
+      state.driverName = "";
+      setError("");
+      el.statusText.textContent = "Abgemeldet.";
+      resetNotify();
+      try {
+        await signOut(auth);
+      } catch {
+        /* ignore */
+      }
+      showLogin();
+    }
+
+    el.btnLogin.addEventListener("click", login);
+    el.password.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") login();
+    });
+    el.btnLogout.addEventListener("click", logout);
+    el.bannerOk.addEventListener("click", clearBanner);
+    el.btnRefresh.addEventListener("click", () => fetchBookings(false));
+    el.games.addEventListener("click", (e) => {
+      e.preventDefault();
+      setError("Pause-Spiele gibt es in der iOS-App — hier der gleiche Platzhalter.");
+    });
+    el.online.addEventListener("change", () => {
+      if (state.suppressOnlineWrite) {
+        state.suppressOnlineWrite = false;
+        return;
+      }
+      state.isOnline = el.online.checked;
+      el.ridesSection.hidden = !state.isOnline;
+      writeOnline(state.isOnline);
+    });
+    el.ridesList.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-action]");
+      if (!btn || state.isBusy) return;
+      const id = btn.getAttribute("data-id");
+      if (btn.dataset.action === "accept") takeRide(id);
+      if (btn.dataset.action === "done") finishRide(id);
     });
 
-    loadLocal();
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        if (!el.login.hidden) return;
+        showLogin();
+        return;
+      }
+      if (state.driverUid === user.uid && !el.home.hidden) return;
+      try {
+        const profile = await loadDriverProfile(user.uid);
+        state.driverUid = user.uid;
+        state.driverName = profile.name;
+        showHome();
+        await refreshOnlineFromFirestore();
+        if (state.isOnline) startPolling();
+      } catch (err) {
+        await signOut(auth);
+        showLogin();
+        setLoginError(err.message || String(err));
+      }
+    });
   </script>
 </body>
 </html>

@@ -1836,3 +1836,5 @@ app.listen(port, host, () => {
 // redeploy: home-screen look 2026-09-05T09:07:16Z
 
 // redeploy: driver home-screen parity 2026-09-05T09:30:29Z
+
+// redeploy: driver HTML matches simulator app 2026-09-05T09:36:29Z
