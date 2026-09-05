@@ -7,7 +7,7 @@
   <meta name="description" content="Taxi in Deutschland online bestellen — kostenlos mit Luckys Taxi App. Bar nach Taxameter. Für Taxi-Betriebe: eigene Leitstelle und Fahrgast-App ab 49 €/Monat.">
   <link rel="canonical" href="https://luckystaxiapp.de/">
   <meta name="robots" content="index,follow">
-  <meta name="theme-color" content="#ffcc00">
+  <meta name="theme-color" content="#1c304f">
   <meta property="og:title" content="Taxi bestellen in Deutschland | Luckys Taxi App">
   <meta property="og:description" content="Online Taxi bestellen, bar nach Taxameter. Taxi-Betriebe bekommen App, Browser-Buchung und Leitstelle — ab 49 €/Monat, monatlich kündbar.">
   <meta property="og:type" content="website">
@@ -84,13 +84,74 @@
 </head>
 <body data-i18n-title="meta.indexTitle">
   <header class="hero">
-    <p class="hero-badge" data-i18n="hero.badge">Taxi-App für Fahrgäste — Leitstelle für Taxi-Betriebe</p>
-    <h1>Luckys Taxi App</h1>
-    <p class="hero-sub">Taxi online bestellen in Deutschland — App, Browser und Leitstelle</p>
-    <p data-i18n="hero.lead">Fahrgäste bestellen Taxi online, bar nach Taxameter. Taxi-Betriebe bekommen eine eigene App, Browser-Buchung und Leitstelle — Kunden buchen bei Ihnen, nicht über ein anonymes Portal.</p>
-    <div class="hero-ctas">
-      <a class="hero-cta" href="book.html" data-i18n="hero.ctaGuests">Fahrgäste: deutschlandweit bestellen</a>
-      <a class="hero-cta hero-cta-outline" href="#operators" data-i18n="hero.ctaOps">Für Unternehmer</a>
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <img class="hero-logo" src="luckys-taxi-logo.svg" width="72" height="72" alt="">
+        <h1>Luckys Taxi App</h1>
+        <p class="hero-sub">Fahrgast-App und Luckys Taxi Fahrer — nebeneinander auf dem iPhone.</p>
+        <p class="hero-note">Für langweilige Wartezeiten in der Fahrer-App gibt’s <strong>Pause-Spiele</strong> — Taxi tippen, Memory, Tarif rechnen. Gut fürs Gehirn: kurzes Gehirntraining zwischendurch, statt nur auf die nächste Fahrt zu starren.</p>
+        <div class="hero-ctas">
+          <a class="hero-cta" href="book.html" data-i18n="hero.ctaGuests">Taxi bestellen</a>
+          <a class="hero-cta hero-cta-outline" href="#operators" data-i18n="hero.ctaOps">Für Unternehmer</a>
+        </div>
+      </div>
+
+      <div class="hero-phones" aria-label="App-Vorschau auf dem iPhone">
+        <figure class="hero-device">
+          <div class="iphone">
+            <div class="iphone-frame">
+              <div class="iphone-screen iphone-screen-shot">
+                <img
+                  class="app-screen-shot"
+                  src="fahrgast-start-preview.png"
+                  width="1206"
+                  height="2622"
+                  alt="Luckys Taxi App: Startseite für Fahrgäste"
+                >
+                <span class="app-shimmer" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+          <figcaption class="phone-label">Für Fahrgäste</figcaption>
+        </figure>
+
+        <figure class="hero-device hero-device-fahrer-login">
+          <div class="iphone">
+            <div class="iphone-frame">
+              <div class="iphone-screen iphone-screen-shot">
+                <img
+                  class="app-screen-shot"
+                  src="fahrer-login-preview.png"
+                  width="504"
+                  height="1024"
+                  alt="Luckys Taxi Fahrer: Anmelden"
+                >
+                <span class="app-shimmer" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+          <figcaption class="phone-label">Taxifahrer · Login</figcaption>
+        </figure>
+
+        <figure class="hero-device hero-device-fahrer">
+          <div class="iphone">
+            <div class="iphone-frame">
+              <div class="iphone-screen iphone-screen-shot">
+                <img
+                  class="app-screen-shot"
+                  src="fahrer-home-preview.png"
+                  width="475"
+                  height="1024"
+                  alt="Luckys Taxi Fahrer: Online-Schicht und Pause-Spiele"
+                >
+                <span class="app-shimmer" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+          <figcaption class="phone-label">Taxifahrer · Pause-Spiele</figcaption>
+        </figure>
+      </div>
     </div>
   </header>
 
@@ -119,7 +180,7 @@
         <article class="app-screen">
           <div class="app-screen-num">1</div>
           <div class="app-screen-body">
-            <h4>Abholung <span class="screen-tag">lila Startseite</span></h4>
+            <h4>Abholung <span class="screen-tag">Startseite</span></h4>
             <p>Unten tippen: <span class="btn-label">Taxi bestellen</span></p>
             <p class="screen-extra">Extra oben rechts: <span class="btn-label btn-label-extra">Für Unternehmen</span> — zeigt Tarife, <em>nicht</em> die Fahrtbuchung.</p>
           </div>
@@ -411,6 +472,26 @@
       </article>
       </div>
     </section>
+
+    <section id="staedte" class="cities-seo">
+      <h2>Taxi bestellen in Städten &amp; Ländern</h2>
+      <p class="lead">Deutschland bundesweit und Nachbarländer — Seiten für Fahrgäste und Taxi-Betriebe.</p>
+      <ul class="cities-seo-list">
+        <li><a href="staedte/">Alle Orte</a></li>
+        <li><a href="staedte/deutschland.html">Deutschland</a></li>
+        <li><a href="staedte/berlin.html">Berlin</a></li>
+        <li><a href="staedte/hamburg.html">Hamburg</a></li>
+        <li><a href="staedte/muenchen.html">München</a></li>
+        <li><a href="staedte/koeln.html">Köln</a></li>
+        <li><a href="staedte/frankfurt-am-main.html">Frankfurt</a></li>
+        <li><a href="staedte/speyer.html">Speyer</a></li>
+        <li><a href="staedte/mannheim.html">Mannheim</a></li>
+        <li><a href="staedte/frankreich.html">Frankreich</a></li>
+        <li><a href="staedte/niederlande.html">Niederlande</a></li>
+        <li><a href="staedte/oesterreich.html">Österreich</a></li>
+        <li><a href="staedte/schweiz.html">Schweiz</a></li>
+      </ul>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -418,6 +499,7 @@
       <a href="book.html" data-i18n="nav.book">Taxi bestellen</a>
       <a href="qr.html" data-i18n="nav.qr">QR-Code</a>
       <a href="index.html" data-i18n="nav.start">Start</a>
+      <a href="#staedte">Städte</a>
       <a href="#operators" data-i18n="nav.operators">Für Unternehmer</a>
       <a href="#warum-luckys" data-i18n="nav.why">Warum Luckys?</a>
       <a href="#gruender">Über den Gründer</a>

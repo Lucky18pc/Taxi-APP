@@ -5,7 +5,8 @@
   "description": "Minimal Stripe PaymentIntent server for TaxiApp",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "generate-city-seo": "node ../scripts/generate-city-seo.js"
   },
   "engines": {
     "node": ">=20"

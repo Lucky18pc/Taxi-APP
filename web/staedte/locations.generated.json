@@ -1,0 +1,1208 @@
+[
+  {
+    "slug": "deutschland",
+    "name": "Deutschland",
+    "country": "DE",
+    "type": "country"
+  },
+  {
+    "slug": "aachen",
+    "name": "Aachen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "arnsberg",
+    "name": "Arnsberg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "aschaffenburg",
+    "name": "Aschaffenburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "augsburg",
+    "name": "Augsburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bad-homburg-vor-der-hoehe",
+    "name": "Bad Homburg vor der Höhe",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "baden-baden",
+    "name": "Baden-Baden",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bamberg",
+    "name": "Bamberg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bayreuth",
+    "name": "Bayreuth",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bergisch-gladbach",
+    "name": "Bergisch Gladbach",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "berlin",
+    "name": "Berlin",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bielefeld",
+    "name": "Bielefeld",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bocholt",
+    "name": "Bocholt",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bochum",
+    "name": "Bochum",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bonn",
+    "name": "Bonn",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bottrop",
+    "name": "Bottrop",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "brandenburg-an-der-havel",
+    "name": "Brandenburg an der Havel",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "braunschweig",
+    "name": "Braunschweig",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bremen",
+    "name": "Bremen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bremerhaven",
+    "name": "Bremerhaven",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "castrop-rauxel",
+    "name": "Castrop-Rauxel",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "celle",
+    "name": "Celle",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "chemnitz",
+    "name": "Chemnitz",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "cottbus",
+    "name": "Cottbus",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "cuxhaven",
+    "name": "Cuxhaven",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "darmstadt",
+    "name": "Darmstadt",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "delmenhorst",
+    "name": "Delmenhorst",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "detmold",
+    "name": "Detmold",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "dinslaken",
+    "name": "Dinslaken",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "dorsten",
+    "name": "Dorsten",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "dortmund",
+    "name": "Dortmund",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "dresden",
+    "name": "Dresden",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "duisburg",
+    "name": "Duisburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "dueren",
+    "name": "Düren",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "duesseldorf",
+    "name": "Düsseldorf",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "erfurt",
+    "name": "Erfurt",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "erlangen",
+    "name": "Erlangen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "essen",
+    "name": "Essen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "esslingen-am-neckar",
+    "name": "Esslingen am Neckar",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "euskirchen",
+    "name": "Euskirchen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "flensburg",
+    "name": "Flensburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "frankfurt-am-main",
+    "name": "Frankfurt am Main",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "freiburg-im-breisgau",
+    "name": "Freiburg im Breisgau",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "friedrichshafen",
+    "name": "Friedrichshafen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "fulda",
+    "name": "Fulda",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "fuerth",
+    "name": "Fürth",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "gelsenkirchen",
+    "name": "Gelsenkirchen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "gera",
+    "name": "Gera",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "giessen",
+    "name": "Gießen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "gladbeck",
+    "name": "Gladbeck",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "goerlitz",
+    "name": "Görlitz",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "goslar",
+    "name": "Goslar",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "goettingen",
+    "name": "Göttingen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "grevenbroich",
+    "name": "Grevenbroich",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "guetersloh",
+    "name": "Gütersloh",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "hagen",
+    "name": "Hagen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "halle",
+    "name": "Halle (Saale)",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "hamburg",
+    "name": "Hamburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "hameln",
+    "name": "Hameln",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "hamm",
+    "name": "Hamm",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "hannover",
+    "name": "Hannover",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "heidelberg",
+    "name": "Heidelberg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "heilbronn",
+    "name": "Heilbronn",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "herne",
+    "name": "Herne",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "herten",
+    "name": "Herten",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "hilden",
+    "name": "Hilden",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "hildesheim",
+    "name": "Hildesheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "huerth",
+    "name": "Hürth",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "ingolstadt",
+    "name": "Ingolstadt",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "iserlohn",
+    "name": "Iserlohn",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "jena",
+    "name": "Jena",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "kaiserslautern",
+    "name": "Kaiserslautern",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "karlsruhe",
+    "name": "Karlsruhe",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "kassel",
+    "name": "Kassel",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "kempten",
+    "name": "Kempten (Allgäu)",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "kerpen",
+    "name": "Kerpen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "kiel",
+    "name": "Kiel",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "kleve",
+    "name": "Kleve",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "koblenz",
+    "name": "Koblenz",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "koeln",
+    "name": "Köln",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "konstanz",
+    "name": "Konstanz",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "krefeld",
+    "name": "Krefeld",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "landshut",
+    "name": "Landshut",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "leipzig",
+    "name": "Leipzig",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "leverkusen",
+    "name": "Leverkusen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "luebeck",
+    "name": "Lübeck",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "luedenscheid",
+    "name": "Lüdenscheid",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "ludwigshafen",
+    "name": "Ludwigshafen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "lueneburg",
+    "name": "Lüneburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "luenen",
+    "name": "Lünen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "magdeburg",
+    "name": "Magdeburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "mainz",
+    "name": "Mainz",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "mannheim",
+    "name": "Mannheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "marl",
+    "name": "Marl",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "minden",
+    "name": "Minden",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "moers",
+    "name": "Moers",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "moenchengladbach",
+    "name": "Mönchengladbach",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "muelheim-an-der-ruhr",
+    "name": "Mülheim an der Ruhr",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "muenchen",
+    "name": "München",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "muenster",
+    "name": "Münster",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "neu-ulm",
+    "name": "Neu-Ulm",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "neubrandenburg",
+    "name": "Neubrandenburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "neumuenster",
+    "name": "Neumünster",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "neuss",
+    "name": "Neuss",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "neustadt-an-der-weinstrasse",
+    "name": "Neustadt an der Weinstraße",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "norderstedt",
+    "name": "Norderstedt",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "nuernberg",
+    "name": "Nürnberg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "oberhausen",
+    "name": "Oberhausen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "offenburg",
+    "name": "Offenburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "oldenburg",
+    "name": "Oldenburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "osnabrueck",
+    "name": "Osnabrück",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "paderborn",
+    "name": "Paderborn",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "passau",
+    "name": "Passau",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "pforzheim",
+    "name": "Pforzheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "potsdam",
+    "name": "Potsdam",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "pulheim",
+    "name": "Pulheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "ratingen",
+    "name": "Ratingen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "ravensburg",
+    "name": "Ravensburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "recklinghausen",
+    "name": "Recklinghausen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "regensburg",
+    "name": "Regensburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "remscheid",
+    "name": "Remscheid",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "reutlingen",
+    "name": "Reutlingen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "rheine",
+    "name": "Rheine",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "rosenheim",
+    "name": "Rosenheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "rostock",
+    "name": "Rostock",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "ruesselsheim-am-main",
+    "name": "Rüsselsheim am Main",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "saarbruecken",
+    "name": "Saarbrücken",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "salzgitter",
+    "name": "Salzgitter",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "sankt-augustin",
+    "name": "Sankt Augustin",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "schwaebisch-gmuend",
+    "name": "Schwäbisch Gmünd",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "schweinfurt",
+    "name": "Schweinfurt",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "schwerin",
+    "name": "Schwerin",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "siegen",
+    "name": "Siegen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "solingen",
+    "name": "Solingen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "speyer",
+    "name": "Speyer",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "stolberg",
+    "name": "Stolberg (Rheinland)",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "stralsund",
+    "name": "Stralsund",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "stuttgart",
+    "name": "Stuttgart",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "trier",
+    "name": "Trier",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "troisdorf",
+    "name": "Troisdorf",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "ulm",
+    "name": "Ulm",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "unna",
+    "name": "Unna",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "velbert",
+    "name": "Velbert",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "viersen",
+    "name": "Viersen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "villingen-schwenningen",
+    "name": "Villingen-Schwenningen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "wesel",
+    "name": "Wesel",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "wetzlar",
+    "name": "Wetzlar",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "wiesbaden",
+    "name": "Wiesbaden",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "witten",
+    "name": "Witten",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "wolfsburg",
+    "name": "Wolfsburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "wuppertal",
+    "name": "Wuppertal",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "wuerzburg",
+    "name": "Würzburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "zwickau",
+    "name": "Zwickau",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "belgien",
+    "name": "Belgien",
+    "country": "BE",
+    "type": "country"
+  },
+  {
+    "slug": "antwerpen",
+    "name": "Antwerpen",
+    "country": "BE",
+    "type": "city"
+  },
+  {
+    "slug": "bruessel",
+    "name": "Brüssel",
+    "country": "BE",
+    "type": "city"
+  },
+  {
+    "slug": "daenemark",
+    "name": "Dänemark",
+    "country": "DK",
+    "type": "country"
+  },
+  {
+    "slug": "kopenhagen",
+    "name": "Kopenhagen",
+    "country": "DK",
+    "type": "city"
+  },
+  {
+    "slug": "finnland",
+    "name": "Finnland",
+    "country": "FI",
+    "type": "country"
+  },
+  {
+    "slug": "helsinki",
+    "name": "Helsinki",
+    "country": "FI",
+    "type": "city"
+  },
+  {
+    "slug": "frankreich",
+    "name": "Frankreich",
+    "country": "FR",
+    "type": "country"
+  },
+  {
+    "slug": "lyon",
+    "name": "Lyon",
+    "country": "FR",
+    "type": "city"
+  },
+  {
+    "slug": "marseille",
+    "name": "Marseille",
+    "country": "FR",
+    "type": "city"
+  },
+  {
+    "slug": "paris",
+    "name": "Paris",
+    "country": "FR",
+    "type": "city"
+  },
+  {
+    "slug": "strassburg",
+    "name": "Straßburg",
+    "country": "FR",
+    "type": "city"
+  },
+  {
+    "slug": "irland",
+    "name": "Irland",
+    "country": "IE",
+    "type": "country"
+  },
+  {
+    "slug": "dublin",
+    "name": "Dublin",
+    "country": "IE",
+    "type": "city"
+  },
+  {
+    "slug": "italien",
+    "name": "Italien",
+    "country": "IT",
+    "type": "country"
+  },
+  {
+    "slug": "mailand",
+    "name": "Mailand",
+    "country": "IT",
+    "type": "city"
+  },
+  {
+    "slug": "rom",
+    "name": "Rom",
+    "country": "IT",
+    "type": "city"
+  },
+  {
+    "slug": "luxemburg",
+    "name": "Luxemburg",
+    "country": "LU",
+    "type": "country"
+  },
+  {
+    "slug": "luxemburg-stadt",
+    "name": "Luxemburg-Stadt",
+    "country": "LU",
+    "type": "city"
+  },
+  {
+    "slug": "niederlande",
+    "name": "Niederlande",
+    "country": "NL",
+    "type": "country"
+  },
+  {
+    "slug": "amsterdam",
+    "name": "Amsterdam",
+    "country": "NL",
+    "type": "city"
+  },
+  {
+    "slug": "maastricht",
+    "name": "Maastricht",
+    "country": "NL",
+    "type": "city"
+  },
+  {
+    "slug": "rotterdam",
+    "name": "Rotterdam",
+    "country": "NL",
+    "type": "city"
+  },
+  {
+    "slug": "norwegen",
+    "name": "Norwegen",
+    "country": "NO",
+    "type": "country"
+  },
+  {
+    "slug": "oslo",
+    "name": "Oslo",
+    "country": "NO",
+    "type": "city"
+  },
+  {
+    "slug": "oesterreich",
+    "name": "Österreich",
+    "country": "AT",
+    "type": "country"
+  },
+  {
+    "slug": "innsbruck",
+    "name": "Innsbruck",
+    "country": "AT",
+    "type": "city"
+  },
+  {
+    "slug": "salzburg",
+    "name": "Salzburg",
+    "country": "AT",
+    "type": "city"
+  },
+  {
+    "slug": "wien",
+    "name": "Wien",
+    "country": "AT",
+    "type": "city"
+  },
+  {
+    "slug": "polen",
+    "name": "Polen",
+    "country": "PL",
+    "type": "country"
+  },
+  {
+    "slug": "krakau",
+    "name": "Krakau",
+    "country": "PL",
+    "type": "city"
+  },
+  {
+    "slug": "warschau",
+    "name": "Warschau",
+    "country": "PL",
+    "type": "city"
+  },
+  {
+    "slug": "portugal",
+    "name": "Portugal",
+    "country": "PT",
+    "type": "country"
+  },
+  {
+    "slug": "lissabon",
+    "name": "Lissabon",
+    "country": "PT",
+    "type": "city"
+  },
+  {
+    "slug": "schweden",
+    "name": "Schweden",
+    "country": "SE",
+    "type": "country"
+  },
+  {
+    "slug": "stockholm",
+    "name": "Stockholm",
+    "country": "SE",
+    "type": "city"
+  },
+  {
+    "slug": "schweiz",
+    "name": "Schweiz",
+    "country": "CH",
+    "type": "country"
+  },
+  {
+    "slug": "basel",
+    "name": "Basel",
+    "country": "CH",
+    "type": "city"
+  },
+  {
+    "slug": "genf",
+    "name": "Genf",
+    "country": "CH",
+    "type": "city"
+  },
+  {
+    "slug": "zuerich",
+    "name": "Zürich",
+    "country": "CH",
+    "type": "city"
+  },
+  {
+    "slug": "spanien",
+    "name": "Spanien",
+    "country": "ES",
+    "type": "country"
+  },
+  {
+    "slug": "barcelona",
+    "name": "Barcelona",
+    "country": "ES",
+    "type": "city"
+  },
+  {
+    "slug": "madrid",
+    "name": "Madrid",
+    "country": "ES",
+    "type": "city"
+  },
+  {
+    "slug": "valencia",
+    "name": "Valencia",
+    "country": "ES",
+    "type": "city"
+  },
+  {
+    "slug": "tschechien",
+    "name": "Tschechien",
+    "country": "CZ",
+    "type": "country"
+  },
+  {
+    "slug": "prag",
+    "name": "Prag",
+    "country": "CZ",
+    "type": "city"
+  },
+  {
+    "slug": "vereinigtes-koenigreich",
+    "name": "Vereinigtes Königreich",
+    "country": "GB",
+    "type": "country"
+  },
+  {
+    "slug": "london",
+    "name": "London",
+    "country": "GB",
+    "type": "city"
+  }
+]
