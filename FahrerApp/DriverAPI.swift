@@ -21,9 +21,11 @@ enum DriverAPIError: LocalizedError {
 
 enum DriverAPI {
     static func openBookings(operatorSlug: String) async throws -> [DriverBooking] {
-        var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/open-bookings")
-        components?.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
-        guard let url = components?.url else { throw DriverAPIError.badURL }
+        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/open-bookings") else {
+            throw DriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components.url else { throw DriverAPIError.badURL }
 
         let (data, response) = try await URLSession.shared.data(from: url)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
@@ -42,7 +44,7 @@ enum DriverAPI {
             throw DriverAPIError.badURL
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
-        guard let url = components?.url else { throw DriverAPIError.badURL }
+        guard let url = components.url else { throw DriverAPIError.badURL }
 
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
@@ -71,7 +73,7 @@ enum DriverAPI {
             throw DriverAPIError.badURL
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
-        guard let url = components?.url else { throw DriverAPIError.badURL }
+        guard let url = components.url else { throw DriverAPIError.badURL }
 
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
