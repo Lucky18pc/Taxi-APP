@@ -31,4 +31,7 @@ Es gibt **kein** separates Duplikat und **keine** echte Fahrer-App in diesem Rep
 
 ## Echte Fahrer-App
 
-Wird **neu** gebaut — nicht durch Umbenennen der Lucky's-Taxi-Kunden-App.
+Pfad: `~/CollectionApp/FahrgastApp/Luckys Taxi Fahrer/Luckys Taxi Fahrer.xcodeproj`  
+
+Tap to Pay / Xcode-Schritte: **`docs/XCODE-FAHRER-TAP-TO-PAY.md`**
+

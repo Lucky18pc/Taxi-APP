@@ -153,6 +153,14 @@ a { color: var(--primary); }
   background: #fff;
 }
 
+.hero-pitch-pay {
+  margin-bottom: 0.85rem;
+  background: #fff;
+  border: 2px solid #0c1c34;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+}
+
 .hero-note {
   max-width: 36rem;
   margin: 0 auto 1.25rem;
