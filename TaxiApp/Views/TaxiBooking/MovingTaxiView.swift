@@ -52,7 +52,7 @@ struct MovingTaxiView: View {
                             .foregroundColor(.secondary)
                     }
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(Brand.background)
                     .cornerRadius(12)
 
                     CentralCallButton(style: .filled)

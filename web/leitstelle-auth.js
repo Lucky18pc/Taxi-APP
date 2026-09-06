@@ -106,14 +106,15 @@
       }
       #leitstelle-login.visible { display: flex; }
       .leitstelle-login-card {
-        background: #fff; border-radius: 16px; padding: 1.5rem;
-        max-width: 360px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+        background: #fff8cc; border-radius: 16px; padding: 1.5rem;
+        max-width: 360px; width: 100%;
+        border: 2.5px solid #0c1c34; box-shadow: 0 4px 0 #0c1c34;
       }
-      .leitstelle-login-card h2 { margin: 0 0 0.5rem; }
-      .leitstelle-login-card p { margin: 0 0 1rem; font-size: 0.9rem; color: #4b5563; }
+      .leitstelle-login-card h2 { margin: 0 0 0.5rem; color: #0c1c34; }
+      .leitstelle-login-card p { margin: 0 0 1rem; font-size: 0.9rem; color: #0c1c34; font-weight: 600; }
       .leitstelle-login-card input {
         width: 100%; padding: 0.65rem; margin-bottom: 0.75rem;
-        border: 1px solid #d1d5db; border-radius: 10px; font: inherit;
+        border: 2px solid #0c1c34; border-radius: 10px; font: inherit; background: #fffdf0;
       }
       .login-error { color: #991b1b; font-size: 0.85rem; font-weight: 600; }
     `;

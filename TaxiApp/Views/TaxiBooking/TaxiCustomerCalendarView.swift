@@ -99,7 +99,7 @@ struct TaxiCustomerCalendarView: View {
                     .foregroundStyle(Brand.primary.opacity(0.55))
             }
             .padding(16)
-            .background(Color.white)
+            .background(Brand.card)
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             .shadow(color: .black.opacity(0.10), radius: 16, y: 8)
         }
@@ -135,7 +135,7 @@ struct TaxiCustomerCalendarView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
             }
-            .background(Color.white)
+            .background(Brand.card)
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             .shadow(color: .black.opacity(0.10), radius: 16, y: 8)
             .colorScheme(.light)

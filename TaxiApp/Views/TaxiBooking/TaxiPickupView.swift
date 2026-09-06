@@ -50,7 +50,7 @@ struct TaxiPickupView: View {
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.white)
+                                .background(Brand.card)
                                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                                 .lightShimmer(cornerRadius: 10, tone: .onLight, intensity: 0.85)
                         }
@@ -92,7 +92,7 @@ struct TaxiPickupView: View {
                             .foregroundStyle(Brand.primary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .background(Color.white)
+                            .background(Brand.card)
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                             .lightShimmer(cornerRadius: 14, intensity: 1.25)
                     }

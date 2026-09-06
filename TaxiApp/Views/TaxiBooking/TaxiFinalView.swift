@@ -51,7 +51,7 @@ struct TaxiFinalView: View {
                         }
                     }
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(Brand.background)
                     .cornerRadius(15)
 
                     Button(action: {

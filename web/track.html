@@ -8,24 +8,24 @@
   <link rel="icon" type="image/png" href="icon-taxi-192.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <style>
-    :root { --navy: #1c304f; --yellow: #ffcc00; }
+    :root { --navy: #0c1c34; --yellow: #ffcc00; }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f9; color: #111827; }
-    header { background: var(--navy); color: #fff; padding: 1rem 1.25rem; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--yellow); color: var(--navy); }
+    header { background: var(--yellow); color: var(--navy); padding: 1rem 1.25rem; border-bottom: 3px solid var(--navy); }
     header h1 { margin: 0; font-size: 1.15rem; }
-    header p { margin: 0.35rem 0 0; opacity: 0.85; font-size: 0.9rem; }
+    header p { margin: 0.35rem 0 0; opacity: 0.85; font-size: 0.9rem; font-weight: 600; }
     main { max-width: 720px; margin: 0 auto; padding: 1rem 1.25rem 2rem; }
-    .card { background: #fff; border-radius: 14px; padding: 1rem; box-shadow: 0 8px 24px rgba(28,48,79,.08); margin-bottom: 1rem; }
-    #map { height: 320px; border-radius: 12px; }
+    .card { background: #fff8cc; border-radius: 14px; padding: 1rem; border: 2.5px solid var(--navy); box-shadow: 0 4px 0 var(--navy); margin-bottom: 1rem; }
+    #map { height: 320px; border-radius: 12px; border: 2px solid var(--navy); }
     .status { padding: 0.75rem; border-radius: 10px; font-weight: 600; }
     .status.ok { background: #d1fae5; color: #065f46; }
-    .status.warn { background: #fef3c7; color: #92400e; }
+    .status.warn { background: #ffe08a; color: var(--navy); border: 2px solid var(--navy); }
     .status.err { background: #fee2e2; color: #b91c1c; }
     .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
     .btn { display: inline-block; padding: 0.65rem 1rem; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.92rem; }
-    .btn-primary { background: var(--yellow); color: var(--navy); }
-    .btn-secondary { background: #e5e7eb; color: #111827; }
-    .hint { font-size: 0.85rem; color: #6b7280; margin: 0; }
+    .btn-primary { background: var(--navy); color: var(--yellow); }
+    .btn-secondary { background: #fff8cc; color: var(--navy); border: 2px solid var(--navy); }
+    .hint { font-size: 0.85rem; color: var(--navy); margin: 0; font-weight: 600; }
   </style>
 </head>
 <body>

@@ -4,50 +4,117 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QR-Code — Taxi online bestellen</title>
+  <meta name="theme-color" content="#ffcc00">
   <link rel="stylesheet" href="styles.css">
   <script src="analytics.js" defer></script>
   <style>
+    body.qr-page {
+      background: #ffcc00 !important;
+      color: #0c1c34;
+      min-height: 100vh;
+    }
     .qr-wrap { max-width: 28rem; margin: 2rem auto 3rem; padding: 0 1.25rem; text-align: center; }
+    .qr-wrap h1 {
+      margin: 0 0 0.5rem;
+      color: #0c1c34;
+      font-weight: 800;
+    }
+    .qr-wrap .lead {
+      color: #0c1c34;
+      font-weight: 600;
+      opacity: 0.9;
+    }
     .qr-card {
-      background: var(--card);
+      background: #fff8cc;
       border-radius: var(--radius);
       padding: 1.5rem;
-      box-shadow: var(--shadow);
+      border: 2.5px solid #0c1c34;
+      box-shadow: 0 4px 0 #0c1c34;
     }
     .qr-card img {
       width: 280px;
       height: 280px;
       max-width: 100%;
       border-radius: 12px;
-      border: 1px solid #e5e7eb;
       background: #fff;
+      border: 2.5px solid #0c1c34;
     }
+    .qr-card .note { color: #0c1c34; font-weight: 600; }
     .qr-url {
       margin-top: 1rem;
       font-size: 0.85rem;
       word-break: break-all;
-      color: #4b5563;
+      color: #0c1c34;
+      font-weight: 600;
     }
-    .qr-url a { font-weight: 600; }
+    .qr-url a { font-weight: 800; color: #0c1c34; }
     .qr-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 1.25rem; }
-    .qr-hint { font-size: 0.9rem; color: #6b7280; margin-top: 1.25rem; text-align: left; }
+    .qr-page .btn {
+      background: #0c1c34;
+      color: #ffcc00 !important;
+      font-weight: 800;
+      border: none;
+    }
+    .qr-page .btn.secondary {
+      background: #ffe08a;
+      color: #0c1c34 !important;
+      border: 2px solid #0c1c34;
+    }
+    .qr-hint { font-size: 0.9rem; color: #0c1c34; margin-top: 1.25rem; text-align: left; font-weight: 600; }
     .qr-hint li { margin: 0.35rem 0; }
+    .qr-hint code {
+      background: #ffe08a;
+      border: 1px solid #0c1c34;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-weight: 700;
+    }
     .qr-print-box {
       margin-top: 2rem;
       text-align: left;
-      background: #f9fafb;
+      background: #fff8cc;
+      border: 2.5px solid #0c1c34;
+      box-shadow: 0 4px 0 #0c1c34;
       border-radius: var(--radius);
       padding: 1rem 1.15rem;
       font-size: 0.9rem;
+      color: #0c1c34;
     }
-    .qr-print-box h2 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+    .qr-print-box h2 { margin: 0 0 0.5rem; font-size: 1.05rem; color: #0c1c34; }
+    .qr-appstore {
+      margin-top: 2rem;
+      text-align: left;
+      background: #fff8cc;
+      border: 2.5px solid #0c1c34;
+      box-shadow: 0 4px 0 #0c1c34;
+      border-radius: var(--radius);
+      padding: 1rem 1.15rem;
+      color: #0c1c34;
+    }
+    .qr-appstore h2 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+    .qr-appstore .field-hint { color: #0c1c34; font-weight: 600; opacity: 0.9; }
+    .qr-appstore code {
+      display: inline-block;
+      margin-top: 0.35rem;
+      background: #ffe08a;
+      border: 1px solid #0c1c34;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      word-break: break-all;
+    }
+    .qr-page .site-footer {
+      background: #0c1c34;
+      border-top: 3px solid #ffcc00;
+    }
+    .qr-page .site-footer a { color: #ffcc00; font-weight: 700; }
     @media print {
       .no-print { display: none !important; }
       .qr-wrap { margin: 0; }
+      body.qr-page { background: #fff !important; }
     }
   </style>
 </head>
-<body>
+<body class="qr-page">
   <main class="qr-wrap">
     <h1 id="qr-title">Taxi bestellen</h1>
     <p class="lead" id="qr-subtitle">QR für Ihren Betrieb — oder ohne Zusatz die deutschlandweite Luckys Taxi App</p>
@@ -83,8 +150,8 @@
       <a class="btn secondary" href="settings.html">Einstellungen</a>
     </p>
 
-    <section class="no-print" style="margin-top:2rem;text-align:left">
-      <h2 style="font-size:1.05rem">App Store / TestFlight</h2>
+    <section class="qr-appstore no-print">
+      <h2>App Store / TestFlight</h2>
       <p class="field-hint">Wenn die iOS-App live ist, neuen QR mit App-Store-Link erzeugen (nicht book.html):</p>
       <p><code>https://apps.apple.com/app/idXXXXXXXX</code> oder TestFlight-Einladungslink.</p>
     </section>

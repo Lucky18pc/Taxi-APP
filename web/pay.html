@@ -11,8 +11,8 @@
     body.pay-page {
       min-height: 100vh;
       margin: 0;
-      background: linear-gradient(165deg, #111827 0%, #1f2937 45%, #0f172a 100%);
-      color: #f8fafc;
+      background: #ffcc00;
+      color: #0c1c34;
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     }
     .pay-wrap {
@@ -30,24 +30,28 @@
       width: 56px;
       height: 56px;
       border-radius: 14px;
-      background: #facc15;
+      background: #0c1c34;
+      border: 2.5px solid #0c1c34;
     }
     .pay-brand h1 {
       margin: 0;
       font-size: 1.2rem;
-      color: #facc15;
+      color: #0c1c34;
     }
     .pay-brand p {
       margin: 0.15rem 0 0;
       font-size: 0.85rem;
-      color: #cbd5e1;
+      color: #0c1c34;
+      font-weight: 600;
+      opacity: 0.85;
     }
     .pay-card {
-      background: #fff;
-      color: #0f172a;
+      background: #fff8cc;
+      color: #0c1c34;
       border-radius: 16px;
       padding: 1.25rem;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+      border: 2.5px solid #0c1c34;
+      box-shadow: 0 4px 0 #0c1c34;
     }
     .pay-amount {
       font-size: 2rem;
@@ -56,9 +60,11 @@
     }
     .pay-meta {
       font-size: 0.88rem;
-      color: #64748b;
+      color: #0c1c34;
       margin: 0 0 1rem;
       line-height: 1.4;
+      font-weight: 600;
+      opacity: 0.9;
     }
     #payment-element { margin: 1rem 0; }
     .pay-btn {
@@ -68,16 +74,16 @@
       padding: 0.9rem 1rem;
       font: inherit;
       font-weight: 800;
-      background: #facc15;
-      color: #0f172a;
+      background: #0c1c34;
+      color: #ffcc00;
       cursor: pointer;
-      box-shadow: 0 3px 0 #ca8a04;
+      box-shadow: 0 3px 0 #061018;
     }
     .pay-btn:disabled { opacity: 0.6; cursor: wait; }
     .pay-msg { margin-top: 0.85rem; font-size: 0.9rem; font-weight: 600; }
     .pay-msg.error { color: #991b1b; }
     .pay-msg.ok { color: #065f46; }
-    .pay-foot { margin-top: 1.25rem; font-size: 0.78rem; color: #94a3b8; text-align: center; }
+    .pay-foot { margin-top: 1.25rem; font-size: 0.78rem; color: #0c1c34; text-align: center; font-weight: 600; }
   </style>
 </head>
 <body class="pay-page">

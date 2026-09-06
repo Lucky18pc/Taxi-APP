@@ -90,7 +90,7 @@ struct DriverProfileView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 12)
                                     .foregroundStyle(.red)
-                                    .background(Color.white)
+                                    .background(Brand.card)
                                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -269,7 +269,7 @@ private struct ProfileTextFieldModifier: ViewModifier {
             .tint(Brand.accent)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .background(Color.white)
+            .background(Brand.card)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }

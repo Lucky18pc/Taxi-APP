@@ -50,7 +50,7 @@ struct LegalLinksSection: View {
                         .foregroundStyle(onNavyBackground ? .white : Brand.primary)
                         .padding(.vertical, 10)
                         .padding(.horizontal, 12)
-                        .background(onNavyBackground ? Color.white.opacity(0.12) : Color.white)
+                        .background(onNavyBackground ? Color.white.opacity(0.12) : Brand.card)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)

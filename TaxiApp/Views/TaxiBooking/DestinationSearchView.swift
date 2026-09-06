@@ -11,7 +11,7 @@ struct DestinationSearchView: View {
                 performSearch()
             })
             .padding()
-            .background(Color(.systemGray6))
+            .background(Brand.background)
             .cornerRadius(10)
             .padding()
 

@@ -27,7 +27,7 @@ struct TaxiBookingView: View {
                     .font(.title2)
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(Brand.background)
             .cornerRadius(20)
 
             Spacer()

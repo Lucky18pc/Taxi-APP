@@ -9,8 +9,8 @@ enum Brand {
     /// Web-Marketing-Akzent (styles.css --accent), sparsam in der App.
     static let accent = Color(red: 0.58, green: 0.38, blue: 0.88)
     static let accentDark = Color(red: 0.38, green: 0.18, blue: 0.72)
-    static let background = Color(red: 0.96, green: 0.96, blue: 0.97)
-    static let card = Color.white
+    static let background = Color(red: 1.0, green: 0.8, blue: 0.0) // #ffcc00
+    static let card = Color(red: 1.0, green: 0.973, blue: 0.8) // #fff8cc
     /// Produktkacheln & Warenkorb-Thumbnails (warmes Greige statt „schwarzes Loch“).
     static let productThumbFill = Color(red: 0.91, green: 0.90, blue: 0.88)
     static let productThumbStroke = Color(red: 0.78, green: 0.76, blue: 0.73)

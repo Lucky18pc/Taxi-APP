@@ -1,13 +1,14 @@
 :root {
-  --primary: #1c304f;
-  --secondary: #384d61;
-  --bg: #f5f5f7;
-  --card: #ffffff;
+  --primary: #0c1c34;
+  --secondary: #1c304f;
+  --bg: #ffcc00;
+  --card: #fff8cc;
   --accent: #ffcc00;
-  --accent-dark: #1c304f;
+  --accent-dark: #0c1c34;
   --taxi-yellow: #ffcc00;
+  --taxi-navy: #0c1c34;
   --radius: 14px;
-  --shadow: 0 8px 24px rgba(28, 48, 79, 0.08);
+  --shadow: 0 4px 0 #0c1c34;
 }
 
 * { box-sizing: border-box; }
@@ -150,12 +151,12 @@ a { color: var(--primary); }
 
 .hero-pitch-design {
   margin-bottom: 0.75rem;
-  background: #fff;
+  background: #fff8cc;
 }
 
 .hero-pitch-pay {
   margin-bottom: 0.85rem;
-  background: #fff;
+  background: #fff8cc;
   border: 2px solid #0c1c34;
   border-radius: 12px;
   padding: 0.75rem 1rem;
@@ -503,7 +504,7 @@ section {
   padding: 1.75rem;
   margin-bottom: 1.25rem;
   box-shadow: var(--shadow);
-  border: 1px solid rgba(28, 48, 79, 0.06);
+  border: 2.5px solid #0c1c34;
 }
 
 h2 {
@@ -527,10 +528,12 @@ h2 {
 }
 
 .step {
-  background: #f8f9fb;
+  background: #fff8cc;
   border-radius: 12px;
   padding: 1rem;
   text-align: center;
+  border: 2.5px solid #0c1c34;
+  box-shadow: 0 4px 0 #0c1c34;
 }
 
 .step-num {
@@ -894,10 +897,11 @@ body.legal-taxi .legal-page > .note {
 }
 
 .app-access-card {
-  background: #f8f9fb;
+  background: #fff8cc;
   border-radius: 12px;
   padding: 1.25rem;
-  border: 1px solid #e8eaef;
+  border: 2.5px solid #0c1c34;
+  box-shadow: 0 4px 0 #0c1c34;
 }
 
 .app-access-card h3 {
@@ -1711,4 +1715,97 @@ body.home-taxi .stripe-note a {
 body.home-taxi .billing-status.ok {
   background: #0c1c34;
   color: #fff !important;
+}
+
+/* —— Globales Taxi-Gelb: Zentrale, Einstellungen, Admin, Legal, QR … —— */
+.hero:not(:has(.hero-bg)),
+.hero.ops-hero {
+  background: #ffcc00;
+  color: #0c1c34;
+  border-bottom: 3px solid #0c1c34;
+}
+
+.hero:not(:has(.hero-bg)) h1,
+.hero:not(:has(.hero-bg)) p,
+.hero.ops-hero h1,
+.hero.ops-hero p {
+  color: #0c1c34;
+  text-shadow: none;
+}
+
+.hero:not(:has(.hero-bg)) p,
+.hero.ops-hero p {
+  opacity: 0.85;
+  font-weight: 600;
+}
+
+.dispatch-panel,
+.booking-card,
+.settings-card,
+.admin-card,
+.driver-card,
+.empty-drivers {
+  background: #fff8cc !important;
+  border: 2.5px solid #0c1c34 !important;
+  box-shadow: 0 4px 0 #0c1c34 !important;
+  color: #0c1c34;
+}
+
+.empty-drivers {
+  border-style: dashed !important;
+}
+
+.section-title,
+.nav-top a,
+.hint,
+.booking-meta {
+  color: #0c1c34 !important;
+}
+
+.driver-setup-banner {
+  background: #ffe08a !important;
+  border-color: #0c1c34 !important;
+  color: #0c1c34 !important;
+}
+
+.driver-setup-banner a {
+  color: #0c1c34 !important;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: #0c1c34;
+  text-underline-offset: 3px;
+}
+
+.site-footer {
+  background: #0c1c34;
+  color: rgba(255, 255, 255, 0.85);
+  border-top: 3px solid #ffcc00;
+}
+
+.site-footer a {
+  color: #ffcc00;
+  font-weight: 700;
+}
+
+.sales-card,
+.step,
+.plan,
+.app-access-card,
+.founder-card {
+  border: 2.5px solid #0c1c34;
+  box-shadow: 0 4px 0 #0c1c34;
+}
+
+input,
+textarea,
+select {
+  background: #fffdf0;
+  border-color: #0c1c34;
+  color: #0c1c34;
+}
+
+.btn.secondary {
+  background: #fff8cc;
+  color: #0c1c34;
+  border: 2px solid #0c1c34;
 }

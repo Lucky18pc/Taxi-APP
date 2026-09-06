@@ -226,7 +226,7 @@ struct TaxiPickupLocationView: View {
             .buttonStyle(.plain)
         }
         .padding(12)
-        .background(Color.white)
+        .background(Brand.card)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
         .colorScheme(.light)
@@ -326,7 +326,7 @@ struct TaxiPickupLocationView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 11)
             .foregroundStyle(Brand.primary)
-            .background(Color.white)
+            .background(Brand.card)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
         }
@@ -341,7 +341,7 @@ struct TaxiPickupLocationView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .background(geocodeStatusIsError ? Color(red: 1, green: 0.94, blue: 0.94) : Color.white)
+            .background(geocodeStatusIsError ? Color(red: 1, green: 0.94, blue: 0.94) : Brand.card)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .colorScheme(.light)
     }
@@ -432,7 +432,7 @@ struct TaxiPickupLocationView: View {
                 .bookingFormTextField()
         }
         .padding(12)
-        .background(Color.white)
+        .background(Brand.card)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
         .colorScheme(.light)

@@ -132,7 +132,7 @@ struct TaxiCompanyHeaderView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(isTransparent ? Color.white.opacity(0.85) : Color(.systemBackground))
+                .background(isTransparent ? Color.white.opacity(0.85) : Brand.card)
             }
         }
     }

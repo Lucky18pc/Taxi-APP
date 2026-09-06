@@ -55,7 +55,7 @@ struct TaxiMapView: View {
                     Spacer()
                     Image(systemName: "magnifyingglass")
                         .padding()
-                        .background(Color.white)
+                        .background(Brand.card)
                         .clipShape(Circle())
                         .shadow(radius: 5)
                 }

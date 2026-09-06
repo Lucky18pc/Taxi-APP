@@ -35,8 +35,12 @@ struct HomeView: View {
 
                 Toggle("Online / Schicht", isOn: $isOnline)
                     .padding()
-                    .background(.gray.opacity(0.1))
+                    .background(Color(red: 1, green: 0.973, blue: 0.8))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(red: 0.047, green: 0.110, blue: 0.204), lineWidth: 2)
+                    )
                     .onChange(of: isOnline) { _, newValue in
                         Task { await setOnline(newValue) }
                     }
@@ -117,6 +121,8 @@ struct HomeView: View {
                 }
             }
             .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Color(red: 1, green: 0.8, blue: 0).ignoresSafeArea())
             .navigationTitle("Fahrer")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

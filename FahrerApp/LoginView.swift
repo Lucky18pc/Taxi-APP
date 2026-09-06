@@ -55,10 +55,12 @@ struct LoginView: View {
                 login()
             }
             .buttonStyle(.borderedProminent)
-            .tint(.orange)
+            .tint(Color(red: 0.047, green: 0.110, blue: 0.204))
             .disabled(isLoading)
         }
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(red: 1, green: 0.8, blue: 0).ignoresSafeArea())
     }
 
     private func login() {

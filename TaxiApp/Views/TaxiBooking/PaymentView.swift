@@ -123,7 +123,7 @@ struct BookingTripOverviewCard: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
+        .background(Brand.card)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
         .colorScheme(.light)
@@ -550,7 +550,7 @@ struct PaymentView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
+        .background(Brand.card)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         .lightShimmer(cornerRadius: 18, tone: .onLight, intensity: 0.9)

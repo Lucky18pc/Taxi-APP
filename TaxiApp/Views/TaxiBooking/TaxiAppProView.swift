@@ -22,7 +22,7 @@ struct TaxiAppPro: View {
         VStack {
             TextField("Wohin geht's?", text: $searchText)
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Brand.background)
                 .cornerRadius(12)
                 .padding()
                 .onChange(of: searchText) { _, newValue in
@@ -53,7 +53,7 @@ struct TaxiAppPro: View {
                         }
                     }
                     .frame(maxHeight: 300)
-                    .background(Color.white)
+                    .background(Brand.card)
                 }
             }
         }
