@@ -1069,6 +1069,23 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
         }
         break;
       }
+      case "account.updated": {
+        const account = event.data.object;
+        const accountId = String(account.id || "").trim();
+        const slug = String(account.metadata?.operatorSlug || "").trim().toLowerCase();
+        let fleetOp =
+          (slug && fleet.findBySlug(slug)) ||
+          fleet.list(true).find((op) => String(op.stripeConnectAccountId || "") === accountId);
+        if (fleetOp && accountId) {
+          if (!fleetOp.stripeConnectAccountId) {
+            fleet.updateOperator(fleetOp.slug, { stripeConnectAccountId: accountId });
+          }
+          console.log(
+            `Connect account.updated: ${fleetOp.slug} · charges=${account.charges_enabled} · payouts=${account.payouts_enabled}`
+          );
+        }
+        break;
+      }
       default:
         break;
     }
@@ -1350,6 +1367,98 @@ app.patch("/api/fleet/operators/:slug", requireAdmin, async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ error: error.message || "Update failed" });
+  }
+});
+
+/** Stripe Connect Express: Onboarding-Link für Auszahlung + Plattformgebühr */
+app.post("/api/fleet/operators/:slug/connect/onboard", requireAdmin, async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: "Stripe not configured" });
+  }
+  const slug = String(req.params.slug || "").trim().toLowerCase();
+  const operator = fleet.findBySlug(slug);
+  if (!operator) {
+    return res.status(404).json({ error: "Operator not found" });
+  }
+
+  try {
+    let accountId = String(operator.stripeConnectAccountId || "").trim();
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        country: String(operator.country || "DE").toUpperCase() || "DE",
+        email: String(operator.billingEmail || operator.legalEmail || "").trim() || undefined,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        business_profile: {
+          name: operator.companyName,
+          product_description: "Taxi-Fahrten — Auszahlung über Luckys Taxi App / Code & Grow",
+        },
+        metadata: {
+          operatorSlug: operator.slug,
+          operatorId: operator.operatorId,
+        },
+      });
+      accountId = account.id;
+      fleet.updateOperator(slug, { stripeConnectAccountId: accountId });
+    }
+
+    const baseUrl = resolvePublicBaseUrl(req);
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: `${baseUrl}/admin.html?connect=refresh&o=${encodeURIComponent(slug)}`,
+      return_url: `${baseUrl}/admin.html?connect=return&o=${encodeURIComponent(slug)}`,
+      type: "account_onboarding",
+    });
+
+    res.json({
+      url: accountLink.url,
+      accountId,
+      expiresAt: accountLink.expires_at,
+    });
+  } catch (error) {
+    console.error("Connect onboard:", error);
+    res.status(500).json({
+      error:
+        error.message ||
+        "Connect-Onboarding fehlgeschlagen — in Stripe Dashboard Connect aktivieren?",
+    });
+  }
+});
+
+app.get("/api/fleet/operators/:slug/connect/status", requireAdmin, async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: "Stripe not configured" });
+  }
+  const slug = String(req.params.slug || "").trim().toLowerCase();
+  const operator = fleet.findBySlug(slug);
+  if (!operator) {
+    return res.status(404).json({ error: "Operator not found" });
+  }
+  const accountId = String(operator.stripeConnectAccountId || "").trim();
+  if (!accountId) {
+    return res.json({
+      connected: false,
+      chargesEnabled: false,
+      payoutsEnabled: false,
+      detailsSubmitted: false,
+      accountId: null,
+    });
+  }
+  try {
+    const account = await stripe.accounts.retrieve(accountId);
+    res.json({
+      connected: true,
+      accountId,
+      chargesEnabled: Boolean(account.charges_enabled),
+      payoutsEnabled: Boolean(account.payouts_enabled),
+      detailsSubmitted: Boolean(account.details_submitted),
+      requirementsDue: account.requirements?.currently_due || [],
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message || "Connect status failed" });
   }
 });
 

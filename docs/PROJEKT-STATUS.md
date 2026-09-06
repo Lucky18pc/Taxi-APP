@@ -30,7 +30,7 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 | Fahrer GPS Web | ✅ | `driver-track.html` — neu |
 | Fahrgast Tracking Web | ✅ | `track.html` — neu |
 | Kartenzahlung Fahrgast (Zahlungslink) | ✅ | `pay.html` + Stripe PI |
-| Stripe Connect Provision (application_fee) | 🟡 | braucht `stripeConnectAccountId` am Mandanten |
+| Stripe Connect Provision (application_fee) | ✅ | Onboarding: Admin → Stripe Connect · `docs/STRIPE-CONNECT.md` |
 | Abo → Fleet-Mandant automatisch | ✅ | Webhook `checkout.session.completed` |
 | Billing-Portal Kündigung | ✅ | `kuendigung.html` + `/api/billing/portal` |
 | Leitstelle Sound neue Buchung | ✅ | `dispatch.html` |

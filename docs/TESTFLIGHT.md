@@ -1,67 +1,69 @@
-# TestFlight & App Store — Vorbereitung
+# TestFlight-Checkliste — Luckys Taxi
 
-> **Offizielle Kunden-App:** [`FahrgastApp`](file:///Users/pececarmine/CollectionApp/FahrgastApp) (`com.collection.FahrgastApp`).  
-> TestFlight-Anleitung: [`~/CollectionApp/FahrgastApp/docs/TESTFLIGHT.md`](file:///Users/pececarmine/CollectionApp/FahrgastApp/docs/TESTFLIGHT.md)
+Stand: September 2026. **Zwei Apps**, zwei Bundle-IDs.
 
-Diese Datei beschreibt historisch **TaxiApp** (`com.collectionshop.taxi`) — **nicht** für den App Store verwenden.
+| App | Bundle-ID | Xcode-Projekt |
+|-----|-----------|----------------|
+| **Fahrgast** (Kunden-Store) | `com.collection.FahrgastApp` | `~/CollectionApp/FahrgastApp` |
+| **Fahrer** | `com.collection.Luckys-Taxi-Fahrer` | `~/CollectionApp/FahrgastApp/Luckys Taxi Fahrer/` |
+| TaxiApp (dieses Repo) | `com.collectionshop.taxi` | **Nicht** für Store — Prototyp/Spiegel |
 
-Stand: Nach Cloud-Deploy auf Render. Bundle-ID TaxiApp: `com.collectionshop.taxi`.
+> Offizielle Fahrgast-Anleitung auch: `~/CollectionApp/FahrgastApp/docs/TESTFLIGHT.md`
 
-## Voraussetzungen
+---
 
-- [Apple Developer Program](https://developer.apple.com/programs/) (99 USD/Jahr)
-- Xcode mit gültigem **Team** unter Signing & Capabilities
-- App am Gerät erfolgreich getestet (Bar-Buchung → Cloud-Leitstelle)
+## Gemeinsame Voraussetzungen
 
-## Schritt 1 — App in Xcode vorbereiten
+- [ ] [Apple Developer Program](https://developer.apple.com/programs/) aktiv (bezahlt)
+- [ ] Team in Xcode unter **Signing & Capabilities**
+- [ ] Render live: `https://luckystaxiapp.de` / `taxiapp-api` gesund
+- [ ] `ADMIN_PIN` auf Render gesetzt
+- [ ] Impressum/Datenschutz erreichbar (Code & Grow)
 
-1. `open ~/Projects/TaxiApp/TaxiApp.xcodeproj`
-2. Target **TaxiApp** → **General**
-   - **Display Name:** TaxiApp
-   - **Version** (Marketing): z. B. `1.0.0`
-   - **Build:** hochzählen bei jedem Upload
-3. **Signing & Capabilities**
-   - Team wählen
-   - Automatically manage signing
-4. **App Icon** — alle Größen in `Assets.xcassets/AppIcon` (falls noch Platzhalter)
-5. Clean Build (⇧⌘K) → Run am iPhone — muss fehlerfrei laufen
+---
 
-## Schritt 2 — Archive & Upload
+## A — Fahrgast-App (TestFlight)
 
-1. Oben **Any iOS Device (arm64)** wählen (nicht Simulator)
-2. **Product → Archive**
-3. **Organizer** öffnet sich → **Distribute App**
-4. **App Store Connect** → Upload
-5. Warten bis Processing in App Store Connect fertig
+- [ ] Buchung bis „Taxi bestellen“ gegen Cloud-Backend
+- [ ] Abholen + Ziel, Bar **oder** Karte (Zahlungslink nach Fahrt)
+- [ ] Nach Buchung: Tracking-Link / Live-Karte
+- [ ] Standort-Berechtigung verständlich erklärt (Info.plist)
+- [ ] Privacy Manifest / App Privacy in App Store Connect
+- [ ] Screenshots 6,7" + 6,5"
+- [ ] Support-URL: `https://luckystaxiapp.de/`
+- [ ] Datenschutz-URL: `https://luckystaxiapp.de/datenschutz.html`
+- [ ] **Archive** → Upload → Internal Testing
+- [ ] External Testing (Beta-Review) wenn bereit
 
-## Schritt 3 — App Store Connect
+---
 
-1. https://appstoreconnect.apple.com → **My Apps** → **+** New App
-2. Plattform iOS, Name, Bundle ID `com.collectionshop.taxi`, SKU
-3. Ausfüllen:
-   - Beschreibung, Keywords, Support-URL
-   - Datenschutz-URL: `https://taxiapp-api.onrender.com/datenschutz.html`
-   - Impressum/Kontakt: `https://taxiapp-api.onrender.com/impressum.html`
-4. Screenshots (6,7" und 6,5" iPhone mindestens)
-5. **App Privacy** — Datentypen (Standort, Zahlungsinfo über Stripe)
+## B — Fahrer-App (TestFlight)
 
-## Schritt 4 — TestFlight
+- [ ] Firebase Login (role=`driver`)
+- [ ] Session bleibt nach App-Neustart
+- [ ] Online-Schicht + offene Buchungen laden
+- [ ] Fahrt annehmen / erledigen + Taxameter-Betrag
+- [ ] Zahlungslink erzeugen (Kartenzahlung)
+- [ ] GPS-Permission + Location-Push ans Backend
+- [ ] Tap to Pay: **erst nach** Apple-Entitlement + Stripe Terminal SDK (sonst Button/Hinweis reicht)
+- [ ] Bundle-ID konsistent in Apple-Formularen (`com.collection.Luckys-Taxi-Fahrer`)
+- [ ] Archive → TestFlight Internal
 
-1. App Store Connect → deine App → **TestFlight**
-2. Build auswählen (nach Processing)
-3. **Internal Testing** — bis 100 Tester im Team
-4. **External Testing** — Beta-App-Review (1–2 Tage)
-5. Tester per E-Mail einladen oder öffentlicher Link
+---
 
-## Schritt 5 — Vor öffentlichem Release
+## C — Vor öffentlichem App-Store-Release
 
-- [ ] Impressum: Adresse + Inhaber in [`web/impressum.html`](../web/impressum.html)
-- [ ] Stripe **Live**-Keys (nicht Test) wenn Kartenzahlung live
-- [ ] Render Starter + Persistent Disk wenn Buchungen dauerhaft bleiben sollen
-- [ ] App Store Review Guidelines (Standort, Zahlung, Metadaten)
+- [ ] Stripe **Live**-Keys auf Render (nicht nur Test)
+- [ ] Stripe Connect für zahlende Betriebe (`docs/STRIPE-CONNECT.md`)
+- [ ] Persistent Disk auf Render (Buchungen bleiben)
+- [ ] QR-Code mit echter App-Store-URL (nicht `idXXXXXXXX`)
+- [ ] Review Guidelines: Standort, Zahlung, keine irreführende „Taxi-Zentrale Speyer“-Darstellung — Anbieter ist **Code & Grow**
 
-## Hilfe im Projekt
+---
 
-- iPhone Deploy: [`scripts/deploy-to-iphone.sh`](../scripts/deploy-to-iphone.sh)
-- Cloud-Test: [`scripts/test-cloud-e2e.sh`](../scripts/test-cloud-e2e.sh)
-- Checkliste: [`00-START-HIER.txt`](../00-START-HIER.txt)
+## Hilfe
+
+- Cloud-E2E: `scripts/test-cloud-e2e.sh`
+- Kartenzahlung: `docs/KARTENZAHLUNG-FAHRGAST.md`
+- Connect: `docs/STRIPE-CONNECT.md`
+- Tap to Pay: `docs/TAP-TO-PAY.md` · `docs/APPLE-TAP-TO-PAY-FREIGABE.md`

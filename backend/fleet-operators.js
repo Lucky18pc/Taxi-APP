@@ -333,6 +333,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       createdAt: operator.createdAt || null,
       updatedAt: operator.updatedAt || null,
       hasDispatchPin: Boolean(String(operator.dispatchPin || "").trim()),
+      stripeConnectAccountId: String(operator.stripeConnectAccountId || "").trim() || null,
       brandPrimaryColor: operator.brandPrimaryColor || "",
       brandAccentColor: operator.brandAccentColor || "",
       logoUrl: operator.logoUrl || "",

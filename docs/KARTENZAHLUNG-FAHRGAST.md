@@ -65,6 +65,10 @@ Karte: `4242 4242 4242 4242`, beliebiges Datum, CVC `123`.
 ## Noch nicht
 
 - Automatischer Link per SMS/E-Mail/Push
-- Stripe Connect (Geld direkt an Mandanten)
 - Vorautorisierung bei Buchung
 - Tap to Pay am Fahrer-Handy → siehe `docs/TAP-TO-PAY.md`
+
+## Stripe Connect
+
+Geld an den Taxi-Betrieb + Plattformgebühr: siehe **`docs/STRIPE-CONNECT.md`**.  
+Admin → Mandant → **Stripe Connect**.

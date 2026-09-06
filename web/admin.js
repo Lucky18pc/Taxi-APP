@@ -150,6 +150,7 @@
           <strong>${escapeHtml(op.companyName)}</strong><br>
           <code>${escapeHtml(op.slug)}</code>
           ${op.billingEmail ? `<br><small>${escapeHtml(op.billingEmail)}</small>` : ""}
+          <br><small>${op.stripeConnectAccountId ? "Connect: " + escapeHtml(op.stripeConnectAccountId) : "Connect: nicht verbunden"}</small>
         </td>
         <td>${statusBadge(op.status)}<br><small>${op.hasDispatchPin ? "PIN gesetzt" : "kein PIN"}</small></td>
         <td>${escapeHtml(op.planId || "starter")}<br><small>${op.maxDrivers == null ? "∞ Fahrer" : op.maxDrivers + " Fahrer"}</small></td>
@@ -165,6 +166,7 @@
         <td>
           ${op.status !== "active" ? `<button type="button" class="btn-sm btn-success activate" data-slug="${escapeHtml(op.slug)}">Aktivieren</button> ` : ""}
           ${op.status === "active" ? `<button type="button" class="btn-sm btn-danger suspend" data-slug="${escapeHtml(op.slug)}">Sperren</button>` : ""}
+          <button type="button" class="btn-sm btn-primary connect-onboard" data-slug="${escapeHtml(op.slug)}">Stripe Connect</button>
         </td>
       `;
       tr.querySelector(".copy-links")?.addEventListener("click", () => {
@@ -178,7 +180,24 @@
       });
       tr.querySelector(".activate")?.addEventListener("click", () => patchTenant(op.slug, { status: "active" }));
       tr.querySelector(".suspend")?.addEventListener("click", () => patchTenant(op.slug, { status: "suspended" }));
+      tr.querySelector(".connect-onboard")?.addEventListener("click", () => startConnectOnboard(op.slug));
       tbody.appendChild(tr);
+    }
+  }
+
+  async function startConnectOnboard(slug) {
+    const res = await apiFetch(`/api/fleet/operators/${encodeURIComponent(slug)}/connect/onboard`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      alert(data.error || "Connect-Onboarding fehlgeschlagen");
+      return;
+    }
+    if (data.url) {
+      window.location.href = data.url;
     }
   }
 
@@ -274,7 +293,20 @@
       .then((res) => {
         if (res.ok) {
           showApp();
-          return Promise.all([loadTenants(), loadInquiries()]);
+          return Promise.all([loadTenants(), loadInquiries()]).then(() => {
+            const params = new URLSearchParams(window.location.search);
+            const connect = params.get("connect");
+            const slug = params.get("o");
+            if (connect === "return" && slug) {
+              alert(
+                `Stripe Connect für „${slug}“ — Onboarding abgeschlossen oder fortgesetzt. Status prüfen (Connect-ID in der Liste).`
+              );
+              history.replaceState({}, "", "admin.html");
+            } else if (connect === "refresh" && slug) {
+              alert(`Connect-Link abgelaufen — bitte für „${slug}“ erneut „Stripe Connect“ klicken.`);
+              history.replaceState({}, "", "admin.html");
+            }
+          });
         }
         clearPin();
         showLogin();
