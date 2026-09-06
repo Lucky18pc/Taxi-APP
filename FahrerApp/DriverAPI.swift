@@ -94,6 +94,36 @@ enum DriverAPI {
         }
         return CompleteBookingResponse(payUrl: nil)
     }
+
+    static func postLocation(
+        driverUid: String,
+        latitude: Double,
+        longitude: Double,
+        bookingId: String?
+    ) async throws {
+        guard let url = URL(string: "\(BackendConfig.baseURL)/api/driver/location") else {
+            throw DriverAPIError.badURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.driverApiKey, forHTTPHeaderField: "X-Driver-Key")
+        request.setValue("Bearer \(BackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
+        var body: [String: Any] = [
+            "driverUid": driverUid,
+            "latitude": latitude,
+            "longitude": longitude,
+        ]
+        if let bookingId, !bookingId.isEmpty {
+            body["bookingId"] = bookingId
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw DriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
 }
 
 struct CompleteBookingResponse: Decodable {

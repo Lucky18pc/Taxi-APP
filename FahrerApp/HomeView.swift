@@ -5,6 +5,7 @@
 
 import SwiftUI
 import UIKit
+import CoreLocation
 import FirebaseAuth
 import FirebaseFirestore
 
@@ -24,6 +25,7 @@ struct HomeView: View {
     @State private var showPayMethodDialog = false
     @State private var pendingAmount: Double?
     @State private var terminalEnabled = false
+    @StateObject private var locationReporter = DriverLocationReporter()
 
     private let operatorSlug = BackendConfig.defaultOperatorSlug
 
@@ -43,6 +45,11 @@ struct HomeView: View {
                     )
                     .onChange(of: isOnline) { _, newValue in
                         Task { await setOnline(newValue) }
+                        if newValue {
+                            locationReporter.start(driverUid: driverUid, bookingId: acceptedBookingId)
+                        } else {
+                            locationReporter.stop()
+                        }
                     }
 
                 Text(statusText)
@@ -126,7 +133,9 @@ struct HomeView: View {
             .navigationTitle("Fahrer")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Abmelden") {
+        Button("Abmelden") {
+                        UserDefaults.standard.removeObject(forKey: "fahrer.uid")
+                        UserDefaults.standard.removeObject(forKey: "fahrer.name")
                         try? Auth.auth().signOut()
                     }
                 }
@@ -276,6 +285,7 @@ struct HomeView: View {
             await MainActor.run {
                 acceptedBookingId = booking.bookingId
                 statusText = "Fahrt angenommen."
+                locationReporter.start(driverUid: driverUid, bookingId: booking.bookingId)
             }
             await loadBookings()
         } catch {
@@ -385,6 +395,51 @@ struct HomeView: View {
                     errorMessage = error.localizedDescription
                 }
             }
+        }
+    }
+}
+
+@MainActor
+final class DriverLocationReporter: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private let manager = CLLocationManager()
+    private var driverUid = ""
+    private var bookingId: String?
+    private var lastSent: Date?
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        manager.allowsBackgroundLocationUpdates = false
+    }
+
+    func start(driverUid: String, bookingId: String?) {
+        self.driverUid = driverUid
+        self.bookingId = bookingId
+        manager.requestWhenInUseAuthorization()
+        manager.startUpdatingLocation()
+    }
+
+    func stop() {
+        manager.stopUpdatingLocation()
+        bookingId = nil
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        Task { @MainActor in
+            let now = Date()
+            if let lastSent, now.timeIntervalSince(lastSent) < 12 { return }
+            lastSent = now
+            let uid = driverUid
+            let booking = bookingId
+            guard !uid.isEmpty else { return }
+            try? await DriverAPI.postLocation(
+                driverUid: uid,
+                latitude: location.coordinate.latitude,
+                longitude: location.coordinate.longitude,
+                bookingId: booking
+            )
         }
     }
 }

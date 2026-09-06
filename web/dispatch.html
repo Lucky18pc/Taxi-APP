@@ -226,8 +226,43 @@
     };
 
     let cachedDrivers = [];
+    let knownBookingIds = new Set();
+    let bookingsSoundReady = false;
 
-    function hasAssignableDrivers() {
+    function playNewBookingSound() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = 880;
+        gain.gain.value = 0.08;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
+        osc.stop(ctx.currentTime + 0.5);
+      } catch (_) {}
+    }
+
+    function notifyNewBookings(list) {
+      const ids = list.map((b) => b.bookingId).filter(Boolean);
+      if (!bookingsSoundReady) {
+        knownBookingIds = new Set(ids);
+        bookingsSoundReady = true;
+        return;
+      }
+      const fresh = list.filter(
+        (b) =>
+          b.bookingId &&
+          !knownBookingIds.has(b.bookingId) &&
+          (b.status === "confirmed" || !b.status)
+      );
+      ids.forEach((id) => knownBookingIds.add(id));
+      if (fresh.length) playNewBookingSound();
+    }
       return cachedDrivers.some((d) => d.status !== "offline");
     }
 
@@ -413,6 +448,7 @@
     function renderBookings(data) {
       const root = document.getElementById("bookings");
       const list = data.bookings || [];
+      notifyNewBookings(list);
       if (!list.length) {
         root.innerHTML =
           '<p class="empty">Noch keine App-Buchungen. In der App bis „Taxi bestellen“ durchgehen.</p>';

@@ -31,7 +31,13 @@
       </p>
 
       <h2>3. So kündigen Sie</h2>
-      <p>Die Kündigung muss in Textform erfolgen, z. B. per E-Mail an:</p>
+      <p><strong>Online (Stripe-Abo):</strong> Abo selbst im Kundenportal beenden:</p>
+      <form id="portal-form" style="margin:0.75rem 0 1.25rem;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
+        <input type="email" id="portal-email" required placeholder="Ihre Abo-E-Mail" style="flex:1;min-width:12rem;padding:0.55rem 0.75rem;border:2px solid #0c1c34;border-radius:10px;font:inherit">
+        <button type="submit" class="btn">Zum Kündigungs-Portal</button>
+      </form>
+      <p id="portal-error" class="note" style="display:none;color:#991b1b"></p>
+      <p>Oder Kündigung in Textform, z. B. per E-Mail an:</p>
       <p>
         <span data-legal-company>Code &amp; Grow</span><br>
         <span id="legal-owner">Pece Carmine</span><br>
@@ -98,6 +104,26 @@
       if (el) {
         el.textContent = email;
         el.href = `mailto:${email}`;
+      }
+    });
+
+    document.getElementById("portal-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById("portal-error");
+      const email = document.getElementById("portal-email").value.trim();
+      errEl.style.display = "none";
+      try {
+        const res = await fetch("/api/billing/portal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Portal nicht verfügbar");
+        window.location.href = data.url;
+      } catch (err) {
+        errEl.textContent = err.message || "Fehler";
+        errEl.style.display = "block";
       }
     });
   </script>

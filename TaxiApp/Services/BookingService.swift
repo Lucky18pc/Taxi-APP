@@ -41,6 +41,8 @@ struct BookingService {
         let totalAmount: Double
         let tariffAmount: Double
         let tipAmount: Double
+        let operatorSlug: String?
+        let postalCode: String?
     }
 
     private struct BookingResponse: Decodable {
@@ -70,6 +72,7 @@ struct BookingService {
         formatter.formatOptions = [.withInternetDateTime]
 
         let destination = summary.pickupLocation.destinationAddressLine.trimmingCharacters(in: .whitespacesAndNewlines)
+        let postal = Self.extractPostalCode(from: summary.pickupLocation.addressLine)
 
         let payload = BookingPayload(
             pickupDate: formatter.string(from: summary.pickupDate),
@@ -83,7 +86,9 @@ struct BookingService {
                 : summary.passengerEmail.trimmingCharacters(in: .whitespacesAndNewlines),
             totalAmount: summary.totalAmount,
             tariffAmount: summary.tariffAmount,
-            tipAmount: summary.tipAmount
+            tipAmount: summary.tipAmount,
+            operatorSlug: TaxiConfig.defaultOperatorSlug.isEmpty ? nil : TaxiConfig.defaultOperatorSlug,
+            postalCode: postal
         )
 
         var request = URLRequest(url: url)
@@ -107,5 +112,14 @@ struct BookingService {
         }
 
         return try JSONDecoder().decode(BookingResponse.self, from: data).bookingId
+    }
+
+    private static func extractPostalCode(from address: String) -> String? {
+        let pattern = #"\b(\d{5})\b"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
+        let range = NSRange(address.startIndex..<address.endIndex, in: address)
+        guard let match = regex.firstMatch(in: address, range: range),
+              let swiftRange = Range(match.range(at: 1), in: address) else { return nil }
+        return String(address[swiftRange])
     }
 }

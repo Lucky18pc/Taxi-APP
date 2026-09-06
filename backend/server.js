@@ -16,6 +16,12 @@ const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const publicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
 const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
 const contactNotifyEmail = String(process.env.CONTACT_NOTIFY_EMAIL || "luckypc81@gmail.com").trim();
+const resendFromEmail = String(
+  process.env.RESEND_FROM || "Code & Grow <onboarding@resend.dev>"
+).trim();
+const requireAdminPin =
+  String(process.env.REQUIRE_ADMIN_PIN || "").trim() === "1" ||
+  Boolean(process.env.RENDER);
 const gaMeasurementId = String(process.env.GA_MEASUREMENT_ID || "").trim();
 
 const billingPriceIds = {
@@ -109,10 +115,20 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
     }
   }
 
+  const fleetOp = booking.operatorId ? fleet.findById(booking.operatorId) : null;
+  const planId = fleetOp?.planId === "business" ? "business" : "starter";
+  const plan = offering.operators?.plans?.find((p) => p.id === planId);
+  const feePercent = Number(plan?.cardPlatformFeePercent);
+  const platformFeePercent = Number.isFinite(feePercent) ? feePercent : 2;
+  const platformFeeCents = Math.max(0, Math.round((amountCents * platformFeePercent) / 100));
+  const connectAccountId = String(fleetOp?.stripeConnectAccountId || "").trim();
+
   const metadata = {
     bookingId: booking.bookingId,
     operatorId: booking.operatorId || "",
     channel: wantTerminal ? "terminal" : "online",
+    platformFeePercent: String(platformFeePercent),
+    platformFeeCents: String(platformFeeCents),
   };
 
   const params = wantTerminal
@@ -130,6 +146,12 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
         metadata,
       };
 
+  // Stripe Connect: Geld an Betrieb, Plattformgebühr einbehalten
+  if (!wantTerminal && connectAccountId && platformFeeCents > 0 && platformFeeCents < amountCents) {
+    params.application_fee_amount = platformFeeCents;
+    params.transfer_data = { destination: connectAccountId };
+  }
+
   const email = String(receiptEmail || booking.passengerEmail || "").trim();
   if (!wantTerminal && email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     params.receipt_email = email;
@@ -140,6 +162,9 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
   booking.paymentChannel = wantTerminal ? "terminal" : "online";
   booking.paymentStatus = "pending";
   booking.paymentAmountCents = amountCents;
+  booking.platformFeePercent = platformFeePercent;
+  booking.platformFeeCents = platformFeeCents;
+  booking.stripeConnectAccountId = connectAccountId || null;
   booking.updatedAt = new Date().toISOString();
   saveBookings();
   return { clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id };
@@ -345,6 +370,75 @@ function upsertOperator(record) {
   saveOperators();
 }
 
+/**
+ * Nach Stripe-Abo: Fleet-Mandant anlegen/aktivieren (Leitstelle unter eigenem Slug).
+ * Servicegebiet muss Admin später eingrenzen — zunächst DE-weit (PLZ-Präfixe 0–9).
+ */
+async function provisionFleetFromSubscription(record) {
+  const companyName = String(record.companyName || "").trim();
+  const email = String(record.email || "").trim();
+  const planId = String(record.planId || "starter").trim().toLowerCase() === "business"
+    ? "business"
+    : "starter";
+  const stripeCustomerId = record.stripeCustomerId ? String(record.stripeCustomerId) : "";
+  const stripeSubscriptionId = record.stripeSubscriptionId
+    ? String(record.stripeSubscriptionId)
+    : "";
+
+  if (!companyName && !email) return null;
+
+  let existing =
+    (stripeSubscriptionId && fleet.findByStripeSubscription(stripeSubscriptionId)) ||
+    (stripeCustomerId && fleet.findByStripeCustomer(stripeCustomerId)) ||
+    (email && fleet.findByBillingEmail(email));
+
+  if (existing) {
+    fleet.updateOperator(existing.slug, {
+      status: record.status === "active" || record.status === "trialing" ? "active" : existing.status,
+      planId,
+      billingEmail: email || existing.billingEmail,
+      stripeCustomerId: stripeCustomerId || existing.stripeCustomerId,
+      stripeSubscriptionId: stripeSubscriptionId || existing.stripeSubscriptionId,
+      notes: existing.notes || "Aus Stripe-Abo übernommen — Servicegebiet prüfen.",
+    });
+    return fleet.findBySlug(existing.slug);
+  }
+
+  if (record.status && !["active", "trialing"].includes(String(record.status))) {
+    return null;
+  }
+
+  const dispatchPin = String(crypto.randomInt(100000, 999999));
+  const operator = fleet.createOperator({
+    companyName: companyName || email.split("@")[0] || "Taxi-Betrieb",
+    centralPhone: String(tenantConfig.centralPhone || "+490000000000").trim(),
+    centralPhoneDisplay: String(tenantConfig.centralPhoneDisplay || "Zentrale").trim(),
+    billingEmail: email,
+    legalEmail: email,
+    planId,
+    status: "active",
+    allowEmptyServiceArea: false,
+    postalPrefixes: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    notes:
+      "Automatisch nach Stripe-Checkout. Bitte Servicegebiet (PLZ) und Leitstellen-Nummer in Admin anpassen.",
+    stripeCustomerId,
+    stripeSubscriptionId,
+    dispatchPin,
+  });
+
+  const baseUrl = publicBaseUrl || "https://luckystaxiapp.de";
+  const links = fleet.onboardingLinks(operator.slug, baseUrl);
+  try {
+    await sendFleetOnboardingNotification(operator, links);
+  } catch (error) {
+    console.warn("Onboarding-Mail nach Abo:", error.message);
+  }
+  console.log(
+    `Fleet-Mandant aus Abo: ${operator.slug} · PIN ${dispatchPin} · ${email}`
+  );
+  return operator;
+}
+
 function resolvePublicBaseUrl(req) {
   if (publicBaseUrl) return publicBaseUrl;
   const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "http");
@@ -408,6 +502,7 @@ async function prepareFleetOperatorBody(req) {
     billingEmail: req.body.billingEmail,
     notes: req.body.notes,
     maxDrivers: req.body.maxDrivers,
+    stripeConnectAccountId: req.body.stripeConnectAccountId,
     slug: req.body.slug,
     brandPrimaryColor: req.body.brandPrimaryColor,
     brandAccentColor: req.body.brandAccentColor,
@@ -430,11 +525,11 @@ async function sendFleetOnboardingNotification(operator, links) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Luckys Taxi App <onboarding@resend.dev>",
+      from: resendFromEmail,
       to: [operator.legalEmail],
       subject: `Ihr Zugang — ${operator.companyName}`,
       text: [
-        `Willkommen bei Luckys Taxi App, ${operator.companyName}!`,
+        `Willkommen bei Luckys Taxi App (Code & Grow), ${operator.companyName}!`,
         "",
         "Ihre Links:",
         `Leitstelle: ${links.dispatch}`,
@@ -442,7 +537,10 @@ async function sendFleetOnboardingNotification(operator, links) {
         `Online-Buchung: ${links.book}`,
         `QR-Code: ${links.qr}`,
         "",
-        "Bitte dispatchPin in den Einstellungen setzen und Fahrer anlegen.",
+        operator.dispatchPin
+          ? `Leitstellen-PIN (bitte ändern): ${operator.dispatchPin}`
+          : "Bitte dispatchPin in den Einstellungen setzen.",
+        "Fahrer unter Einstellungen anlegen.",
       ].join("\n"),
     }),
   });
@@ -468,7 +566,7 @@ async function sendContactNotification(inquiry) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Luckys Taxi App <onboarding@resend.dev>",
+      from: resendFromEmail,
       to: [contactNotifyEmail],
       subject: `Tarif-Anfrage: ${inquiry.planId} — ${inquiry.companyName}`,
       text: [
@@ -498,6 +596,10 @@ function savePhoneCalls() {
 console.log(`Datenverzeichnis: ${dataDir} · ${bookings.length} Buchung(en), ${phoneCalls.length} Anruf(e)`);
 if (adminPin) {
   console.log("Leitstellen-Schutz aktiv (ADMIN_PIN gesetzt).");
+} else if (requireAdminPin) {
+  console.error(
+    "KRITISCH: ADMIN_PIN fehlt auf Render — Admin-/Leitstellen-Schreib-APIs antworten mit 503."
+  );
 } else {
   console.warn("Hinweis: ADMIN_PIN fehlt — settings/dispatch ohne PIN erreichbar.");
 }
@@ -846,6 +948,11 @@ function requireDriverApp(req, res, next) {
 }
 
 function requireAdmin(req, res, next) {
+  if (requireAdminPin && !adminPin) {
+    return res.status(503).json({
+      error: "ADMIN_PIN missing — set ADMIN_PIN on Render before using admin APIs",
+    });
+  }
   if (!authRequiredForRequest(req)) return next();
   const header = String(req.headers.authorization || "");
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
@@ -883,14 +990,20 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
         const planId = String(session.metadata?.planId || "").trim();
         const companyName = String(session.metadata?.companyName || "").trim();
         const email = String(session.customer_details?.email || session.customer_email || "").trim();
-        upsertOperator({
+        const billingRecord = {
           planId: planId || "unknown",
           email,
           companyName,
           stripeCustomerId: session.customer ? String(session.customer) : null,
           stripeSubscriptionId: session.subscription ? String(session.subscription) : null,
           status: "active",
-        });
+        };
+        upsertOperator(billingRecord);
+        try {
+          await provisionFleetFromSubscription(billingRecord);
+        } catch (error) {
+          console.error("Fleet-Provision nach Checkout fehlgeschlagen:", error.message);
+        }
         console.log(`Abo gestartet: ${planId} · ${email}`);
         break;
       }
@@ -900,14 +1013,30 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
         const existing =
           findOperatorBySubscription(subscription.id) ||
           findOperatorByCustomer(String(subscription.customer || ""));
-        upsertOperator({
+        const billingRecord = {
           planId: existing?.planId || String(subscription.metadata?.planId || "unknown"),
           email: existing?.email || "",
           companyName: existing?.companyName || "",
           stripeCustomerId: String(subscription.customer || existing?.stripeCustomerId || ""),
           stripeSubscriptionId: subscription.id,
           status: subscription.status || "unknown",
-        });
+        };
+        upsertOperator(billingRecord);
+        try {
+          if (["active", "trialing"].includes(String(subscription.status))) {
+            await provisionFleetFromSubscription(billingRecord);
+          } else if (["canceled", "unpaid", "incomplete_expired"].includes(String(subscription.status))) {
+            const fleetOp =
+              fleet.findByStripeSubscription(subscription.id) ||
+              fleet.findByStripeCustomer(String(subscription.customer || ""));
+            if (fleetOp) {
+              fleet.updateOperator(fleetOp.slug, { status: "suspended" });
+              console.log(`Fleet-Mandant pausiert: ${fleetOp.slug}`);
+            }
+          }
+        } catch (error) {
+          console.error("Fleet-Sync nach Subscription-Update:", error.message);
+        }
         break;
       }
       case "invoice.paid":
@@ -1045,6 +1174,37 @@ app.post("/api/billing/checkout", async (req, res) => {
 
 app.get("/api/billing/operators", requireAdmin, (_req, res) => {
   res.json({ operators });
+});
+
+app.post("/api/billing/portal", async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: "Stripe not configured" });
+  }
+  const email = String(req.body.email || "").trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Valid email required" });
+  }
+  const billingOp =
+    operators.find((op) => String(op.email || "").trim().toLowerCase() === email) || null;
+  const fleetOp = fleet.findByBillingEmail(email);
+  const customerId =
+    String(billingOp?.stripeCustomerId || fleetOp?.stripeCustomerId || "").trim();
+  if (!customerId) {
+    return res.status(404).json({
+      error: "Kein Stripe-Kunde zu dieser E-Mail — Kündigung per E-Mail an den Support.",
+    });
+  }
+  try {
+    const baseUrl = resolvePublicBaseUrl(req);
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${baseUrl}/kuendigung.html`,
+    });
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Billing portal failed" });
+  }
 });
 
 app.post("/api/contact", async (req, res) => {

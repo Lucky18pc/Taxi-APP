@@ -159,6 +159,7 @@ struct PaymentView: View {
     @State private var isSubmitting = false
     @State private var submitError: String?
     @State private var confirmedMessage = ""
+    @State private var confirmedBookingId: String?
 
     let pickupDate: Date
     let pickupLocation: PickupLocation
@@ -269,6 +270,10 @@ struct PaymentView: View {
             )
         }
         .alert("Taxi bestellt", isPresented: $showConfirmedAlert) {
+            if let bookingId = confirmedBookingId,
+               let trackURL = URL(string: "\(TaxiConfig.stripeBackendURL)/track.html?b=\(bookingId)") {
+                Link("Taxi verfolgen", destination: trackURL)
+            }
             Button("OK", role: .cancel) {
                 NotificationCenter.default.post(name: .taxiBookingCompleted, object: nil)
             }
@@ -570,10 +575,11 @@ struct PaymentView: View {
                 switch result {
                 case .failure(let message):
                     submitError = message
-                case .success:
+                case .success(let bookingId):
+                    confirmedBookingId = bookingId
                     confirmedMessage = selectedPaymentMethod == .card
-                        ? "Ihr Taxi ist bestellt. Nach der Fahrt zahlen Sie per Kartenzahlungs-Link (Betrag laut Taxameter)."
-                        : "Ihr Taxi ist bestellt. Die Zahlung erfolgt nach der Fahrt — Betrag laut Taxameter, bar beim Fahrer."
+                        ? "Ihr Taxi ist bestellt (ID \(bookingId.prefix(8))…). Nach der Fahrt zahlen Sie per Kartenzahlungs-Link (Betrag laut Taxameter)."
+                        : "Ihr Taxi ist bestellt (ID \(bookingId.prefix(8))…). Die Zahlung erfolgt nach der Fahrt — Betrag laut Taxameter, bar beim Fahrer."
                     showConfirmedAlert = true
                 }
             }

@@ -24,7 +24,16 @@ const CONFIG_KEYS = [
   "logoUrl",
 ];
 
-const META_KEYS = ["planId", "billingEmail", "notes", "maxDrivers", "activatedAt"];
+const META_KEYS = [
+  "planId",
+  "billingEmail",
+  "notes",
+  "maxDrivers",
+  "activatedAt",
+  "stripeCustomerId",
+  "stripeSubscriptionId",
+  "stripeConnectAccountId",
+];
 
 function defaultMaxDrivers(planId) {
   if (planId === "business") return null;
@@ -156,8 +165,28 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     return activeOperators().length > 0;
   }
 
+  function findByBillingEmail(email) {
+    const normalized = String(email || "").trim().toLowerCase();
+    if (!normalized) return null;
+    return state.operators.find(
+      (op) => String(op.billingEmail || op.legalEmail || "").trim().toLowerCase() === normalized
+    );
+  }
+
   function findById(operatorId) {
     return state.operators.find((op) => op.operatorId === operatorId);
+  }
+
+  function findByStripeCustomer(customerId) {
+    const id = String(customerId || "").trim();
+    if (!id) return null;
+    return state.operators.find((op) => String(op.stripeCustomerId || "").trim() === id);
+  }
+
+  function findByStripeSubscription(subscriptionId) {
+    const id = String(subscriptionId || "").trim();
+    if (!id) return null;
+    return state.operators.find((op) => String(op.stripeSubscriptionId || "").trim() === id);
   }
 
   function findBySlug(slug) {
@@ -370,6 +399,15 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
         }
       }
     }
+    if (patch.stripeCustomerId !== undefined) {
+      operator.stripeCustomerId = String(patch.stripeCustomerId || "").trim();
+    }
+    if (patch.stripeSubscriptionId !== undefined) {
+      operator.stripeSubscriptionId = String(patch.stripeSubscriptionId || "").trim();
+    }
+    if (patch.stripeConnectAccountId !== undefined) {
+      operator.stripeConnectAccountId = String(patch.stripeConnectAccountId || "").trim();
+    }
   }
 
   function updateOperator(slug, patch) {
@@ -417,7 +455,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
 
     const postalCodes = parsePostalCodesInput(input.postalCodes || []);
     const postalPrefixes = parsePostalPrefixesInput(input.postalPrefixes || []);
-    if (!postalCodes.length && !postalPrefixes.length) {
+    if (!postalCodes.length && !postalPrefixes.length && !input.allowEmptyServiceArea) {
       throw new Error("postalCodes or postalPrefixes required");
     }
 
@@ -457,6 +495,9 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       legalEmail: String(input.legalEmail || input.email || "").trim(),
       vatId: String(input.vatId || "").trim(),
       dispatchPin: String(input.dispatchPin || "").trim(),
+      stripeCustomerId: String(input.stripeCustomerId || "").trim(),
+      stripeSubscriptionId: String(input.stripeSubscriptionId || "").trim(),
+      stripeConnectAccountId: String(input.stripeConnectAccountId || "").trim(),
       brandPrimaryColor: normalizeHexColor(input.brandPrimaryColor),
       brandAccentColor: normalizeHexColor(input.brandAccentColor),
       logoUrl: String(input.logoUrl || "").trim(),
@@ -525,6 +566,9 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     enabled,
     findById,
     findBySlug,
+    findByBillingEmail,
+    findByStripeCustomer,
+    findByStripeSubscription,
     matchesPostal,
     isInServiceArea,
     resolveByCoordinates,

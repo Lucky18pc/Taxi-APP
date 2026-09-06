@@ -14,7 +14,7 @@
       "Taxi in wenigen Schritten bestellen",
       "Abholzeit und Abholort festlegen",
       "Fahrtpreis nach Taxameter — bar beim Fahrer",
-      "Kartenzahlung in der App nach der Fahrt (folgt)",
+      "Kartenzahlung nach der Fahrt per sicherem Zahlungslink (Stripe)",
       "Trinkgeld optional als Wunsch mitteilen",
       "Keine Reservierungsgebühr in der App"
     ]
@@ -45,7 +45,7 @@
         "cardPlatformFeePercent": 1.5,
         "features": [
           "Alles aus Starter",
-          "Mehrere Standorte / Filialen",
+          "Niedrigere Karten-Provision (1,5 %)",
           "Prioritäts-Support",
           "Monatliche Abrechnungsübersicht"
         ],

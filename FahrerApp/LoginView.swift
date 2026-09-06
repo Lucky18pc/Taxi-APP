@@ -24,6 +24,7 @@ struct LoginView: View {
                 loginForm
             }
         }
+        .onAppear(perform: restoreSession)
     }
 
     private var loginForm: some View {
@@ -126,6 +127,8 @@ struct LoginView: View {
                 driverName = name
                 isLoggedIn = true
                 isLoading = false
+                UserDefaults.standard.set(uid, forKey: "fahrer.uid")
+                UserDefaults.standard.set(name, forKey: "fahrer.name")
                 completion(true)
             } else {
                 isLoading = false
@@ -133,6 +136,23 @@ struct LoginView: View {
                 errorMessage = "Dokument \(collectionName)/\(uid) gefunden, aber role=\(role.isEmpty ? "leer" : role) (erwartet: driver)."
                 completion(true)
             }
+        }
+    }
+
+    private func restoreSession() {
+        guard let user = Auth.auth().currentUser else { return }
+        if let savedUid = UserDefaults.standard.string(forKey: "fahrer.uid"),
+           savedUid == user.uid,
+           let savedName = UserDefaults.standard.string(forKey: "fahrer.name"),
+           !savedName.isEmpty {
+            driverUid = savedUid
+            driverName = savedName
+            isLoggedIn = true
+            return
+        }
+        loadDriverProfile(uid: user.uid, collectionName: "user") { found in
+            if found { return }
+            loadDriverProfile(uid: user.uid, collectionName: "users") { _ in }
         }
     }
 }

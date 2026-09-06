@@ -29,9 +29,13 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 | Live-Tracking API | ✅ | `server.js` — neu |
 | Fahrer GPS Web | ✅ | `driver-track.html` — neu |
 | Fahrgast Tracking Web | ✅ | `track.html` — neu |
-| Persistente Daten (JSON) | 🟡 | Render Disk — reicht für Pilot |
-| ADMIN_PIN auf Render | 🔧 | Dashboard → Environment |
-| Echte Firmendaten | 🔧 | `settings.html` pro Mandant |
+| Kartenzahlung Fahrgast (Zahlungslink) | ✅ | `pay.html` + Stripe PI |
+| Stripe Connect Provision (application_fee) | 🟡 | braucht `stripeConnectAccountId` am Mandanten |
+| Abo → Fleet-Mandant automatisch | ✅ | Webhook `checkout.session.completed` |
+| Billing-Portal Kündigung | ✅ | `kuendigung.html` + `/api/billing/portal` |
+| Leitstelle Sound neue Buchung | ✅ | `dispatch.html` |
+| ADMIN_PIN Pflicht auf Render | ✅ | Schreib-APIs ohne PIN → 503 |
+| RESEND_FROM Absender | 🟡 | Env `RESEND_FROM` setzen |
 
 ### iOS FahrgastApp (Store)
 
@@ -43,8 +47,10 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 | Live-Tracking Karte | ✅ | `LiveTrackingScreen` — neu |
 | Zieladresse | ⏳ | Web hat es, App noch nicht |
 | Push-Benachrichtigungen | ⏳ | Phase B |
-| Kartenzahlung Fahrgast | ⏳ | Bar reicht für Pilot |
+| Kartenzahlung Fahrgast | ✅ | Zahlungslink live; Tap to Pay NFC noch offen |
 | TestFlight / App Store | 🔧 | `docs/TESTFLIGHT.md` |
+| Operator-Slug / PLZ an Buchung | ✅ | `BookingService` |
+| Track-Link nach Buchung | ✅ | Alert → `track.html` |
 
 ### Fahrer
 
@@ -52,7 +58,8 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 |---------|--------|---------|
 | Fahrer in Leitstelle zuweisen | ✅ | `dispatch.html` |
 | GPS senden (Browser) | ✅ | `driver-track.html` |
-| Native Fahrer-iOS-App | ⏳ | `docs/FAHRER-APP-ROADMAP.md` |
+| Native Fahrer-iOS-App | 🟡 | Login-Session + GPS-Push im Spiegelcode; Xcode-Projekt extern |
+| Tap to Pay NFC | ⏳ | Apple-Freigabe + Stripe Terminal SDK |
 
 ### Analytics & Recht
 

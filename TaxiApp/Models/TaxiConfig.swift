@@ -119,6 +119,9 @@ enum TaxiConfig {
         "tel:\(centralPhoneNumber.replacingOccurrences(of: " ", with: ""))"
     }
 
+    /// Standard-Mandant (Multi-Tenant). Leer = Backend resolvt nach GPS/PLZ.
+    static let defaultOperatorSlug = ""
+
     // MARK: - Stripe (Testmodus)
 
     /// Publishable Key aus Stripe Dashboard (pk_test_…).
