@@ -259,7 +259,7 @@ function ensureTenantDefaults() {
     tenantConfig.vatId = "";
   }
   if (!tenantConfig.platformCompanyName) {
-    tenantConfig.platformCompanyName = "Luckys Taxi App";
+    tenantConfig.platformCompanyName = "Code & Grow";
   }
   if (!tenantConfig.platformStreet) {
     tenantConfig.platformStreet = "";
@@ -657,7 +657,7 @@ const PLATFORM_CONFIG_KEYS = [
 
 function platformPublicConfig() {
   return {
-    platformCompanyName: tenantConfig.platformCompanyName || "Luckys Taxi App",
+    platformCompanyName: tenantConfig.platformCompanyName || "Code & Grow",
     platformStreet: tenantConfig.platformStreet || "",
     platformCity: tenantConfig.platformCity || "",
     platformOwner: tenantConfig.platformOwner || "",

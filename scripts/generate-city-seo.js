@@ -383,10 +383,10 @@ const SPECIAL = {
     guest:
       "Ob vom Hauptbahnhof zur Maximilianstraße, vom Dom zum Technik-Museum oder spät vom Rheinufer nach Hause: Mit Luckys Taxi App gibst du die Abholadresse in Speyer ein und buchst online. Der Fahrpreis steht auf dem Taxameter — du zahlst bar beim Fahrer, ohne Reservierungsgebühr in der App.",
     operator:
-      "Luckys Taxi App sitzt in Speyer (Asternweg 21). Für lokale Betriebe bedeutet das: Fahrgäste bestellen unter Ihrem Namen, Sie sehen Buchungen in der Browser-Leitstelle und verteilen sie an Ihre Fahrer — parallel zur städtischen Zentrale, nicht als Ersatz.",
+      "Code & Grow (Firmensitz Speyer, Asternweg 21) betreibt die Plattform Luckys Taxi App. Für lokale Betriebe bedeutet das: Fahrgäste bestellen unter Ihrem Namen, Sie sehen Buchungen in der Browser-Leitstelle und verteilen sie an Ihre Fahrer — parallel zur städtischen Zentrale, nicht als Ersatz.",
     faqExtra: {
-      q: "Ist Luckys Taxi App in Speyer ansässig?",
-      a: "Ja — Firmensitz Asternweg 21, 67346 Speyer. Details im Impressum.",
+      q: "Sitzt Code & Grow in Speyer?",
+      a: "Ja — Firmensitz Asternweg 21, 67346 Speyer. Code & Grow ist der Software-Anbieter hinter Luckys Taxi App, kein Taxi-Betrieb. Details im Impressum.",
     },
     orgAddress: true,
   },
@@ -606,11 +606,11 @@ function renderPage(loc, all) {
       },
       {
         "@type": "Service",
-        "name": ${escJson(`Luckys Taxi App ${loc.name}`)},
+        "name": ${escJson(`Luckys Taxi App — ${loc.name}`)},
         "serviceType": "Taxi-Buchung und Taxi-Leitstelle",
         "provider": {
           "@type": "Organization",
-          "name": "Luckys Taxi App",
+          "name": "Code & Grow",
           "url": "${BASE}/"${orgBlock}
         },
         "areaServed": { "@type": "${areaType}", "name": ${escJson(loc.name)} },
@@ -677,7 +677,7 @@ function renderPage(loc, all) {
       <a href="../impressum.html">Impressum</a>
       <a href="../datenschutz.html">Datenschutz</a>
     </nav>
-    <p>© 2026 Luckys Taxi App · ${esc(loc.name)}</p>
+    <p>© 2026 Code &amp; Grow · ${esc(loc.name)}</p>
   </footer>
 </body>
 </html>
@@ -758,7 +758,7 @@ function renderHub(all) {
       <a href="../impressum.html">Impressum</a>
       <a href="../datenschutz.html">Datenschutz</a>
     </nav>
-    <p>© 2026 Luckys Taxi App</p>
+    <p>© 2026 Code &amp; Grow</p>
   </footer>
 </body>
 </html>

@@ -24,7 +24,7 @@
   }
 
   function applyPlatformContact(cfg) {
-    setText("legal-company", cfg.platformCompanyName, "Luckys Taxi App");
+    setText("legal-company", cfg.platformCompanyName, "Code & Grow");
     setText("legal-street", cfg.platformStreet, "Straße — Plattform in Einstellungen eintragen");
     setText("legal-city", cfg.platformCity, "PLZ Ort — Plattform in Einstellungen eintragen");
     setText("legal-owner", cfg.platformOwner, "Inhaber — Plattform in Einstellungen eintragen");
@@ -52,7 +52,7 @@
     setText("legal-responsible", responsible, "Wie oben — Inhaber und Anschrift (Plattform)");
 
     document.querySelectorAll("[data-legal-company]").forEach((el) => {
-      const name = (cfg.platformCompanyName || "").trim() || "Luckys Taxi App";
+      const name = (cfg.platformCompanyName || "").trim() || "Code & Grow";
       el.textContent = name;
     });
 
