@@ -350,7 +350,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.collectionshop.taxi";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.collection.LuckysTaxiApp";
 				PRODUCT_NAME = TaxiApp;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -379,7 +379,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.collectionshop.taxi";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.collection.LuckysTaxiApp";
 				PRODUCT_NAME = TaxiApp;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

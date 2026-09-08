@@ -1,36 +1,117 @@
-# Stripe Connect — Auszahlung an Taxi-Betriebe
+# Stripe Connect aktivieren — Schritt für Schritt
 
-**Zweck:** Kartenzahlungen der Fahrgäste gehen an den **Taxi-Betrieb**, Code & Grow behält die Plattformgebühr (Starter 2 %, Business 1,5 %).
+Für **Code & Grow** / Luckys Taxi App. Ziel: Taxi-Betriebe können Auszahlungen empfangen, du behältst 2 % / 1,5 % Provision.
 
-## Voraussetzung (einmalig, du)
+---
 
-1. [Stripe Dashboard](https://dashboard.stripe.com) → **Connect** aktivieren (Express empfohlen).
-2. Platform-Profil ausfüllen (Code & Grow, Speyer).
-3. Render: `STRIPE_SECRET_KEY` (Live oder Test) + Webhook inkl. Event **`account.updated`**.
+## Teil A — Connect im Stripe Dashboard (einmalig, du)
 
-Webhook-URL (wie bisher): `https://luckystaxiapp.de/api/billing/webhook`
+### 1. Einloggen
 
-## Ablauf pro Mandant
+1. Öffne: https://dashboard.stripe.com  
+2. Oben rechts: mit dem Konto einloggen, dessen Keys auf **Render** liegen (`STRIPE_SECRET_KEY`).
 
-1. Mandant in **Admin** anlegen / aktivieren.
-2. Bei dem Betrieb **„Stripe Connect“** klicken.
-3. Betrieb füllt das Stripe-Express-Formular aus (Firma, Konto, Verifizierung).
-4. Zurück in Admin: Connect-ID `acct_…` erscheint in der Liste.
-5. Ab dann: Fahrt-Kartenzahlung (`pay.html`) mit `application_fee` + Transfer an `acct_…`.
+### 2. Testmodus zuerst (empfohlen)
 
-## API
+1. Oben rechts den Schalter **Testmodus** / **Test mode** einschalten (orange Banner).  
+2. Alles zuerst testen — kein echtes Geld.
 
-| Methode | Pfad | Auth |
-|---------|------|------|
-| `POST` | `/api/fleet/operators/:slug/connect/onboard` | Admin-PIN |
-| `GET` | `/api/fleet/operators/:slug/connect/status` | Admin-PIN |
+### 3. Connect starten
 
-## Ohne Connect
+1. In der linken Seitenleiste **Connect** suchen (manchmal unter **Mehr** / **More**).  
+2. Falls du Connect zum ersten Mal siehst: **Get started** / **Erste Schritte** klicken.  
+3. Plattform-Typ / Produkt: etwas wie **Marketplace** oder **Platform that pays others** wählen (du vermittelst Zahlungen an Betriebe).  
+4. Bestätigen und weiter.
 
-Zahlungen landen auf dem **Platform-Konto** (Code & Grow). Die Provision wird trotzdem als `platformFeeCents` an der Buchung gespeichert — manuell abrechnen, bis Connect steht.
+Direkter Einstieg oft:  
+https://dashboard.stripe.com/settings/connect  
+(bzw. im Testmodus: `…/test/settings/connect`)
 
-## Test
+### 4. Plattform-Profil ausfüllen (Pflicht für Onboarding)
 
-- Stripe **Testmodus** → Connect-Testkonten.
-- Testkarte: `4242 4242 4242 4242`.
-- Nach erfolgreicher Zahlung: Transfer + Application Fee in Stripe Dashboard prüfen.
+Unter **Connect** → **Settings** / **Einstellungen**:
+
+| Feld | Beispiel für dich |
+|------|-------------------|
+| Platform / Business name | **Code & Grow** |
+| Icon / Logo | dein Logo (optional, aber gut) |
+| Brand color | Navy `#0c1c34` oder Gelb `#ffcc00` |
+| Support E-Mail | `luckypc81@gmail.com` |
+| Support URL | `https://luckystaxiapp.de` |
+| Statement descriptor / Beschreibung | z. B. Taxi-Plattform / Software für Taxi-Betriebe |
+
+**Speichern.** Ohne Branding/Name kann das Express-Onboarding für Mandanten scheitern.
+
+### 5. Express als Kontotyp
+
+1. Bleibe bei **Express** connected accounts (unser Code erstellt `type: "express"`).  
+2. Länder: mindestens **Deutschland** aktiv (onboarding für DE).  
+3. Capabilities: **Card payments** und **Transfers** / Auszahlungen (unser Code fordert beides an).
+
+### 6. Webhook erweitern
+
+1. **Developers** → **Webhooks** → deinen Endpoint  
+   `https://luckystaxiapp.de/api/billing/webhook` öffnen.  
+2. **Update details** / Events bearbeiten.  
+3. Zusätzlich zu Abo + `payment_intent.*` dieses Event anhaken:  
+   - **`account.updated`**  
+4. Speichern.  
+5. Secret muss zu Render `STRIPE_WEBHOOK_SECRET` passen (wenn neu: Secret kopieren und auf Render setzen + Redeploy).
+
+### 7. Fertig mit Teil A?
+
+Check:
+
+- [ ] Connect ist sichtbar im Dashboard  
+- [ ] Platform-Name **Code & Grow** gesetzt  
+- [ ] Webhook hat `account.updated`  
+- [ ] Render hat `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY` + `STRIPE_WEBHOOK_SECRET`
+
+---
+
+## Teil B — Ersten Betrieb verbinden (in Luckys Admin)
+
+1. Öffne https://luckystaxiapp.de/admin.html  
+2. Mit **ADMIN_PIN** (aus Render Environment) anmelden.  
+3. Mandant anlegen oder bestehenden wählen.  
+4. Rechts bei dem Betrieb **„Stripe Connect“** klicken.  
+5. Stripe öffnet das **Express-Onboarding** (Browser).  
+6. Als Test: Testdaten von Stripe nutzen (im Testmodus).  
+7. Nach Abschluss: zurück zu Admin → bei dem Betrieb steht **`acct_…`**.
+
+Wenn der Button eine Fehlermeldung zeigt („Connect aktivieren?“): Teil A ist noch nicht fertig oder Keys/Test-Live-Modus passen nicht zusammen.
+
+---
+
+## Teil C — Live-Modus (echtes Geld)
+
+Erst wenn Tests klappen:
+
+1. Stripe: **Testmodus aus**.  
+2. Connect-Einstellungen im **Live**-Konto nochmal prüfen (Branding, DE).  
+3. Webhook für **Live** (oder denselben Endpoint mit Live-Events) inkl. `account.updated`.  
+4. Render: **Live**-Keys `sk_live_…` / `pk_live_…` + passendes Webhook-Secret.  
+5. Redeploy.  
+6. Betriebe erneut mit Connect onboarden (Live-`acct_…` ist nicht dasselbe wie Test).
+
+---
+
+## Häufige Probleme
+
+| Problem | Lösung |
+|---------|--------|
+| Kein Menü „Connect“ | Account verifizieren / Geschäftskonto; Support anschreiben |
+| Onboarding-Link-Fehler | Branding/Platform-Name setzen; Secret Key = gleiches Konto |
+| Provision kommt nicht an Betrieb | Kein `acct_…` am Mandanten → Connect-Button erneut |
+| Test vs Live verwechselt | Testmodus-Banner prüfen; Keys auf Render müssen passen |
+
+---
+
+## Danach
+
+Kartenzahlung nach Fahrt (`pay.html`) leitet mit Connect automatisch um:
+
+- Betrag → Taxi-Betrieb (`acct_…`)  
+- Gebühr → Code & Grow (2 % Starter / 1,5 % Business)
+
+Details API: siehe Abschnitt weiter unten in dieser Datei bzw. Admin-Button.

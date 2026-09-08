@@ -6,7 +6,7 @@ Stand: September 2026. **Zwei Apps**, zwei Bundle-IDs.
 |-----|-----------|----------------|
 | **Fahrgast** (Kunden-Store) | `com.collection.FahrgastApp` | `~/CollectionApp/FahrgastApp` |
 | **Fahrer** | `com.collection.Luckys-Taxi-Fahrer` | `~/CollectionApp/FahrgastApp/Luckys Taxi Fahrer/` |
-| TaxiApp (dieses Repo) | `com.collectionshop.taxi` | **Nicht** für Store — Prototyp/Spiegel |
+| TaxiApp (dieses Repo) | `com.collection.LuckysTaxiApp` | **Nicht** für Store — Prototyp/Spiegel (getrennt von Collection Shop) |
 
 > Offizielle Fahrgast-Anleitung auch: `~/CollectionApp/FahrgastApp/docs/TESTFLIGHT.md`
 

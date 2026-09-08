@@ -4,7 +4,7 @@ set -euo pipefail
 
 PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCHEME="TaxiApp"
-BUNDLE_ID="com.collectionshop.taxi"
+BUNDLE_ID="com.collection.LuckysTaxiApp"
 
 echo "== Geräte suchen =="
 DEVICE_LINE="$(xcrun xctrace list devices 2>/dev/null \

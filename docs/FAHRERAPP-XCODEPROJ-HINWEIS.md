@@ -5,7 +5,7 @@
 Es gab nur **ein** iOS-Projekt in diesem Ordner. Es hieß zeitweise **`FahrerApp.xcodeproj`**, obwohl es die **Fahrgast-App** (Kunden-App) baut:
 
 - `PRODUCT_NAME = TaxiApp`
-- `PRODUCT_BUNDLE_IDENTIFIER = com.collectionshop.taxi`
+- `PRODUCT_BUNDLE_IDENTIFIER = com.collection.LuckysTaxiApp` (nicht Collection Shop)
 - Quellen unter `TaxiApp/` (Abholung, Kalender, Karte, Zahlung)
 
 Der Name „FahrerApp“ war **irreführend** — es war keine App für Taxifahrer.
