@@ -24,6 +24,7 @@ backend/node_modules/
 
 # Laufzeit-Daten (Buchungen lokal)
 backend/data/*.json
+backend/data/uploads/
 
 # macOS
 .DS_Store

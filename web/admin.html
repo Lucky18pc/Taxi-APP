@@ -87,6 +87,31 @@
     .btn-admin-login:hover { filter: brightness(0.97); }
     .btn-admin-login:active { transform: translateY(1px); box-shadow: 0 2px 0 #ca8a04; }
     .btn-admin-login .star { color: #0f172a; letter-spacing: 0.05em; }
+    .compliance-box {
+      font-size: 0.78rem;
+      line-height: 1.35;
+      max-width: 220px;
+    }
+    .compliance-box .warn {
+      color: #92400e;
+      font-weight: 700;
+      margin-top: 0.35rem;
+    }
+    .compliance-box .ok {
+      color: #065f46;
+      font-weight: 700;
+    }
+    .compliance-box .doc-row { margin-top: 0.25rem; }
+    .admin-detail-panel {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: #fff8d6;
+      border: 2px solid #0c1c34;
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+    .admin-detail-panel h4 { margin: 0 0 0.5rem; font-size: 0.92rem; }
+    .admin-detail-panel ul { margin: 0.35rem 0 0; padding-left: 1.1rem; }
   </style>
   <link rel="icon" href="luckys-taxi-admin-logo.svg" type="image/svg+xml">
 </head>
@@ -191,6 +216,8 @@
           <div class="field"><label for="new-billingEmail">Rechnungs-E-Mail</label><input id="new-billingEmail" name="billingEmail" type="email"></div>
           <div class="field"><label for="new-dispatchPin">Leitstellen-PIN</label><input id="new-dispatchPin" name="dispatchPin" inputmode="numeric"></div>
           <div class="field"><label for="new-stripeConnect">Stripe Connect Account-ID</label><input id="new-stripeConnectAccountId" name="stripeConnectAccountId" placeholder="acct_… (für Karten-Provision)"></div>
+          <div class="field"><label for="new-concessionNumber">Konzessionsnummer</label><input id="new-concessionNumber" name="concessionNumber" placeholder="optional"></div>
+          <div class="field"><label for="new-concessionAuthority">Behörde</label><input id="new-concessionAuthority" name="concessionAuthority" placeholder="optional"></div>
         </div>
         <div class="field"><label for="new-notes">Interne Notizen</label><textarea id="new-notes" name="notes" rows="2"></textarea></div>
         <button type="submit" class="btn-sm btn-primary">Anlegen &amp; aktivieren</button>
@@ -207,6 +234,7 @@
               <th>Betrieb</th>
               <th>Status</th>
               <th>Tarif</th>
+              <th>Nachweise</th>
               <th>Links</th>
               <th>Aktionen</th>
             </tr>

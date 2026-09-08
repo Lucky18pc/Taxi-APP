@@ -35,6 +35,16 @@ const META_KEYS = [
   "stripeConnectAccountId",
 ];
 
+/** Compliance fields stored on operator — admin/settings only, not public guest config. */
+const COMPLIANCE_KEYS = [
+  "concessionNumber",
+  "concessionAuthority",
+  "concessionValidUntil",
+  "ownerHasPSchein",
+  "ownerPScheinNumber",
+  "ownerPScheinValidUntil",
+];
+
 function defaultMaxDrivers(planId) {
   if (planId === "business") return null;
   if (planId === "starter") return 5;
@@ -147,8 +157,44 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     if (!op.currency) op.currency = "eur";
     op.serviceArea = normalizeServiceArea(op.serviceArea || {});
     if (op.dispatchPin === undefined) op.dispatchPin = "";
+    if (op.concessionNumber === undefined) op.concessionNumber = "";
+    if (op.concessionAuthority === undefined) op.concessionAuthority = "";
+    if (op.concessionValidUntil === undefined) op.concessionValidUntil = "";
+    if (op.ownerHasPSchein === undefined) op.ownerHasPSchein = false;
+    if (op.ownerPScheinNumber === undefined) op.ownerPScheinNumber = "";
+    if (op.ownerPScheinValidUntil === undefined) op.ownerPScheinValidUntil = "";
+    if (!op.documents || typeof op.documents !== "object") op.documents = {};
     if (!op.createdAt) op.createdAt = new Date().toISOString();
     return op;
+  }
+
+  function documentPresence(meta) {
+    if (!meta || !meta.id) return { present: false };
+    return {
+      present: true,
+      id: meta.id,
+      kind: meta.kind || "",
+      originalName: meta.originalName || "",
+      mimeType: meta.mimeType || "",
+      size: meta.size || 0,
+      uploadedAt: meta.uploadedAt || null,
+    };
+  }
+
+  function complianceSummary(operator) {
+    const docs = operator.documents || {};
+    return {
+      concessionNumber: operator.concessionNumber || "",
+      concessionAuthority: operator.concessionAuthority || "",
+      concessionValidUntil: operator.concessionValidUntil || "",
+      ownerHasPSchein: Boolean(operator.ownerHasPSchein),
+      ownerPScheinNumber: operator.ownerPScheinNumber || "",
+      ownerPScheinValidUntil: operator.ownerPScheinValidUntil || "",
+      documents: {
+        concessionDocument: documentPresence(docs.concessionDocument),
+        ownerPScheinDocument: documentPresence(docs.ownerPScheinDocument),
+      },
+    };
   }
 
   let state = load();
@@ -322,6 +368,17 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
   }
 
   function toAdminSummary(operator, baseUrl) {
+    const compliance = complianceSummary(operator);
+    const missingDocs = [];
+    if (!compliance.concessionNumber) missingDocs.push("Konzessionsnummer");
+    if (!compliance.documents.concessionDocument.present) missingDocs.push("Konzessions-Dokument");
+    if (compliance.ownerHasPSchein) {
+      if (!compliance.ownerPScheinNumber) missingDocs.push("Inhaber-P-Schein");
+      if (!compliance.documents.ownerPScheinDocument.present) {
+        missingDocs.push("Inhaber-P-Schein-Dokument");
+      }
+    }
+
     const summary = {
       ...toPublicSummary(operator),
       legalEmail: operator.legalEmail || "",
@@ -337,6 +394,9 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       brandPrimaryColor: operator.brandPrimaryColor || "",
       brandAccentColor: operator.brandAccentColor || "",
       logoUrl: operator.logoUrl || "",
+      ...compliance,
+      complianceGaps: missingDocs,
+      complianceComplete: missingDocs.length === 0,
     };
     if (baseUrl) {
       summary.links = onboardingLinks(operator.slug, baseUrl);
@@ -426,6 +486,20 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
         }
       }
     }
+    for (const key of COMPLIANCE_KEYS) {
+      if (patch[key] !== undefined) {
+        if (key === "ownerHasPSchein") {
+          operator[key] = Boolean(
+            patch[key] === true || patch[key] === "true" || patch[key] === "on" || patch[key] === "1"
+          );
+        } else {
+          operator[key] = String(patch[key] || "").trim();
+        }
+      }
+    }
+    if (patch.documents !== undefined && typeof patch.documents === "object") {
+      operator.documents = { ...(operator.documents || {}), ...patch.documents };
+    }
     if (patch.dispatchPin !== undefined) {
       operator.dispatchPin = String(patch.dispatchPin).trim();
     }
@@ -502,6 +576,18 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       brandPrimaryColor: normalizeHexColor(input.brandPrimaryColor),
       brandAccentColor: normalizeHexColor(input.brandAccentColor),
       logoUrl: String(input.logoUrl || "").trim(),
+      concessionNumber: String(input.concessionNumber || "").trim(),
+      concessionAuthority: String(input.concessionAuthority || "").trim(),
+      concessionValidUntil: String(input.concessionValidUntil || "").trim(),
+      ownerHasPSchein: Boolean(
+        input.ownerHasPSchein === true ||
+          input.ownerHasPSchein === "true" ||
+          input.ownerHasPSchein === "on" ||
+          input.ownerHasPSchein === "1"
+      ),
+      ownerPScheinNumber: String(input.ownerPScheinNumber || "").trim(),
+      ownerPScheinValidUntil: String(input.ownerPScheinValidUntil || "").trim(),
+      documents: input.documents && typeof input.documents === "object" ? input.documents : {},
       serviceArea: normalizeServiceArea({
         centerLat: Number(input.centerLat),
         centerLng: Number(input.centerLng),
@@ -558,6 +644,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       settings: `${base}/settings.html${q}`,
       book: `${base}/book.html${q}`,
       qr: `${base}/qr.html${q}`,
+      driverOnboard: `${base}/driver-onboard.html${q}`,
     };
   }
 
@@ -578,6 +665,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     toPublicConfig,
     toPublicSummary,
     toAdminSummary,
+    complianceSummary,
     driverLimitFor,
     updateOperator,
     createOperator,
@@ -596,6 +684,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
 
 module.exports = {
   createFleetOperatorsStore,
+  COMPLIANCE_KEYS,
   haversineKm,
   normalizePostalCode,
   parsePostalCodesInput,

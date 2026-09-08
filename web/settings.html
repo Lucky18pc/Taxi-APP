@@ -488,6 +488,55 @@
     </section>
 
     <section class="settings-card">
+      <h2>Konzession &amp; P-Schein</h2>
+      <p class="field-hint" style="margin-top:0">
+        Nachweise für die Plattform-Prüfung. JPEG, PNG oder PDF, max. 5&nbsp;MB. Fehlende Angaben können Sie hier nachreichen.
+      </p>
+      <form id="compliance-form">
+        <div class="field">
+          <label for="concessionNumber">Konzessions- / Genehmigungsnummer</label>
+          <input id="concessionNumber" name="concessionNumber" placeholder="z. B. 12/2024">
+        </div>
+        <div class="field">
+          <label for="concessionAuthority">Ausstellende Behörde</label>
+          <input id="concessionAuthority" name="concessionAuthority" placeholder="z. B. Stadt Mannheim">
+        </div>
+        <div class="field">
+          <label for="concessionValidUntil">Konzession gültig bis</label>
+          <input id="concessionValidUntil" name="concessionValidUntil" type="date">
+        </div>
+        <div class="field">
+          <label for="concessionDocument">Scan / Foto Konzession (neu hochladen)</label>
+          <input id="concessionDocument" name="concessionDocument" type="file" accept="image/jpeg,image/png,application/pdf">
+          <p class="field-hint" id="concessionDocument-status">Kein Dokument hinterlegt.</p>
+        </div>
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem">
+          <input id="ownerHasPSchein" name="ownerHasPSchein" type="checkbox" value="true" style="width:auto">
+          <label for="ownerHasPSchein" style="margin:0;font-weight:600">Inhaber fährt selbst (P-Schein)</label>
+        </div>
+        <div id="owner-pschein-settings">
+          <div class="field">
+            <label for="ownerPScheinNumber">P-Schein-Nummer (Inhaber)</label>
+            <input id="ownerPScheinNumber" name="ownerPScheinNumber">
+          </div>
+          <div class="field">
+            <label for="ownerPScheinValidUntil">P-Schein gültig bis</label>
+            <input id="ownerPScheinValidUntil" name="ownerPScheinValidUntil" type="date">
+          </div>
+          <div class="field">
+            <label for="ownerPScheinDocument">Scan / Foto P-Schein Inhaber</label>
+            <input id="ownerPScheinDocument" name="ownerPScheinDocument" type="file" accept="image/jpeg,image/png,application/pdf">
+            <p class="field-hint" id="ownerPScheinDocument-status">Kein Dokument hinterlegt.</p>
+          </div>
+        </div>
+        <p class="field-hint" id="compliance-gaps" hidden></p>
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Nachweise speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="settings-card">
       <h2>Erscheinungsbild (App &amp; Browser)</h2>
       <p class="field-hint" style="margin-top:0">
         Firmenname und Logo werden zum Button auf dem Handy des Fahrgasts.
@@ -549,7 +598,15 @@
 
     <section class="settings-card">
       <h2>Fahrer</h2>
-      <p class="field-hint" style="margin-top:0">Name, Handy und Kennzeichen — erscheinen in der Leitstelle zum Zuweisen.</p>
+      <p class="field-hint" style="margin-top:0">
+        Name, Handy, Taxinummer, Kennzeichen, P-Schein und Profilfoto.
+        Fahrer können sich selbst anmelden über den Link unten — Status „pending“ bis Sie freischalten.
+      </p>
+      <p class="field-hint" id="driver-register-link-wrap" style="margin-top:0.5rem">
+        Fahrer-Link:
+        <code id="driver-register-url">—</code>
+        <button type="button" class="btn-secondary" id="copy-driver-register" style="margin-left:0.35rem;padding:0.25rem 0.55rem;font-size:0.78rem">Kopieren</button>
+      </p>
       <div id="drivers-list"></div>
       <div class="btn-row">
         <button type="button" class="btn-secondary" id="add-driver">+ Fahrer hinzufügen</button>
@@ -585,11 +642,26 @@
       const qrUrl = slug
         ? `qr.html?o=${encodeURIComponent(slug)}`
         : "qr.html";
+      const driverUrl = slug
+        ? `${origin}/driver-onboard.html?o=${encodeURIComponent(slug)}`
+        : `${origin}/driver-onboard.html`;
       const urlEl = document.getElementById("guest-book-url");
       const qrEl = document.getElementById("guest-qr-link");
+      const driverEl = document.getElementById("driver-register-url");
       if (urlEl) urlEl.textContent = bookUrl;
       if (qrEl) qrEl.href = qrUrl;
+      if (driverEl) driverEl.textContent = driverUrl;
     }
+
+    document.getElementById("copy-driver-register")?.addEventListener("click", async () => {
+      const text = document.getElementById("driver-register-url")?.textContent || "";
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Fahrer-Link kopiert.", false);
+      } catch {
+        window.prompt("Link kopieren:", text);
+      }
+    });
 
     document.getElementById("guest-copy-link")?.addEventListener("click", async () => {
       const text = document.getElementById("guest-book-url")?.textContent || "";
@@ -789,6 +861,92 @@
       }
     });
 
+    function docStatusText(meta, slug, docKey) {
+      if (!meta?.present) return "Kein Dokument hinterlegt.";
+      const label = meta.originalName || "Dokument";
+      if (!slug) return `Vorhanden: ${escapeAttr(label)}`;
+      const url = `/api/fleet/operators/${encodeURIComponent(slug)}/documents/${encodeURIComponent(docKey)}`;
+      return `Vorhanden: <button type="button" class="btn-secondary" style="padding:0.2rem 0.5rem;font-size:0.78rem" data-open-doc="${escapeAttr(url)}">${escapeAttr(label)}</button>`;
+    }
+
+    async function openAuthDocument(url) {
+      const res = await LeitstelleAuth.apiFetch(url);
+      if (!res.ok) throw new Error("Dokument konnte nicht geladen werden");
+      const blob = await res.blob();
+      const obj = URL.createObjectURL(blob);
+      window.open(obj, "_blank", "noopener");
+    }
+
+    document.body.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-open-doc]");
+      if (!btn) return;
+      openAuthDocument(btn.getAttribute("data-open-doc")).catch((err) => showToast(err.message, true));
+    });
+
+    async function loadCompliance() {
+      const slug = LeitstelleAuth.getOperatorSlug() || "";
+      if (!slug) return;
+      const res = await LeitstelleAuth.apiFetch("/api/compliance");
+      if (!res.ok) return;
+      const data = await res.json();
+      for (const key of [
+        "concessionNumber",
+        "concessionAuthority",
+        "concessionValidUntil",
+        "ownerPScheinNumber",
+        "ownerPScheinValidUntil",
+      ]) {
+        const el = document.getElementById(key);
+        if (el) el.value = data[key] || "";
+      }
+      const ownerToggle = document.getElementById("ownerHasPSchein");
+      if (ownerToggle) ownerToggle.checked = Boolean(data.ownerHasPSchein);
+      const concStatus = document.getElementById("concessionDocument-status");
+      if (concStatus) {
+        concStatus.innerHTML = docStatusText(data.documents?.concessionDocument, slug, "concessionDocument");
+      }
+      const ownStatus = document.getElementById("ownerPScheinDocument-status");
+      if (ownStatus) {
+        ownStatus.innerHTML = docStatusText(data.documents?.ownerPScheinDocument, slug, "ownerPScheinDocument");
+      }
+      const gapsEl = document.getElementById("compliance-gaps");
+      if (gapsEl) {
+        if (data.complianceGaps?.length) {
+          gapsEl.hidden = false;
+          gapsEl.textContent = "Noch fehlend: " + data.complianceGaps.join(", ");
+        } else {
+          gapsEl.hidden = true;
+          gapsEl.textContent = "";
+        }
+      }
+    }
+
+    document.getElementById("compliance-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const ownerToggle = document.getElementById("ownerHasPSchein");
+      if (!ownerToggle.checked) {
+        formData.set("ownerHasPSchein", "false");
+      } else {
+        formData.set("ownerHasPSchein", "true");
+      }
+      try {
+        const res = await LeitstelleAuth.apiFetch("/api/compliance", {
+          method: "PATCH",
+          body: formData,
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Speichern fehlgeschlagen");
+        }
+        showToast("Nachweise gespeichert.", false);
+        e.target.querySelectorAll('input[type="file"]').forEach((inp) => { inp.value = ""; });
+        await loadCompliance();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
     document.getElementById("service-area-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const payload = Object.fromEntries(new FormData(e.target).entries());
@@ -808,15 +966,36 @@
       }
     });
 
+    function driverDocHint(driver, docKey) {
+      const meta = driver.documents?.[docKey];
+      if (!meta?.present || !driver.driverId) return "Kein Dokument hinterlegt.";
+      const url = `/api/drivers/${encodeURIComponent(driver.driverId)}/documents/${encodeURIComponent(docKey)}`;
+      return `Vorhanden: <button type="button" class="btn-secondary" style="padding:0.2rem 0.5rem;font-size:0.78rem" data-open-doc="${escapeAttr(url)}">${escapeAttr(meta.originalName || "Dokument")}</button>`;
+    }
+
     function driverForm(driver) {
       const isNew = !driver.driverId;
-      const id = driver.driverId || "new-" + Date.now();
+      const isPending = driver.status === "pending";
       const trackUrl = driver.driverId && driver.trackingPin
         ? `driver-track.html?driverId=${encodeURIComponent(driver.driverId)}&pin=${encodeURIComponent(driver.trackingPin)}`
         : "";
+      const photoHint = driverDocHint(driver, "photo");
       return `
         <article class="driver-edit" data-driver-id="${isNew ? "" : driver.driverId}">
-          <h3>${isNew ? "Neuer Fahrer" : driver.name}</h3>
+          <h3>${isNew ? "Neuer Fahrer" : escapeAttr(driver.name)}${isPending ? ' <span style="color:#92400e;font-size:0.78rem">(wartet auf Freigabe)</span>' : ""}</h3>
+          <div class="field" style="display:flex;align-items:center;gap:0.85rem">
+            <div>
+              ${driver.documents?.photo?.present && driver.driverId
+                ? `<button type="button" class="btn-secondary" style="padding:0;border:none;background:transparent;cursor:pointer" data-open-doc="/api/drivers/${encodeURIComponent(driver.driverId)}/documents/photo"><img data-photo-preview alt="" width="72" height="72" style="border-radius:50%;object-fit:cover;border:2px solid #0c1c34;display:block"></button>`
+                : `<div style="width:72px;height:72px;border-radius:50%;background:#0c1c34;color:#ffcc00;display:grid;place-items:center;font-size:0.7rem;font-weight:800;text-align:center;padding:0.25rem">Kein Foto</div>`
+              }
+            </div>
+            <div style="flex:1">
+              <label>Profilfoto</label>
+              <input data-field="photo" type="file" accept="image/jpeg,image/png">
+              <p class="field-hint">${photoHint}</p>
+            </div>
+          </div>
           <div class="field">
             <label>Name</label>
             <input data-field="name" value="${escapeAttr(driver.name || "")}" required>
@@ -826,8 +1005,34 @@
             <input data-field="phone" value="${escapeAttr(driver.phone || "")}" required placeholder="+49170…">
           </div>
           <div class="field">
+            <label>Taxinummer / Ordnungsnummer</label>
+            <input data-field="taxiNumber" value="${escapeAttr(driver.taxiNumber || "")}" placeholder="z. B. 42">
+          </div>
+          <div class="field">
             <label>Kennzeichen</label>
             <input data-field="vehicle" value="${escapeAttr(driver.vehicle || "")}" placeholder="B-TX 2026">
+          </div>
+          <div class="field">
+            <label>P-Schein-Nummer</label>
+            <input data-field="pScheinNumber" value="${escapeAttr(driver.pScheinNumber || "")}">
+          </div>
+          <div class="field">
+            <label>P-Schein gültig bis</label>
+            <input data-field="pScheinValidUntil" type="date" value="${escapeAttr(driver.pScheinValidUntil || "")}">
+          </div>
+          <div class="field">
+            <label>Führerscheinnummer (optional)</label>
+            <input data-field="licenseNumber" value="${escapeAttr(driver.licenseNumber || "")}">
+          </div>
+          <div class="field">
+            <label>Scan / Foto P-Schein</label>
+            <input data-field="pScheinDocument" type="file" accept="image/jpeg,image/png,application/pdf">
+            <p class="field-hint">${driverDocHint(driver, "pScheinDocument")}</p>
+          </div>
+          <div class="field">
+            <label>Scan / Foto Führerschein (optional)</label>
+            <input data-field="licenseDocument" type="file" accept="image/jpeg,image/png,application/pdf">
+            <p class="field-hint">${driverDocHint(driver, "licenseDocument")}</p>
           </div>
           ${!isNew && driver.trackingPin ? `
           <div class="field">
@@ -838,6 +1043,7 @@
           </div>
           ` : ""}
           <div class="btn-row">
+            ${isPending ? `<button type="button" class="btn-primary" data-approve-driver>Freischalten</button>` : ""}
             <button type="button" class="btn-primary" data-save-driver>${isNew ? "Anlegen" : "Speichern"}</button>
             ${isNew ? `<button type="button" class="btn-secondary" data-cancel-new>Abbrechen</button>` : `<button type="button" class="btn-danger" data-delete-driver>Löschen</button>`}
           </div>
@@ -855,7 +1061,19 @@
       const data = await res.json();
       document.getElementById("drivers-list").innerHTML =
         (data.drivers || []).map((d) => driverForm(d)).join("") ||
-        '<p class="field-hint">Noch keine Fahrer — unten hinzufügen.</p>';
+        '<p class="field-hint">Noch keine Fahrer — unten hinzufügen oder Fahrer-Link teilen.</p>';
+
+      for (const img of document.querySelectorAll("[data-photo-preview]")) {
+        const btn = img.closest("[data-open-doc]");
+        const url = btn?.getAttribute("data-open-doc");
+        if (!url) continue;
+        LeitstelleAuth.apiFetch(url)
+          .then((r) => (r.ok ? r.blob() : null))
+          .then((blob) => {
+            if (blob) img.src = URL.createObjectURL(blob);
+          })
+          .catch(() => {});
+      }
     }
 
     document.getElementById("add-driver").addEventListener("click", () => {
@@ -873,19 +1091,46 @@
         return;
       }
 
-      const payload = {
-        name: card.querySelector('[data-field="name"]').value.trim(),
-        phone: card.querySelector('[data-field="phone"]').value.trim(),
-        vehicle: card.querySelector('[data-field="vehicle"]').value.trim(),
-      };
+      if (e.target.matches("[data-approve-driver]") || e.target.closest("[data-approve-driver]")) {
+        const driverId = card.getAttribute("data-driver-id");
+        if (!driverId) return;
+        try {
+          const formData = new FormData();
+          formData.set("status", "available");
+          const res = await LeitstelleAuth.apiFetch(`/api/drivers/${driverId}`, {
+            method: "PUT",
+            body: formData,
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || "Freischalten fehlgeschlagen");
+          }
+          showToast("Fahrer freigeschaltet.", false);
+          await loadDrivers();
+        } catch (err) {
+          showToast(err.message, true);
+        }
+        return;
+      }
 
       if (e.target.matches("[data-save-driver]")) {
         const driverId = card.getAttribute("data-driver-id");
+        const formData = new FormData();
+        for (const field of [
+          "name", "phone", "vehicle", "taxiNumber",
+          "pScheinNumber", "pScheinValidUntil", "licenseNumber",
+        ]) {
+          const el = card.querySelector(`[data-field="${field}"]`);
+          if (el) formData.set(field, el.value.trim());
+        }
+        for (const field of ["pScheinDocument", "licenseDocument", "photo"]) {
+          const el = card.querySelector(`[data-field="${field}"]`);
+          if (el?.files?.[0]) formData.set(field, el.files[0]);
+        }
         try {
           const res = await LeitstelleAuth.apiFetch(driverId ? `/api/drivers/${driverId}` : "/api/drivers", {
             method: driverId ? "PUT" : "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body: formData,
           });
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
@@ -918,7 +1163,7 @@
       for (const el of document.querySelectorAll('a[href="dispatch.html"]')) {
         el.href = dispatchHref;
       }
-      return Promise.all([loadConfig(), loadDrivers()]);
+      return Promise.all([loadConfig(), loadCompliance(), loadDrivers()]);
     }).catch(() => {
       document.getElementById("offline-banner").style.display = "block";
       showToast("Backend nicht erreichbar — siehe Hinweis oben.", true);

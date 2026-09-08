@@ -135,7 +135,7 @@
   <header class="onboard-hero">
     <p class="hero-badge" data-i18n="onboard.badge">Plattform mieten</p>
     <h1 data-i18n="onboard.h1">Plattform mieten</h1>
-    <p class="onboard-lead" data-i18n="onboard.lead">Luckys ist Plattformanbieter — keine eigene Taxikonzession. Sie mieten Leitstelle, Browser-Buchung und App unter Ihrem Betriebsnamen. Ihre Fahrgäste zahlen nach Taxameter bar oder per Kartenzahlung. Freischaltung nach Prüfung.</p>
+    <p class="onboard-lead" data-i18n="onboard.lead">Luckys ist Plattformanbieter — keine eigene Taxikonzession. Sie mieten Leitstelle, Browser-Buchung und App unter Ihrem Betriebsnamen. Für die Freischaltung brauchen wir Konzessionsdaten (und optional Fahrer-Nachweise). Ihre Fahrgäste zahlen nach Taxameter bar oder per Kartenzahlung.</p>
   </header>
 
   <main class="onboard-wrap">
@@ -178,6 +178,83 @@
             <option value="business" data-i18n="onboard.planBusiness">Business — 99 €/Monat (unbegrenzt)</option>
           </select>
         </div>
+
+        <h2 style="margin:1.5rem 0 0.75rem">Nachweis Konzession / P-Schein</h2>
+        <p class="field-hint" style="margin-top:0">Für die Freischaltung brauchen wir Ihre Konzessionsdaten. JPEG, PNG oder PDF, max. 5&nbsp;MB.</p>
+        <div class="field">
+          <label for="concessionNumber">Konzessions- / Genehmigungsnummer *</label>
+          <input id="concessionNumber" name="concessionNumber" required placeholder="z. B. 12/2024">
+        </div>
+        <div class="field">
+          <label for="concessionAuthority">Ausstellende Behörde</label>
+          <input id="concessionAuthority" name="concessionAuthority" placeholder="z. B. Stadt Mannheim">
+        </div>
+        <div class="field">
+          <label for="concessionValidUntil">Konzession gültig bis</label>
+          <input id="concessionValidUntil" name="concessionValidUntil" type="date">
+        </div>
+        <div class="field">
+          <label for="concessionDocument">Scan / Foto Konzessionsurkunde *</label>
+          <input id="concessionDocument" name="concessionDocument" type="file" accept="image/jpeg,image/png,application/pdf" required>
+        </div>
+        <div class="field" style="display:flex;align-items:center;gap:0.5rem">
+          <input id="ownerHasPSchein" name="ownerHasPSchein" type="checkbox" value="true" style="width:auto">
+          <label for="ownerHasPSchein" style="margin:0;font-weight:700">Inhaber fährt selbst (hat P-Schein)</label>
+        </div>
+        <div id="owner-pschein-fields" hidden>
+          <div class="field">
+            <label for="ownerPScheinNumber">P-Schein-Nummer (Inhaber)</label>
+            <input id="ownerPScheinNumber" name="ownerPScheinNumber" placeholder="Nummer auf dem P-Schein">
+          </div>
+          <div class="field">
+            <label for="ownerPScheinValidUntil">P-Schein gültig bis</label>
+            <input id="ownerPScheinValidUntil" name="ownerPScheinValidUntil" type="date">
+          </div>
+          <div class="field">
+            <label for="ownerPScheinDocument">Scan / Foto P-Schein (Inhaber)</label>
+            <input id="ownerPScheinDocument" name="ownerPScheinDocument" type="file" accept="image/jpeg,image/png,application/pdf">
+          </div>
+        </div>
+
+        <h2 style="margin:1.5rem 0 0.75rem">Erster Fahrer (optional)</h2>
+        <p class="field-hint" style="margin-top:0">Können Sie später in den Einstellungen ergänzen. Taxinummer = Ordnungsnummer am Fahrzeug.</p>
+        <div class="field">
+          <label for="driverName">Name</label>
+          <input id="driverName" name="driverName" placeholder="Max Mustermann">
+        </div>
+        <div class="field">
+          <label for="driverPhone">Handy</label>
+          <input id="driverPhone" name="driverPhone" placeholder="+49…">
+        </div>
+        <div class="field">
+          <label for="driverTaxiNumber">Taxinummer / Ordnungsnummer</label>
+          <input id="driverTaxiNumber" name="driverTaxiNumber" placeholder="z. B. 42">
+        </div>
+        <div class="field">
+          <label for="driverVehicle">Kennzeichen</label>
+          <input id="driverVehicle" name="driverVehicle" placeholder="MA-TX 123">
+        </div>
+        <div class="field">
+          <label for="driverPScheinNumber">P-Schein-Nummer</label>
+          <input id="driverPScheinNumber" name="driverPScheinNumber">
+        </div>
+        <div class="field">
+          <label for="driverPScheinValidUntil">P-Schein gültig bis</label>
+          <input id="driverPScheinValidUntil" name="driverPScheinValidUntil" type="date">
+        </div>
+        <div class="field">
+          <label for="driverLicenseNumber">Führerscheinnummer (optional)</label>
+          <input id="driverLicenseNumber" name="driverLicenseNumber">
+        </div>
+        <div class="field">
+          <label for="driverPScheinDocument">Scan / Foto P-Schein</label>
+          <input id="driverPScheinDocument" name="driverPScheinDocument" type="file" accept="image/jpeg,image/png,application/pdf">
+        </div>
+        <div class="field">
+          <label for="driverLicenseDocument">Scan / Foto Führerschein (optional)</label>
+          <input id="driverLicenseDocument" name="driverLicenseDocument" type="file" accept="image/jpeg,image/png,application/pdf">
+        </div>
+
         <button type="submit" class="btn" id="submit-btn" data-i18n="onboard.submit">Anfrage senden</button>
         <p id="form-error" class="status-error" hidden></p>
       </form>
@@ -191,6 +268,9 @@
 
     <p class="note onboard-note">
       <a href="dispatch.html" data-i18n="onboard.already">Bereits Kunde? Zur Leitstelle</a>
+      ·
+      <a href="driver-onboard.html">Fahrer-Registrierung</a>
+      <span class="field-hint" style="display:block;margin-top:0.35rem;color:rgba(255,255,255,0.7)">Fahrer brauchen den Link mit <code>?o=ihr-betrieb</code> aus den Einstellungen.</span>
     </p>
   </main>
 
@@ -208,6 +288,14 @@
     const errorEl = document.getElementById("form-error");
     const resultBox = document.getElementById("result-box");
     const submitBtn = document.getElementById("submit-btn");
+    const ownerToggle = document.getElementById("ownerHasPSchein");
+    const ownerFields = document.getElementById("owner-pschein-fields");
+
+    function syncOwnerPSchein() {
+      ownerFields.hidden = !ownerToggle.checked;
+    }
+    ownerToggle.addEventListener("change", syncOwnerPSchein);
+    syncOwnerPSchein();
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -216,13 +304,18 @@
       submitBtn.disabled = true;
       submitBtn.textContent = (window.LuckysI18n && window.LuckysI18n.t("book.sending")) || "Wird gesendet…";
 
-      const payload = Object.fromEntries(new FormData(form).entries());
+      const formData = new FormData(form);
+      if (!ownerToggle.checked) {
+        formData.delete("ownerHasPSchein");
+        formData.delete("ownerPScheinNumber");
+        formData.delete("ownerPScheinValidUntil");
+        formData.delete("ownerPScheinDocument");
+      }
 
       try {
         const res = await fetch("/api/fleet/register", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: formData,
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Anfrage fehlgeschlagen");
@@ -232,6 +325,7 @@
         }
         resultBox.classList.add("visible");
         form.reset();
+        syncOwnerPSchein();
       } catch (err) {
         errorEl.textContent = err.message;
         errorEl.hidden = false;

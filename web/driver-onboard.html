@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fahrer registrieren | Luckys Taxi App</title>
+  <meta name="description" content="Als Fahrer registrieren: Profilfoto, P-Schein und Taxinummer für Ihren Taxi-Betrieb.">
+  <meta name="robots" content="noindex,follow">
+  <meta name="theme-color" content="#ffcc00">
+  <link rel="icon" type="image/png" href="icon-taxi-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="analytics.js" defer></script>
+  <style>
+    body.driver-onboard-page {
+      background: #0c1c34;
+      color: #0c1c34;
+      min-height: 100vh;
+    }
+    .driver-hero {
+      background: linear-gradient(160deg, #ffcc00 0%, #f5b800 55%, #e8a800 100%);
+      color: #0c1c34;
+      padding: 2rem 1.25rem 2.35rem;
+      text-align: center;
+    }
+    .driver-hero .hero-badge {
+      display: inline-block;
+      margin: 0 0 0.75rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+      background: #0c1c34;
+      color: #ffcc00;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .driver-hero h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.7rem, 5vw, 2.35rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .driver-hero .lead {
+      margin: 0 auto;
+      max-width: 32rem;
+      font-size: 1.02rem;
+      line-height: 1.5;
+      font-weight: 500;
+      opacity: 0.92;
+    }
+    .driver-hero .company-name {
+      margin: 0.85rem 0 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+    .driver-wrap {
+      max-width: 560px;
+      margin: -1.35rem auto 3rem;
+      padding: 0 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+    .driver-card {
+      background: #fff8cc;
+      border-radius: 16px;
+      padding: 1.4rem 1.45rem 1.55rem;
+      box-shadow: 0 4px 0 #0c1c34;
+      border: 3px solid #ffcc00;
+    }
+    .driver-card h2 {
+      margin: 0 0 0.85rem;
+      font-size: 1.08rem;
+    }
+    .photo-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding: 1rem 0.75rem;
+      background: #fffdf0;
+      border: 2px dashed #0c1c34;
+      border-radius: 14px;
+    }
+    .photo-preview {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #0c1c34;
+      background: #0c1c34;
+      box-shadow: 0 8px 20px rgba(12, 28, 52, 0.22);
+    }
+    .photo-preview.placeholder {
+      display: grid;
+      place-items: center;
+      color: #ffcc00;
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 0.5rem;
+      line-height: 1.25;
+    }
+    .photo-block label.file-btn {
+      display: inline-block;
+      cursor: pointer;
+      background: #0c1c34;
+      color: #ffcc00;
+      font-weight: 800;
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      border: none;
+    }
+    .photo-block input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      overflow: hidden;
+    }
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+    .field input {
+      width: 100%;
+      padding: 0.7rem 0.75rem;
+      border-radius: 10px;
+      font: inherit;
+      color: #0c1c34;
+      background: #fffdf0;
+      border: 2px solid #0c1c34;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: #ffcc00;
+      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.35);
+    }
+    .field-hint { font-size: 0.8rem; color: #5b6472; margin-top: 0.35rem; }
+    .driver-onboard-page .btn {
+      background: #0c1c34;
+      color: #ffcc00 !important;
+      border: none;
+      font-weight: 800;
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .driver-onboard-page .btn:hover { filter: brightness(1.08); }
+    .driver-onboard-page .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .status-error { color: #991b1b; font-weight: 600; margin-top: 0.75rem; }
+    .result-box {
+      display: none;
+      margin-top: 1.15rem;
+      padding: 1rem 1.15rem;
+      background: #fff8d6;
+      border: 2px solid #ffcc00;
+      border-radius: 12px;
+      font-size: 0.92rem;
+    }
+    .result-box.visible { display: block; }
+    .missing-op {
+      background: #fee2e2;
+      border: 2px solid #991b1b;
+      color: #991b1b;
+      border-radius: 12px;
+      padding: 1rem;
+      font-weight: 600;
+    }
+    .driver-note {
+      margin-top: 1.25rem;
+      text-align: center;
+    }
+    .driver-note a { color: #ffcc00; font-weight: 700; }
+    .driver-onboard-page .site-footer { color: rgba(255,255,255,0.75); }
+    .driver-onboard-page .site-footer a { color: #ffcc00; }
+  </style>
+</head>
+<body class="driver-onboard-page">
+  <header class="driver-hero">
+    <p class="hero-badge">Fahrer-Registrierung</p>
+    <h1>Als Fahrer anmelden</h1>
+    <p class="lead">Profilfoto, P-Schein und Taxinummer — der Betrieb prüft Ihre Daten und schaltet Sie frei.</p>
+    <p class="company-name" id="company-label">Betrieb wird geladen…</p>
+  </header>
+
+  <main class="driver-wrap">
+    <div id="missing-operator" class="missing-op" hidden>
+      Es fehlt der Betriebs-Link. Bitte den Link vom Unternehmer nutzen
+      (endet mit <code>?o=betriebsname</code>).
+    </div>
+
+    <div class="driver-card" id="register-card" hidden>
+      <h2>Ihre Daten</h2>
+      <form id="driver-form">
+        <div class="photo-block">
+          <img id="photo-preview" class="photo-preview" src="driver-avatar.png" width="132" height="132" alt="Profilfoto-Vorschau" hidden>
+          <div id="photo-placeholder" class="photo-preview placeholder" aria-hidden="true">Ihr Foto</div>
+          <label class="file-btn" for="photo">Foto aufnehmen / wählen *</label>
+          <input id="photo" name="photo" type="file" accept="image/jpeg,image/png" capture="user" required>
+          <p class="field-hint" style="margin:0;text-align:center">Schönes Porträt, Gesicht gut erkennbar — JPEG oder PNG, max. 5&nbsp;MB.</p>
+        </div>
+
+        <div class="field">
+          <label for="name">Name *</label>
+          <input id="name" name="name" required placeholder="Max Mustermann" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="phone">Handy *</label>
+          <input id="phone" name="phone" required placeholder="+49170…" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label for="taxiNumber">Taxinummer / Ordnungsnummer *</label>
+          <input id="taxiNumber" name="taxiNumber" required placeholder="z. B. 42">
+        </div>
+        <div class="field">
+          <label for="vehicle">Kennzeichen</label>
+          <input id="vehicle" name="vehicle" placeholder="MA-TX 123" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="pScheinNumber">P-Schein-Nummer *</label>
+          <input id="pScheinNumber" name="pScheinNumber" required placeholder="Nummer auf dem P-Schein">
+        </div>
+        <div class="field">
+          <label for="pScheinValidUntil">P-Schein gültig bis</label>
+          <input id="pScheinValidUntil" name="pScheinValidUntil" type="date">
+        </div>
+        <div class="field">
+          <label for="pScheinDocument">Scan / Foto P-Schein *</label>
+          <input id="pScheinDocument" name="pScheinDocument" type="file" accept="image/jpeg,image/png,application/pdf" required>
+        </div>
+        <div class="field">
+          <label for="licenseNumber">Führerscheinnummer (optional)</label>
+          <input id="licenseNumber" name="licenseNumber">
+        </div>
+        <div class="field">
+          <label for="licenseDocument">Scan / Foto Führerschein (optional)</label>
+          <input id="licenseDocument" name="licenseDocument" type="file" accept="image/jpeg,image/png,application/pdf">
+        </div>
+
+        <button type="submit" class="btn" id="submit-btn">Registrierung absenden</button>
+        <p id="form-error" class="status-error" hidden></p>
+      </form>
+
+      <div id="result-box" class="result-box">
+        <p><strong>Danke — Ihre Anmeldung ist eingegangen.</strong></p>
+        <p id="result-message">Der Betrieb prüft P-Schein und Foto und schaltet Sie frei.</p>
+      </div>
+    </div>
+
+    <p class="driver-note">
+      <a href="onboard.html">Unternehmer? Plattform mieten</a>
+      ·
+      <a href="index.html">Start</a>
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </nav>
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const operatorSlug = String(params.get("o") || params.get("operator") || "").trim().toLowerCase();
+    const companyLabel = document.getElementById("company-label");
+    const missingEl = document.getElementById("missing-operator");
+    const cardEl = document.getElementById("register-card");
+    const form = document.getElementById("driver-form");
+    const errorEl = document.getElementById("form-error");
+    const resultBox = document.getElementById("result-box");
+    const submitBtn = document.getElementById("submit-btn");
+    const photoInput = document.getElementById("photo");
+    const photoPreview = document.getElementById("photo-preview");
+    const photoPlaceholder = document.getElementById("photo-placeholder");
+
+    async function loadOperator() {
+      if (!operatorSlug) {
+        missingEl.hidden = false;
+        companyLabel.textContent = "Kein Betrieb gewählt";
+        return;
+      }
+      try {
+        const res = await fetch(`/api/config?operator=${encodeURIComponent(operatorSlug)}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.companyName) {
+          throw new Error(data.error || "Betrieb nicht gefunden");
+        }
+        companyLabel.textContent = data.companyName;
+        cardEl.hidden = false;
+      } catch (err) {
+        missingEl.hidden = false;
+        missingEl.textContent = err.message || "Betrieb konnte nicht geladen werden.";
+        companyLabel.textContent = "Betrieb nicht verfügbar";
+      }
+    }
+
+    photoInput.addEventListener("change", () => {
+      const file = photoInput.files && photoInput.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      photoPreview.src = url;
+      photoPreview.hidden = false;
+      photoPlaceholder.hidden = true;
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorEl.hidden = true;
+      resultBox.classList.remove("visible");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Wird gesendet…";
+
+      const formData = new FormData(form);
+      formData.set("operator", operatorSlug);
+
+      try {
+        const res = await fetch(`/api/drivers/register?operator=${encodeURIComponent(operatorSlug)}`, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Registrierung fehlgeschlagen");
+        if (data.message) document.getElementById("result-message").textContent = data.message;
+        resultBox.classList.add("visible");
+        form.reset();
+        photoPreview.hidden = true;
+        photoPlaceholder.hidden = false;
+        photoPreview.src = "driver-avatar.png";
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Registrierung absenden";
+      }
+    });
+
+    loadOperator();
+  </script>
+</body>
+</html>

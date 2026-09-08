@@ -7,6 +7,16 @@ const path = require("path");
 const fs = require("fs");
 const { createFleetOperatorsStore } = require("./fleet-operators");
 const { mountPwaBrandRoutes } = require("./pwa-brand");
+const {
+  createUploadMiddleware,
+  saveDocumentFile,
+  resolveAbsolutePath,
+  deleteDocumentFile,
+  pickComplianceTextFields,
+  pickDriverComplianceFields,
+  OPERATOR_DOC_FIELDS,
+  DRIVER_DOC_FIELDS,
+} = require("./compliance-uploads");
 
 const port = process.env.PORT || 4242;
 const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -507,7 +517,124 @@ async function prepareFleetOperatorBody(req) {
     brandPrimaryColor: req.body.brandPrimaryColor,
     brandAccentColor: req.body.brandAccentColor,
     logoUrl: req.body.logoUrl,
+    ...pickComplianceTextFields(req.body),
   };
+}
+
+const upload = createUploadMiddleware();
+
+function filesFromRequest(req) {
+  if (!req.files) return {};
+  if (Array.isArray(req.files)) {
+    const map = {};
+    for (const f of req.files) {
+      map[f.fieldname] = f;
+    }
+    return map;
+  }
+  const map = {};
+  for (const [key, value] of Object.entries(req.files)) {
+    map[key] = Array.isArray(value) ? value[0] : value;
+  }
+  return map;
+}
+
+function applyOperatorDocumentUploads(operator, req) {
+  const files = filesFromRequest(req);
+  if (!operator.documents) operator.documents = {};
+  let changed = false;
+  for (const field of OPERATOR_DOC_FIELDS) {
+    const file = files[field];
+    if (!file) continue;
+    const prev = operator.documents[field];
+    const meta = saveDocumentFile(dataDir, operator.operatorId, field, file);
+    if (prev) deleteDocumentFile(dataDir, prev);
+    operator.documents[field] = meta;
+    changed = true;
+  }
+  return changed;
+}
+
+function applyDriverDocumentUploads(driver, operatorId, req) {
+  const files = filesFromRequest(req);
+  if (!driver.documents) driver.documents = {};
+  let changed = false;
+  for (const field of DRIVER_DOC_FIELDS) {
+    const file = files[field];
+    if (!file) continue;
+    const prev = driver.documents[field];
+    const meta = saveDocumentFile(dataDir, operatorId || "drivers", `driver-${field}`, file);
+    if (prev) deleteDocumentFile(dataDir, prev);
+    driver.documents[field] = meta;
+    changed = true;
+  }
+  return changed;
+}
+
+function driverCompliancePublic(driver) {
+  const docs = driver.documents || {};
+  const docMeta = (m) =>
+    m && m.id
+      ? {
+          present: true,
+          id: m.id,
+          originalName: m.originalName || "",
+          mimeType: m.mimeType || "",
+          uploadedAt: m.uploadedAt || null,
+        }
+      : { present: false };
+  return {
+    taxiNumber: driver.taxiNumber || "",
+    pScheinNumber: driver.pScheinNumber || "",
+    pScheinValidUntil: driver.pScheinValidUntil || "",
+    licenseNumber: driver.licenseNumber || "",
+    documents: {
+      pScheinDocument: docMeta(docs.pScheinDocument),
+      licenseDocument: docMeta(docs.licenseDocument),
+      photo: docMeta(docs.photo),
+    },
+  };
+}
+
+function createDriverFromBody(body, operator, req, { status = "available" } = {}) {
+  const name = String(body.name || body.driverName || "").trim();
+  const phone = String(body.phone || body.driverPhone || "").trim();
+  if (!name || !phone) return null;
+
+  const driver = {
+    driverId: crypto.randomUUID(),
+    name,
+    phone,
+    vehicle: String(body.vehicle || body.driverVehicle || "").trim(),
+    taxiNumber: String(body.taxiNumber || body.driverTaxiNumber || "").trim(),
+    pScheinNumber: String(body.pScheinNumber || body.driverPScheinNumber || "").trim(),
+    pScheinValidUntil: String(body.pScheinValidUntil || body.driverPScheinValidUntil || "").trim(),
+    licenseNumber: String(body.licenseNumber || body.driverLicenseNumber || "").trim(),
+    documents: {},
+    status: DRIVER_STATUSES.has(status) ? status : "available",
+    trackingPin: generateTrackingPin(),
+    activeBookingId: null,
+    lastLat: null,
+    lastLng: null,
+    lastLocationAt: null,
+    registeredAt: new Date().toISOString(),
+    ...(operator ? { operatorId: operator.operatorId } : {}),
+  };
+
+  if (req) {
+    const files = filesFromRequest(req);
+    const mapped = {};
+    if (files.driverPScheinDocument) mapped.pScheinDocument = files.driverPScheinDocument;
+    if (files.driverLicenseDocument) mapped.licenseDocument = files.driverLicenseDocument;
+    if (files.driverPhoto) mapped.photo = files.driverPhoto;
+    if (files.pScheinDocument && !mapped.pScheinDocument) mapped.pScheinDocument = files.pScheinDocument;
+    if (files.licenseDocument && !mapped.licenseDocument) mapped.licenseDocument = files.licenseDocument;
+    if (files.photo && !mapped.photo) mapped.photo = files.photo;
+    const fakeReq = { files: mapped };
+    applyDriverDocumentUploads(driver, operator?.operatorId, fakeReq);
+  }
+
+  return driver;
 }
 
 async function sendFleetOnboardingNotification(operator, links) {
@@ -611,7 +738,7 @@ const BOOKING_STATUSES = new Set([
   "completed",
   "cancelled",
 ]);
-const DRIVER_STATUSES = new Set(["available", "busy", "offline"]);
+const DRIVER_STATUSES = new Set(["available", "busy", "offline", "pending"]);
 const DRIVER_LOCATION_MAX_AGE_MS = 2 * 60 * 1000;
 
 function generateTrackingPin() {
@@ -1370,6 +1497,113 @@ app.patch("/api/fleet/operators/:slug", requireAdmin, async (req, res) => {
   }
 });
 
+app.get("/api/compliance", requireAdmin, (req, res) => {
+  const operator = resolveFleetOperatorFromRequest(req);
+  if (!operator) {
+    return res.status(400).json({ error: "operator query required" });
+  }
+  const summary = fleet.complianceSummary(operator);
+  const opDrivers = drivers
+    .filter((d) => d.operatorId === operator.operatorId)
+    .map((d) => ({
+      driverId: d.driverId,
+      name: d.name,
+      phone: d.phone,
+      vehicle: d.vehicle || "",
+      status: d.status || "available",
+      ...driverCompliancePublic(d),
+    }));
+  res.json({
+    slug: operator.slug,
+    operatorId: operator.operatorId,
+    ...summary,
+    complianceGaps: fleet.toAdminSummary(operator).complianceGaps,
+    complianceComplete: fleet.toAdminSummary(operator).complianceComplete,
+    drivers: opDrivers,
+  });
+});
+
+app.patch(
+  "/api/compliance",
+  requireAdmin,
+  (req, res, next) => {
+    const contentType = String(req.headers["content-type"] || "");
+    if (contentType.includes("multipart/form-data")) {
+      return upload.fields([
+        { name: "concessionDocument", maxCount: 1 },
+        { name: "ownerPScheinDocument", maxCount: 1 },
+      ])(req, res, (err) => {
+        if (err) return res.status(400).json({ error: err.message || "Upload fehlgeschlagen" });
+        next();
+      });
+    }
+    next();
+  },
+  (req, res) => {
+    const operator = resolveFleetOperatorFromRequest(req);
+    if (!operator) {
+      return res.status(400).json({ error: "operator query required" });
+    }
+    try {
+      const patch = pickComplianceTextFields(req.body);
+      applyOperatorDocumentUploads(operator, req);
+      patch.documents = operator.documents;
+      const updated = fleet.updateOperator(operator.slug, patch);
+      res.json({
+        ...fleet.complianceSummary(updated),
+        complianceGaps: fleet.toAdminSummary(updated).complianceGaps,
+        complianceComplete: fleet.toAdminSummary(updated).complianceComplete,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message || "Update failed" });
+    }
+  }
+);
+
+app.get("/api/fleet/operators/:slug/documents/:docKey", requireAdmin, (req, res) => {
+  const operator = fleet.findBySlug(req.params.slug);
+  if (!operator) return res.status(404).json({ error: "Operator not found" });
+  const docKey = String(req.params.docKey || "").trim();
+  if (!OPERATOR_DOC_FIELDS.includes(docKey)) {
+    return res.status(400).json({ error: "Unknown document key" });
+  }
+  const meta = operator.documents?.[docKey];
+  if (!meta?.relativePath) return res.status(404).json({ error: "Document not found" });
+  const abs = resolveAbsolutePath(dataDir, meta.relativePath);
+  if (!abs) return res.status(404).json({ error: "Document file missing" });
+  res.setHeader("Content-Type", meta.mimeType || "application/octet-stream");
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename="${encodeURIComponent(meta.originalName || docKey)}"`
+  );
+  fs.createReadStream(abs).pipe(res);
+});
+
+app.get("/api/drivers/:id/documents/:docKey", requireAdmin, (req, res) => {
+  const driver = findDriver(req.params.id);
+  if (!driver) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+  const scopedOperator = resolveFleetOperatorFromRequest(req);
+  if (scopedOperator && driver.operatorId !== scopedOperator.operatorId) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+  const docKey = String(req.params.docKey || "").trim();
+  if (!DRIVER_DOC_FIELDS.includes(docKey)) {
+    return res.status(400).json({ error: "Unknown document key" });
+  }
+  const meta = driver.documents?.[docKey];
+  if (!meta?.relativePath) return res.status(404).json({ error: "Document not found" });
+  const abs = resolveAbsolutePath(dataDir, meta.relativePath);
+  if (!abs) return res.status(404).json({ error: "Document file missing" });
+  res.setHeader("Content-Type", meta.mimeType || "application/octet-stream");
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename="${encodeURIComponent(meta.originalName || docKey)}"`
+  );
+  fs.createReadStream(abs).pipe(res);
+});
+
 /** Stripe Connect Express: Onboarding-Link für Auszahlung + Plattformgebühr */
 app.post("/api/fleet/operators/:slug/connect/onboard", requireAdmin, async (req, res) => {
   if (!stripe) {
@@ -1462,38 +1696,76 @@ app.get("/api/fleet/operators/:slug/connect/status", requireAdmin, async (req, r
   }
 });
 
-app.post("/api/fleet/register", async (req, res) => {
-  try {
-    const input = await prepareFleetOperatorBody(req);
-    input.status = "pending";
-    input.planId = String(req.body.planId || "starter").trim().toLowerCase();
-
-    const operator = fleet.createOperator(input);
-
-    if (resendApiKey && contactNotifyEmail) {
-      await sendContactNotification({
-        inquiryId: `lead-${operator.slug}`,
-        planId: operator.planId || "starter",
-        email: operator.legalEmail || "keine E-Mail",
-        companyName: operator.companyName,
-        message: `Neue Registrierungsanfrage (pending). Slug: ${operator.slug}. PLZ: ${(operator.serviceArea?.postalPrefixes || []).join(", ")}`,
-        createdAt: new Date().toISOString(),
+app.post(
+  "/api/fleet/register",
+  (req, res, next) => {
+    const contentType = String(req.headers["content-type"] || "");
+    if (contentType.includes("multipart/form-data")) {
+      return upload.fields([
+        { name: "concessionDocument", maxCount: 1 },
+        { name: "ownerPScheinDocument", maxCount: 1 },
+        { name: "driverPScheinDocument", maxCount: 1 },
+        { name: "driverLicenseDocument", maxCount: 1 },
+        { name: "pScheinDocument", maxCount: 1 },
+        { name: "licenseDocument", maxCount: 1 },
+      ])(req, res, (err) => {
+        if (err) return res.status(400).json({ error: err.message || "Upload fehlgeschlagen" });
+        next();
       });
-    } else {
-      console.log(
-        `Neue Registrierungsanfrage (pending): ${operator.companyName} (${operator.slug})`
-      );
     }
+    next();
+  },
+  async (req, res) => {
+    try {
+      const input = await prepareFleetOperatorBody(req);
+      input.status = "pending";
+      input.planId = String(req.body.planId || "starter").trim().toLowerCase();
 
-    res.status(201).json({
-      operator: fleet.toPublicSummary(operator),
-      message:
-        "Anfrage eingegangen. Wir prüfen Ihre Daten und schalten Ihren Betrieb frei.",
-    });
-  } catch (error) {
-    res.status(400).json({ error: error.message || "Registration failed" });
+      const operator = fleet.createOperator(input);
+      applyOperatorDocumentUploads(operator, req);
+      fleet.updateOperator(operator.slug, { documents: operator.documents });
+
+      const driverPayload = {
+        name: req.body.driverName,
+        phone: req.body.driverPhone,
+        vehicle: req.body.driverVehicle,
+        taxiNumber: req.body.driverTaxiNumber,
+        pScheinNumber: req.body.driverPScheinNumber,
+        pScheinValidUntil: req.body.driverPScheinValidUntil,
+        licenseNumber: req.body.driverLicenseNumber,
+      };
+      const firstDriver = createDriverFromBody(driverPayload, operator, req);
+      if (firstDriver) {
+        drivers.push(firstDriver);
+        saveDriversConfig();
+      }
+
+      const gaps = fleet.toAdminSummary(operator).complianceGaps || [];
+      if (resendApiKey && contactNotifyEmail) {
+        await sendContactNotification({
+          inquiryId: `lead-${operator.slug}`,
+          planId: operator.planId || "starter",
+          email: operator.legalEmail || "keine E-Mail",
+          companyName: operator.companyName,
+          message: `Neue Registrierungsanfrage (pending). Slug: ${operator.slug}. PLZ: ${(operator.serviceArea?.postalPrefixes || []).join(", ")}. Konzession: ${operator.concessionNumber || "—"}. Fehlend: ${gaps.join(", ") || "nichts"}.${firstDriver ? ` Erster Fahrer: ${firstDriver.name}.` : ""}`,
+          createdAt: new Date().toISOString(),
+        });
+      } else {
+        console.log(
+          `Neue Registrierungsanfrage (pending): ${operator.companyName} (${operator.slug}) · Konzession ${operator.concessionNumber || "—"}`
+        );
+      }
+
+      res.status(201).json({
+        operator: fleet.toPublicSummary(operator),
+        message:
+          "Anfrage eingegangen. Wir prüfen Ihre Konzession und Fahrer-Nachweise und schalten Ihren Betrieb frei.",
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message || "Registration failed" });
+    }
   }
-});
+);
 
 app.get("/api/config", (req, res) => {
   const config = configForRequest(req);
@@ -1676,80 +1948,235 @@ app.patch("/api/config", requireAdmin, (req, res) => {
 });
 
 app.get("/api/drivers", requireAdmin, (req, res) => {
-  res.json({ drivers: filterDriversForRequest(req) });
+  const list = filterDriversForRequest(req).map((d) => {
+    const { documents, ...rest } = d;
+    return {
+      ...rest,
+      ...driverCompliancePublic(d),
+    };
+  });
+  res.json({ drivers: list });
 });
 
-app.post("/api/drivers", requireAdmin, (req, res) => {
-  const name = String(req.body.name || "").trim();
-  const phone = String(req.body.phone || "").trim();
-  const vehicle = String(req.body.vehicle || "").trim();
-
-  if (!name || !phone) {
-    return res.status(400).json({ error: "name and phone required" });
-  }
-
-  const operator = resolveFleetOperatorFromRequest(req) || defaultFleetOperator();
-  if (fleet.enabled() && !operator) {
-    return res.status(400).json({ error: "operator query required" });
-  }
-
-  if (operator) {
-    const limit = fleet.driverLimitFor(operator);
-    if (limit !== null) {
-      const count = drivers.filter((d) => d.operatorId === operator.operatorId).length;
-      if (count >= limit) {
-        return res.status(403).json({
-          error: `Fahrer-Limit erreicht (${limit} im Tarif ${operator.planId || "starter"}). Business-Tarif für mehr Fahrer.`,
+/** Öffentliche Fahrer-Selbstregistrierung (P-Schein + Foto) für einen Betrieb */
+app.post(
+  "/api/drivers/register",
+  (req, res, next) => {
+    upload.fields([
+      { name: "photo", maxCount: 1 },
+      { name: "pScheinDocument", maxCount: 1 },
+      { name: "licenseDocument", maxCount: 1 },
+    ])(req, res, (err) => {
+      if (err) return res.status(400).json({ error: err.message || "Upload fehlgeschlagen" });
+      next();
+    });
+  },
+  (req, res) => {
+    try {
+      const operator =
+        resolveFleetOperatorFromRequest(req) ||
+        fleet.findBySlug(String(req.body.operator || req.body.o || "").trim());
+      if (!operator || operator.status !== "active") {
+        return res.status(400).json({
+          error: "Betrieb nicht gefunden oder noch nicht freigeschaltet. Bitte Link mit ?o=betriebsname nutzen.",
         });
       }
+
+      const name = String(req.body.name || "").trim();
+      const phone = String(req.body.phone || "").trim();
+      const pScheinNumber = String(req.body.pScheinNumber || "").trim();
+      const taxiNumber = String(req.body.taxiNumber || "").trim();
+      if (!name || !phone) {
+        return res.status(400).json({ error: "Name und Handy erforderlich" });
+      }
+      if (!pScheinNumber) {
+        return res.status(400).json({ error: "P-Schein-Nummer erforderlich" });
+      }
+      if (!taxiNumber) {
+        return res.status(400).json({ error: "Taxinummer erforderlich" });
+      }
+
+      const files = filesFromRequest(req);
+      if (!files.photo) {
+        return res.status(400).json({ error: "Profilfoto erforderlich (JPEG/PNG)" });
+      }
+      if (!files.pScheinDocument) {
+        return res.status(400).json({ error: "Scan/Foto vom P-Schein erforderlich" });
+      }
+
+      const limit = fleet.driverLimitFor(operator);
+      if (limit !== null) {
+        const count = drivers.filter((d) => d.operatorId === operator.operatorId).length;
+        if (count >= limit) {
+          return res.status(403).json({
+            error: `Fahrer-Limit des Betriebs erreicht (${limit}). Bitte den Unternehmer kontaktieren.`,
+          });
+        }
+      }
+
+      const duplicate = drivers.find(
+        (d) =>
+          d.operatorId === operator.operatorId &&
+          String(d.phone || "").replace(/\D/g, "") === phone.replace(/\D/g, "")
+      );
+      if (duplicate) {
+        return res.status(409).json({
+          error: "Mit dieser Handynummer ist bereits ein Fahrer für diesen Betrieb registriert.",
+        });
+      }
+
+      const driver = createDriverFromBody(req.body, operator, req, { status: "pending" });
+      if (!driver) {
+        return res.status(400).json({ error: "Registrierung fehlgeschlagen" });
+      }
+
+      drivers.push(driver);
+      saveDriversConfig();
+
+      console.log(
+        `Fahrer-Registrierung (pending): ${driver.name} · ${operator.companyName} (${operator.slug})`
+      );
+
+      res.status(201).json({
+        ok: true,
+        message:
+          "Registrierung eingegangen. Der Betrieb prüft Ihre Daten (P-Schein, Foto) und schaltet Sie frei.",
+        driver: {
+          driverId: driver.driverId,
+          name: driver.name,
+          status: driver.status,
+          companyName: operator.companyName,
+        },
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message || "Registrierung fehlgeschlagen" });
     }
   }
+);
 
-  const driver = {
-    driverId: crypto.randomUUID(),
-    name,
-    phone,
-    vehicle,
-    status: "available",
-    trackingPin: generateTrackingPin(),
-    activeBookingId: null,
-    lastLat: null,
-    lastLng: null,
-    lastLocationAt: null,
-    ...(operator ? { operatorId: operator.operatorId } : {}),
-  };
+app.post(
+  "/api/drivers",
+  requireAdmin,
+  (req, res, next) => {
+    const contentType = String(req.headers["content-type"] || "");
+    if (contentType.includes("multipart/form-data")) {
+      return upload.fields([
+        { name: "pScheinDocument", maxCount: 1 },
+        { name: "licenseDocument", maxCount: 1 },
+        { name: "photo", maxCount: 1 },
+      ])(req, res, (err) => {
+        if (err) return res.status(400).json({ error: err.message || "Upload fehlgeschlagen" });
+        next();
+      });
+    }
+    next();
+  },
+  (req, res) => {
+    const name = String(req.body.name || "").trim();
+    const phone = String(req.body.phone || "").trim();
+    const vehicle = String(req.body.vehicle || "").trim();
+    const compliance = pickDriverComplianceFields(req.body);
 
-  drivers.push(driver);
-  saveDriversConfig();
-  res.status(201).json(driver);
-});
+    if (!name || !phone) {
+      return res.status(400).json({ error: "name and phone required" });
+    }
 
-app.put("/api/drivers/:id", requireAdmin, (req, res) => {
-  const driver = findDriver(req.params.id);
-  if (!driver) {
-    return res.status(404).json({ error: "Driver not found" });
-  }
-  if (!driverMatchesRequest(req, driver)) {
-    return res.status(404).json({ error: "Driver not found" });
-  }
+    const operator = resolveFleetOperatorFromRequest(req) || defaultFleetOperator();
+    if (fleet.enabled() && !operator) {
+      return res.status(400).json({ error: "operator query required" });
+    }
 
-  if (req.body.name !== undefined) {
-    driver.name = String(req.body.name).trim();
-  }
-  if (req.body.phone !== undefined) {
-    driver.phone = String(req.body.phone).trim();
-  }
-  if (req.body.vehicle !== undefined) {
-    driver.vehicle = String(req.body.vehicle).trim();
-  }
+    if (operator) {
+      const limit = fleet.driverLimitFor(operator);
+      if (limit !== null) {
+        const count = drivers.filter((d) => d.operatorId === operator.operatorId).length;
+        if (count >= limit) {
+          return res.status(403).json({
+            error: `Fahrer-Limit erreicht (${limit} im Tarif ${operator.planId || "starter"}). Business-Tarif für mehr Fahrer.`,
+          });
+        }
+      }
+    }
 
-  if (!driver.name || !driver.phone) {
-    return res.status(400).json({ error: "name and phone required" });
-  }
+    const driver = {
+      driverId: crypto.randomUUID(),
+      name,
+      phone,
+      vehicle,
+      taxiNumber: compliance.taxiNumber || "",
+      pScheinNumber: compliance.pScheinNumber || "",
+      pScheinValidUntil: compliance.pScheinValidUntil || "",
+      licenseNumber: compliance.licenseNumber || "",
+      documents: {},
+      status: "available",
+      trackingPin: generateTrackingPin(),
+      activeBookingId: null,
+      lastLat: null,
+      lastLng: null,
+      lastLocationAt: null,
+      registeredAt: new Date().toISOString(),
+      ...(operator ? { operatorId: operator.operatorId } : {}),
+    };
 
-  saveDriversConfig();
-  res.json(driver);
-});
+    applyDriverDocumentUploads(driver, operator?.operatorId, req);
+
+    drivers.push(driver);
+    saveDriversConfig();
+    res.status(201).json({ ...driver, ...driverCompliancePublic(driver) });
+  }
+);
+
+app.put(
+  "/api/drivers/:id",
+  requireAdmin,
+  (req, res, next) => {
+    const contentType = String(req.headers["content-type"] || "");
+    if (contentType.includes("multipart/form-data")) {
+      return upload.fields([
+        { name: "pScheinDocument", maxCount: 1 },
+        { name: "licenseDocument", maxCount: 1 },
+        { name: "photo", maxCount: 1 },
+      ])(req, res, (err) => {
+        if (err) return res.status(400).json({ error: err.message || "Upload fehlgeschlagen" });
+        next();
+      });
+    }
+    next();
+  },
+  (req, res) => {
+    const driver = findDriver(req.params.id);
+    if (!driver) {
+      return res.status(404).json({ error: "Driver not found" });
+    }
+    if (!driverMatchesRequest(req, driver)) {
+      return res.status(404).json({ error: "Driver not found" });
+    }
+
+    if (req.body.name !== undefined) {
+      driver.name = String(req.body.name).trim();
+    }
+    if (req.body.phone !== undefined) {
+      driver.phone = String(req.body.phone).trim();
+    }
+    if (req.body.vehicle !== undefined) {
+      driver.vehicle = String(req.body.vehicle).trim();
+    }
+    if (req.body.status !== undefined) {
+      const status = String(req.body.status).trim();
+      if (DRIVER_STATUSES.has(status)) driver.status = status;
+    }
+    const compliance = pickDriverComplianceFields(req.body);
+    Object.assign(driver, compliance);
+    applyDriverDocumentUploads(driver, driver.operatorId, req);
+
+    if (!driver.name || !driver.phone) {
+      return res.status(400).json({ error: "name and phone required" });
+    }
+
+    saveDriversConfig();
+    res.json({ ...driver, ...driverCompliancePublic(driver) });
+  }
+);
 
 app.delete("/api/drivers/:id", requireAdmin, (req, res) => {
   const index = drivers.findIndex((d) => d.driverId === req.params.id);
