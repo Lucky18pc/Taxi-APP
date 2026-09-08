@@ -3,246 +3,425 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Plattform-Admin — Luckys Taxi App</title>
+  <title>Luckys Admin — Dashboard</title>
   <meta name="robots" content="noindex,nofollow">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="luckys-taxi-admin-logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    .admin-wrap { max-width: 1100px; margin: 1.5rem auto 3rem; padding: 0 1.25rem; }
-    .admin-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .admin-card { background: var(--card); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); margin-bottom: 1rem; }
-    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    .admin-table th, .admin-table td { text-align: left; padding: 0.55rem 0.45rem; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
-    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
-    .badge-pending { background: #fef3c7; color: #92400e; }
-    .badge-active { background: #d1fae5; color: #065f46; }
-    .badge-suspended { background: #fee2e2; color: #991b1b; }
-    .field { margin-bottom: 0.75rem; }
-    .field label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.25rem; }
-    .field input, .field select, .field textarea { width: 100%; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 8px; font: inherit; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
-    .btn-sm { font-size: 0.78rem; padding: 0.35rem 0.6rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-secondary { background: #ffe08a; color: #0c1c34; border: 2px solid #0c1c34; }
-    .btn-success { background: #059669; color: #fff; }
-    .btn-danger { background: #dc2626; color: #fff; }
-    .link-list { margin: 0; padding-left: 1rem; font-size: 0.8rem; }
-    .link-list a { word-break: break-all; }
+    :root {
+      --navy: #0c1c34;
+      --yellow: #ffcc00;
+      --cream: #fff6c8;
+      --paper: #fffdf2;
+      --line: rgba(12, 28, 52, 0.12);
+      --muted: rgba(12, 28, 52, 0.62);
+      --ok: #047857;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(12, 28, 52, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--navy);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(255, 204, 0, 0.55), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(12, 28, 52, 0.18), transparent 50%),
+        linear-gradient(180deg, #f7e48a 0%, #f3d45a 40%, #efe0a0 100%);
+    }
     .hidden { display: none !important; }
-    .login-error { color: #991b1b; font-weight: 600; font-size: 0.85rem; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
-    .stat-box { background: #ffe08a; border: 2px solid #0c1c34; border-radius: 10px; padding: 0.75rem; }
-    .stat-box strong { display: block; font-size: 1.35rem; line-height: 1.2; }
-    .stat-box span { font-size: 0.78rem; color: #0c1c34; font-weight: 600; }
-    .section-header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .section-header h2 { margin: 0; font-size: 1.05rem; }
-    .inquiry-message { max-width: 220px; white-space: pre-wrap; word-break: break-word; font-size: 0.82rem; color: #374151; }
-    .empty-hint { color: #6b7280; font-size: 0.9rem; margin: 0; }
-    .admin-brand {
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-      margin-bottom: 1rem;
+    h1, h2, h3 { font-family: Syne, "DM Sans", sans-serif; letter-spacing: -0.02em; }
+    a { color: var(--navy); font-weight: 700; }
+    code {
+      font-size: 0.82em;
+      background: rgba(12, 28, 52, 0.08);
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
     }
-    .admin-brand img {
-      width: 72px;
-      height: 72px;
-      border-radius: 16px;
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
-      flex-shrink: 0;
+
+    /* Login */
+    .login-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
     }
-    .admin-brand-login {
-      justify-content: center;
-      flex-direction: column;
+    .login-card {
+      width: min(420px, 100%);
+      background: var(--paper);
+      border: 3px solid var(--navy);
+      border-radius: 24px;
+      padding: 1.75rem 1.5rem 1.6rem;
+      box-shadow: 0 6px 0 var(--navy);
       text-align: center;
-      margin-bottom: 1.15rem;
     }
-    .admin-brand-login img {
+    .login-card img {
       width: 96px;
       height: 96px;
       border-radius: 22px;
+      box-shadow: var(--shadow);
     }
-    .admin-brand-login .admin-brand-text h1 {
-      margin: 0.35rem 0 0;
-      font-size: 1.35rem;
-    }
-    .admin-brand-text h1 { margin: 0; font-size: 1.25rem; line-height: 1.2; }
-    .admin-brand-text p { margin: 0.2rem 0 0; color: #0c1c34; font-size: 0.85rem; font-weight: 600; opacity: 0.85; }
-    .btn-admin-login {
+    .login-card h1 { margin: 0.85rem 0 0.2rem; font-size: 1.55rem; }
+    .login-card .sub { margin: 0 0 1.1rem; color: var(--muted); font-weight: 600; }
+    .field { margin-bottom: 0.9rem; text-align: left; }
+    .field label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .field input, .field select, .field textarea {
       width: 100%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.55rem;
-      background: #facc15;
-      color: #0f172a;
-      border: none;
+      padding: 0.7rem 0.75rem;
+      border: 2px solid var(--navy);
       border-radius: 12px;
-      padding: 0.85rem 1rem;
+      font: inherit;
+      background: #fff;
+      color: var(--navy);
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.45);
+    }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.85rem 0 1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .check-row input { width: auto; }
+    .btn {
+      border: none;
+      cursor: pointer;
       font: inherit;
       font-weight: 800;
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+    .btn:hover { filter: brightness(1.03); }
+    .btn:active { transform: translateY(1px); }
+    .btn-yellow {
+      background: var(--yellow);
+      color: var(--navy);
+      box-shadow: 0 3px 0 #c9a000;
+      width: 100%;
+      padding: 0.9rem 1rem;
+    }
+    .btn-navy { background: var(--navy); color: var(--yellow); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--navy);
+      border: 2px solid var(--navy);
+    }
+    .btn-ok { background: var(--ok); color: #fff; }
+    .btn-bad { background: var(--bad); color: #fff; }
+    .btn-sm { font-size: 0.78rem; padding: 0.4rem 0.7rem; border-radius: 10px; }
+    .login-error { color: var(--bad); font-weight: 700; margin-top: 0.75rem; }
+
+    /* App shell */
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
+    @media (max-width: 900px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .side-nav { position: sticky; top: 0; z-index: 20; }
+    }
+    .side-nav {
+      background: var(--navy);
+      color: #fff;
+      padding: 1.25rem 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .side-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding: 0.25rem 0.35rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .side-brand img {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: var(--yellow);
+    }
+    .side-brand strong { display: block; font-family: Syne, sans-serif; font-size: 1.05rem; }
+    .side-brand span { font-size: 0.78rem; opacity: 0.7; }
+    .nav-btn {
+      text-align: left;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.82);
+      border: none;
+      border-radius: 12px;
+      padding: 0.75rem 0.85rem;
+      font: inherit;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 3px 0 #ca8a04;
     }
-    .btn-admin-login:hover { filter: brightness(0.97); }
-    .btn-admin-login:active { transform: translateY(1px); box-shadow: 0 2px 0 #ca8a04; }
-    .btn-admin-login .star { color: #0f172a; letter-spacing: 0.05em; }
-    .compliance-box {
-      font-size: 0.78rem;
-      line-height: 1.35;
-      max-width: 220px;
+    .nav-btn:hover, .nav-btn.active {
+      background: rgba(255, 204, 0, 0.18);
+      color: var(--yellow);
     }
-    .compliance-box .warn {
-      color: #92400e;
-      font-weight: 700;
-      margin-top: 0.35rem;
+    .side-foot { margin-top: auto; padding-top: 1rem; }
+    .main-pane { padding: 1.25rem 1.35rem 2.5rem; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
     }
-    .compliance-box .ok {
-      color: #065f46;
-      font-weight: 700;
+    .topbar h1 { margin: 0; font-size: clamp(1.45rem, 3vw, 1.9rem); }
+    .topbar p { margin: 0.35rem 0 0; color: var(--muted); font-weight: 600; max-width: 38rem; }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: rise 0.28s ease; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
     }
-    .compliance-box .doc-row { margin-top: 0.25rem; }
-    .admin-detail-panel {
-      margin-top: 0.75rem;
-      padding: 0.75rem;
-      background: #fff8d6;
-      border: 2px solid #0c1c34;
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.1rem;
+    }
+    @media (max-width: 800px) { .stats { grid-template-columns: 1fr 1fr; } }
+    .stat {
+      background: var(--yellow);
+      border: 2px solid var(--navy);
+      border-radius: 14px;
+      padding: 0.85rem 0.9rem;
+      box-shadow: 0 3px 0 var(--navy);
+    }
+    .stat strong { display: block; font-size: 1.55rem; line-height: 1; font-family: Syne, sans-serif; }
+    .stat span { font-size: 0.78rem; font-weight: 700; opacity: 0.8; }
+
+    .card {
+      background: var(--paper);
+      border: 2px solid var(--navy);
+      border-radius: var(--radius);
+      padding: 1.15rem 1.2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+    }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.85rem;
+    }
+    .card-head h2 { margin: 0; font-size: 1.15rem; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .tenant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .tenant-card {
+      background: var(--cream);
+      border: 2px solid var(--navy);
+      border-radius: 16px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: 0 4px 0 var(--navy);
+    }
+    .tenant-card h3 { margin: 0; font-size: 1.05rem; }
+    .meta { font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+    .badge-active { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+    .badge-suspended { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .compliance {
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.7rem 0.75rem;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .compliance .warn { color: var(--warn); font-weight: 800; margin-top: 0.35rem; }
+    .compliance .ok { color: var(--ok); font-weight: 800; margin-top: 0.35rem; }
+    .driver-panel {
+      margin-top: 0.55rem;
+      padding: 0.65rem;
+      background: #fff;
+      border: 1px dashed var(--navy);
       border-radius: 10px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
-    .admin-detail-panel h4 { margin: 0 0 0.5rem; font-size: 0.92rem; }
-    .admin-detail-panel ul { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+    .driver-panel ul { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+    .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .inquiry-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .inquiry-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      padding: 0.9rem;
+      border: 2px solid var(--navy);
+      border-radius: 14px;
+      background: #fff;
+    }
+    @media (max-width: 700px) { .inquiry-item { grid-template-columns: 1fr; } }
+    .inquiry-item p { margin: 0.35rem 0 0; white-space: pre-wrap; color: var(--muted); font-size: 0.88rem; }
+    .empty-hint { color: var(--muted); font-weight: 600; margin: 0; }
+    .ga-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
   </style>
-  <link rel="icon" href="luckys-taxi-admin-logo.svg" type="image/svg+xml">
 </head>
 <body>
-  <div id="admin-login" class="admin-wrap">
-    <div class="admin-card" style="max-width:400px;margin:4rem auto">
-      <div class="admin-brand admin-brand-login">
-        <img src="luckys-taxi-admin-logo.svg" width="96" height="96" alt="Luckys Taxi Admin">
-        <div class="admin-brand-text">
-          <h1>Luckys Taxi Admin</h1>
-          <p>Plattform-Freischaltung</p>
-        </div>
-      </div>
-      <p class="field-hint">ADMIN_PIN von Render eingeben. Mit „Angemeldet bleiben“ bleibst du auf diesem Mac angemeldet.</p>
+  <div id="admin-login" class="login-shell">
+    <div class="login-card">
+      <img src="luckys-taxi-admin-logo.svg" width="96" height="96" alt="Luckys Taxi Admin">
+      <h1>Luckys Admin</h1>
+      <p class="sub">Neues Dashboard — Freischaltung &amp; Nachweise</p>
+      <p class="meta" style="margin-bottom:1rem">ADMIN_PIN von Render. Mit „Angemeldet bleiben“ bleibst du auf diesem Gerät eingeloggt.</p>
       <form id="admin-login-form">
         <div class="field">
           <label for="admin-pin">PIN</label>
           <input id="admin-pin" type="password" required autocomplete="current-password">
         </div>
-        <div class="field" style="display:flex;align-items:center;gap:0.5rem;margin-top:0.75rem">
-          <input id="admin-remember" type="checkbox" checked style="width:auto">
-          <label for="admin-remember" style="margin:0;font-weight:600">Angemeldet bleiben (auf diesem Gerät speichern)</label>
-        </div>
-        <button type="submit" class="btn-admin-login">
-          <span class="star" aria-hidden="true">★</span>
-          Anmelden
-          <span class="star" aria-hidden="true">★</span>
-        </button>
+        <label class="check-row">
+          <input id="admin-remember" type="checkbox" checked>
+          Angemeldet bleiben
+        </label>
+        <button type="submit" class="btn btn-yellow">★ Anmelden ★</button>
         <p id="admin-login-error" class="login-error hidden"></p>
       </form>
     </div>
   </div>
 
-  <div id="admin-app" class="admin-wrap hidden">
-    <div class="admin-header">
-      <div class="admin-brand" style="margin-bottom:0">
-        <img src="luckys-taxi-admin-logo.svg" width="72" height="72" alt="Luckys Taxi Admin">
-        <div class="admin-brand-text">
-          <h1>Mandanten-Verwaltung</h1>
-          <p>Manuelle Vermietung — Betriebe anlegen, freischalten, Links kopieren.</p>
+  <div id="admin-app" class="app-shell hidden">
+    <aside class="side-nav">
+      <div class="side-brand">
+        <img src="luckys-taxi-admin-logo.svg" width="52" height="52" alt="">
+        <div>
+          <strong>Luckys Admin</strong>
+          <span>Plattform</span>
         </div>
       </div>
-      <button type="button" class="btn-sm btn-secondary" id="admin-logout">Abmelden</button>
-    </div>
-
-    <section class="admin-card">
-      <div class="section-header">
-        <h2>Tarif-Anfragen / Interessenten</h2>
-        <button type="button" class="btn-sm btn-secondary" id="refresh-inquiries">Aktualisieren</button>
+      <button type="button" class="nav-btn active" data-panel="tenants">Mandanten</button>
+      <button type="button" class="nav-btn" data-panel="inquiries">Anfragen</button>
+      <button type="button" class="nav-btn" data-panel="create">Neu anlegen</button>
+      <button type="button" class="nav-btn" data-panel="analytics">Analytics</button>
+      <div class="side-foot">
+        <button type="button" class="btn btn-ghost btn-sm" id="admin-logout" style="width:100%;color:#fff;border-color:rgba(255,255,255,0.35)">Abmelden</button>
       </div>
-      <div class="stats-grid" id="inquiry-stats">
-        <div class="stat-box"><strong id="stat-total">0</strong><span>Gesamt</span></div>
-        <div class="stat-box"><strong id="stat-starter">0</strong><span>Starter</span></div>
-        <div class="stat-box"><strong id="stat-business">0</strong><span>Business</span></div>
-        <div class="stat-box"><strong id="stat-week">0</strong><span>Letzte 7 Tage</span></div>
-      </div>
-      <div style="overflow-x:auto">
-        <table class="admin-table" id="inquiries-table">
-          <thead>
-            <tr>
-              <th>Datum</th>
-              <th>Firma</th>
-              <th>E-Mail</th>
-              <th>Tarif</th>
-              <th>Nachricht</th>
-              <th>Aktion</th>
-            </tr>
-          </thead>
-          <tbody id="inquiries-body"></tbody>
-        </table>
-      </div>
-      <p id="inquiries-empty" class="empty-hint hidden">Noch keine Tarif-Anfragen — Formular auf der Startseite.</p>
-    </section>
+    </aside>
 
-    <section class="admin-card">
-      <h2 style="margin:0 0 0.5rem;font-size:1.05rem;display:flex;align-items:center;gap:0.5rem">
-        <img src="icon-luckys-taxi.png" width="28" height="28" alt="" style="border-radius:6px" />
-        Besucherstatistik (Google Analytics)
-      </h2>
-      <p class="field-hint" style="margin:0 0 1rem">
-        Wie viele Leute die Webseite besuchen, siehst du in Google Analytics — nicht direkt hier.
-        Tarif-Anfragen stehen oben in der Liste.
-      </p>
-      <a class="btn-sm btn-primary" href="https://analytics.google.com/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.45rem">
-        <img src="icon-luckys-taxi.png" width="20" height="20" alt="" style="border-radius:4px" />
-        Google Analytics öffnen
-      </a>
-    </section>
+    <main class="main-pane">
+      <div class="topbar">
+        <div>
+          <h1 id="panel-title">Mandanten</h1>
+          <p id="panel-sub">Betriebe prüfen, Nachweise öffnen, freischalten und Links kopieren.</p>
+        </div>
+        <button type="button" class="btn btn-navy btn-sm" id="refresh-all">Aktualisieren</button>
+      </div>
 
-    <section class="admin-card">
-      <h2 style="margin:0 0 1rem;font-size:1.05rem">Neuen Mandanten anlegen</h2>
-      <form id="create-tenant-form">
-        <div class="grid-2">
-          <div class="field"><label for="new-companyName">Firmenname *</label><input id="new-companyName" name="companyName" required></div>
-          <div class="field"><label for="new-email">E-Mail *</label><input id="new-email" name="email" type="email" required></div>
-          <div class="field"><label for="new-centralPhone">Zentrale *</label><input id="new-centralPhone" name="centralPhone" required placeholder="+49…"></div>
-          <div class="field"><label for="new-city">Stadt *</label><input id="new-city" name="city" required></div>
-          <div class="field"><label for="new-postalPrefixes">PLZ-Präfixe *</label><input id="new-postalPrefixes" name="postalPrefixes" required placeholder="68"></div>
-          <div class="field"><label for="new-planId">Tarif</label>
-            <select id="new-planId" name="planId"><option value="starter">Starter (5 Fahrer)</option><option value="business">Business</option></select>
+      <section id="panel-tenants" class="panel active">
+        <div class="stats" id="tenant-stats">
+          <div class="stat"><strong id="stat-tenants-total">0</strong><span>Betriebe</span></div>
+          <div class="stat"><strong id="stat-tenants-active">0</strong><span>Aktiv</span></div>
+          <div class="stat"><strong id="stat-tenants-pending">0</strong><span>Pending</span></div>
+          <div class="stat"><strong id="stat-tenants-gaps">0</strong><span>Nachweise fehlen</span></div>
+        </div>
+        <div id="tenants-grid" class="tenant-grid"></div>
+        <p id="tenants-empty" class="empty-hint hidden">Noch keine Mandanten.</p>
+      </section>
+
+      <section id="panel-inquiries" class="panel">
+        <div class="stats" id="inquiry-stats">
+          <div class="stat"><strong id="stat-total">0</strong><span>Gesamt</span></div>
+          <div class="stat"><strong id="stat-starter">0</strong><span>Starter</span></div>
+          <div class="stat"><strong id="stat-business">0</strong><span>Business</span></div>
+          <div class="stat"><strong id="stat-week">0</strong><span>Letzte 7 Tage</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Tarif-Anfragen</h2>
+            <button type="button" class="btn btn-ghost btn-sm" id="refresh-inquiries">Aktualisieren</button>
           </div>
-          <div class="field"><label for="new-billingEmail">Rechnungs-E-Mail</label><input id="new-billingEmail" name="billingEmail" type="email"></div>
-          <div class="field"><label for="new-dispatchPin">Leitstellen-PIN</label><input id="new-dispatchPin" name="dispatchPin" inputmode="numeric"></div>
-          <div class="field"><label for="new-stripeConnect">Stripe Connect Account-ID</label><input id="new-stripeConnectAccountId" name="stripeConnectAccountId" placeholder="acct_… (für Karten-Provision)"></div>
-          <div class="field"><label for="new-concessionNumber">Konzessionsnummer</label><input id="new-concessionNumber" name="concessionNumber" placeholder="optional"></div>
-          <div class="field"><label for="new-concessionAuthority">Behörde</label><input id="new-concessionAuthority" name="concessionAuthority" placeholder="optional"></div>
+          <div id="inquiries-list" class="inquiry-list"></div>
+          <p id="inquiries-empty" class="empty-hint hidden">Noch keine Tarif-Anfragen — Formular auf der Startseite.</p>
         </div>
-        <div class="field"><label for="new-notes">Interne Notizen</label><textarea id="new-notes" name="notes" rows="2"></textarea></div>
-        <button type="submit" class="btn-sm btn-primary">Anlegen &amp; aktivieren</button>
-        <p id="create-error" class="login-error hidden"></p>
-      </form>
-    </section>
+      </section>
 
-    <section class="admin-card">
-      <h2 style="margin:0 0 1rem;font-size:1.05rem">Alle Mandanten</h2>
-      <div style="overflow-x:auto">
-        <table class="admin-table" id="tenants-table">
-          <thead>
-            <tr>
-              <th>Betrieb</th>
-              <th>Status</th>
-              <th>Tarif</th>
-              <th>Nachweise</th>
-              <th>Links</th>
-              <th>Aktionen</th>
-            </tr>
-          </thead>
-          <tbody id="tenants-body"></tbody>
-        </table>
-      </div>
-    </section>
+      <section id="panel-create" class="panel">
+        <div class="card">
+          <div class="card-head"><h2>Neuen Mandanten anlegen</h2></div>
+          <form id="create-tenant-form">
+            <div class="grid-2">
+              <div class="field"><label for="new-companyName">Firmenname *</label><input id="new-companyName" name="companyName" required></div>
+              <div class="field"><label for="new-email">E-Mail *</label><input id="new-email" name="email" type="email" required></div>
+              <div class="field"><label for="new-centralPhone">Zentrale *</label><input id="new-centralPhone" name="centralPhone" required placeholder="+49…"></div>
+              <div class="field"><label for="new-city">Stadt *</label><input id="new-city" name="city" required></div>
+              <div class="field"><label for="new-postalPrefixes">PLZ-Präfixe *</label><input id="new-postalPrefixes" name="postalPrefixes" required placeholder="68"></div>
+              <div class="field"><label for="new-planId">Tarif</label>
+                <select id="new-planId" name="planId"><option value="starter">Starter (5 Fahrer)</option><option value="business">Business</option></select>
+              </div>
+              <div class="field"><label for="new-billingEmail">Rechnungs-E-Mail</label><input id="new-billingEmail" name="billingEmail" type="email"></div>
+              <div class="field"><label for="new-dispatchPin">Leitstellen-PIN</label><input id="new-dispatchPin" name="dispatchPin" inputmode="numeric"></div>
+              <div class="field"><label for="new-stripeConnectAccountId">Stripe Connect Account-ID</label><input id="new-stripeConnectAccountId" name="stripeConnectAccountId" placeholder="acct_…"></div>
+              <div class="field"><label for="new-concessionNumber">Konzessionsnummer</label><input id="new-concessionNumber" name="concessionNumber"></div>
+              <div class="field"><label for="new-concessionAuthority">Behörde</label><input id="new-concessionAuthority" name="concessionAuthority"></div>
+            </div>
+            <div class="field"><label for="new-notes">Interne Notizen</label><textarea id="new-notes" name="notes" rows="3"></textarea></div>
+            <button type="submit" class="btn btn-navy">Anlegen &amp; aktivieren</button>
+            <p id="create-error" class="login-error hidden"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="panel-analytics" class="panel">
+        <div class="card">
+          <div class="card-head"><h2>Besucherstatistik</h2></div>
+          <div class="ga-box">
+            <p class="meta" style="margin:0;max-width:28rem">
+              Besucherzahlen siehst du in Google Analytics. Tarif-Anfragen stehen unter „Anfragen“.
+            </p>
+            <a class="btn btn-yellow btn-sm" href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics öffnen</a>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
   <script src="admin.js"></script>

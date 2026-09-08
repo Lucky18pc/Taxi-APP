@@ -1,6 +1,25 @@
 (function () {
   const STORAGE_KEY = "taxiapp_platform_admin_pin";
 
+  const PANEL_COPY = {
+    tenants: {
+      title: "Mandanten",
+      sub: "Betriebe prüfen, Nachweise öffnen, freischalten und Links kopieren.",
+    },
+    inquiries: {
+      title: "Anfragen",
+      sub: "Tarif-Anfragen von der Startseite — antworten oder als Mandant übernehmen.",
+    },
+    create: {
+      title: "Neu anlegen",
+      sub: "Betrieb manuell anlegen und sofort aktivieren.",
+    },
+    analytics: {
+      title: "Analytics",
+      sub: "Besucherstatistik über Google Analytics.",
+    },
+  };
+
   function getPin() {
     return localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY) || "";
   }
@@ -44,8 +63,19 @@
     document.getElementById("admin-app").classList.remove("hidden");
   }
 
+  function showPanel(id) {
+    document.querySelectorAll(".panel").forEach((el) => el.classList.remove("active"));
+    document.querySelectorAll(".nav-btn").forEach((el) => el.classList.remove("active"));
+    document.getElementById(`panel-${id}`)?.classList.add("active");
+    document.querySelector(`.nav-btn[data-panel="${id}"]`)?.classList.add("active");
+    const copy = PANEL_COPY[id] || PANEL_COPY.tenants;
+    document.getElementById("panel-title").textContent = copy.title;
+    document.getElementById("panel-sub").textContent = copy.sub;
+  }
+
   function statusBadge(status) {
-    const cls = status === "active" ? "badge-active" : status === "suspended" ? "badge-suspended" : "badge-pending";
+    const cls =
+      status === "active" ? "badge-active" : status === "suspended" ? "badge-suspended" : "badge-pending";
     return `<span class="badge ${cls}">${status}</span>`;
   }
 
@@ -74,17 +104,43 @@
     return planId || "Allgemein";
   }
 
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   function updateInquiryStats(items) {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     document.getElementById("stat-total").textContent = String(items.length);
-    document.getElementById("stat-starter").textContent = String(items.filter((i) => i.planId === "starter").length);
-    document.getElementById("stat-business").textContent = String(items.filter((i) => i.planId === "business").length);
+    document.getElementById("stat-starter").textContent = String(
+      items.filter((i) => i.planId === "starter").length
+    );
+    document.getElementById("stat-business").textContent = String(
+      items.filter((i) => i.planId === "business").length
+    );
     document.getElementById("stat-week").textContent = String(
       items.filter((i) => new Date(i.createdAt).getTime() >= weekAgo).length
     );
   }
 
+  function updateTenantStats(ops) {
+    document.getElementById("stat-tenants-total").textContent = String(ops.length);
+    document.getElementById("stat-tenants-active").textContent = String(
+      ops.filter((o) => o.status === "active").length
+    );
+    document.getElementById("stat-tenants-pending").textContent = String(
+      ops.filter((o) => o.status === "pending").length
+    );
+    document.getElementById("stat-tenants-gaps").textContent = String(
+      ops.filter((o) => (o.complianceGaps || []).length > 0).length
+    );
+  }
+
   function prefillTenantForm(inquiry) {
+    showPanel("create");
     const form = document.getElementById("create-tenant-form");
     form.companyName.value = inquiry.companyName || "";
     form.email.value = inquiry.email || "";
@@ -96,44 +152,6 @@
       ? `Tarif-Anfrage vom ${formatDate(inquiry.createdAt)}:\n${inquiry.message}`
       : `Tarif-Anfrage vom ${formatDate(inquiry.createdAt)}`;
     form.companyName.focus();
-    form.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  async function loadInquiries() {
-    const res = await apiFetch("/api/contact/inquiries");
-    const data = await res.json();
-    const items = data.inquiries || [];
-    const tbody = document.getElementById("inquiries-body");
-    const emptyEl = document.getElementById("inquiries-empty");
-    tbody.innerHTML = "";
-    updateInquiryStats(items);
-
-    if (!items.length) {
-      emptyEl.classList.remove("hidden");
-      return;
-    }
-
-    emptyEl.classList.add("hidden");
-    for (const inquiry of items) {
-      const tr = document.createElement("tr");
-      const mailSubject = encodeURIComponent(`Luckys Taxi App — Tarif ${planLabel(inquiry.planId)}`);
-      tr.innerHTML = `
-        <td>${escapeHtml(formatDate(inquiry.createdAt))}</td>
-        <td><strong>${escapeHtml(inquiry.companyName)}</strong></td>
-        <td><a href="mailto:${escapeHtml(inquiry.email)}">${escapeHtml(inquiry.email)}</a></td>
-        <td>${escapeHtml(planLabel(inquiry.planId))}</td>
-        <td class="inquiry-message">${escapeHtml(inquiry.message || "—")}</td>
-        <td>
-          <button type="button" class="btn-sm btn-secondary reply-inquiry">Antworten</button>
-          <button type="button" class="btn-sm btn-primary use-inquiry">Als Mandant</button>
-        </td>
-      `;
-      tr.querySelector(".reply-inquiry")?.addEventListener("click", () => {
-        window.location.href = `mailto:${inquiry.email}?subject=${mailSubject}`;
-      });
-      tr.querySelector(".use-inquiry")?.addEventListener("click", () => prefillTenantForm(inquiry));
-      tbody.appendChild(tr);
-    }
   }
 
   async function openAuthDocument(url) {
@@ -146,7 +164,7 @@
     window.open(URL.createObjectURL(blob), "_blank", "noopener");
   }
 
-  function complianceCell(op) {
+  function complianceBlock(op) {
     const docs = op.documents || {};
     const gaps = op.complianceGaps || [];
     const concUrl = `/api/fleet/operators/${encodeURIComponent(op.slug)}/documents/concessionDocument`;
@@ -154,78 +172,141 @@
     const docButtons = [];
     if (docs.concessionDocument?.present) {
       docButtons.push(
-        `<button type="button" class="btn-sm btn-secondary open-doc" data-url="${escapeHtml(concUrl)}">Konzession</button>`
+        `<button type="button" class="btn btn-ghost btn-sm open-doc" data-url="${escapeHtml(concUrl)}">Konzession</button>`
       );
     }
     if (docs.ownerPScheinDocument?.present) {
       docButtons.push(
-        `<button type="button" class="btn-sm btn-secondary open-doc" data-url="${escapeHtml(ownerUrl)}">P-Schein Inhaber</button>`
+        `<button type="button" class="btn btn-ghost btn-sm open-doc" data-url="${escapeHtml(ownerUrl)}">P-Schein</button>`
       );
     }
     return `
-      <div class="compliance-box">
+      <div class="compliance">
         <div><strong>Konz.-Nr.:</strong> ${escapeHtml(op.concessionNumber || "—")}</div>
         <div><strong>Behörde:</strong> ${escapeHtml(op.concessionAuthority || "—")}</div>
         <div><strong>gültig bis:</strong> ${escapeHtml(op.concessionValidUntil || "—")}</div>
-        ${op.ownerHasPSchein ? `<div><strong>Inhaber-P-Schein:</strong> ${escapeHtml(op.ownerPScheinNumber || "—")}</div>` : ""}
-        <div class="doc-row">${docButtons.join(" ") || "<em>keine Uploads</em>"}</div>
+        ${
+          op.ownerHasPSchein
+            ? `<div><strong>Inhaber-P-Schein:</strong> ${escapeHtml(op.ownerPScheinNumber || "—")}</div>`
+            : ""
+        }
+        <div class="chip-row" style="margin-top:0.4rem">${docButtons.join("") || "<em>keine Uploads</em>"}</div>
         ${
           gaps.length
             ? `<div class="warn">Fehlt: ${escapeHtml(gaps.join(", "))}</div>`
             : `<div class="ok">Nachweise vollständig</div>`
         }
-        <button type="button" class="btn-sm btn-secondary show-drivers" data-slug="${escapeHtml(op.slug)}" style="margin-top:0.4rem">Fahrer-Nachweise</button>
-        <div class="admin-detail-panel hidden" data-drivers-panel="${escapeHtml(op.slug)}"></div>
+        <button type="button" class="btn btn-ghost btn-sm show-drivers" data-slug="${escapeHtml(op.slug)}" style="margin-top:0.45rem">Fahrer-Nachweise</button>
+        <div class="driver-panel hidden" data-drivers-panel="${escapeHtml(op.slug)}"></div>
       </div>
     `;
+  }
+
+  async function loadInquiries() {
+    const res = await apiFetch("/api/contact/inquiries");
+    const data = await res.json();
+    const items = data.inquiries || [];
+    const list = document.getElementById("inquiries-list");
+    const emptyEl = document.getElementById("inquiries-empty");
+    list.innerHTML = "";
+    updateInquiryStats(items);
+
+    if (!items.length) {
+      emptyEl.classList.remove("hidden");
+      return;
+    }
+    emptyEl.classList.add("hidden");
+
+    for (const inquiry of items) {
+      const item = document.createElement("article");
+      item.className = "inquiry-item";
+      const mailSubject = encodeURIComponent(`Luckys Taxi App — Tarif ${planLabel(inquiry.planId)}`);
+      item.innerHTML = `
+        <div>
+          <div class="chip-row">
+            <strong>${escapeHtml(inquiry.companyName)}</strong>
+            <span class="badge badge-pending">${escapeHtml(planLabel(inquiry.planId))}</span>
+          </div>
+          <div class="meta">${escapeHtml(formatDate(inquiry.createdAt))} · <a href="mailto:${escapeHtml(inquiry.email)}">${escapeHtml(inquiry.email)}</a></div>
+          <p>${escapeHtml(inquiry.message || "—")}</p>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost btn-sm reply-inquiry">Antworten</button>
+          <button type="button" class="btn btn-navy btn-sm use-inquiry">Als Mandant</button>
+        </div>
+      `;
+      item.querySelector(".reply-inquiry")?.addEventListener("click", () => {
+        window.location.href = `mailto:${inquiry.email}?subject=${mailSubject}`;
+      });
+      item.querySelector(".use-inquiry")?.addEventListener("click", () => prefillTenantForm(inquiry));
+      list.appendChild(item);
+    }
   }
 
   async function loadTenants() {
     const res = await apiFetch("/api/fleet/operators");
     const data = await res.json();
-    const tbody = document.getElementById("tenants-body");
-    tbody.innerHTML = "";
+    const ops = data.operators || [];
+    const grid = document.getElementById("tenants-grid");
+    const emptyEl = document.getElementById("tenants-empty");
+    grid.innerHTML = "";
+    updateTenantStats(ops);
 
-    for (const op of data.operators || []) {
-      const tr = document.createElement("tr");
+    if (!ops.length) {
+      emptyEl.classList.remove("hidden");
+      return;
+    }
+    emptyEl.classList.add("hidden");
+
+    for (const op of ops) {
+      const card = document.createElement("article");
+      card.className = "tenant-card";
       const links = op.links || {};
-      tr.innerHTML = `
-        <td>
-          <strong>${escapeHtml(op.companyName)}</strong><br>
-          <code>${escapeHtml(op.slug)}</code>
-          ${op.billingEmail ? `<br><small>${escapeHtml(op.billingEmail)}</small>` : ""}
-          <br><small>${op.stripeConnectAccountId ? "Connect: " + escapeHtml(op.stripeConnectAccountId) : "Connect: nicht verbunden"}</small>
-        </td>
-        <td>${statusBadge(op.status)}<br><small>${op.hasDispatchPin ? "PIN gesetzt" : "kein PIN"}</small></td>
-        <td>${escapeHtml(op.planId || "starter")}<br><small>${op.maxDrivers == null ? "∞ Fahrer" : op.maxDrivers + " Fahrer"}</small></td>
-        <td>${complianceCell(op)}</td>
-        <td>
-          <ul class="link-list">
-            <li><a href="${links.dispatch || "#"}" target="_blank">Leitstelle</a></li>
-            <li><a href="${links.settings || "#"}" target="_blank">Einstellungen</a></li>
-            <li><a href="${links.book || "#"}" target="_blank">Buchung</a></li>
-            <li><a href="${links.qr || "#"}" target="_blank">QR</a></li>
-            <li><a href="${links.driverOnboard || "#"}" target="_blank">Fahrer-Registrierung</a></li>
-          </ul>
-          <button type="button" class="btn-sm btn-secondary copy-links" data-slug="${escapeHtml(op.slug)}">Links kopieren</button>
-        </td>
-        <td>
-          ${op.status !== "active" ? `<button type="button" class="btn-sm btn-success activate" data-slug="${escapeHtml(op.slug)}">Aktivieren</button> ` : ""}
-          ${op.status === "active" ? `<button type="button" class="btn-sm btn-danger suspend" data-slug="${escapeHtml(op.slug)}">Sperren</button>` : ""}
-          <button type="button" class="btn-sm btn-primary connect-onboard" data-slug="${escapeHtml(op.slug)}">Stripe Connect</button>
-        </td>
+      card.innerHTML = `
+        <div>
+          <div class="chip-row" style="justify-content:space-between">
+            <h3>${escapeHtml(op.companyName)}</h3>
+            ${statusBadge(op.status)}
+          </div>
+          <div class="meta">
+            <code>${escapeHtml(op.slug)}</code>
+            ${op.billingEmail ? ` · ${escapeHtml(op.billingEmail)}` : ""}<br>
+            ${escapeHtml(op.planId || "starter")} · ${op.maxDrivers == null ? "∞ Fahrer" : op.maxDrivers + " Fahrer"}
+            · ${op.hasDispatchPin ? "PIN gesetzt" : "kein PIN"}<br>
+            ${op.stripeConnectAccountId ? "Connect: " + escapeHtml(op.stripeConnectAccountId) : "Connect: nicht verbunden"}
+          </div>
+        </div>
+        ${complianceBlock(op)}
+        <div class="link-row">
+          <a href="${links.dispatch || "#"}" target="_blank" rel="noopener">Leitstelle</a>
+          <a href="${links.settings || "#"}" target="_blank" rel="noopener">Settings</a>
+          <a href="${links.book || "#"}" target="_blank" rel="noopener">Buchung</a>
+          <a href="${links.qr || "#"}" target="_blank" rel="noopener">QR</a>
+          <a href="${links.driverOnboard || "#"}" target="_blank" rel="noopener">Fahrer-Reg.</a>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost btn-sm copy-links">Links kopieren</button>
+          ${
+            op.status !== "active"
+              ? `<button type="button" class="btn btn-ok btn-sm activate">Aktivieren</button>`
+              : `<button type="button" class="btn btn-bad btn-sm suspend">Sperren</button>`
+          }
+          <button type="button" class="btn btn-navy btn-sm connect-onboard">Stripe Connect</button>
+        </div>
       `;
-      tr.querySelector(".copy-links")?.addEventListener("click", () => {
-        const text = [
-          `Leitstelle: ${links.dispatch}`,
-          `Einstellungen: ${links.settings}`,
-          `Buchung: ${links.book}`,
-          `QR: ${links.qr}`,
-          `Fahrer-Registrierung: ${links.driverOnboard || ""}`,
-        ].join("\n");
-        copyText(text);
+
+      card.querySelector(".copy-links")?.addEventListener("click", () => {
+        copyText(
+          [
+            `Leitstelle: ${links.dispatch}`,
+            `Einstellungen: ${links.settings}`,
+            `Buchung: ${links.book}`,
+            `QR: ${links.qr}`,
+            `Fahrer-Registrierung: ${links.driverOnboard || ""}`,
+          ].join("\n")
+        );
       });
-      tr.querySelector(".activate")?.addEventListener("click", () => {
+      card.querySelector(".activate")?.addEventListener("click", () => {
         if (op.complianceGaps?.length) {
           const ok = confirm(
             `Nachweise unvollständig (${op.complianceGaps.join(", ")}). Trotzdem aktivieren?`
@@ -234,15 +315,19 @@
         }
         patchTenant(op.slug, { status: "active" });
       });
-      tr.querySelector(".suspend")?.addEventListener("click", () => patchTenant(op.slug, { status: "suspended" }));
-      tr.querySelector(".connect-onboard")?.addEventListener("click", () => startConnectOnboard(op.slug));
-      tr.querySelectorAll(".open-doc").forEach((btn) => {
+      card.querySelector(".suspend")?.addEventListener("click", () =>
+        patchTenant(op.slug, { status: "suspended" })
+      );
+      card.querySelector(".connect-onboard")?.addEventListener("click", () =>
+        startConnectOnboard(op.slug)
+      );
+      card.querySelectorAll(".open-doc").forEach((btn) => {
         btn.addEventListener("click", () => {
           openAuthDocument(btn.getAttribute("data-url")).catch((err) => alert(err.message));
         });
       });
-      tr.querySelector(".show-drivers")?.addEventListener("click", async () => {
-        const panel = tr.querySelector(`[data-drivers-panel="${op.slug}"]`);
+      card.querySelector(".show-drivers")?.addEventListener("click", async () => {
+        const panel = card.querySelector(`[data-drivers-panel="${op.slug}"]`);
         if (!panel) return;
         if (!panel.classList.contains("hidden") && panel.dataset.loaded === "1") {
           panel.classList.add("hidden");
@@ -258,27 +343,30 @@
           if (!list.length) {
             panel.innerHTML = "<p>Keine Fahrer hinterlegt.</p>";
           } else {
-            panel.innerHTML = `<h4>Fahrer (${list.length})</h4><ul>${list
+            panel.innerHTML = `<strong>Fahrer (${list.length})</strong><ul>${list
               .map((d) => {
                 const docs = d.documents || {};
                 const buttons = [];
                 if (docs.photo?.present) {
                   buttons.push(
-                    `<button type="button" class="btn-sm btn-secondary open-doc" data-url="/api/drivers/${encodeURIComponent(d.driverId)}/documents/photo">Foto</button>`
+                    `<button type="button" class="btn btn-ghost btn-sm open-doc" data-url="/api/drivers/${encodeURIComponent(d.driverId)}/documents/photo">Foto</button>`
                   );
                 }
                 if (docs.pScheinDocument?.present) {
                   buttons.push(
-                    `<button type="button" class="btn-sm btn-secondary open-doc" data-url="/api/drivers/${encodeURIComponent(d.driverId)}/documents/pScheinDocument">P-Schein</button>`
+                    `<button type="button" class="btn btn-ghost btn-sm open-doc" data-url="/api/drivers/${encodeURIComponent(d.driverId)}/documents/pScheinDocument">P-Schein</button>`
                   );
                 }
                 if (docs.licenseDocument?.present) {
                   buttons.push(
-                    `<button type="button" class="btn-sm btn-secondary open-doc" data-url="/api/drivers/${encodeURIComponent(d.driverId)}/documents/licenseDocument">Führerschein</button>`
+                    `<button type="button" class="btn btn-ghost btn-sm open-doc" data-url="/api/drivers/${encodeURIComponent(d.driverId)}/documents/licenseDocument">Führerschein</button>`
                   );
                 }
-                const pending = d.status === "pending" ? " · <strong style=\"color:#92400e\">pending</strong>" : "";
-                return `<li><strong>${escapeHtml(d.name)}</strong>${pending} · Taxi ${escapeHtml(d.taxiNumber || "—")} · ${escapeHtml(d.vehicle || "—")}<br>P-Schein: ${escapeHtml(d.pScheinNumber || "—")} bis ${escapeHtml(d.pScheinValidUntil || "—")}<br>${buttons.join(" ") || "<em>keine Uploads</em>"}</li>`;
+                const pending =
+                  d.status === "pending"
+                    ? ' · <strong style="color:#92400e">pending</strong>'
+                    : "";
+                return `<li><strong>${escapeHtml(d.name)}</strong>${pending} · Taxi ${escapeHtml(d.taxiNumber || "—")} · ${escapeHtml(d.vehicle || "—")}<br>P-Schein: ${escapeHtml(d.pScheinNumber || "—")}<br>${buttons.join(" ") || "<em>keine Uploads</em>"}</li>`;
               })
               .join("")}</ul>`;
             panel.querySelectorAll(".open-doc").forEach((btn) => {
@@ -292,7 +380,8 @@
           panel.innerHTML = `<p class="warn">${escapeHtml(err.message)}</p>`;
         }
       });
-      tbody.appendChild(tr);
+
+      grid.appendChild(card);
     }
   }
 
@@ -307,17 +396,7 @@
       alert(data.error || "Connect-Onboarding fehlgeschlagen");
       return;
     }
-    if (data.url) {
-      window.location.href = data.url;
-    }
-  }
-
-  function escapeHtml(value) {
-    return String(value || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+    if (data.url) window.location.href = data.url;
   }
 
   async function patchTenant(slug, patch) {
@@ -334,6 +413,14 @@
     await loadTenants();
   }
 
+  async function refreshAll() {
+    await Promise.all([loadTenants(), loadInquiries()]);
+  }
+
+  document.querySelectorAll(".nav-btn").forEach((btn) => {
+    btn.addEventListener("click", () => showPanel(btn.getAttribute("data-panel")));
+  });
+
   document.getElementById("admin-login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const errEl = document.getElementById("admin-login-error");
@@ -345,7 +432,8 @@
       const res = await apiFetch("/api/fleet/operators");
       if (!res.ok) throw new Error("Zugriff verweigert");
       showApp();
-      await Promise.all([loadTenants(), loadInquiries()]);
+      showPanel("tenants");
+      await refreshAll();
     } catch (err) {
       clearPin();
       errEl.textContent = err.message;
@@ -366,6 +454,14 @@
     }
   });
 
+  document.getElementById("refresh-all").addEventListener("click", async () => {
+    try {
+      await refreshAll();
+    } catch (err) {
+      alert(err.message || "Aktualisieren fehlgeschlagen.");
+    }
+  });
+
   document.getElementById("create-tenant-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const errEl = document.getElementById("create-error");
@@ -382,6 +478,7 @@
       if (!res.ok) throw new Error(data.error || "Anlegen fehlgeschlagen");
       e.target.reset();
       await loadTenants();
+      showPanel("tenants");
       if (data.links) {
         copyText(
           [
@@ -389,6 +486,7 @@
             `Einstellungen: ${data.links.settings}`,
             `Buchung: ${data.links.book}`,
             `QR: ${data.links.qr}`,
+            `Fahrer-Registrierung: ${data.links.driverOnboard || ""}`,
           ].join("\n")
         );
         alert(`Mandant „${data.operator.companyName}“ angelegt. Links in Zwischenablage kopiert.`);
@@ -404,13 +502,14 @@
       .then((res) => {
         if (res.ok) {
           showApp();
-          return Promise.all([loadTenants(), loadInquiries()]).then(() => {
+          showPanel("tenants");
+          return refreshAll().then(() => {
             const params = new URLSearchParams(window.location.search);
             const connect = params.get("connect");
             const slug = params.get("o");
             if (connect === "return" && slug) {
               alert(
-                `Stripe Connect für „${slug}“ — Onboarding abgeschlossen oder fortgesetzt. Status prüfen (Connect-ID in der Liste).`
+                `Stripe Connect für „${slug}“ — Onboarding abgeschlossen oder fortgesetzt. Status prüfen.`
               );
               history.replaceState({}, "", "admin.html");
             } else if (connect === "refresh" && slug) {
