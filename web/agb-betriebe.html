@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AGB Betriebe &amp; Fahrer — Luckys Taxi App</title>
+  <meta name="description" content="AGB für Taxi-Unternehmer und Fahrer: Plattformmiete, Provision, Stripe-Connect-Auszahlung, Nachweise.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#ffcc00">
+  <link rel="canonical" href="https://luckystaxiapp.de/agb-betriebe.html">
+  <link rel="icon" type="image/png" href="icon-taxi-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="analytics.js" defer></script>
+</head>
+<body class="legal-taxi">
+  <header class="legal-taxi-hero">
+    <h1>AGB — Betriebe &amp; Fahrer</h1>
+    <p class="note">Stand: September 2026. B2B-Bedingungen für die gemietete Plattform. Fahrgast-AGB: <a href="agb.html">agb.html</a>. Mustertext — anwaltlich prüfen lassen.</p>
+  </header>
+
+  <main class="legal-page">
+    <section class="legal-card">
+      <h2>1. Vertragspartner und Gegenstand</h2>
+      <p>
+        Vertragspartner ist <strong data-legal-company>Code &amp; Grow</strong> (Pece Carmine, Speyer — siehe
+        <a href="impressum.html">Impressum</a>). Gegenstand ist die entgeltliche Überlassung der Software-Plattform
+        <strong>Luckys Taxi App</strong> (Buchung, Leitstelle, Einstellungen, Tracking, optionale Kartenzahlung)
+        an unabhängige Taxi-Unternehmer mit gültiger Konzession („Betrieb“) sowie die Nutzung durch deren Fahrer.
+      </p>
+      <p>
+        Code &amp; Grow erbringt <strong>keine Beförderungsleistung</strong> und benötigt keine Taxikonzession.
+        Der Betrieb bleibt alleiniger Vertragspartner seiner Fahrgäste und Fahrer im Sinne des Personenbeförderungsrechts.
+      </p>
+
+      <h2>2. Voraussetzungen des Betriebs</h2>
+      <ul>
+        <li>Gültige Taxi-/Personenbeförderungs­genehmigung (Konzession) und rechtmäßige Betriebsführung</li>
+        <li>Angabe von Konzessionsnummer, Behörde und Nachweis-Uploads im Onboarding bzw. in den Einstellungen</li>
+        <li>Wahrheitsgemäße Firmendaten für Impressum und Abrechnung</li>
+        <li>Eigene Verantwortung für Versicherungen, Fahrerqualifikation (P-Schein), Fahrzeuge und Taxameter</li>
+      </ul>
+      <p>
+        Code &amp; Grow kann die Freischaltung verweigern oder ruhen lassen, wenn Nachweise fehlen oder Zweifel an der
+        Rechtmäßigkeit bestehen. Eine behördliche Prüfung ersetzt die Plattformprüfung nicht.
+      </p>
+
+      <h2>3. Leistungen und Tarife</h2>
+      <ul>
+        <li><strong>Starter:</strong> 49&nbsp;€ / Monat, bis zu 5 Fahrer/Fahrzeuge (sofern nicht anders vereinbart)</li>
+        <li><strong>Business:</strong> 99&nbsp;€ / Monat, unbegrenzte Fahrzeuge (sofern nicht anders vereinbart)</li>
+        <li>Monatlich kündbar — siehe <a href="kuendigung.html">Kündigung</a> und <a href="widerruf.html">Widerruf</a> (Verbraucher/Unternehmer je nach Status)</li>
+        <li>Abrechnung des Monatsentgelts über Stripe Billing / Checkout, soweit aktiviert</li>
+      </ul>
+      <p>
+        Enthalten sind typischerweise: Fahrgast-Buchung unter Betriebsnamen, Leitstelle, Einstellungen, QR-Link,
+        Hosting und Updates im Rahmen der Plattform. Individuelles App-Store-Branding pro Betrieb ist nicht Bestandteil
+        der Standardtarife, sofern nicht gesondert vereinbart.
+      </p>
+
+      <h2>4. Plattformgebühr auf Kartenzahlungen (Provision)</h2>
+      <p>
+        Bei Kartenzahlungen über die Plattform (Zahlungslink nach Fahrt und/oder Tap to Pay) behält Code &amp; Grow
+        eine <strong>Plattformgebühr (Application Fee)</strong> ein:
+      </p>
+      <ul>
+        <li><strong>Starter:</strong> 2,0&nbsp;% vom Kartenzahlungsbetrag der Fahrt</li>
+        <li><strong>Business:</strong> 1,5&nbsp;% vom Kartenzahlungsbetrag der Fahrt</li>
+      </ul>
+      <p>
+        Zusätzlich können Stripe-Gebühren (Kartenakquise) anfallen und vom Zahlungsdienstleister einbehalten werden.
+        Der Nettobetrag zugunsten des Betriebs wird — bei eingerichtetem <strong>Stripe Connect</strong> —
+        auf das verbundene Express-Konto des Betriebs ausgezahlt bzw. gutgeschrieben.
+        Ohne Connect können Kartenzahlungen technisch auf dem Plattformkonto landen; die Abrechnung der Fahrtvergütung
+        an den Betrieb erfolgt dann gesondert/manuell, bis Connect aktiv ist.
+      </p>
+
+      <h2>5. Auszahlung und Stripe Connect</h2>
+      <p>
+        Zur automatisierten Auszahlung schließt der Betrieb ein Stripe-Connect-Express-Onboarding ab (KYC/Bankverbindung bei Stripe).
+        Code &amp; Grow speichert die Connect-Account-ID und steuert Splits (Transfer + Application Fee).
+        Verzögerungen oder Sperren durch Stripe liegen außerhalb der Verantwortung von Code &amp; Grow, soweit nicht
+        vorsätzlich oder grob fahrlässig verursacht.
+      </p>
+
+      <h2>6. Fahrer</h2>
+      <p>
+        Fahrer können vom Betrieb in den Einstellungen angelegt oder über den betriebsbezogenen Link
+        (<code>driver-onboard.html</code>) selbst registriert werden. Erforderlich sind insbesondere Name, Kontakt,
+        Taxinummer/Kennzeichen, P-Schein-Angaben und Nachweise sowie ein Profilfoto.
+      </p>
+      <ul>
+        <li>Registrierungen können zunächst den Status <strong>pending</strong> haben und bedürfen der Freigabe durch den Betrieb.</li>
+        <li>Der Betrieb stellt sicher, dass nur berechtigte Fahrer freigeschaltet werden.</li>
+        <li>Live-Standortübertragung dient der Disposition und dem Fahrgast-Tracking und ist nur im betrieblichen Kontext zu nutzen.</li>
+      </ul>
+
+      <h2>7. Mitwirkung, Zugangsdaten, Marke</h2>
+      <p>
+        Der Betrieb schützt Leitstellen-PIN und Zugangsdaten. Er darf die Plattform nur unter eigenem Betriebsnamen nutzen
+        und keine Rechte Dritter (Marken, Logos) verletzen. Werbung und Kundenakquise vor Ort liegen beim Betrieb.
+      </p>
+
+      <h2>8. Verfügbarkeit</h2>
+      <p>
+        Die Plattform wird mit branchenüblicher Sorgfalt betrieben (Hosting z. B. Render). Es besteht keine Zusicherung
+        ununterbrochener Verfügbarkeit. Wartungen und Störungen werden nach Möglichkeit angekündigt bzw. behoben.
+      </p>
+
+      <h2>9. Haftung</h2>
+      <p>
+        Unbeschränkte Haftung bei Vorsatz, grober Fahrlässigkeit sowie Verletzung von Leben, Körper, Gesundheit.
+        Im Übrigen Haftung nur bei Verletzung wesentlicher Pflichten, begrenzt auf den vorhersehbaren, vertragstypischen Schaden —
+        maximal typischerweise die in den letzten 12 Monaten gezahlten Plattformentgelte des betroffenen Betriebs.
+        Keine Haftung für Umsatzausfälle durch fehlende Buchungen, Fahrerausfälle oder behördliche Maßnahmen gegen den Betrieb.
+      </p>
+
+      <h2>10. Datenschutz und Aufbewahrung</h2>
+      <p>
+        Verarbeitung personenbezogener Daten (Fahrgäste, Fahrer, Nachweise) gemäß
+        <a href="datenschutz.html">Datenschutzerklärung</a>. Der Betrieb ist für fahrtbezogene Daten mitverantwortlich
+        bzw. eigener Verantwortlicher im Sinne der DSGVO, soweit er die Zwecke der Beförderung bestimmt.
+        Steuerlich relevante Buchungs- und Zahlungsdaten werden im gesetzlich erforderlichen Umfang aufbewahrt
+        (siehe Datenschutz, Abschnitt Speicherdauer / Buchhaltung).
+      </p>
+
+      <h2>11. Laufzeit und Kündigung</h2>
+      <p>
+        Der Vertrag läuft auf unbestimmte Zeit mit monatlicher Abrechnung, sofern nicht anders vereinbart.
+        Ordentliche Kündigung: siehe <a href="kuendigung.html">Kündigungsseite</a>.
+        Außerordentliche Kündigung aus wichtigem Grund (z. B. fehlende Konzession, Zahlungsverzug, Missbrauch) bleibt vorbehalten.
+      </p>
+
+      <h2>12. Schlussbestimmungen</h2>
+      <p>Es gilt deutsches Recht. Gerichtsstand — soweit zulässig — Speyer. Änderungen dieser AGB werden auf dieser Seite bekannt gegeben.</p>
+
+      <h2>13. Kontakt</h2>
+      <p>
+        <span data-legal-company>Code &amp; Grow</span><br>
+        E-Mail: <a id="legal-email" href="mailto:luckypc81@gmail.com">luckypc81@gmail.com</a><br>
+        Telefon: <a id="legal-phone" href="#">—</a>
+      </p>
+    </section>
+
+    <p class="legal-back"><a href="index.html">← Zurück zur Startseite</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="agb.html">AGB Fahrgäste</a>
+      <a href="agb-betriebe.html">AGB Betriebe</a>
+      <a href="widerruf.html">Widerruf</a>
+      <a href="kuendigung.html">Kündigung</a>
+    </nav>
+  </footer>
+
+  <script src="legal-config.js"></script>
+  <script>TaxiAppLegal.loadConfig();</script>
+</body>
+</html>
