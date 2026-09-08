@@ -2920,3 +2920,5 @@ app.listen(port, host, () => {
 // redeploy: admin stay logged in localStorage 2026-09-05T21:03:00Z
 
 // redeploy: new admin dashboard 2026-09-08T20:07:40Z
+
+// redeploy: legal pages agb-betriebe 2026-09-08T20:19:00Z
