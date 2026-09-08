@@ -2918,3 +2918,5 @@ app.listen(port, host, () => {
 // redeploy: restore pause-games brain training blurb 2026-09-05T20:49:00Z
 
 // redeploy: admin stay logged in localStorage 2026-09-05T21:03:00Z
+
+// redeploy: new admin dashboard 2026-09-08T20:07:40Z
