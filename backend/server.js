@@ -2922,3 +2922,5 @@ app.listen(port, host, () => {
 // redeploy: new admin dashboard 2026-09-08T20:07:40Z
 
 // redeploy: legal pages agb-betriebe 2026-09-08T20:19:00Z
+
+// redeploy: impressum insurance section 2026-09-08T20:30:00Z
