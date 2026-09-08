@@ -44,6 +44,25 @@
       <h2>Verantwortlich für den Inhalt (§ 18 Abs. 2 MStV)</h2>
       <p id="legal-responsible">Pece Carmine, Asternweg 21, 67346 Speyer</p>
 
+      <h2>Versicherungen (Plattform)</h2>
+      <p>
+        Der Plattformanbieter <strong>Code &amp; Grow</strong> unterhält bzw. erweitert die bestehende
+        Gewerbe-/Betriebshaftpflicht um eine <strong>IT- und Software-Haftpflicht</strong>
+        (Deckung typischer Vermögensschäden im Zusammenhang mit der Softwarevermittlung,
+        z. B. Störungen der Plattform, fehlerhafte technische Auszahlungssteuerung oder
+        Unstimmigkeiten bei der digitalen Vermittlung — im Rahmen der jeweiligen Police).
+      </p>
+      <p>
+        <strong>Nicht umfasst</strong> sind die gesetzlich vorgeschriebenen Versicherungen der
+        Taxi-Betriebe (u. a. Kfz, Personenbeförderung, Fahrer). Diese bleiben alleinige Pflicht
+        der konzessionierten Unternehmer.
+      </p>
+      <p class="field-hint" style="margin-top:0.5rem">
+        Police und Deckungssummen: auf Anfrage unter
+        <a id="legal-email-insurance" href="mailto:luckypc81@gmail.com">luckypc81@gmail.com</a>
+        bzw. nach Abschluss beim Versicherungsberater nachtragen.
+      </p>
+
       <h2>Produkt</h2>
       <p>
         Software- und Vermittlungsplattform <strong>Luckys Taxi App</strong> (Web, Leitstelle, iOS-Anbindung)
@@ -120,6 +139,15 @@
   </footer>
 
   <script src="legal-config.js"></script>
-  <script>TaxiAppLegal.loadConfig();</script>
+  <script>
+    TaxiAppLegal.loadConfig().then((cfg) => {
+      const email = TaxiAppLegal.platformEmail(cfg);
+      const el = document.getElementById("legal-email-insurance");
+      if (el) {
+        el.textContent = email;
+        el.href = `mailto:${email}`;
+      }
+    });
+  </script>
 </body>
 </html>
