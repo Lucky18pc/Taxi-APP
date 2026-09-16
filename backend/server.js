@@ -1263,6 +1263,7 @@ app.get("/api/offering", (_req, res) => {
 app.get("/api/billing/config", (_req, res) => {
   res.json({
     enabled: isBillingConfigured(),
+    trialDays: 14,
     plans: offering.operators?.plans?.map((plan) => ({
       id: plan.id,
       name: plan.name,
@@ -1301,8 +1302,9 @@ app.post("/api/billing/checkout", async (req, res) => {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/billing-success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/index.html#operators`,
-      metadata: { planId, companyName },
+      metadata: { planId, companyName, trialDays: "14" },
       subscription_data: {
+        trial_period_days: 14,
         metadata: { planId, companyName },
       },
       billing_address_collection: "required",

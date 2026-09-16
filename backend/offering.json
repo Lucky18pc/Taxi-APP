@@ -1,7 +1,7 @@
 {
   "productName": "Luckys Taxi App",
   "tagline": "Taxi bestellen. Fahren. Bezahlen.",
-  "billingNote": "Alle Unternehmer-Tarife monatlich kündbar — keine Mindestlaufzeit.",
+  "billingNote": "14 Tage unverbindlich testen — danach monatlich kündbar, keine Mindestlaufzeit.",
   "billing": {
     "invoiceDelivery": "Stripe sendet Rechnungen automatisch per E-Mail, sobald Billing live ist.",
     "contactFallback": "Ohne Stripe: Tarif-Anfrage per Kontaktformular — Rechnung manuell über Lexoffice/sevDesk."

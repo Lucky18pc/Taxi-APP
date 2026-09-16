@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Plattform mieten für Taxi-Betriebe | Luckys Taxi App</title>
-  <meta name="description" content="Luckys vermietet die Taxi-Plattform an Betriebe mit Konzession: Leitstelle und Online-Buchung unter Ihrem Namen. Ab 49 €/Monat, monatlich kündbar.">
+  <meta name="description" content="Luckys vermietet die Taxi-Plattform an Betriebe mit Konzession: Leitstelle und Online-Buchung unter Ihrem Namen. 14 Tage testen, danach ab 49 €/Monat, monatlich kündbar.">
   <link rel="canonical" href="https://luckystaxiapp.de/onboard.html">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#ffcc00">
@@ -135,7 +135,7 @@
   <header class="onboard-hero">
     <p class="hero-badge" data-i18n="onboard.badge">Plattform mieten</p>
     <h1 data-i18n="onboard.h1">Plattform mieten</h1>
-    <p class="onboard-lead" data-i18n="onboard.lead">Luckys ist Plattformanbieter — keine eigene Taxikonzession. Sie mieten Leitstelle, Browser-Buchung und App unter Ihrem Betriebsnamen. Für die Freischaltung brauchen wir Konzessionsdaten (und optional Fahrer-Nachweise). Ihre Fahrgäste zahlen nach Taxameter bar oder per Kartenzahlung.</p>
+    <p class="onboard-lead" data-i18n="onboard.lead">Luckys ist Plattformanbieter — keine eigene Taxikonzession. Sie mieten Leitstelle, Browser-Buchung und App unter Ihrem Betriebsnamen. <strong>14 Tage unverbindlich testen</strong>, danach monatlich kündbar. Für die Freischaltung brauchen wir Konzessionsdaten (und optional Fahrer-Nachweise). Ihre Fahrgäste zahlen nach Taxameter bar oder per Kartenzahlung.</p>
   </header>
 
   <main class="onboard-wrap">
@@ -174,8 +174,8 @@
         <div class="field">
           <label for="planId" data-i18n="onboard.plan">Gewünschter Tarif</label>
           <select id="planId" name="planId">
-            <option value="starter" data-i18n="onboard.planStarter">Starter — 49 €/Monat (bis 5 Fahrzeuge)</option>
-            <option value="business" data-i18n="onboard.planBusiness">Business — 99 €/Monat (unbegrenzt)</option>
+            <option value="starter" data-i18n="onboard.planStarter">Starter — 14 Tage testen, danach 49 €/Monat (bis 5 Fahrzeuge)</option>
+            <option value="business" data-i18n="onboard.planBusiness">Business — 14 Tage testen, danach 99 €/Monat (unbegrenzt)</option>
           </select>
         </div>
 
@@ -255,7 +255,7 @@
           <input id="driverLicenseDocument" name="driverLicenseDocument" type="file" accept="image/jpeg,image/png,application/pdf">
         </div>
 
-        <button type="submit" class="btn" id="submit-btn" data-i18n="onboard.submit">Anfrage senden</button>
+        <button type="submit" class="btn" id="submit-btn" data-i18n="onboard.submit">14 Tage Test anfragen</button>
         <p class="field-hint" style="margin-top:0.75rem">
           Mit dem Absenden akzeptieren Sie die
           <a href="agb-betriebe.html">AGB für Betriebe &amp; Fahrer</a>
@@ -327,12 +327,20 @@
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Anfrage fehlgeschlagen");
 
+        if (typeof window.luckysTrack === "function") {
+          window.luckysTrack("generate_lead", {
+            plan_id: formData.get("planId") || "onboard",
+            lead_source: "onboard_register",
+          });
+        }
+
         if (data.message) {
           document.getElementById("result-message").textContent = data.message;
         }
         resultBox.classList.add("visible");
         form.reset();
         syncOwnerPSchein();
+
       } catch (err) {
         errorEl.textContent = err.message;
         errorEl.hidden = false;

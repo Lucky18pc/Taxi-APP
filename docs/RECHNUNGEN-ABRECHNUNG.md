@@ -63,7 +63,13 @@ Stripe erstellt **Rechnungen (Invoices)** und kann sie **automatisch per E-Mail*
 | `STRIPE_PRICE_BUSINESS` | `price_…` | Business-Abo |
 | `PUBLIC_BASE_URL` | `https://taxiapp-api.onrender.com` | Checkout Redirect |
 
-Nach Deploy: Startseite → **Jetzt abonnieren** (wenn Stripe konfiguriert) oder **Tarif anfragen** (Kontaktformular als Fallback).
+Nach Deploy: Startseite → **14 Tage gratis starten** (wenn Stripe konfiguriert) oder **Tarif anfragen** (Kontaktformular als Fallback).
+
+### 14 Tage Testphase (automatisch)
+
+Beim Online-Checkout setzt das Backend `trial_period_days: 14`. Stripe zieht in den ersten 14 Tagen kein Monatsentgelt ein; danach startet das Abo (49 € / 99 €). Im Dashboard erscheint der Status zunächst als **trialing**.
+
+Im Stripe-Dashboard musst du dafür **keine** extra Trial-Einstellung am Produkt setzen — sie kommt aus dem Code.
 
 ### Operatoren einsehen
 

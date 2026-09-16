@@ -4,7 +4,7 @@ import Foundation
 enum BusinessOffering {
     static let productName = "Luckys Taxi App"
     static let tagline = "Taxi bestellen. Fahren. Bezahlen."
-    static let billingNote = "Alle Unternehmer-Tarife monatlich kündbar — keine Mindestlaufzeit."
+    static let billingNote = "14 Tage unverbindlich testen — danach monatlich kündbar, keine Mindestlaufzeit."
     static let partnerEmail = "luckypc81@gmail.com"
 
     /// Startseite mit Unternehmer-Tarifen (Browser-Buchung / Anfrage-Formular).

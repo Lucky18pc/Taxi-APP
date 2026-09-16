@@ -1,6 +1,8 @@
 # Vermietung — Taxi-Betriebe manuell onboarden
 
-Anleitung für dich als **Plattformbetreiber**: Taxi-Unternehmen mieten die Software (49 € / 99 € monatlich per Lexoffice), du richtest den Mandanten ein und übergibst Leitstelle, QR und App mit **Runtime-Branding**.
+Anleitung für dich als **Plattformbetreiber**: Taxi-Unternehmen mieten die Software (14 Tage testen, danach 49 € / 99 € monatlich), du richtest den Mandanten ein und übergibst Leitstelle, QR und App mit **Runtime-Branding**.
+
+**Betriebe gewinnen (Outreach, Pitch, Liste):** [`BETRIEBE-AKQUISE.md`](BETRIEBE-AKQUISE.md)
 
 Live-Backend: **https://taxiapp-api.onrender.com**
 
