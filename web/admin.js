@@ -16,7 +16,7 @@
     },
     analytics: {
       title: "Analytics",
-      sub: "Besucherstatistik über Google Analytics.",
+      sub: "Primär: Tarif-Anfragen. Zusätzlich Website-Besucher in Google Analytics.",
     },
   };
 
@@ -292,6 +292,7 @@
               : `<button type="button" class="btn btn-bad btn-sm suspend">Sperren</button>`
           }
           <button type="button" class="btn btn-navy btn-sm connect-onboard">Stripe Connect</button>
+          <button type="button" class="btn btn-bad btn-sm delete-tenant">Löschen</button>
         </div>
       `;
 
@@ -321,6 +322,13 @@
       card.querySelector(".connect-onboard")?.addEventListener("click", () =>
         startConnectOnboard(op.slug)
       );
+      card.querySelector(".delete-tenant")?.addEventListener("click", () => {
+        const ok = confirm(
+          `Betrieb „${op.companyName}“ (${op.slug}) wirklich löschen?\n\nNachweise und zugehörige Fahrer werden mitgelöscht. Das kann nicht rückgängig gemacht werden.`
+        );
+        if (!ok) return;
+        deleteTenant(op.slug);
+      });
       card.querySelectorAll(".open-doc").forEach((btn) => {
         btn.addEventListener("click", () => {
           openAuthDocument(btn.getAttribute("data-url")).catch((err) => alert(err.message));
@@ -413,12 +421,28 @@
     await loadTenants();
   }
 
+  async function deleteTenant(slug) {
+    const res = await apiFetch(`/api/fleet/operators/${encodeURIComponent(slug)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err.error || "Löschen fehlgeschlagen");
+      return;
+    }
+    await loadTenants();
+  }
+
   async function refreshAll() {
     await Promise.all([loadTenants(), loadInquiries()]);
   }
 
   document.querySelectorAll(".nav-btn").forEach((btn) => {
     btn.addEventListener("click", () => showPanel(btn.getAttribute("data-panel")));
+  });
+
+  document.querySelectorAll("[data-panel-jump]").forEach((btn) => {
+    btn.addEventListener("click", () => showPanel(btn.getAttribute("data-panel-jump")));
   });
 
   document.getElementById("admin-login-form").addEventListener("submit", async (e) => {

@@ -1499,6 +1499,55 @@ app.patch("/api/fleet/operators/:slug", requireAdmin, async (req, res) => {
   }
 });
 
+app.delete("/api/fleet/operators/:slug", requireAdmin, (req, res) => {
+  try {
+    const slug = String(req.params.slug || "").trim().toLowerCase();
+    const existing = fleet.findBySlug(slug);
+    if (!existing) {
+      return res.status(404).json({ error: "Operator not found" });
+    }
+
+    const docs = existing.documents || {};
+    for (const meta of Object.values(docs)) {
+      if (meta) deleteDocumentFile(dataDir, meta);
+    }
+
+    const keptDrivers = [];
+    for (const driver of drivers) {
+      if (driver.operatorId === existing.operatorId) {
+        const driverDocs = driver.documents || {};
+        for (const meta of Object.values(driverDocs)) {
+          if (meta) deleteDocumentFile(dataDir, meta);
+        }
+      } else {
+        keptDrivers.push(driver);
+      }
+    }
+    if (keptDrivers.length !== drivers.length) {
+      drivers.length = 0;
+      drivers.push(...keptDrivers);
+      saveDriversConfig();
+    }
+
+    const removed = fleet.deleteOperator(slug);
+    if (!removed) {
+      return res.status(404).json({ error: "Operator not found" });
+    }
+
+    res.json({
+      ok: true,
+      deleted: {
+        slug: removed.slug,
+        companyName: removed.companyName,
+        operatorId: removed.operatorId,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Delete failed" });
+  }
+});
+
 app.get("/api/compliance", requireAdmin, (req, res) => {
   const operator = resolveFleetOperatorFromRequest(req);
   if (!operator) {

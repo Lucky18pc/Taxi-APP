@@ -519,6 +519,15 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     return operator;
   }
 
+  function deleteOperator(slug) {
+    const key = String(slug || "").trim().toLowerCase();
+    const index = state.operators.findIndex((op) => op.slug === key);
+    if (index < 0) return null;
+    const [removed] = state.operators.splice(index, 1);
+    save(state.operators);
+    return removed;
+  }
+
   function createOperator(input) {
     const companyName = String(input.companyName || "").trim();
     const centralPhone = String(input.centralPhone || "").trim();
@@ -668,6 +677,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     complianceSummary,
     driverLimitFor,
     updateOperator,
+    deleteOperator,
     createOperator,
     pinRequiredForOperator,
     anyOperatorPinRequired,
