@@ -70,12 +70,20 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Anfrage fehlgeschlagen");
 
+        if (typeof window.luckysTrack === "function") {
+          window.luckysTrack("generate_lead", {
+            plan_id: planId,
+            lead_source: "index_tarif_anfrage",
+          });
+        }
+
         setStatus(
           (window.LuckysI18n && window.LuckysI18n.t("billing.thanks")) ||
             "Danke! Ihre Anfrage ist eingegangen — wir melden uns per E-Mail.",
           false
         );
         form.reset();
+
       } catch (error) {
         setStatus(error.message || (window.LuckysI18n && window.LuckysI18n.t("billing.error")) || "Es ist ein Fehler aufgetreten.", true);
       } finally {
