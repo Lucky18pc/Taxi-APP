@@ -77,7 +77,7 @@ Deshalb waren offene Rechts- und Sicherheitsfragen dort **Prüfaufträge**, kein
 | P1 | Linguistik: zwei Wege Betrieb / Fahrgast; Hinweisboxen + Badge-Kontrast | erledigt 19.09. (`index.html` / `styles.css`) |
 | P1 | Preislogik + 1,9 %-Gebühr erklärt (Beispiele 1/2/5; AGB synchron) | erledigt 19.09. — Tarif bleibt 9,90/+9 (kein Flat-Preis-Wechsel) |
 | P1 | „Eigene App“-Versprechen präzisiert (PWA heute; Store folgt; Account Code & Grow) | erledigt 19.09. — [TESTFLIGHT.md](TESTFLIGHT.md) |
-| P1 | Öffentliche E-Mail → `kontakt@luckystaxiapp.de` | erledigt 19.09. — DNS/SPF/DKIM noch manuell: [EMAIL-MARKENADRESSE.md](EMAIL-MARKENADRESSE.md) |
+| P1 | Öffentliche E-Mail → `kontakt@luckystaxiapp.de` | erledigt — Code + Strato-Weiterleitung; SPF/DKIM nur optional beim Absenden |
 | P1 | Footer nach Zielgruppen + Betreiberzugang | erledigt 19.09. — `betrieb.html` |
 | P1 | Hero-Vorschaubilder: 1,7 MB-PNG weg, WebP + lazy | erledigt 19.09. |
 | P1 | Geocoding: Proxy + Datenschutz + Attribution | erledigt 19.09. — [GEOCODING.md](GEOCODING.md) |
