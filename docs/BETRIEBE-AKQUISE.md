@@ -4,7 +4,9 @@
 **Primäre KPI:** Tarif-Anfragen / Woche → [admin.html](https://luckystaxiapp.de/admin.html) → Anfragen.  
 **Anfrage-Link:** https://luckystaxiapp.de/onboard.html
 
-Siehe auch: [GOOGLE-ANALYTICS.md](GOOGLE-ANALYTICS.md), [VERMIETUNG.md](VERMIETUNG.md).
+Siehe auch: [GOOGLE-ANALYTICS.md](GOOGLE-ANALYTICS.md), [VERMIETUNG.md](VERMIETUNG.md), [STRATO-SICHTBARKEIT.md](STRATO-SICHTBARKEIT.md).
+
+**Wichtig:** Wenige Website-Besucher heißen nicht „falsches Hosting“. Domain/DNS bei Strato und immer-waches Render helfen der Erkennung — **Umsatz** kommt aus Gesprächen mit Betrieben (dieses Doc), nicht aus Seitenaufrufen allein.
 
 ---
 

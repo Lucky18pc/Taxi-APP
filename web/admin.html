@@ -412,12 +412,17 @@
 
       <section id="panel-analytics" class="panel">
         <div class="card">
-          <div class="card-head"><h2>Besucherstatistik</h2></div>
+          <div class="card-head"><h2>Erfolgszahlen</h2></div>
           <div class="ga-box">
-            <p class="meta" style="margin:0;max-width:28rem">
-              Besucherzahlen siehst du in Google Analytics. Tarif-Anfragen stehen unter „Anfragen“.
+            <p class="meta" style="margin:0;max-width:32rem">
+              <strong>Primär:</strong> Tarif-Anfragen unter „Anfragen“ (Betriebe gewinnen).<br>
+              <strong>Sekundär:</strong> GA4-Ereignis <code>generate_lead</code> und allgemeine Besucherzahlen in Google Analytics.
+              Aufrufe „Taxi bestellen“ sind kein Erfolgsmaßstab.
             </p>
-            <a class="btn btn-yellow btn-sm" href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics öffnen</a>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+              <button type="button" class="btn btn-navy btn-sm" data-panel-jump="inquiries">Zu Anfragen</button>
+              <a class="btn btn-yellow btn-sm" href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics öffnen</a>
+            </div>
           </div>
         </div>
       </section>

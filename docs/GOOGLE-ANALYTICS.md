@@ -1,6 +1,16 @@
-# Google Analytics — Besucherstatistik
+# Google Analytics — Besucherstatistik & B2B-Leads
 
-So siehst du, **wie viele Leute** `luckystaxiapp.de` besuchen (nicht nur Tarif-Anfragen).
+## Erfolgszahl (Priorität)
+
+| Rang | Kennzahl | Wo |
+|------|----------|-----|
+| **1 (primär)** | **Tarif-Anfragen / Woche** | [admin.html](https://luckystaxiapp.de/admin.html) → **Anfragen** |
+| 2 | Event `generate_lead` | Google Analytics → Ereignisse |
+| 3 | Seitenaufrufe / aktive Nutzer | Google Analytics (nur Kontext) |
+
+**Nicht** als Erfolgsmaßstab: Aufrufe „Taxi bestellen“, Stadtseiten, internationale Besucher.
+
+Website-Traffic ohne Anfragen bringt kaum Abo-Umsatz — Luckys gewinnt **Betriebe**, nicht Fahrgäste.
 
 ## 1. Google Analytics einrichten (einmalig)
 
@@ -15,6 +25,20 @@ So siehst du, **wie viele Leute** `luckystaxiapp.de` besuchen (nicht nur Tarif-A
    - Name: `Luckys Taxi Web`  
 5. **Mess-ID** kopieren — beginnt mit **`G-`** (z. B. `G-ABC123XYZ`)
 
+## 1b. Google Search Console (Sichtbarkeit / Index)
+
+Damit Google `luckystaxiapp.de` zuverlässig erkennt (nicht nur Analytics-Hits):
+
+1. https://search.google.com/search-console → Property `https://luckystaxiapp.de` oder Domain `luckystaxiapp.de`
+2. Inhaberschaft per **DNS-TXT bei Strato** bestätigen (Domainverwaltung → DNS)
+3. **Sitemaps** → `https://luckystaxiapp.de/sitemap.xml` einreichen
+
+Schritt-für-Schritt inkl. Strato-DNS und Render Starter: [STRATO-SICHTBARKEIT.md](STRATO-SICHTBARKEIT.md)
+
+```bash
+bash ~/Projects/TaxiApp/scripts/strato-sichtbarkeit-check.sh
+```
+
 ## 2. Mess-ID in Render eintragen
 
 1. https://dashboard.render.com → **taxiapp-api** → **Environment**  
@@ -25,21 +49,20 @@ So siehst du, **wie viele Leute** `luckystaxiapp.de` besuchen (nicht nur Tarif-A
 
 ## 3. Statistik ansehen
 
+- **Admin:** https://luckystaxiapp.de/admin.html → **Anfragen** (primäre KPI)  
 - **Google Analytics:** https://analytics.google.com  
-  - Berichte → **Echtzeit** (wer ist gerade da?)  
-  - Berichte → **Nutzer** / **Traffic** (Besucher, Absprünge, Seiten)  
-- **Admin-Seite:** https://luckystaxiapp.de/admin.html  
-  - Button **Google Analytics öffnen**  
-  - **Tarif-Anfragen** bleiben in der Admin-Liste (Interessenten)
+  - Berichte → **Ereignisse** → `generate_lead` (Tarif-Anfrage / Onboard)  
+  - Parameter: `plan_id`, `lead_source` (`index_tarif_anfrage` | `onboard_register`)  
+  - Optional: Conversion-Ereignis `generate_lead` markieren  
 
 ## Was wo sichtbar ist
 
 | Frage | Wo |
 |-------|-----|
+| Wie viele Tarif-Anfragen? | Admin → Anfragen |
+| Lead-Event ausgelöst? | GA4 → Ereignisse → `generate_lead` |
 | Wie viele Besucher heute? | Google Analytics |
-| Wer ist gerade auf der Seite? | Google Analytics → Echtzeit |
-| Wie viele Tarif-Anfragen? | Admin → Tarif-Anfragen |
-| Wie viele Mandanten? | Admin → Alle Mandanten |
+| Wie viele Mandanten? | Admin → Mandanten |
 
 ## Hinweis Datenschutz
 

@@ -5,15 +5,19 @@
 
 ## Live-URLs (Standard)
 
+**Öffentlich (Strato-Domain → Render):** https://luckystaxiapp.de  
+Domain/DNS und Sichtbarkeit: [STRATO-SICHTBARKEIT.md](STRATO-SICHTBARKEIT.md)
+
 | Was | URL |
 |-----|-----|
-| Health | https://taxiapp-api.onrender.com/health |
-| Startseite | https://taxiapp-api.onrender.com/index.html |
-| Leitstelle | https://taxiapp-api.onrender.com/dispatch.html |
-| Einstellungen | https://taxiapp-api.onrender.com/settings.html |
+| Health | https://luckystaxiapp.de/health |
+| Startseite | https://luckystaxiapp.de/ |
+| Leitstelle | https://luckystaxiapp.de/dispatch.html |
+| Einstellungen | https://luckystaxiapp.de/settings.html |
 | Payment | https://luckystaxiapp.de/pay.html (nach Fahrt, mit Token) |
+| Render-Fallback | https://taxiapp-api.onrender.com/health |
 
-iOS-App: `TaxiConfig.swift` → `cloudBackendURL = "https://taxiapp-api.onrender.com"`
+iOS-App: `TaxiConfig.swift` → `cloudBackendURL` darf `https://luckystaxiapp.de` oder `https://taxiapp-api.onrender.com` sein (gleiche Instanz).
 
 ---
 
@@ -31,7 +35,7 @@ iOS-App: `TaxiConfig.swift` → `cloudBackendURL = "https://taxiapp-api.onrender
 | `STRIPE_PRICE_STARTER` | Nein | Stripe Price-ID Starter (49 €/Monat) |
 | `STRIPE_PRICE_BUSINESS` | Nein | Stripe Price-ID Business (99 €/Monat) |
 | `STRIPE_WEBHOOK_SECRET` | Nein* | Webhook: Abo + `payment_intent.succeeded` |
-| `PUBLIC_BASE_URL` | Nein | Checkout-Redirect (z. B. `https://taxiapp-api.onrender.com`) |
+| `PUBLIC_BASE_URL` | **Ja (Live)** | Checkout/Links: `https://luckystaxiapp.de` |
 | `RESEND_API_KEY` | Nein | E-Mail bei Tarif-Anfragen (Fallback ohne Stripe) |
 | `CONTACT_NOTIFY_EMAIL` | Nein | Ziel-Adresse für Anfragen (Standard: luckypc81@gmail.com) |
 
@@ -67,9 +71,11 @@ https://taxiapp-api.onrender.com/settings.html — PIN eingeben, dann:
 
 | Plan | Preis | TaxiApp |
 |------|-------|---------|
-| Free | 0 € | Ok zum Starten; Server schläft nach Ruhe (~30 s Cold Start) |
-| Starter | ca. 7 $/Monat | Immer online, empfohlen für echten Betrieb |
+| Free | 0 € | Nur zum Basteln; schläft nach Ruhe → schlecht für Google & Erstbesucher |
+| Starter | ca. 7 $/Monat | **Pflicht für Sichtbarkeit** — immer online, kein „Service waking up“ |
 | + Disk | ca. +2 $/Monat | Buchungen bleiben bei Deploy sicher |
+
+Für `luckystaxiapp.de` und Search Console: **Starter**, nicht Free. Details: [STRATO-SICHTBARKEIT.md](STRATO-SICHTBARKEIT.md)
 
 Firebase-Umzug: **später optional** — nicht nötig für Go-Live.
 
@@ -78,7 +84,8 @@ Firebase-Umzug: **später optional** — nicht nötig für Go-Live.
 ## Prüfen (Terminal)
 
 ```bash
-~/Projects/TaxiApp/scripts/render-go-live.sh
+~/Projects/TaxiApp/scripts/render-go-live.sh https://luckystaxiapp.de
+~/Projects/TaxiApp/scripts/strato-sichtbarkeit-check.sh
 ```
 
 ---

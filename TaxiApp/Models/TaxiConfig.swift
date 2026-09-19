@@ -122,15 +122,16 @@ enum TaxiConfig {
     /// Standard-Mandant (Multi-Tenant). Leer = Backend resolvt nach GPS/PLZ.
     static let defaultOperatorSlug = ""
 
-    // MARK: - Stripe (Testmodus)
+    // MARK: - Stripe
 
-    /// Publishable Key aus Stripe Dashboard (pk_test_…).
+    /// Optionaler Override. Leer/`PLACEHOLDER` → Key kommt live von `/api/stripe/config` (wie `pay.html`).
+    /// Nur setzen, wenn du lokal ohne Cloud testest: `pk_test_…` aus dem Stripe Dashboard.
     static let stripePublishableKey = "pk_test_PLACEHOLDER"
 
-    /// Cloud-Backend auf Render (Go-Live-Plattform für TaxiApp).
-    /// Nach Deploy: https://dashboard.render.com → taxiapp-api
-    /// Anleitung: docs/RENDER-GO-LIVE.md
-    static let cloudBackendURL = "https://taxiapp-api.onrender.com"
+    /// Cloud-Backend (öffentliche Domain bei Strato → Render Custom Domain).
+    /// Fallback: https://taxiapp-api.onrender.com — gleiche Instanz.
+    /// Anleitung: docs/STRATO-SICHTBARKEIT.md · docs/RENDER-GO-LIVE.md
+    static let cloudBackendURL = "https://luckystaxiapp.de"
 
     /// Mac im gleichen WLAN — nur wenn cloudBackendURL leer ist.
     static let deviceBackendURL = "http://192.168.1.1:4242"

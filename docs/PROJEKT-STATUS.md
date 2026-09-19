@@ -65,7 +65,9 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 
 | Feature | Status | Hinweis |
 |---------|--------|---------|
-| GA4 Web | 🟡 | `GA_MEASUREMENT_ID` auf Render setzen |
+| GA4 Web | 🟡 | `GA_MEASUREMENT_ID` auf Render; Event `generate_lead` bei Tarif-Anfrage |
+| Domain Sichtbarkeit | 🟡 | Strato DNS + Search Console — `docs/STRATO-SICHTBARKEIT.md` |
+| B2B-KPI | ✅ | Primär Admin → Anfragen; Outreach: `docs/BETRIEBE-AKQUISE.md` |
 | Firebase Analytics App | ⏳ | In Plist deaktiviert |
 | Impressum / DSGVO / AGB | 🟡 | Mustertexte — Anwalt vor Marketing |
 | Stripe Abo Unternehmer | 🟡 | Optional, Keys auf Render |
@@ -130,7 +132,10 @@ git add … && git commit && git push
 1. Warten bis Redeploy fertig (~2–3 Min.)
 2. `ADMIN_PIN` gesetzt?
 3. `GA_MEASUREMENT_ID` gesetzt?
-4. Test: Buchung → Fahrer zuweisen → `driver-track.html` → `track.html?bookingId=…`
+4. `PUBLIC_BASE_URL=https://luckystaxiapp.de`?
+5. Plan = **Starter** (kein Free-Sleep) — siehe `docs/STRATO-SICHTBARKEIT.md`
+6. Test: Buchung → Fahrer zuweisen → `driver-track.html` → `track.html?bookingId=…`
+7. Sichtbarkeit: `bash scripts/strato-sichtbarkeit-check.sh` + Search Console Sitemap
 
 ---
 
@@ -154,5 +159,6 @@ Für einen **lokalen Taxi-Betrieb als Pilot** ist das Projekt mit Phase A **betr
 | Live-Tracking Anleitung | `docs/LIVE-TRACKING.md` |
 | Pilot E-Mail Vorlage | `docs/PILOT-START.md` |
 | Render Deploy | `docs/RENDER-GO-LIVE.md` |
+| Domain / Sichtbarkeit (Strato + Search Console) | `docs/STRATO-SICHTBARKEIT.md` |
 | Fahrgast Go-Live | `~/CollectionApp/FahrgastApp/docs/GO-LIVE.md` |
 | Fahrer-App später | `docs/FAHRER-APP-ROADMAP.md` |

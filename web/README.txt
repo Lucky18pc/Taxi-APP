@@ -21,7 +21,17 @@ Oder mit Mini-Server:
 
 Live im Internet
 ----------------
-Option A — Render (Go-Live, empfohlen — Backend + Web zusammen):
+Öffentliche Domain (Strato DNS → Render — empfohlen):
+
+  Startseite:    https://luckystaxiapp.de/
+  Onboarding:    https://luckystaxiapp.de/onboard.html
+  Leitstelle:    https://luckystaxiapp.de/dispatch.html
+  Einstellungen: https://luckystaxiapp.de/settings.html
+
+  Sichtbarkeit / DNS / Search Console: docs/STRATO-SICHTBARKEIT.md
+  Check: bash scripts/strato-sichtbarkeit-check.sh
+
+Option A — Render-Direkt-URL (Fallback):
 
   Startseite:    https://taxiapp-api.onrender.com/index.html
   Leitstelle:    https://taxiapp-api.onrender.com/dispatch.html
@@ -42,6 +52,9 @@ Option B — Netlify Drop (ohne Terminal):
 
 Option C — Mit Backend (Preise aus API):
   Backend deployen → liefert web/ unter / mit
+
+Kein FTP von web/ nach Strato Shared Hosting: API und HTML müssen denselben Host nutzen
+(siehe docs/STRATO-SICHTBARKEIT.md).
 
 Impressum & Rechtliches
 -----------------------
