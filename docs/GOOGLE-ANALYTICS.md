@@ -1,5 +1,8 @@
 # Google Analytics — Besucherstatistik & B2B-Leads
 
+**Pflicht:** GA lädt auf der Website **nur nach Cookie-Einwilligung** (`web/analytics.js`).  
+Ohne Opt-in kein `gtag` — siehe [REVIEW-STATUS.md](REVIEW-STATUS.md) und [TOMS.md](TOMS.md).
+
 ## Erfolgszahl (Priorität)
 
 | Rang | Kennzahl | Wo |
