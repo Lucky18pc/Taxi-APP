@@ -40,7 +40,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: CONTACT_NOTIFY_EMAIL
-        sync: false
+        value: kontakt@luckystaxiapp.de
       - key: GA_MEASUREMENT_ID
         sync: false
     # Persistent Disk — Buchungen und Mandanten bleiben nach Deploy erhalten.

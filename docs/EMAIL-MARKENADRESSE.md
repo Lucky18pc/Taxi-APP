@@ -25,7 +25,7 @@ Der Posteingang kann bei **Google** liegen (Google Workspace oder Domain-Weiterl
 | Ort | Wert |
 |-----|------|
 | Öffentliche Seiten | `kontakt@luckystaxiapp.de` |
-| Render (optional) | `CONTACT_NOTIFY_EMAIL=kontakt@luckystaxiapp.de` |
+| Render | `CONTACT_NOTIFY_EMAIL=kontakt@luckystaxiapp.de` in [`render.yaml`](../render.yaml) (Blueprint) |
 | Fallback in `server.js` / `legal-config.js` | dieselbe Adresse |
 
 Bis die Domain-Mailbox live ist, kann `CONTACT_NOTIFY_EMAIL` vorübergehend noch auf die private Gmail zeigen — **öffentlich** bleibt die Markenadresse.

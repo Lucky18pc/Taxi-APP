@@ -41,7 +41,7 @@ iOS-App: `TaxiConfig.swift` → `cloudBackendURL` darf `https://luckystaxiapp.de
 | `STRIPE_WEBHOOK_SECRET` | Nein* | Webhook: Abo + `payment_intent.succeeded` |
 | `PUBLIC_BASE_URL` | **Ja (Live)** | Checkout/Links: `https://luckystaxiapp.de` |
 | `RESEND_API_KEY` | Nein | E-Mail bei Tarif-Anfragen (Fallback ohne Stripe) |
-| `CONTACT_NOTIFY_EMAIL` | Nein | Ziel-Adresse für Anfragen (Standard: kontakt@luckystaxiapp.de) |
+| `CONTACT_NOTIFY_EMAIL` | Nein | Ziel für Anfragen — in `render.yaml` auf `kontakt@luckystaxiapp.de` |
 
 Details Rechnungen: [docs/RECHNUNGEN-ABRECHNUNG.md](RECHNUNGEN-ABRECHNUNG.md)
 
