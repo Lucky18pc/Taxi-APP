@@ -33,6 +33,8 @@ Umsetzung der Review-Punkte zu `luckystaxiapp.de` (Geschäftsmodell, Rechtstexte
 | Empfänger | Render, Stripe, Resend, Google konkret benannt |
 | Rollen | Plattform / Betrieb / Fahrer / Stripe getrennt beschrieben |
 | Analytics / § 25 TDDDG | Consent-Banner; GA erst nach Opt-in (live) |
+| Leitstelle Auth | Fail-closed bei API-Fehler; Rate-Limit PIN-Verify |
+| Widerruf | B2B/B2C getrennt; § 312 Abs. 2 Nr. 14 BGB (Personenbeförderung) |
 | TOMs | Überblick: [TOMS.md](TOMS.md) |
 | Steuer | Checkliste: [STEUERBERATER-KLEINUNTERNEHMER.md](STEUERBERATER-KLEINUNTERNEHMER.md) |
 

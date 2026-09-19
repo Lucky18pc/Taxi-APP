@@ -21,6 +21,8 @@ Prüfen: Inkognito → Banner → Ablehnen → Network ohne `googletagmanager.co
 | Betriebs-PIN (`dispatchPin`) pro Mandant | ✅ |
 | Öffentliche Marketing-Links zu dispatch/settings entfernt | ✅ |
 | MFA für privilegierte Zugänge | ⏳ geplant (aktuell PIN; MFA = nächster Schritt) |
+| Rate-Limit bei PIN-Login | ✅ `/api/auth/verify` (max. 12 / 15 Min. pro IP) |
+| Client fail-closed bei Auth-Check-Fehler | ✅ `leitstelle-auth.js` |
 | Rollen/Rechte fein granular (Fahrer vs. Admin vs. Mandant) | 🟡 teilweise (Fleet-Slugs, Admin vs. Leitstelle) |
 
 ## 3. Transport & Speicherung

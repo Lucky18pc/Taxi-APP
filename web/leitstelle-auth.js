@@ -55,11 +55,14 @@
   async function authRequired() {
     try {
       const res = await fetch(withOperatorQuery("/api/auth/required"));
-      if (!res.ok) return false;
+      if (!res.ok) {
+        // Fail closed: bei Fehler Login verlangen (nicht offen lassen)
+        return true;
+      }
       const data = await res.json();
       return Boolean(data.required);
     } catch {
-      return false;
+      return true;
     }
   }
 
@@ -142,7 +145,7 @@
     const hint = document.getElementById("leitstelle-login-hint");
     if (hint) {
       hint.textContent = slug
-        ? `PIN für Betrieb „${slug}“ (dispatchPin oder ADMIN_PIN).`
+        ? `PIN für Betrieb „${slug}“ eingeben.`
         : "Bitte Leitstellen-PIN Ihres Betriebs eingeben.";
     }
     document.getElementById("leitstelle-login").classList.add("visible");
@@ -153,7 +156,12 @@
     if (slug) setOperatorSlug(slug);
 
     ensureLoginOverlay();
-    const required = await authRequired();
+    let required = true;
+    try {
+      required = await authRequired();
+    } catch {
+      required = true;
+    }
     if (!required) return true;
     if (getPin()) {
       try {

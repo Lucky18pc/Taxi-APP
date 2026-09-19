@@ -1258,9 +1258,41 @@ app.get("/api/auth/required", (req, res) => {
   res.json({ required: authRequiredForRequest(req) });
 });
 
+/** Einfaches Rate-Limit für PIN-Prüfungen (Brute-Force). */
+const authVerifyAttempts = new Map();
+const AUTH_VERIFY_WINDOW_MS = 15 * 60 * 1000;
+const AUTH_VERIFY_MAX = 12;
+
+function clientIp(req) {
+  const xf = String(req.headers["x-forwarded-for"] || "")
+    .split(",")[0]
+    .trim();
+  return xf || req.socket?.remoteAddress || "unknown";
+}
+
+function consumeAuthAttempt(ip) {
+  const now = Date.now();
+  let entry = authVerifyAttempts.get(ip);
+  if (!entry || now - entry.start > AUTH_VERIFY_WINDOW_MS) {
+    entry = { start: now, count: 0 };
+  }
+  entry.count += 1;
+  authVerifyAttempts.set(ip, entry);
+  return entry.count <= AUTH_VERIFY_MAX;
+}
+
 app.post("/api/auth/verify", (req, res) => {
+  const ip = clientIp(req);
+  if (!consumeAuthAttempt(ip)) {
+    return res.status(429).json({
+      error: "Zu viele Anmeldeversuche — bitte später erneut versuchen.",
+    });
+  }
   if (!authRequiredForRequest(req)) return res.json({ ok: true });
   const pin = String(req.body.pin || "").trim();
+  if (pin.length < 4) {
+    return res.status(401).json({ error: "PIN ungültig" });
+  }
   if (verifyRequestPin(req, pin)) return res.json({ ok: true });
   return res.status(401).json({ error: "PIN ungültig" });
 });
