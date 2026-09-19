@@ -100,3 +100,4 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 7. Hero → klare Pfade Betrieb vs. Fahrgast  
 8. Tarife → Formel + Beispiele 1/2/5 Autos; Gebühr-Box mit Bar/Karte/Stripe  
 9. Tarif-Checkliste → kein „eigene App“-Overclaim; App Store folgt klar gekennzeichnet  
+10. Impressum/Footer → `kontakt@luckystaxiapp.de` (nicht Gmail)  
