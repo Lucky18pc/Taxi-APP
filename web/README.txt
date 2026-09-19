@@ -59,5 +59,5 @@ Kein FTP von web/ nach Strato Shared Hosting: API und HTML müssen denselben Hos
 Impressum & Rechtliches
 -----------------------
 Dateien: impressum.html, datenschutz.html, agb.html, widerruf.html, kuendigung.html
-Firmendaten: settings.html → Plattform-Anbieter + Taxi-Betrieb (getrennt) — legal-config.js
-Vor Go-Live: Mustertexte rechtlich prüfen lassen
+Firmendaten: settings.html → Plattform-Anbieter + Taxi-Betrieb (getrennt), legal-config.js
+Hinweis nur intern (nicht auf der Website): Rechtstexte vor Go-Live durch Anwalt freigeben lassen.

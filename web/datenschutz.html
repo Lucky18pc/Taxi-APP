@@ -46,7 +46,7 @@
       <h2>2. Zwecke und Rechtsgrundlagen (Überblick)</h2>
       <ul>
         <li>Technische Entgegennahme und Weiterleitung von Buchungsanfragen an den Taxi-Betrieb. Art. 6 Abs. 1 lit. b DSGVO</li>
-        <li>Standort für Abholung, Disposition und Live-Tracking. Art. 6 Abs. 1 lit. b und ggf. lit. a DSGVO</li>
+        <li>Standort für Abholung, Disposition und Live-Tracking (Art. 6 Abs. 1 lit. b DSGVO; bei freiwilliger Standortfreigabe auch lit. a)</li>
         <li>Kartenzahlung / Tap to Pay über Stripe. Art. 6 Abs. 1 lit. b DSGVO</li>
         <li>Plattformmiete, Provision, Connect-Auszahlung. Art. 6 Abs. 1 lit. b und lit. f DSGVO</li>
         <li>Nachweise (Konzession, P-Schein, Dokumente, Fahrerfoto) zur Freischaltung. Art. 6 Abs. 1 lit. b und lit. f DSGVO</li>
@@ -96,7 +96,7 @@
       <h2>5. Website, Hosting, Analytics</h2>
       <p>
         Hosting der Plattform bei <strong>Render.com</strong> (Render Services, Inc. / EU-Rechenzentren je nach Konfiguration, HTTPS).
-        Beim Aufruf können technische Logs (Zeit, URL, User-Agent, ggf. gekürzte IP) anfallen. Art. 6 Abs. 1 lit. f DSGVO (Sicherheit, Betrieb).
+        Beim Aufruf können technische Logs (Zeit, URL, User-Agent, gekürzte IP) anfallen. Art. 6 Abs. 1 lit. f DSGVO (Sicherheit, Betrieb).
       </p>
       <p>
         E-Mail-Benachrichtigungen (z. B. Tarif-Anfragen) über <strong>Resend</strong>, sofern konfiguriert.
@@ -114,21 +114,19 @@
         Aufbewahrungspflichten bestehen.
       </p>
       <ul>
-        <li><strong>Buchungs- und Zahlungsbelege / Abrechnungsdaten:</strong> in der Regel <strong>8 Jahre</strong>
-          (§ 147 AO), beginnend mit Ablauf des Kalenderjahres der Entstehung, soweit steuerlich relevant
-          (z. B. Plattformgebühren, Connect-Auszahlungen, Abo-Rechnungen). Andere Unterlagen können kürzere oder
-          längere Fristen haben (z. B. Geschäftsbriefe typischerweise 6 Jahre).</li>
-        <li><strong>Geschäftsbriefe / vertragsrelevante Korrespondenz:</strong> typischerweise 6 Jahre.</li>
-        <li><strong>Live-Standorte:</strong> nur kurzfristig für Disposition/Tracking; keine dauerhafte Bewegungsprofil-Archivierung über die Fahrt hinaus, sofern nicht aus Nachweisgründen nötig.</li>
-        <li><strong>Konzessions-/P-Schein-Uploads:</strong> für die Dauer der Geschäftsbeziehung und angemessene Nachfrist; Löschung auf Anfrage, soweit keine Aufbewahrungspflicht entgegensteht.</li>
-        <li><strong>Server-Logs:</strong> wenige Tage bis Wochen, je nach Hosting.</li>
+        <li><strong>Buchungs- und Zahlungsbelege / Abrechnungsdaten:</strong> <strong>8 Jahre</strong>
+          nach §&nbsp;147 AO, beginnend mit Ablauf des Kalenderjahres der Entstehung, soweit steuerlich relevant
+          (z. B. Plattformgebühren, Connect-Auszahlungen, Abo-Rechnungen).</li>
+        <li><strong>Geschäftsbriefe / vertragsrelevante Korrespondenz:</strong> <strong>6 Jahre</strong>, soweit gesetzlich vorgeschrieben.</li>
+        <li><strong>Live-Standorte:</strong> nur kurzfristig für Disposition und Tracking während der Fahrt; keine dauerhafte Bewegungsprofil-Archivierung darüber hinaus.</li>
+        <li><strong>Konzessions-/P-Schein-Uploads:</strong> für die Dauer der Geschäftsbeziehung zuzüglich angemessener Nachfrist; Löschung auf Anfrage, soweit keine Aufbewahrungspflicht entgegensteht.</li>
+        <li><strong>Server-Logs:</strong> wenige Tage bis Wochen, je nach Hosting-Betrieb.</li>
       </ul>
       <p>
-        <strong>Integrierte Lösungen:</strong> Für Kartenzahlungen und Auszahlungen nutzen wir <strong>Stripe</strong>
-        (Dashboard, Reports, Webhooks) als führendes Zahlungs- und Belegsystem. Buchungsmetadaten liegen zusätzlich
-        im Plattform-Backend (persistente Datenspeicherung auf dem Server-Volume). Betriebe sollen eigene
-        steuerliche Aufzeichnungen parallel führen. Eine vollständige DATEV-Buchhaltung ist nicht Bestandteil
-        der Standardplattform; bei Bedarf können Exports/Belege aus Stripe und Leitstelle genutzt werden.
+        Für Kartenzahlungen und Auszahlungen nutzen wir <strong>Stripe</strong> als Zahlungs- und Belegsystem.
+        Buchungsmetadaten speichern wir zusätzlich auf unseren Plattform-Servern (Hosting bei Render.com).
+        Betriebe führen eigene steuerliche Aufzeichnungen. Eine vollständige DATEV-Buchhaltung ist nicht Bestandteil
+        der Standardplattform; Exports und Belege aus Stripe sowie der Leitstelle können genutzt werden.
       </p>
 
       <h2>7. Empfänger / Auftragsverarbeitung</h2>
@@ -138,13 +136,12 @@
         <li><strong>Resend</strong>: E-Mail-Versand, sofern aktiviert</li>
         <li><strong>Google Ireland Limited</strong>: Analytics nur nach Einwilligung</li>
         <li>
-          <strong>OpenStreetMap / Nominatim</strong> (bzw. ein austauschbarer Geocoding-Endpunkt) , 
+          <strong>OpenStreetMap / Nominatim</strong> (oder ein austauschbarer Geocoding-Dienst):
           Auflösung von Adressen und GPS in Koordinaten bzw. Adresstext für die Buchung.
-          Anfragen laufen über unseren Server-Proxy (<code>/api/geocode</code>); übermittelt werden nur
-          die für die Suche nötige Adresszeile bzw. gerundete Koordinaten, nicht der gesamte Browser-Fingerabdruck.
-          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung der Buchung).
-          Datenverarbeitung durch die OpenStreetMap Foundation bzw. den Betreiber der gewählten Instanz , 
-          siehe auch
+          Anfragen laufen über unseren Server (<code>/api/geocode</code>); übermittelt werden nur
+          die für die Suche nötige Adresszeile bzw. gerundete Koordinaten.
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.
+          Siehe
           <a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noopener noreferrer">Nominatim-Nutzungsrichtlinie</a>.
           Attribution: © OpenStreetMap-Mitwirkende.
         </li>

@@ -72,6 +72,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P1 | Geocoding: Proxy + Datenschutz + Attribution | erledigt 19.09. — [GEOCODING.md](GEOCODING.md) |
 | P2 | Gedankenstriche / Textscan Startseite + DE-i18n | erledigt 19.09. (Em-Dash stark reduziert) |
 | P2 | Stilregel + redaktioneller Durchgang (Web/i18n) | erledigt 19.09. — [STILREGEL.md](STILREGEL.md) |
+| P2 | Rechtstexte: Entwurfston / Technikjargon entfernt | erledigt 19.09. |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |

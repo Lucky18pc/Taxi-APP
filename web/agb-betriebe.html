@@ -56,13 +56,13 @@
         <li>Abrechnung des Monatsentgelts über Stripe Billing / Checkout, soweit aktiviert, sonst per Rechnung</li>
       </ul>
       <p>
-        Enthalten sind typischerweise: Fahrgast-Buchung unter Betriebsnamen (Browser / Home-Bildschirm), Leitstelle,
-        Einstellungen (inkl. Logo/Farben im Betriebsprofil), QR-Link, Hosting und Updates im Rahmen der Plattform.
+        Im Standardtarif enthalten: Fahrgast-Buchung unter Betriebsnamen (Browser / Home-Bildschirm), Leitstelle,
+        Einstellungen (inkl. Logo und Farben im Betriebsprofil), QR-Link, Hosting und Updates im Rahmen der Plattform.
       </p>
       <p>
-        <strong>App-Modell im Standardtarif:</strong> gemeinsame Plattform-App („Luckys Taxi App“) mit Betriebsprofil.
+        <strong>App-Modell im Standardtarif:</strong> gemeinsame Plattform-App („Luckys Taxi App“) mit Betriebsprofil,
         nicht eine separate native App je Betrieb im App Store. Die Browser-Buchung ist die heute nutzbare
-        Standardleistung; Veröffentlichung der gemeinsamen iPhone-App über App Store / TestFlight folgt und ist
+        Standardleistung. Die Veröffentlichung der gemeinsamen iPhone-App über App Store / TestFlight folgt und ist
         bis zur Freischaltung keine zugesicherte Lieferpflicht.
         Eine separate Kunden-App pro Betrieb (eigenes Icon/Branding im Store) ist nicht Bestandteil der Standardtarife
         und nur nach gesonderter Vereinbarung möglich.
@@ -77,33 +77,33 @@
       <h2>4. Plattformgebühr (Provision)</h2>
       <p>
         Zusätzlich zum Monatsentgelt behält Code &amp; Grow eine <strong>Plattformgebühr von 1,9&nbsp;%</strong>
-        auf den <strong>Fahrpreis</strong> der über die Software abgewickelten und abgeschlossenen Fahrten ein.
+        auf den <strong>Fahrpreis</strong> der über die Software abgewickelten und abgeschlossenen Fahrten ein,
         bei <strong>Barzahlung</strong> und bei <strong>Kartenzahlung</strong> (Zahlungslink und/oder Tap to Pay).
         Monatsabo und Plattformgebühr sind getrennte Positionen.
       </p>
       <ul>
         <li><strong>Bemessungsgrundlage:</strong> erfasster Fahrtbetrag (Taxameter / in der Leitstelle dokumentierter Fahrpreis)</li>
         <li><strong>Nicht bemessen:</strong> Trinkgeld; stornierte Fahrten ohne Zahlung; Beträge, die vollständig rückerstattet wurden</li>
-        <li><strong>Kartenzahlung:</strong> 1,9&nbsp;% als Application Fee bei Stripe Connect bzw. Abzug bei Auszahlung.
-          Stripe-Kartengebühren (Akquise) kommen <em>zusätzlich</em> hinzu und werden vom Zahlungsdienstleister einbehalten, sie sind nicht in den 1,9&nbsp;% enthalten</li>
+        <li><strong>Kartenzahlung:</strong> 1,9&nbsp;% werden bei der Auszahlung einbehalten.
+          Gebühren des Zahlungsdienstleisters Stripe für die Kartenakzeptanz kommen hinzu und sind nicht in den 1,9&nbsp;% enthalten</li>
         <li><strong>Barzahlung:</strong> 1,9&nbsp;% in der monatlichen Plattformabrechnung anhand der in der Software erfassten Barfahrten.
-          Nachweis: Fahrtdatensätze in Leitstelle/App. Bei bestrittenen Beträgen: schriftliche Korrektur über Support mit Bezug auf Fahrt-ID und Zeitraum</li>
+          Nachweis über Fahrtdatensätze in Leitstelle und App. Bei bestrittenen Beträgen: Korrektur über den Support mit Fahrtbezug und Zeitraum</li>
       </ul>
       <p>
-        <strong>Beispiel:</strong> 2.000&nbsp;€ Fahrtumsatz über die Software in einem Monat → 38&nbsp;€ Plattformgebühr
-        (zuzüglich ggf. Stripe-Gebühren bei Kartenzahlungen).
+        <strong>Beispiel:</strong> 2.000&nbsp;€ Fahrtumsatz über die Software in einem Monat ergeben 38&nbsp;€ Plattformgebühr,
+        zuzüglich Stripe-Kartengebühren bei Kartenzahlungen.
       </p>
       <p>
-        Der Nettobetrag zugunsten des Betriebs wird, bei eingerichtetem <strong>Stripe Connect</strong>.
-        auf das verbundene Express-Konto des Betriebs ausgezahlt bzw. gutgeschrieben.
-        Ohne Connect können Kartenzahlungen technisch auf dem Plattformkonto landen; die Abrechnung der Fahrtvergütung
-        an den Betrieb erfolgt dann gesondert/manuell, bis Connect aktiv ist.
+        Bei eingerichtetem <strong>Stripe Connect</strong> wird der Nettobetrag zugunsten des Betriebs
+        auf das verbundene Express-Konto ausgezahlt bzw. gutgeschrieben.
+        Ohne Connect können Kartenzahlungen zunächst auf dem Plattformkonto eingehen; die Abrechnung der Fahrtvergütung
+        an den Betrieb erfolgt dann gesondert, bis Connect aktiv ist.
       </p>
 
       <h2>5. Auszahlung und Stripe Connect</h2>
       <p>
-        Zur automatisierten Auszahlung schließt der Betrieb ein Stripe-Connect-Express-Onboarding ab (KYC/Bankverbindung bei Stripe).
-        Code &amp; Grow speichert die Connect-Account-ID und steuert Splits (Transfer + Application Fee).
+        Zur automatisierten Auszahlung schließt der Betrieb ein Stripe-Connect-Express-Onboarding ab (Identitätsprüfung und Bankverbindung bei Stripe).
+        Code &amp; Grow speichert die Connect-Account-ID und steuert die Aufteilung von Auszahlung und Plattformgebühr.
         Verzögerungen oder Sperren durch Stripe liegen außerhalb der Verantwortung von Code &amp; Grow, soweit nicht
         vorsätzlich oder grob fahrlässig verursacht.
       </p>
@@ -128,15 +128,15 @@
 
       <h2>8. Verfügbarkeit</h2>
       <p>
-        Die Plattform wird mit branchenüblicher Sorgfalt betrieben (Hosting z. B. Render). Es besteht keine Zusicherung
+        Die Plattform wird mit branchenüblicher Sorgfalt betrieben. Es besteht keine Zusicherung
         ununterbrochener Verfügbarkeit. Wartungen und Störungen werden nach Möglichkeit angekündigt bzw. behoben.
       </p>
 
       <h2>9. Haftung</h2>
       <p>
         Unbeschränkte Haftung bei Vorsatz, grober Fahrlässigkeit sowie Verletzung von Leben, Körper, Gesundheit.
-        Im Übrigen Haftung nur bei Verletzung wesentlicher Pflichten, begrenzt auf den vorhersehbaren, vertragstypischen Schaden.
-        maximal typischerweise die in den letzten 12 Monaten gezahlten Plattformentgelte des betroffenen Betriebs.
+        Im Übrigen Haftung nur bei Verletzung wesentlicher Pflichten, begrenzt auf den vorhersehbaren, vertragstypischen Schaden,
+        höchstens in Höhe der in den letzten 12 Monaten gezahlten Plattformentgelte des betroffenen Betriebs.
         Keine Haftung für Umsatzausfälle durch fehlende Buchungen, Fahrerausfälle oder behördliche Maßnahmen gegen den Betrieb.
       </p>
       <p>
