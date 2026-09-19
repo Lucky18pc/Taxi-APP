@@ -22,36 +22,29 @@
   "operators": {
     "title": "Für Taxi-Unternehmer",
     "contactEmail": "luckypc81@gmail.com",
+    "pricingModel": "perVehicle",
+    "firstVehicleEuroPerMonth": 9.9,
+    "additionalVehicleEuroPerMonth": 9.0,
+    "platformFeePercent": 1.9,
+    "platformFeeAppliesTo": ["cash", "card"],
     "plans": [
       {
-        "id": "starter",
-        "name": "Starter",
-        "priceEuroPerMonth": 49,
-        "vehicleLimit": "bis 5 Fahrzeuge",
-        "cardPlatformFeePercent": 2.0,
+        "id": "fleet",
+        "name": "Pro Fahrzeug",
+        "priceEuroPerMonth": 9.9,
+        "priceLabel": "ab 9,90 € / Monat",
+        "vehicleLimit": "pro Fahrzeug (1. Auto 9,90 € · 2. Auto 18,90 € · jedes weitere +9 €)",
+        "cardPlatformFeePercent": 1.9,
+        "cashPlatformFeePercent": 1.9,
         "features": [
           "Eigene App mit Firmenlogo",
           "Online-Kartenzahlung (Stripe)",
-          "Fahrtenübersicht (Basis)",
+          "Fahrtenübersicht & Leitstelle",
           "E-Mail-Support"
-        ],
-        "highlighted": false
-      },
-      {
-        "id": "business",
-        "name": "Business",
-        "priceEuroPerMonth": 99,
-        "vehicleLimit": "unbegrenzt",
-        "cardPlatformFeePercent": 1.5,
-        "features": [
-          "Alles aus Starter",
-          "Niedrigere Karten-Provision (1,5 %)",
-          "Prioritäts-Support",
-          "Monatliche Abrechnungsübersicht"
         ],
         "highlighted": true
       }
     ]
   },
-  "platformFeeExplanation": "Die Plattformgebühr gilt nur auf erfolgreiche Kartenzahlungen in der App und wird bei Auszahlung an das Unternehmen einbehalten. Monatspreis und Fahrt-Provision sind getrennt."
+  "platformFeeExplanation": "Die Plattformgebühr beträgt 1,9 % auf Bar- und Kartenzahlungen der vermittelten Fahrten und wird monatlich abgerechnet bzw. bei Kartenzahlung bei Auszahlung einbehalten. Monatspreis und Fahrt-Provision sind getrennt."
 }

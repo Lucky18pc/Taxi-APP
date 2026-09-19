@@ -644,6 +644,7 @@ ul.checklist li::before {
 
 @media (min-width: 640px) {
   .plans { grid-template-columns: 1fr 1fr; }
+  .plans.plans-single { grid-template-columns: minmax(0, 28rem); justify-content: center; }
 }
 
 .plan {
@@ -660,6 +661,42 @@ ul.checklist li::before {
   font-size: 1.75rem;
   font-weight: 800;
   margin: 0.35rem 0;
+}
+
+.price-table {
+  list-style: none;
+  margin: 0.75rem 0 0.5rem;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.price-table li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.price-table li:last-child {
+  border-bottom: none;
+}
+
+.price-table strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+body.home-taxi .ops-rent .price-table {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+body.home-taxi .ops-rent .price-table li {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
 }
 
 .meta {

@@ -1,6 +1,6 @@
 # Rechnungen & Abrechnung — Luckys Taxi App
 
-Anleitung für **automatische Rechnungen per E-Mail** an Taxi-Unternehmer (Plattform-Abo 49 € / 99 €).
+Anleitung für **automatische Rechnungen per E-Mail** an Taxi-Unternehmer (Plattform-Abo ab 9,90 €/Monat pro Fahrzeug).
 
 ---
 

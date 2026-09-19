@@ -1,6 +1,6 @@
 # Vermietung — Taxi-Betriebe manuell onboarden
 
-Anleitung für dich als **Plattformbetreiber**: Taxi-Unternehmen mieten die Software (14 Tage testen, danach 49 € / 99 € monatlich), du richtest den Mandanten ein und übergibst Leitstelle, QR und App mit **Runtime-Branding**.
+Anleitung für dich als **Plattformbetreiber**: Taxi-Unternehmen mieten die Software (14 Tage testen, danach ab 9,90 €/Monat pro Fahrzeug), du richtest den Mandanten ein und übergibst Leitstelle, QR und App mit **Runtime-Branding**.
 
 **Betriebe gewinnen (Outreach, Pitch, Liste):** [`BETRIEBE-AKQUISE.md`](BETRIEBE-AKQUISE.md)
 
@@ -98,8 +98,10 @@ Pending-Leads aus onboard.html: in admin.html **Aktivieren**.
 
 Wiederkehrende Rechnung an `billingEmail`:
 
-- Starter: 49 € netto/Monat
-- Business: 99 € netto/Monat
+- 1. Auto: 9,90 € netto/Monat
+- 2. Autos: 18,90 € netto/Monat
+- jedes weitere: +9,00 €
+- Plattformgebühr: 1,9 % auf Bar und Karte
 
 Details: [`RECHNUNGEN-ABRECHNUNG.md`](RECHNUNGEN-ABRECHNUNG.md)
 

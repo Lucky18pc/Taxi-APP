@@ -46,9 +46,9 @@ const COMPLIANCE_KEYS = [
 ];
 
 function defaultMaxDrivers(planId) {
-  if (planId === "business") return null;
+  if (planId === "business" || planId === "fleet") return null;
   if (planId === "starter") return 5;
-  return 5;
+  return null;
 }
 
 function normalizeHexColor(raw) {
@@ -382,7 +382,7 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     const summary = {
       ...toPublicSummary(operator),
       legalEmail: operator.legalEmail || "",
-      planId: operator.planId || "starter",
+      planId: operator.planId || "fleet",
       billingEmail: operator.billingEmail || operator.legalEmail || "",
       notes: operator.notes || "",
       maxDrivers: operator.maxDrivers ?? defaultMaxDrivers(operator.planId),
@@ -430,8 +430,8 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
 
   function applyMetaPatch(operator, patch) {
     if (patch.planId !== undefined) {
-      const planId = String(patch.planId || "starter").trim().toLowerCase();
-      operator.planId = planId === "business" ? "business" : "starter";
+      const planId = String(patch.planId || "fleet").trim().toLowerCase();
+      operator.planId = ["fleet", "business", "starter"].includes(planId) ? planId : "fleet";
       if (patch.maxDrivers === undefined) {
         operator.maxDrivers = defaultMaxDrivers(operator.planId);
       }
@@ -543,9 +543,8 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       throw new Error("postalCodes or postalPrefixes required");
     }
 
-    const planId = String(input.planId || "starter").trim().toLowerCase() === "business"
-      ? "business"
-      : "starter";
+    const rawPlan = String(input.planId || "fleet").trim().toLowerCase();
+    const planId = ["fleet", "business", "starter"].includes(rawPlan) ? rawPlan : "fleet";
     const status = String(input.status || "pending").trim().toLowerCase();
     const normalizedStatus = ["pending", "active", "suspended"].includes(status)
       ? status

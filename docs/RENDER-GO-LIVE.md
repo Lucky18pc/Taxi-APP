@@ -32,8 +32,9 @@ iOS-App: `TaxiConfig.swift` → `cloudBackendURL` darf `https://luckystaxiapp.de
 | `STRIPE_SECRET_KEY` | Nein* | Stripe Secret — Abo + Fahrgast-Kartenzahlung |
 | `STRIPE_PUBLISHABLE_KEY` | Nein* | `pk_test_…` / `pk_live_…` für `pay.html` |
 | `STRIPE_TERMINAL_LOCATION_ID` | Nein* | Tap to Pay — Stripe Terminal Location (`tml_…`) |
-| `STRIPE_PRICE_STARTER` | Nein | Stripe Price-ID Starter (49 €/Monat) |
-| `STRIPE_PRICE_BUSINESS` | Nein | Stripe Price-ID Business (99 €/Monat) |
+| `STRIPE_PRICE_FLEET` | Nein | Stripe Price-ID Pro Fahrzeug (Basis, z. B. 9,90 €) |
+| `STRIPE_PRICE_STARTER` | Nein | (Alt) Stripe Price-ID Starter |
+| `STRIPE_PRICE_BUSINESS` | Nein | (Alt) Stripe Price-ID Business |
 | `STRIPE_WEBHOOK_SECRET` | Nein* | Webhook: Abo + `payment_intent.succeeded` |
 | `PUBLIC_BASE_URL` | **Ja (Live)** | Checkout/Links: `https://luckystaxiapp.de` |
 | `RESEND_API_KEY` | Nein | E-Mail bei Tarif-Anfragen (Fallback ohne Stripe) |

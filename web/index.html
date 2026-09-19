@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Plattform mieten für Taxi-Betriebe | Luckys Taxi App</title>
-  <meta name="description" content="Taxi-Software zum Mieten: App, Online-Buchung und digitale Leitstelle für konzessionierte Taxi-Betriebe. 14 Tage testen, danach ab 49 €/Monat, monatlich kündbar — Luckys Taxi App von Code & Grow.">
+  <meta name="description" content="Taxi-Software zum Mieten: App, Online-Buchung und digitale Leitstelle für konzessionierte Taxi-Betriebe. 14 Tage testen, danach ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar — Luckys Taxi App von Code & Grow.">
   <link rel="canonical" href="https://luckystaxiapp.de/">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#1c304f">
   <meta property="og:title" content="Plattform mieten für Taxi-Betriebe | Luckys Taxi App">
-  <meta property="og:description" content="App, Buchung und Leitstelle unter Ihrem Betriebsnamen. 14 Tage testen — danach Starter 49 €, Business 99 €, monatlich kündbar.">
+  <meta property="og:description" content="App, Buchung und Leitstelle unter Ihrem Betriebsnamen. 14 Tage testen — danach ab 9,90 € pro Fahrzeug / Monat, monatlich kündbar.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="de_DE">
   <meta property="og:url" content="https://luckystaxiapp.de/">
   <meta property="og:image" content="https://luckystaxiapp.de/icon-taxi-512.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Plattform mieten für Taxi-Betriebe | Luckys Taxi App">
-  <meta name="twitter:description" content="Taxi-Software für Betriebe: 14 Tage testen, danach Leitstelle und Buchung ab 49 €/Monat.">
+  <meta name="twitter:description" content="Taxi-Software für Betriebe: 14 Tage testen, danach Leitstelle und Buchung ab 9,90 €/Monat pro Fahrzeug.">
   <link rel="icon" type="image/png" href="icon-taxi-192.png">
   <link rel="apple-touch-icon" href="icon-taxi-192.png">
   <link rel="stylesheet" href="styles.css">
@@ -55,7 +55,7 @@
             "name": "Was kostet die gemietete Plattform für Taxi-Betriebe?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "14 Tage unverbindlich testen. Danach Starter 49 €/Monat oder Business 99 €/Monat, jeweils monatlich kündbar. Enthalten sind Fahrgast-Buchung, Leitstelle und QR-Code unter Ihrem Betriebsnamen."
+              "text": "14 Tage unverbindlich testen. Danach ab 9,90 €/Monat für das erste Fahrzeug, 18,90 € für zwei Fahrzeuge, jedes weitere +9 € — monatlich kündbar. Enthalten sind Fahrgast-Buchung, Leitstelle und QR-Code unter Ihrem Betriebsnamen. Plattformgebühr 1,9 % auf Bar- und Kartenzahlungen."
             }
           },
           {
@@ -217,54 +217,38 @@
       </p>
 
       <p id="billing-status" class="billing-status" hidden></p>
-      <div class="plans">
-        <article class="plan">
-          <h3 data-i18n="plan.starter">Starter</h3>
-          <p class="price">49 € / Monat</p>
-          <p class="meta" data-i18n="plan.starterMeta">14 Tage testen · danach monatlich kündbar · bis 5 Fahrzeuge</p>
-          <p class="meta" data-i18n="plan.fee2">2,0 % auf Kartenzahlungen in der App</p>
+      <div class="plans plans-single">
+        <article class="plan highlight">
+          <h3 data-i18n="plan.fleet">Pro Fahrzeug</h3>
+          <p class="price" data-i18n="plan.fleetPrice">ab 9,90 € / Monat</p>
+          <p class="meta" data-i18n="plan.fleetMeta">14 Tage testen · danach monatlich kündbar · Preis nach Anzahl Autos</p>
+          <ul class="price-table" aria-label="Monatspreise nach Fahrzeugen">
+            <li><span data-i18n="plan.v1">1. Auto</span> <strong>9,90 €</strong></li>
+            <li><span data-i18n="plan.v2">2. Autos</span> <strong>18,90 €</strong></li>
+            <li><span data-i18n="plan.v3">3. Autos</span> <strong>27,90 €</strong></li>
+            <li><span data-i18n="plan.vMore">jedes weitere</span> <strong>+9,00 €</strong></li>
+          </ul>
+          <p class="meta" data-i18n="plan.fee19">1,9 % auf Bar- und Kartenzahlungen</p>
           <ul class="checklist">
             <li data-i18n="plan.f1">Eigene App mit Firmenlogo</li>
             <li data-i18n="plan.f2">Online-Kartenzahlung (Stripe)</li>
-            <li data-i18n="plan.f3">Fahrtenübersicht (Basis)</li>
+            <li data-i18n="plan.f3">Fahrtenübersicht &amp; Leitstelle</li>
             <li data-i18n="plan.f4">E-Mail-Support</li>
           </ul>
-          <form class="billing-form" data-billing-form data-plan-id="starter">
-            <label for="starter-company" data-i18n="form.company">Firma</label>
-            <input id="starter-company" name="companyName" required placeholder="Mustermann Taxi GmbH" data-i18n-placeholder="form.phCompany">
-            <label for="starter-email" data-i18n="form.email">E-Mail (für Rechnung &amp; Kontakt)</label>
-            <input id="starter-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de" data-i18n-placeholder="form.phEmail">
-            <label for="starter-message" data-i18n="form.message">Nachricht (optional)</label>
-            <textarea id="starter-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …" data-i18n-placeholder="form.phMessage"></textarea>
-            <button type="submit" class="btn secondary" data-checkout-btn hidden data-i18n="btn.subscribe">14 Tage gratis starten</button>
-            <button type="submit" class="btn secondary" data-inquiry-btn data-i18n="btn.inquire">Tarif anfragen</button>
-          </form>
-        </article>
-        <article class="plan highlight">
-          <h3>Business <span class="badge" data-i18n="plan.popular">Beliebt</span></h3>
-          <p class="price">99 € / Monat</p>
-          <p class="meta" data-i18n="plan.businessMeta">14 Tage testen · danach monatlich kündbar · unbegrenzt Fahrzeuge</p>
-          <p class="meta" data-i18n="plan.fee15">1,5 % auf Kartenzahlungen in der App</p>
-          <ul class="checklist">
-            <li data-i18n="plan.f5">Alles aus Starter</li>
-            <li data-i18n="plan.f6">Mehrere Standorte / Filialen</li>
-            <li data-i18n="plan.f7">Prioritäts-Support</li>
-            <li data-i18n="plan.f8">Monatliche Abrechnungsübersicht</li>
-          </ul>
-          <form class="billing-form" data-billing-form data-plan-id="business">
-            <label for="business-company" data-i18n="form.company">Firma</label>
-            <input id="business-company" name="companyName" required placeholder="Mustermann Taxi GmbH" data-i18n-placeholder="form.phCompany">
-            <label for="business-email" data-i18n="form.email">E-Mail (für Rechnung &amp; Kontakt)</label>
-            <input id="business-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de" data-i18n-placeholder="form.phEmail">
-            <label for="business-message" data-i18n="form.message">Nachricht (optional)</label>
-            <textarea id="business-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …" data-i18n-placeholder="form.phMessage"></textarea>
+          <form class="billing-form" data-billing-form data-plan-id="fleet">
+            <label for="fleet-company" data-i18n="form.company">Firma</label>
+            <input id="fleet-company" name="companyName" required placeholder="Mustermann Taxi GmbH" data-i18n-placeholder="form.phCompany">
+            <label for="fleet-email" data-i18n="form.email">E-Mail (für Rechnung &amp; Kontakt)</label>
+            <input id="fleet-email" name="email" type="email" required placeholder="kontakt@taxi-betrieb.de" data-i18n-placeholder="form.phEmail">
+            <label for="fleet-message" data-i18n="form.message">Nachricht (optional)</label>
+            <textarea id="fleet-message" name="message" placeholder="Stadt, Anzahl Fahrzeuge …" data-i18n-placeholder="form.phMessage"></textarea>
             <button type="submit" class="btn" data-checkout-btn hidden data-i18n="btn.subscribe">14 Tage gratis starten</button>
             <button type="submit" class="btn" data-inquiry-btn data-i18n="btn.inquire">Tarif anfragen</button>
           </form>
         </article>
       </div>
       <p class="note" style="margin-top:1rem">
-        Die Plattformgebühr gilt nur auf erfolgreiche Kartenzahlungen in der App und wird bei Auszahlung an das Unternehmen einbehalten. Monatspreis und Fahrt-Provision sind getrennt.
+        Die Plattformgebühr beträgt <strong>1,9&nbsp;%</strong> auf <strong>Bar- und Kartenzahlungen</strong> der vermittelten Fahrten (Karte bei Auszahlung, Bar in der Monatsabrechnung). Monatspreis und Fahrt-Provision sind getrennt.
         Rechnungen: automatisch per Stripe (Online-Abo) oder manuell über Lexoffice/sevDesk — <a href="rechnungen.html">Details</a>.
       </p>
     </section>
@@ -276,7 +260,7 @@
       <div class="app-access">
         <article class="app-access-card">
           <h3>Plattform mieten (für Betriebe)</h3>
-          <p>Luckys vermietet die Software — Sie bleiben der konzessionierte Taxi-Betrieb. Leitstelle, QR und Buchung unter Ihrem Namen, ab 49 €/Monat.</p>
+          <p>Luckys vermietet die Software — Sie bleiben der konzessionierte Taxi-Betrieb. Leitstelle, QR und Buchung unter Ihrem Namen, ab 9,90 €/Monat pro Fahrzeug.</p>
           <p><a class="btn" href="#operators">Tarife ansehen</a> · <a class="btn secondary" href="onboard.html">Anfrage stellen</a></p>
         </article>
         <article class="app-access-card">
@@ -440,7 +424,7 @@
         </article>
         <article class="sales-card">
           <h3>Fair kalkuliert</h3>
-          <p>Fester Monatspreis, monatlich kündbar. Provision nur auf <strong>Kartenzahlungen in der App</strong> — nicht auf Bar-Umsatz am Taxameter.</p>
+          <p>Monatspreis nach Anzahl Autos (ab 9,90 €), monatlich kündbar. Provision <strong>1,9 %</strong> auf <strong>Bar- und Kartenzahlungen</strong>.</p>
         </article>
       </div>
 
@@ -481,7 +465,7 @@
       <div class="sales-grid">
       <article class="sales-card">
         <h3>Was zahlt ein Taxi-Betrieb?</h3>
-        <p><strong>14 Tage unverbindlich testen</strong>. Danach <strong>49 € oder 99 € im Monat</strong> für die gemietete Plattform, monatlich kündbar. Buchung, Leitstelle und QR unter Ihrem Namen.</p>
+        <p><strong>14 Tage unverbindlich testen</strong>. Danach <strong>ab 9,90 € im Monat</strong> für das erste Auto (2 Autos 18,90 €, jedes weitere +9 €), monatlich kündbar. Plus <strong>1,9 %</strong> auf Bar- und Kartenzahlungen. Buchung, Leitstelle und QR unter Ihrem Namen.</p>
       </article>
       <article class="sales-card">
         <h3>Ist Code &amp; Grow / Luckys selbst ein Taxi-Betrieb?</h3>

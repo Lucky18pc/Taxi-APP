@@ -29,11 +29,11 @@ Stadtseiten bleiben online für bestehende Partner; **kein** Fokus auf neue Stad
 
 ## Pitch (kurz)
 
-**Kern:** Eigene App + Leitstelle unter *Ihrem* Namen, parallel zur Taxizentrale nutzbar. 49 € (Starter) / 99 € (Business), monatlich kündbar. Gebaut von einem Ex-Taxifahrer (Code & Grow / Luckys Taxi App).
+**Kern:** Eigene App + Leitstelle unter *Ihrem* Namen, parallel zur Taxizentrale nutzbar. Ab 9,90 €/Monat pro Fahrzeug (2 Autos 18,90 €), 1,9 % auf Bar und Karte, monatlich kündbar. Gebaut von einem Ex-Taxifahrer (Code & Grow / Luckys Taxi App).
 
 ### Telefon (30 Sekunden)
 
-> Hallo, hier ist Pece von Luckys Taxi App / Code & Grow. Wir vermieten eine digitale Leitstelle und Buchungs-App an Taxi-Betriebe — unter Ihrem Firmennamen, nicht als anonymes Portal. 49 oder 99 Euro im Monat, monatlich kündbar. Darf ich Ihnen den Link zur Anfrage schicken? luckystaxiapp.de/onboard.html
+> Hallo, hier ist Pece von Luckys Taxi App / Code & Grow. Wir vermieten eine digitale Leitstelle und Buchungs-App an Taxi-Betriebe — unter Ihrem Firmennamen, nicht als anonymes Portal. Ab 9,90 Euro im Monat pro Auto (zwei Autos 18,90), plus 1,9 % auf Bar und Karte, monatlich kündbar. Darf ich Ihnen den Link zur Anfrage schicken? luckystaxiapp.de/onboard.html
 
 ### E-Mail / WhatsApp
 
@@ -45,8 +45,8 @@ Guten Tag,
 viele Betriebe hängen an der gemeinsamen Zentrale — und haben trotzdem keinen eigenen digitalen Kanal für Stammkunden, Hotels und Visitenkarte.
 
 Luckys Taxi App vermietet genau das: Buchung + Leitstelle unter Ihrem Namen.
-• Starter 49 € / Monat (bis 5 Fahrzeuge)
-• Business 99 € / Monat
+• 1. Auto 9,90 € / Monat · 2. Autos 18,90 € · jedes weitere +9 €
+• Plattformgebühr 1,9 % auf Bar- und Kartenzahlungen
 • monatlich kündbar, parallel zur Zentrale möglich
 
 Anfrage (2 Minuten): https://luckystaxiapp.de/onboard.html

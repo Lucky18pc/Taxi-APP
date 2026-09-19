@@ -37,10 +37,11 @@ const gaMeasurementId = String(process.env.GA_MEASUREMENT_ID || "").trim();
 const billingPriceIds = {
   starter: String(process.env.STRIPE_PRICE_STARTER || "").trim(),
   business: String(process.env.STRIPE_PRICE_BUSINESS || "").trim(),
+  fleet: String(process.env.STRIPE_PRICE_FLEET || "").trim(),
 };
 
 function isBillingConfigured() {
-  return Boolean(stripe && billingPriceIds.starter && billingPriceIds.business);
+  return Boolean(stripe && Object.values(billingPriceIds).some(Boolean));
 }
 
 function isCardPaymentMethod(method) {
@@ -126,10 +127,12 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
   }
 
   const fleetOp = booking.operatorId ? fleet.findById(booking.operatorId) : null;
-  const planId = fleetOp?.planId === "business" ? "business" : "starter";
+  const planId = String(fleetOp?.planId || "fleet").trim() || "fleet";
   const plan = offering.operators?.plans?.find((p) => p.id === planId);
-  const feePercent = Number(plan?.cardPlatformFeePercent);
-  const platformFeePercent = Number.isFinite(feePercent) ? feePercent : 2;
+  const globalFee = Number(offering.operators?.platformFeePercent);
+  const planFee = Number(plan?.cardPlatformFeePercent);
+  const feePercent = Number.isFinite(globalFee) ? globalFee : planFee;
+  const platformFeePercent = Number.isFinite(feePercent) ? feePercent : 1.9;
   const platformFeeCents = Math.max(0, Math.round((amountCents * platformFeePercent) / 100));
   const connectAccountId = String(fleetOp?.stripeConnectAccountId || "").trim();
 
@@ -387,9 +390,8 @@ function upsertOperator(record) {
 async function provisionFleetFromSubscription(record) {
   const companyName = String(record.companyName || "").trim();
   const email = String(record.email || "").trim();
-  const planId = String(record.planId || "starter").trim().toLowerCase() === "business"
-    ? "business"
-    : "starter";
+  const rawPlan = String(record.planId || "fleet").trim().toLowerCase();
+  const planId = ["fleet", "business", "starter"].includes(rawPlan) ? rawPlan : "fleet";
   const stripeCustomerId = record.stripeCustomerId ? String(record.stripeCustomerId) : "";
   const stripeSubscriptionId = record.stripeSubscriptionId
     ? String(record.stripeSubscriptionId)
@@ -1770,7 +1772,7 @@ app.post(
     try {
       const input = await prepareFleetOperatorBody(req);
       input.status = "pending";
-      input.planId = String(req.body.planId || "starter").trim().toLowerCase();
+      input.planId = String(req.body.planId || "fleet").trim().toLowerCase();
 
       const operator = fleet.createOperator(input);
       applyOperatorDocumentUploads(operator, req);
@@ -1795,7 +1797,7 @@ app.post(
       if (resendApiKey && contactNotifyEmail) {
         await sendContactNotification({
           inquiryId: `lead-${operator.slug}`,
-          planId: operator.planId || "starter",
+          planId: operator.planId || "fleet",
           email: operator.legalEmail || "keine E-Mail",
           companyName: operator.companyName,
           message: `Neue Registrierungsanfrage (pending). Slug: ${operator.slug}. PLZ: ${(operator.serviceArea?.postalPrefixes || []).join(", ")}. Konzession: ${operator.concessionNumber || "—"}. Fehlend: ${gaps.join(", ") || "nichts"}.${firstDriver ? ` Erster Fahrer: ${firstDriver.name}.` : ""}`,
@@ -2143,7 +2145,7 @@ app.post(
         const count = drivers.filter((d) => d.operatorId === operator.operatorId).length;
         if (count >= limit) {
           return res.status(403).json({
-            error: `Fahrer-Limit erreicht (${limit} im Tarif ${operator.planId || "starter"}). Business-Tarif für mehr Fahrer.`,
+            error: `Fahrer-Limit erreicht (${limit} im Tarif ${operator.planId || "fleet"}). Bitte Tarif/Fahrzeuge erweitern.`,
           });
         }
       }
