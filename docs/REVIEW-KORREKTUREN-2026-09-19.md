@@ -32,6 +32,8 @@ Umsetzung der Review-Punkte zu `luckystaxiapp.de` (Geschäftsmodell, Rechtstexte
 | Telefon-Links | kein leeres `href="#"` — Text „auf Anfrage per E-Mail“ |
 | Empfänger | Render, Stripe, Resend, Google konkret benannt |
 | Rollen | Plattform / Betrieb / Fahrer / Stripe getrennt beschrieben |
+| Analytics / § 25 TDDDG | Consent-Banner; GA erst nach Opt-in (live) |
+| TOMs | Überblick: [TOMS.md](TOMS.md) |
 | Steuer | Checkliste: [STEUERBERATER-KLEINUNTERNEHMER.md](STEUERBERATER-KLEINUNTERNEHMER.md) |
 
 ## Noch offen / später (P1–P2)
