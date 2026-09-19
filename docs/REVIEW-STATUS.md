@@ -98,3 +98,4 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 6. Startseite `#operators` → Badge „14 Tage…“ gelb auf dunkelblau (lesbar)  
 7. Hero → klare Pfade Betrieb vs. Fahrgast  
 8. Tarife → Formel + Beispiele 1/2/5 Autos; Gebühr-Box mit Bar/Karte/Stripe  
+9. Tarif-Checkliste → kein „eigene App“-Overclaim; App Store folgt klar gekennzeichnet  
