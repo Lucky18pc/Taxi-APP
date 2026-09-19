@@ -2,6 +2,8 @@
 
 Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was vor dem Git-Push drin ist und was bewusst noch offen bleibt.
 
+**Website-Review (19.09.):** sortierter Status → [REVIEW-STATUS.md](REVIEW-STATUS.md)
+
 ---
 
 ## Legende
