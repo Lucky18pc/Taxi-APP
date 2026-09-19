@@ -9,10 +9,10 @@ Stand: September 2026 · Review P2 / Punkt 16
 3. **Keine Gedankenstriche als Standardverknüpfung.** Vermeide `—` und `–` zwischen Satzteilen. Stattdessen Punkt, Komma oder Doppelpunkt. Ausnahme: Platzhalter in Formularen/Tabellen für leere Werte (`—`).
 4. **Keine Entwurfs- oder Intern-Sprache in öffentlichen Texten.** Kein „typischerweise“, kein „ggf.“ als Weichmacher, keine „bitte anwaltlich prüfen“, keine Architekturdetails (Server-Volume, Application Fee, KYC) für Laien. Technik gehört in Docs.
 5. **Zwei Zielgruppen trennen.** Betrieb vs. Fahrgast. Nicht mischen ohne klare Überschrift.
-5. **Sie-Form** in öffentlichem Marketing und Rechtstexten (DE).
-6. **Produktversprechen = Funktionsstand.** Heute nutzbar klar sagen. App Store / TestFlight / separate Store-App nicht als Standardleistung verkaufen.
-7. **Keine Dateinamen als Linktext.** „Taxi bestellen“, nicht `book.html`.
-8. **Feste Begriffe:** Plattform / Softwaremiete · Leitstelle · Betriebsprofil · Plattformgebühr 1,9 % · 14 Tage testen.
+6. **Sie-Form** in öffentlichem Marketing und Rechtstexten (DE).
+7. **Produktversprechen = Funktionsstand.** Heute nutzbar klar sagen. App Store / TestFlight / separate Store-App nicht als Standardleistung verkaufen.
+8. **Keine Dateinamen als Linktext.** „Taxi bestellen“, nicht `book.html`.
+9. **Feste Begriffe:** Plattform / Softwaremiete · Leitstelle · Betriebsprofil · Plattformgebühr 1,9 % · 14 Tage testen.
 
 ## Redaktions-Checkliste (Durchgang)
 
