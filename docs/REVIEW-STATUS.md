@@ -45,7 +45,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | Thema | Wo |
 |--------|-----|
 | Kontrast App-Karten | `styles.css` |
-| Hero-Bild leicht | `fahrgast-start-preview.jpg` |
+| Hero-Bild leicht | WebP ~29 KB (+ JPG/PNG-Fallback); 1,7 MB-PNG entfernt |
 
 ### Stripe (separat, heute)
 | Thema | Wo |
