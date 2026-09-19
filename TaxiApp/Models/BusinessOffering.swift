@@ -19,7 +19,7 @@ enum BusinessOffering {
         "Taxi in wenigen Schritten bestellen",
         "Abholzeit und Abholort festlegen",
         "Fahrtpreis nach Taxameter — bar beim Fahrer",
-        "Kartenzahlung in der App nach der Fahrt (folgt)",
+        "Kartenzahlung möglich",
         "Trinkgeld optional als Wunsch mitteilen",
         "Keine Reservierungsgebühr in der App"
     ]
