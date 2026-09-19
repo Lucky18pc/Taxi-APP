@@ -62,11 +62,12 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P0 | Steuer Kleinunternehmer / Umsatz § 19 | [STEUERBERATER-KLEINUNTERNEHMER.md](STEUERBERATER-KLEINUNTERNEHMER.md) |
 | P0 | Anwaltliche Freigabe Rechtstexte | intern |
 | P0 | Stripe Connect Identität (falls noch Prüfung) | Stripe Dashboard |
+| P1 | Sprache DE/EN (Umschalter + hreflang); Marketing ohne Dateinamen | erledigt 19.09. |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |
-| P2 | Du/Sie vereinheitlichen | Landing / Städte |
-| P2 | Städte-Block Landing kürzen | `index.html` |
+| P2 | Eigene URLs pro Sprache (`/en/…`) | später |
+| P2 | Du/Sie vereinheitlichen | Landing |
 
 ---
 

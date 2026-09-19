@@ -1,13 +1,11 @@
 (function (global) {
   var STORAGE = "luckys-lang";
+  /** Öffentlicher Umschalter: nur DE/EN (vollständig für Marketing). Weitere Dicts bleiben für Alt-Links. */
   var LANGS = [
     { id: "de", label: "DE", name: "Deutsch" },
     { id: "en", label: "EN", name: "English" },
-    { id: "tr", label: "TR", name: "Türkçe" },
-    { id: "ar", label: "AR", name: "العربية" },
-    { id: "hi", label: "HI", name: "हिन्दी" },
-    { id: "ur", label: "UR", name: "اردو" },
   ];
+  var PUBLIC_LANGS = { de: 1, en: 1 };
   var RTL = { ar: 1, ur: 1 };
 
   var dict = {
@@ -44,7 +42,7 @@
       "sec.guest3": "Fahrtpreis nach Taxameter — bar oder Kartenzahlung",
       "sec.guest4": "Trinkgeld optional als Wunsch mitteilen",
       "sec.guest5": "Keine Reservierungsgebühr in der App",
-      "sec.guestIos": "Die App wird derzeit für iPhone bereitgestellt (TestFlight / App Store folgen).",
+      "sec.guestIos": "Die Fahrgast-App fürs iPhone wird vorbereitet (App Store folgt).",
       "sec.why": "Warum Luckys Taxi App?",
       "sec.whyLead": "Sie haben kein eigenes IT-Team? Brauchen trotzdem eine moderne Bestell-App? Luckys Taxi App ist Plattformanbieter: Sie mieten Buchung und Leitstelle. Sie bleiben der konzessionierte Taxi-Betrieb — wir sind nur die Technik.",
       "sec.ops": "Plattform mieten — für Taxi-Unternehmer",
@@ -67,7 +65,7 @@
       "plan.fee15": "1,9 % auf Bar- und Kartenzahlungen",
       "plan.fee19": "1,9 % auf Bar- und Kartenzahlungen",
       "plan.f1": "Eigene App mit Firmenlogo",
-      "plan.f2": "Online-Kartenzahlung (Stripe)",
+      "plan.f2": "Online-Kartenzahlung",
       "plan.f3": "Fahrtenübersicht & Leitstelle",
       "plan.f4": "E-Mail-Support",
       "plan.f5": "Alles aus Starter",
@@ -191,7 +189,7 @@
       "sec.guest3": "Fare by meter — cash or card",
       "sec.guest4": "Optional tip as a request",
       "sec.guest5": "No booking fee in the app",
-      "sec.guestIos": "The app is being prepared for iPhone (TestFlight / App Store to follow).",
+      "sec.guestIos": "The passenger app for iPhone is being prepared (App Store to follow).",
       "sec.why": "Why Luckys Taxi App?",
       "sec.whyLead": "No IT team, but you still need a modern booking app for your passengers? That is what Luckys Taxi App is for — you stay the taxi company, we are the technology.",
       "sec.ops": "For taxi operators",
@@ -771,12 +769,13 @@
   function current() {
     try {
       var q = new URLSearchParams(location.search).get("lang");
-      if (q && dict[q]) return q;
+      if (q && PUBLIC_LANGS[q] && dict[q]) return q;
       var saved = localStorage.getItem(STORAGE);
-      if (saved && dict[saved]) return saved;
+      if (saved && PUBLIC_LANGS[saved] && dict[saved]) return saved;
     } catch (e) {}
     var nav = String(navigator.language || "de").slice(0, 2).toLowerCase();
-    return dict[nav] ? nav : "de";
+    if (nav === "en" && dict.en) return "en";
+    return "de";
   }
 
   function t(key, vars) {
@@ -826,9 +825,13 @@
   }
 
   function setLang(id) {
-    if (!dict[id]) return;
+    if (!PUBLIC_LANGS[id] || !dict[id]) return;
     try {
       localStorage.setItem(STORAGE, id);
+      var u = new URL(location.href);
+      if (id === "de") u.searchParams.delete("lang");
+      else u.searchParams.set("lang", id);
+      history.replaceState({}, "", u.pathname + u.search + u.hash);
     } catch (e) {}
     apply();
   }
