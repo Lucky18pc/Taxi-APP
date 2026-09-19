@@ -70,6 +70,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P1 | Footer nach Zielgruppen + Betreiberzugang | erledigt 19.09. — `betrieb.html` |
 | P1 | Hero-Vorschaubilder: 1,7 MB-PNG weg, WebP + lazy | erledigt 19.09. |
 | P1 | Geocoding: Proxy + Datenschutz + Attribution | erledigt 19.09. — [GEOCODING.md](GEOCODING.md) |
+| P2 | Gedankenstriche / Textscan Startseite + DE-i18n | erledigt 19.09. (Em-Dash stark reduziert) |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |
