@@ -7,6 +7,17 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 
 ---
 
+## Grenzen der externen Prüfung (Review-Dokument)
+
+Geprüft wurden damals nur **öffentlich ausgelieferte Seiten, Skripte, Konfigurationen und Browser-Rendering**.  
+**Nicht** vorgelegen: Backend-Code, Stripe-Dashboard, Verträge, App-Store-Konto, Datenbank, Zahlungsfreigaben und reale Betriebsabläufe.
+
+Deshalb waren offene Rechts- und Sicherheitsfragen dort **Prüfaufträge**, keine bestätigten Gesetzesverletzungen und keine Behauptung „ungeschützte API“.
+
+**In diesem Repo seitdem:** Viele Website-/Code-Punkte wurden umgesetzt. Das ersetzt **nicht** die manuelle Prüfung von Stripe-Dashboard, Verträgen, AV-Nachweisen, App Store und Live-Betrieb.
+
+---
+
 ## Erledigt (P0 — Code & Live)
 
 ### Geschäftsmodell & Texte
