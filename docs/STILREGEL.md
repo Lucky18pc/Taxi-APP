@@ -6,7 +6,7 @@ Stand: September 2026 · Review P2 / Punkt 16
 
 1. **Kurze Sätze.** Ein Gedanke pro Satz, wo möglich.
 2. **Klare Satzzeichen.** Punkt, Komma, Doppelpunkt, Fragezeichen. Semikolon sparsam.
-3. **Keine Gedankenstriche als Standardverknüpfung.** Vermeide `—` und `–` zwischen Satzteilen. Stattdessen Punkt, Komma oder Doppelpunkt.
+3. **Keine Gedankenstriche als Standardverknüpfung.** Vermeide `—` und `–` zwischen Satzteilen. Stattdessen Punkt, Komma oder Doppelpunkt. Ausnahme: Platzhalter in Formularen/Tabellen für leere Werte (`—`).
 4. **Zwei Zielgruppen trennen.** Betrieb vs. Fahrgast. Nicht mischen ohne klare Überschrift.
 5. **Sie-Form** in öffentlichem Marketing und Rechtstexten (DE).
 6. **Produktversprechen = Funktionsstand.** Heute nutzbar klar sagen. App Store / TestFlight / separate Store-App nicht als Standardleistung verkaufen.
