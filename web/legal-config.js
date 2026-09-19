@@ -38,12 +38,29 @@
     }
 
     const phoneRaw = (cfg.platformPhone || "").trim();
-    const phoneDisplay = phoneRaw || "—";
+    const phoneWrap = document.getElementById("legal-phone-wrap");
     const phoneEl = document.getElementById("legal-phone");
     if (phoneEl) {
-      phoneEl.textContent = phoneDisplay;
-      phoneEl.href = phoneRaw ? `tel:${phoneRaw.replace(/\s/g, "")}` : "#";
-      phoneEl.classList.toggle("legal-hint", !phoneRaw);
+      if (phoneRaw) {
+        if (phoneEl.tagName === "A") {
+          phoneEl.textContent = phoneRaw;
+          phoneEl.href = `tel:${phoneRaw.replace(/\s/g, "")}`;
+        } else {
+          const a = document.createElement("a");
+          a.id = "legal-phone";
+          a.href = `tel:${phoneRaw.replace(/\s/g, "")}`;
+          a.textContent = phoneRaw;
+          phoneEl.replaceWith(a);
+        }
+        if (phoneWrap) phoneWrap.hidden = false;
+      } else if (phoneEl.tagName === "A") {
+        const span = document.createElement("span");
+        span.id = "legal-phone";
+        span.textContent = "auf Anfrage per E-Mail";
+        phoneEl.replaceWith(span);
+      } else {
+        phoneEl.textContent = "auf Anfrage per E-Mail";
+      }
     }
 
     const responsible = [cfg.platformOwner, cfg.platformStreet, cfg.platformCity]

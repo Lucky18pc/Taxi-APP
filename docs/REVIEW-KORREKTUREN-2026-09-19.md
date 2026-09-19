@@ -22,6 +22,18 @@ Umsetzung der Review-Punkte zu `luckystaxiapp.de` (Geschäftsmodell, Rechtstexte
 | Widerruf | Legal-Layout + Software-Abo-Klarstellung |
 | Leitstelle-Login | Hinweis ohne „ADMIN_PIN auf Render“ |
 
+## Erledigt (Nachzug Datenschutz / Aufsicht)
+
+| Thema | Änderung |
+|--------|----------|
+| Aufsichtsbehörde | LfDI **Rheinland-Pfalz** (nicht Baden-Württemberg) |
+| Aufbewahrung | Buchungs-/Zahlungsbelege typ. **8 Jahre** (§ 147 AO) |
+| Disclaimer | „anwaltlich prüfen lassen“ aus öffentlichen Legal-Seiten entfernt |
+| Telefon-Links | kein leeres `href="#"` — Text „auf Anfrage per E-Mail“ |
+| Empfänger | Render, Stripe, Resend, Google konkret benannt |
+| Rollen | Plattform / Betrieb / Fahrer / Stripe getrennt beschrieben |
+| Steuer | Checkliste: [STEUERBERATER-KLEINUNTERNEHMER.md](STEUERBERATER-KLEINUNTERNEHMER.md) |
+
 ## Noch offen / später (P1–P2)
 
 - Anwaltliche Prüfung der Rechtstexte
