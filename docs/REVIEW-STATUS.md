@@ -67,6 +67,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P1 | Preislogik + 1,9 %-Gebühr erklärt (Beispiele 1/2/5; AGB synchron) | erledigt 19.09. — Tarif bleibt 9,90/+9 (kein Flat-Preis-Wechsel) |
 | P1 | „Eigene App“-Versprechen präzisiert (PWA heute; Store folgt; Account Code & Grow) | erledigt 19.09. — [TESTFLIGHT.md](TESTFLIGHT.md) |
 | P1 | Öffentliche E-Mail → `kontakt@luckystaxiapp.de` | erledigt 19.09. — DNS/SPF/DKIM noch manuell: [EMAIL-MARKENADRESSE.md](EMAIL-MARKENADRESSE.md) |
+| P1 | Footer nach Zielgruppen + Betreiberzugang | erledigt 19.09. — `betrieb.html` |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |
@@ -94,7 +95,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 1. Inkognito → Cookie-Banner → Ablehnen → kein googletagmanager  
 2. `/impressum.html` → Softwarevermietung, kein „Vermittlungsplattform“  
 3. `/widerruf.html` → Abschnitte A/B/C  
-4. Startseite Footer → kein Link „Zentrale“ / „Einstellungen“  
+4. Startseite Footer → Spalten Fahrgäste / Betriebe / Hilfe / Rechtliches; Leitstelle nur über `betrieb.html`  
 5. `/book.html` → Vertragspartner-Hinweis  
 6. Startseite `#operators` → Badge „14 Tage…“ gelb auf dunkelblau (lesbar)  
 7. Hero → klare Pfade Betrieb vs. Fahrgast  
