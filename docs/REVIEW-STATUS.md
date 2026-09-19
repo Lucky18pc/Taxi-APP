@@ -64,6 +64,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P0 | Stripe Connect Identität (falls noch Prüfung) | Stripe Dashboard |
 | P1 | Sprache DE/EN (Umschalter + hreflang); Marketing ohne Dateinamen | erledigt 19.09. |
 | P1 | Linguistik: zwei Wege Betrieb / Fahrgast; Hinweisboxen + Badge-Kontrast | erledigt 19.09. (`index.html` / `styles.css`) |
+| P1 | Preislogik + 1,9 %-Gebühr erklärt (Beispiele 1/2/5; AGB synchron) | erledigt 19.09. — Tarif bleibt 9,90/+9 (kein Flat-Preis-Wechsel) |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |
@@ -95,3 +96,4 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 5. `/book.html` → Vertragspartner-Hinweis  
 6. Startseite `#operators` → Badge „14 Tage…“ gelb auf dunkelblau (lesbar)  
 7. Hero → klare Pfade Betrieb vs. Fahrgast  
+8. Tarife → Formel + Beispiele 1/2/5 Autos; Gebühr-Box mit Bar/Karte/Stripe  

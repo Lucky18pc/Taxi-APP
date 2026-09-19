@@ -1772,11 +1772,54 @@ body.home-taxi .ops-rent > .ops-aside {
   max-width: 42rem;
 }
 
+body.home-taxi .ops-rent > .ops-aside.fee-explain {
+  max-width: 48rem;
+  font-weight: 550;
+}
+
+body.home-taxi .ops-rent > .ops-aside.fee-explain p {
+  margin: 0 0 0.65rem;
+  color: #0c1c34 !important;
+  font-size: 0.98rem;
+  font-weight: 650;
+}
+
+body.home-taxi .ops-rent > .ops-aside.fee-explain ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.2rem;
+  color: #0c1c34;
+}
+
+body.home-taxi .ops-rent > .ops-aside.fee-explain li {
+  margin: 0.35rem 0;
+  font-weight: 550;
+}
+
+body.home-taxi .ops-rent > .ops-aside.fee-explain .fee-examples {
+  margin-bottom: 0;
+}
+
 body.home-taxi .ops-rent > .note a,
 body.home-taxi .ops-rent > .ops-aside a {
   color: #0c1c34 !important;
   text-decoration: underline;
   font-weight: 800;
+}
+
+body.home-taxi .ops-rent .price-formula {
+  margin: 0.65rem 0 0.35rem;
+  color: #fff !important;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+body.home-taxi .ops-rent .price-formula-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  font-weight: 550;
+  opacity: 0.9;
 }
 
 body.home-taxi .ops-rent .sales-card {

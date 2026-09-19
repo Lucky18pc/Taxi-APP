@@ -63,7 +63,7 @@
             "name": "Was kostet die gemietete Plattform für Taxi-Betriebe?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "14 Tage unverbindlich testen. Danach ab 9,90 €/Monat für das erste Fahrzeug, 18,90 € für zwei Fahrzeuge, jedes weitere +9 € — monatlich kündbar. Enthalten sind Fahrgast-Buchung, Leitstelle und QR-Code unter Ihrem Betriebsnamen. Plattformgebühr 1,9 % auf Bar- und Kartenzahlungen."
+              "text": "14 Tage unverbindlich testen. Danach: 1. Auto 9,90 €/Monat, jedes weitere +9,00 € (2 Autos 18,90 €, 5 Autos 45,90 €), monatlich kündbar. Plus 1,9 % Plattformgebühr auf abgeschlossene Bar- und Kartenzahlungen über die Software. Enthalten: Fahrgast-Buchung, Leitstelle und QR unter Ihrem Betriebsnamen."
             }
           },
           {
@@ -232,14 +232,17 @@
         <article class="plan highlight">
           <h3 data-i18n="plan.fleet">Pro Fahrzeug</h3>
           <p class="price" data-i18n="plan.fleetPrice">ab 9,90 € / Monat</p>
-          <p class="meta" data-i18n="plan.fleetMeta">14 Tage testen · danach monatlich kündbar · Preis nach Anzahl Autos</p>
-          <ul class="price-table" aria-label="Monatspreise nach Fahrzeugen">
-            <li><span data-i18n="plan.v1">1. Auto</span> <strong>9,90 €</strong></li>
-            <li><span data-i18n="plan.v2">2. Autos</span> <strong>18,90 €</strong></li>
-            <li><span data-i18n="plan.v3">3. Autos</span> <strong>27,90 €</strong></li>
-            <li><span data-i18n="plan.vMore">jedes weitere</span> <strong>+9,00 €</strong></li>
+          <p class="meta" data-i18n="plan.fleetMeta">14 Tage testen · danach monatlich kündbar</p>
+          <p class="price-formula">
+            <strong>Formel:</strong> 1.&nbsp;Auto <strong>9,90&nbsp;€</strong>, jedes weitere Auto <strong>+9,00&nbsp;€</strong>
+            <span class="price-formula-hint">(kein Extra-Grundpreis — nur die Fahrzeuganzahl zählt)</span>
+          </p>
+          <ul class="price-table" aria-label="Monatspreis-Beispiele">
+            <li><span>1 Auto</span> <strong>9,90 € / Monat</strong></li>
+            <li><span>2 Autos</span> <strong>18,90 € / Monat</strong></li>
+            <li><span>5 Autos</span> <strong>45,90 € / Monat</strong></li>
           </ul>
-          <p class="meta" data-i18n="plan.fee19">1,9 % auf Bar- und Kartenzahlungen</p>
+          <p class="meta" data-i18n="plan.fee19">Plus 1,9 % Plattformgebühr auf Bar- und Kartenzahlungen</p>
           <ul class="checklist">
             <li data-i18n="plan.f1">Eigene App mit Firmenlogo</li>
             <li data-i18n="plan.f2">Online-Kartenzahlung</li>
@@ -258,11 +261,21 @@
           </form>
         </article>
       </div>
-      <p class="ops-aside" style="margin-top:1rem">
-        Die Plattformgebühr beträgt <strong>1,9&nbsp;%</strong> auf <strong>Bar- und Kartenzahlungen</strong> der
-        über die Software abgewickelten Fahrten (Karte bei Auszahlung, Bar in der Monatsabrechnung). Monatspreis und Fahrt-Provision sind getrennt.
-        Rechnungsversand für das Abo: automatisch per E-Mail, sobald Billing aktiv ist — <a href="rechnungen.html">Details</a>.
-      </p>
+      <div class="ops-aside fee-explain" style="margin-top:1rem">
+        <p><strong>Zwei getrennte Kosten:</strong> Monatsabo (Software) und 1,9&nbsp;% Plattformgebühr (nur auf abgeschlossene Fahrten über die Software).</p>
+        <ul>
+          <li><strong>Zählt:</strong> Fahrpreis laut Taxameter / erfasster Fahrtbetrag bei Bar und Karte</li>
+          <li><strong>Zählt nicht:</strong> Trinkgeld, stornierte Fahrten ohne Zahlung, reine Rückerstattungen (keine Gebühr auf erstattete Beträge)</li>
+          <li><strong>Karte:</strong> 1,9&nbsp;% als Application Fee bei Auszahlung; <em>zusätzlich</em> behält Stripe seine Kartengebühren ein (nicht in den 1,9&nbsp;% enthalten)</li>
+          <li><strong>Bar:</strong> 1,9&nbsp;% in der Monatsabrechnung anhand der in der Leitstelle erfassten Barfahrten; bei Unstimmigkeiten: Korrektur über Support mit Fahrtdaten</li>
+        </ul>
+        <p class="fee-examples">
+          <strong>Beispiel Gebühr:</strong> 2.000&nbsp;€ Fahrtumsatz über die App → ca. <strong>38&nbsp;€</strong> Plattformgebühr
+          (plus ggf. Stripe bei Kartenzahlungen). Abo-Rechnung: automatisch per E-Mail, sobald Billing aktiv —
+          <a href="rechnungen.html">Rechnungsdetails</a> · rechtlich gleichlautend in den
+          <a href="agb-betriebe.html">AGB für Betriebe</a>.
+        </p>
+      </div>
     </section>
 
     <section id="die-app">
@@ -435,7 +448,7 @@
         </article>
         <article class="sales-card">
           <h3>Fair kalkuliert</h3>
-          <p>Monatspreis nach Anzahl Autos (ab 9,90 €), monatlich kündbar. Provision <strong>1,9 %</strong> auf <strong>Bar- und Kartenzahlungen</strong>.</p>
+          <p>Monatspreis: 1. Auto 9,90 €, jedes weitere +9 € (z. B. 5 Autos 45,90 €), monatlich kündbar. Plus <strong>1,9 %</strong> auf abgeschlossene <strong>Bar- und Kartenzahlungen</strong>.</p>
         </article>
       </div>
 
@@ -476,7 +489,10 @@
       <div class="sales-grid">
       <article class="sales-card">
         <h3>Was zahlt ein Taxi-Betrieb?</h3>
-        <p><strong>14 Tage unverbindlich testen</strong>. Danach <strong>ab 9,90 € im Monat</strong> für das erste Auto (2 Autos 18,90 €, jedes weitere +9 €), monatlich kündbar. Plus <strong>1,9 %</strong> auf Bar- und Kartenzahlungen. Buchung, Leitstelle und QR unter Ihrem Namen.</p>
+        <p><strong>14 Tage unverbindlich testen</strong>. Danach: 1.&nbsp;Auto <strong>9,90&nbsp;€/Monat</strong>, jedes weitere <strong>+9,00&nbsp;€</strong>
+          (Beispiel: 2 Autos 18,90&nbsp;€, 5 Autos 45,90&nbsp;€), monatlich kündbar. Plus <strong>1,9&nbsp;%</strong> auf abgeschlossene Bar- und Kartenzahlungen
+          über die Software (ohne Trinkgeld; Storno ohne Zahlung zählt nicht). Details und Beispiele unter
+          <a href="#operators">Tarife</a> und in den <a href="agb-betriebe.html">AGB für Betriebe</a>.</p>
       </article>
       <article class="sales-card">
         <h3>Ist Code &amp; Grow / Luckys selbst ein Taxi-Betrieb?</h3>
