@@ -2,11 +2,15 @@
 //  TapToPayService.swift
 //  Luckys Taxi Fahrer
 //
-//  Backend-Anbindung für Tap to Pay (Stripe Terminal).
-//  NFC-UI: Stripe Terminal iOS SDK in Xcode hinzufügen — siehe README + docs/TAP-TO-PAY.md
+//  Backend + Stripe Terminal SDK (Tap to Pay on iPhone).
+//  Voraussetzung: Apple-Entitlement, SPM stripe-terminal-ios, STRIPE_TERMINAL_LOCATION_ID auf Render.
 //
 
 import Foundation
+
+#if canImport(StripeTerminal)
+import StripeTerminal
+#endif
 
 enum TapToPayError: LocalizedError {
     case notConfigured
@@ -17,9 +21,9 @@ enum TapToPayError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "Tap to Pay ist auf dem Server nicht konfiguriert (STRIPE_TERMINAL_LOCATION_ID)."
+            return "Tap to Pay nicht konfiguriert (STRIPE_TERMINAL_LOCATION_ID auf Render)."
         case .sdkMissing:
-            return "Stripe Terminal SDK noch nicht in Xcode eingebunden — Link-Zahlung nutzen oder SDK laut README hinzufügen."
+            return "Stripe Terminal SDK fehlt — in Xcode SPM hinzufügen (siehe Anleitung)."
         case .backend(let message):
             return message
         case .failed(let message):
@@ -70,7 +74,6 @@ enum TapToPayService {
         }
     }
 
-    /// Erzeugt Terminal-PaymentIntent auf dem Server (Karte tippen vorbereiten).
     static func prepareTapToPay(
         bookingId: String,
         driverUid: String,
@@ -117,7 +120,6 @@ enum TapToPayService {
         return try JSONDecoder().decode(Token.self, from: data).secret
     }
 
-    /// Vollständiges NFC-Collect braucht Stripe Terminal SDK (siehe docs/TAP-TO-PAY.md Phase B).
     @MainActor
     static func collectWithSdkIfAvailable(
         bookingId: String,
@@ -135,14 +137,147 @@ enum TapToPayService {
             return session
         }
         #if canImport(StripeTerminal)
-        // SDK-Integration: ConnectionTokenProvider + discover TapToPay + collectPaymentMethod
-        // Siehe Stripe Docs „Tap to Pay on iPhone“ — hier bewusst serverseitig vorbereitet.
-        _ = try await fetchConnectionToken(operatorSlug: operatorSlug)
-        throw TapToPayError.failed(
-            "SDK angebunden, Collect-UI folgt — bitte Stripe Terminal laut docs/TAP-TO-PAY.md fertig verdrahten."
+        guard let clientSecret = session.clientSecret, !clientSecret.isEmpty else {
+            throw TapToPayError.failed("Kein clientSecret vom Server — Render/Stripe prüfen.")
+        }
+        guard let locationId = session.locationId, !locationId.isEmpty else {
+            throw TapToPayError.notConfigured
+        }
+        try await TerminalTapToPayRunner.run(
+            operatorSlug: operatorSlug,
+            clientSecret: clientSecret,
+            locationId: locationId
         )
+        return session
         #else
         throw TapToPayError.sdkMissing
         #endif
     }
 }
+
+#if canImport(StripeTerminal)
+
+/// Token-Provider + einmaliger Collect-Lauf für Tap to Pay.
+@MainActor
+private final class TerminalTapToPayRunner: NSObject, ConnectionTokenProvider, DiscoveryDelegate, TapToPayReaderDelegate {
+    private var tokenContinuation: CheckedContinuation<String, Error>?
+    private var discoverContinuation: CheckedContinuation<Reader, Error>?
+    private var operatorSlug: String = ""
+    private var discoverCancelable: Cancelable?
+
+    static func run(operatorSlug: String, clientSecret: String, locationId: String) async throws {
+        let runner = TerminalTapToPayRunner()
+        runner.operatorSlug = operatorSlug
+
+        if !Terminal.hasTokenProvider {
+            Terminal.setTokenProvider(runner)
+        }
+
+        let reader = try await runner.discoverTapToPayReader()
+        let config = try TapToPayConnectionConfigurationBuilder(locationId: locationId)
+            .setDelegate(runner)
+            .build()
+
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            Terminal.shared.connectReader(reader, connectionConfig: config) { connected, error in
+                if let error {
+                    cont.resume(throwing: TapToPayError.failed(error.localizedDescription))
+                } else if connected != nil {
+                    cont.resume()
+                } else {
+                    cont.resume(throwing: TapToPayError.failed("Reader-Verbindung fehlgeschlagen."))
+                }
+            }
+        }
+
+        let intent = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<PaymentIntent, Error>) in
+            Terminal.shared.retrievePaymentIntent(clientSecret: clientSecret) { pi, error in
+                if let error {
+                    cont.resume(throwing: TapToPayError.failed(error.localizedDescription))
+                } else if let pi {
+                    cont.resume(returning: pi)
+                } else {
+                    cont.resume(throwing: TapToPayError.failed("PaymentIntent nicht geladen."))
+                }
+            }
+        }
+
+        let collected = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<PaymentIntent, Error>) in
+            _ = Terminal.shared.collectPaymentMethod(intent) { pi, error in
+                if let error {
+                    cont.resume(throwing: TapToPayError.failed(error.localizedDescription))
+                } else if let pi {
+                    cont.resume(returning: pi)
+                } else {
+                    cont.resume(throwing: TapToPayError.failed("Kartenerfassung abgebrochen."))
+                }
+            }
+        }
+
+        _ = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<PaymentIntent, Error>) in
+            Terminal.shared.confirmPaymentIntent(collected) { pi, error in
+                if let error {
+                    cont.resume(throwing: TapToPayError.failed(error.localizedDescription))
+                } else if let pi {
+                    cont.resume(returning: pi)
+                } else {
+                    cont.resume(throwing: TapToPayError.failed("Zahlungsbestätigung fehlgeschlagen."))
+                }
+            }
+        }
+    }
+
+    private func discoverTapToPayReader() async throws -> Reader {
+        discoverCancelable?.cancel { _ in }
+        let config = try DiscoveryConfigurationBuilder()
+            .setDiscoveryMethod(.tapToPay)
+            .build()
+
+        return try await withCheckedThrowingContinuation { cont in
+            self.discoverContinuation = cont
+            self.discoverCancelable = Terminal.shared.discoverReaders(config, delegate: self) { error in
+                if let error {
+                    self.discoverContinuation?.resume(throwing: TapToPayError.failed(error.localizedDescription))
+                    self.discoverContinuation = nil
+                }
+            }
+        }
+    }
+
+    // MARK: ConnectionTokenProvider
+
+    func fetchConnectionToken(_ completion: @escaping ConnectionTokenCompletionBlock) {
+        Task {
+            do {
+                let secret = try await TapToPayService.fetchConnectionToken(operatorSlug: operatorSlug)
+                completion(secret, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+    }
+
+    // MARK: DiscoveryDelegate
+
+    func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
+        guard let cont = discoverContinuation, let reader = readers.first else { return }
+        discoverContinuation = nil
+        discoverCancelable?.cancel { _ in }
+        discoverCancelable = nil
+        cont.resume(returning: reader)
+    }
+
+    // MARK: TapToPayReaderDelegate
+
+    func tapToPayReader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {}
+
+    func tapToPayReader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {}
+
+    func tapToPayReader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {}
+
+    func tapToPayReader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {}
+
+    func tapToPayReader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {}
+}
+
+#endif

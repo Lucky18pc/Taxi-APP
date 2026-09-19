@@ -1,63 +1,45 @@
 # Xcode — Luckys Taxi Fahrer + Tap to Pay
 
+**Apple-Entitlement:** erteilt (Sep 2026). Als Nächstes: Stripe-Location + Xcode-Capability + Test auf dem iPhone.
+
 Die echte Fahrer-App liegt hier (nicht in `TaxiApp.xcodeproj`):
 
 `~/CollectionApp/FahrgastApp/Luckys Taxi Fahrer/Luckys Taxi Fahrer.xcodeproj`
 
-## Was schon vorbereitet ist
+## Reihenfolge jetzt
 
-- `TapToPayService.swift` — spricht Render-Terminal-API an  
-- `LuckysTaxiFahrer.entitlements` — Tap-to-Pay-Capability  
-- `FahrerHomeView` — nach Betrag: Bar / Zahlungslink / Karte tippen  
-- SPM-Eintrag **StripeTerminal** im Xcode-Projekt  
-- Backend: Commit `682a5af` (Connection-Token + tap-pay)
+### A — Stripe + Render (du, 5 Minuten)
 
-## Schritt für Schritt in Xcode
+1. [dashboard.stripe.com](https://dashboard.stripe.com) → **Taxi-Konto** (nicht Shop)  
+2. **Terminal → Locations → + New** → Adresse DE  
+3. Location-ID `tml_…` kopieren  
+4. [Render](https://dashboard.render.com) → **taxiapp-api** → Environment:  
+   `STRIPE_TERMINAL_LOCATION_ID=tml_…`  
+5. Optional Test: `STRIPE_TERMINAL_SIMULATED=1`  
+6. Deploy abwarten
 
-### 1. Projekt öffnen
-1. Xcode starten  
-2. **File → Open…**  
-3. Ordner wählen:  
+### B — Xcode
+
+1. Projekt öffnen:  
    `CollectionApp/FahrgastApp/Luckys Taxi Fahrer/Luckys Taxi Fahrer.xcodeproj`
+2. Target → **Signing & Capabilities** → Team wählen  
+3. Capability **Tap to Pay on iPhone** aktivieren (jetzt freigeschaltet)  
+4. Entitlements-Datei prüfen: `LuckysTaxiFahrer.entitlements`  
+5. **Package Dependencies:** `https://github.com/stripe/stripe-terminal-ios` → Product **StripeTerminal**  
+6. Echtes **iPhone XS+** anschließen → Scheme **Luckys Taxi Fahrer** → ▶ Run  
+7. Login → Online → Fahrt erledigt → Betrag → **Karte tippen (Tap to Pay)**
 
-### 2. Pakete laden
-1. Links Projekt **Luckys Taxi Fahrer** anklicken  
-2. Tab **Package Dependencies**  
-3. Warte bis **stripe-terminal-ios** und Firebase fertig laden  
-4. Fehlt Stripe Terminal: **+** → URL  
-   `https://github.com/stripe/stripe-terminal-ios`  
-   → Product **StripeTerminal** dem Target hinzufügen  
+### C — Was du erwarten solltest
 
-### 3. Entitlements prüfen
-1. Target **Luckys Taxi Fahrer** → **Signing & Capabilities**  
-2. Team: dein Apple-Team (`L44Z8KQDL5`)  
-3. Datei `LuckysTaxiFahrer.entitlements` sollte verknüpft sein  
-4. Capability **Tap to Pay on iPhone** erscheint erst nach **Apple-Freigabe**  
-   Ohne Freigabe: Build kann wegen Entitlement warnen/fehlschlagen — dann Entitlement vorübergehend aus Signing entfernen und nur Zahlungslink nutzen  
-
-### 4. Auf dem iPhone bauen
-1. Echtes iPhone anschließen (XS oder neuer)  
-2. Scheme **Luckys Taxi Fahrer** → dein Gerät  
-3. ▶ Run  
-4. Login Fahrer → Online → Fahrt → **Fahrt erledigt** → Betrag → Zahlungsart  
-
-### 5. Was du erwarten solltest
-| Aktion | Ergebnis jetzt |
-|--------|----------------|
+| Aktion | Ergebnis |
+|--------|----------|
 | Bar | Fahrt abgeschlossen |
-| Zahlungslink | Link in Zwischenablage (wenn Zahlung Karte) |
-| Karte tippen | Server-PI wird erzeugt; NFC-UI erst nach Apple-Entitlement + Collect-Code |
+| Zahlungslink | Link in Zwischenablage |
+| Karte tippen | NFC-Vollbild „Karte halten“ → Erfolg (nach Location-ID + SDK) |
 
-## Apple-Freigabe (danach echtes Tippen)
-1. [developer.apple.com](https://developer.apple.com) → Account  
-2. Tap to Pay on iPhone Entitlement beantragen (Development, später Distribution)  
-3. Bundle-ID: `com.collection.Luckys-Taxi-Fahrer`  
-4. Stripe Docs: [Tap to Pay on iPhone](https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=ios)
-
-## Render-Check
-- `STRIPE_TERMINAL_LOCATION_ID` = `tml_…`  
-- Deploy inkl. Tap-to-Pay-Backend (`682a5af` oder neuer)
+Ohne Location-ID auf Render: Fehlermeldung „nicht konfiguriert“.
 
 ## Siehe auch
+
 - `docs/TAP-TO-PAY.md`
-- `FahrerApp/README.md` (Spiegel-Dateien im TaxiApp-Repo)
+- Stripe: [Tap to Pay on iPhone](https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=ios)
