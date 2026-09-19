@@ -25,7 +25,7 @@ const stripeTerminalLocationId = String(process.env.STRIPE_TERMINAL_LOCATION_ID 
 const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const publicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
 const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
-const contactNotifyEmail = String(process.env.CONTACT_NOTIFY_EMAIL || "luckypc81@gmail.com").trim();
+const contactNotifyEmail = String(process.env.CONTACT_NOTIFY_EMAIL || "kontakt@luckystaxiapp.de").trim();
 const resendFromEmail = String(
   process.env.RESEND_FROM || "Code & Grow <onboarding@resend.dev>"
 ).trim();
@@ -316,7 +316,7 @@ function ensureTenantDefaults() {
     tenantConfig.platformOwner = "";
   }
   if (!tenantConfig.platformEmail) {
-    tenantConfig.platformEmail = "luckypc81@gmail.com";
+    tenantConfig.platformEmail = "kontakt@luckystaxiapp.de";
   }
   if (!tenantConfig.platformPhone) {
     tenantConfig.platformPhone = "";
@@ -899,7 +899,7 @@ function platformPublicConfig() {
     platformStreet: tenantConfig.platformStreet || "",
     platformCity: tenantConfig.platformCity || "",
     platformOwner: tenantConfig.platformOwner || "",
-    platformEmail: tenantConfig.platformEmail || "luckypc81@gmail.com",
+    platformEmail: tenantConfig.platformEmail || "kontakt@luckystaxiapp.de",
     platformPhone: tenantConfig.platformPhone || "",
     platformVatId: tenantConfig.platformVatId || "",
   };

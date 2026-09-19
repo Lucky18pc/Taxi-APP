@@ -5,7 +5,7 @@ enum BusinessOffering {
     static let productName = "Luckys Taxi App"
     static let tagline = "Taxi bestellen. Fahren. Bezahlen."
     static let billingNote = "14 Tage unverbindlich testen — danach monatlich kündbar, keine Mindestlaufzeit."
-    static let partnerEmail = "luckypc81@gmail.com"
+    static let partnerEmail = "kontakt@luckystaxiapp.de"
 
     /// 1. Auto 9,90 € · jedes weitere +9,00 € (2 Autos = 18,90 €).
     static let firstVehicleEuroPerMonth = 9.9

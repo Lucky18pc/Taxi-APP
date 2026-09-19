@@ -66,6 +66,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P1 | Linguistik: zwei Wege Betrieb / Fahrgast; Hinweisboxen + Badge-Kontrast | erledigt 19.09. (`index.html` / `styles.css`) |
 | P1 | Preislogik + 1,9 %-Gebühr erklärt (Beispiele 1/2/5; AGB synchron) | erledigt 19.09. — Tarif bleibt 9,90/+9 (kein Flat-Preis-Wechsel) |
 | P1 | „Eigene App“-Versprechen präzisiert (PWA heute; Store folgt; Account Code & Grow) | erledigt 19.09. — [TESTFLIGHT.md](TESTFLIGHT.md) |
+| P1 | Öffentliche E-Mail → `kontakt@luckystaxiapp.de` | erledigt 19.09. — DNS/SPF/DKIM noch manuell: [EMAIL-MARKENADRESSE.md](EMAIL-MARKENADRESSE.md) |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |
@@ -84,7 +85,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | [STRIPE-ZWEI-KONTEN.md](STRIPE-ZWEI-KONTEN.md) | Shop vs. Taxi Stripe |
 | [STRIPE-CONNECT.md](STRIPE-CONNECT.md) | Betriebe auszahlen |
 | [GOOGLE-ANALYTICS.md](GOOGLE-ANALYTICS.md) | GA-Setup (Consent beachten) |
-| [PROJEKT-STATUS.md](PROJEKT-STATUS.md) | Gesamt-Projektstand |
+| [EMAIL-MARKENADRESSE.md](EMAIL-MARKENADRESSE.md) | kontakt@ + SPF/DKIM/DMARC |
 
 ---
 

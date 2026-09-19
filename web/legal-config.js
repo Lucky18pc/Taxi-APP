@@ -20,7 +20,7 @@
   }
 
   function platformEmail(cfg) {
-    return (cfg.platformEmail || "luckypc81@gmail.com").trim();
+    return (cfg.platformEmail || "kontakt@luckystaxiapp.de").trim();
   }
 
   function applyPlatformContact(cfg) {

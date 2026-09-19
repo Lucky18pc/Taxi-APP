@@ -38,7 +38,7 @@ Unter **Connect** → **Settings** / **Einstellungen**:
 | Platform / Business name | **Code & Grow** |
 | Icon / Logo | dein Logo (optional, aber gut) |
 | Brand color | Navy `#0c1c34` oder Gelb `#ffcc00` |
-| Support E-Mail | `luckypc81@gmail.com` |
+| Support E-Mail | `kontakt@luckystaxiapp.de` |
 | Support URL | `https://luckystaxiapp.de` |
 | Statement descriptor / Beschreibung | z. B. Taxi-Plattform / Software für Taxi-Betriebe |
 

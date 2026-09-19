@@ -107,7 +107,7 @@ Nach 5–10 Testbuchungen kurz Rückmeldung:
 | `{{ZENTRALE}}` | 0621 123456 |
 | `{{ADMIN_PIN}}` | Nur Plattform-Admin (admin.html) — nicht an Betrieb |
 | `{{TESTFLIGHT_LINK}}` | App Store Connect Einladungslink |
-| `{{SUPPORT_EMAIL}}` | luckypc81@gmail.com |
+| `{{SUPPORT_EMAIL}}` | kontakt@luckystaxiapp.de |
 | `{{DEIN_NAME}}` | Lucky |
 
 **Sicherheit:** PIN nicht in derselben E-Mail wie öffentliche Links — besser telefonisch oder separat senden.

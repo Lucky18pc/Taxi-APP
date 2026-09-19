@@ -54,7 +54,7 @@ Anfrage (2 Minuten): https://luckystaxiapp.de/onboard.html
 Viele Grüße
 Pece Carmine
 Code & Grow · Speyer
-luckypc81@gmail.com
+kontakt@luckystaxiapp.de
 ```
 
 ---

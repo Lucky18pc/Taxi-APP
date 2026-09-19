@@ -17,7 +17,7 @@ Anleitung für **automatische Rechnungen per E-Mail** an Taxi-Unternehmer (Platt
    - **Starter:** Position „Luckys Taxi App Starter — Monatsabo“, 49,00 € netto (+ USt.)
    - **Business:** Position „Luckys Taxi App Business — Monatsabo“, 99,00 € netto (+ USt.)
    - Intervall: monatlich, Versand: **automatisch per E-Mail** am Rechnungstag
-5. Bei jeder Tarif-Anfrage (`luckypc81@gmail.com` oder Kontaktformular auf der Startseite): Kontakt anlegen → wiederkehrende Rechnung starten
+5. Bei jeder Tarif-Anfrage (`kontakt@luckystaxiapp.de` oder Kontaktformular auf der Startseite): Kontakt anlegen → wiederkehrende Rechnung starten
 
 ### sevDesk (Alternative)
 
