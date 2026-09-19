@@ -11,7 +11,7 @@
   <link rel="canonical" href="https://luckystaxiapp.de/book.html">
   <meta name="robots" content="index,follow">
   <meta property="og:title" content="Taxi bestellen | Luckys Taxi App">
-  <meta property="og:description" content="Taxi online bestellen — bar nach Taxameter. Ohne App Store, direkt im Browser oder auf dem Home-Bildschirm.">
+  <meta property="og:description" content="Taxi online bestellen, bar nach Taxameter. Ohne App Store, direkt im Browser oder auf dem Home-Bildschirm.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://luckystaxiapp.de/book.html">
   <meta property="og:image" content="https://luckystaxiapp.de/icon-taxi-512.png">
@@ -77,7 +77,7 @@
       margin-bottom: 0.4rem;
       color: #fff;
     }
-    .book-field input, .book-field textarea, .book-field select {
+    .book-field input.book-field textarea.book-field select {
       width: 100%;
       padding: 0.75rem 0.8rem;
       border: 2px solid #ffcc00;
@@ -201,9 +201,9 @@
       <span class="home-preview-label" id="home-screen-label">Luckys Taxi</span>
     </div>
     <h1 id="book-title">Luckys Taxi App</h1>
-    <p id="book-subtitle" data-i18n="book.subtitle">Deutschlandweit bestellen — ein Knopf, Taxi vor Ort</p>
+    <p id="book-subtitle" data-i18n="book.subtitle">Deutschlandweit bestellen, ein Knopf, Taxi vor Ort</p>
     <p class="book-cities">
-      Deutschland &amp; Nachbarländer —
+      Deutschland &amp; Nachbarländer.
       <a href="staedte/">alle Orte</a>
       ·
       <a href="staedte/berlin.html">Berlin</a>,
@@ -239,7 +239,7 @@
         <span id="assigned-text">Die Leitstelle vor Ort bekommt Ihre Bestellung.</span>
       </div>
       <p class="book-hint" id="contract-partner-note" style="margin-bottom:1rem">
-        <strong>Vertragspartner der Fahrt</strong> ist der angezeigte bzw. zugeordnete Taxi-Betrieb — nicht Code &amp; Grow.
+        <strong>Vertragspartner der Fahrt</strong> ist der angezeigte bzw. zugeordnete Taxi-Betrieb, nicht Code &amp; Grow.
         Code &amp; Grow stellt nur die Software bereit und leitet Ihre Anfrage technisch weiter.
       </p>
       <h2 data-i18n="book.pickup">Abholung</h2>
@@ -249,7 +249,7 @@
       <div class="book-actions" style="margin-bottom:1rem">
         <button type="button" class="btn-book btn-book-secondary" id="btn-gps" data-i18n="book.useGps">Standort nutzen (GPS)</button>
       </div>
-      <p class="book-hint" style="margin-bottom:0.75rem" data-i18n="book.addressOrGps">Adresse eingeben — oder GPS nutzen und Felder werden ausgefüllt.</p>
+      <p class="book-hint" style="margin-bottom:0.75rem" data-i18n="book.addressOrGps">Adresse eingeben, oder GPS nutzen und Felder werden ausgefüllt.</p>
       <div class="book-field">
         <label for="street" data-i18n="book.street">Straße</label>
         <input id="street" name="street" placeholder="Musterstraße" required>
@@ -279,8 +279,8 @@
       <div class="book-field">
         <label for="paymentMethod" data-i18n="book.payment">Zahlung</label>
         <select id="paymentMethod" name="paymentMethod">
-          <option value="Bar" selected data-i18n="book.payCash">Bar — Preis nach Taxameter beim Fahrer</option>
-          <option value="Karte" data-i18n="book.payCard">Karte — nach der Fahrt online bezahlen</option>
+          <option value="Bar" selected data-i18n="book.payCash">Bar. Preis nach Taxameter beim Fahrer</option>
+          <option value="Karte" data-i18n="book.payCard">Karte, nach der Fahrt online bezahlen</option>
         </select>
         <p class="book-hint" data-i18n="book.payHint">Kein Festpreis bei Buchung. Bei Karte: Zahlungslink nach Taxameter-Betrag.</p>
       </div>
@@ -478,7 +478,7 @@
       TenantBranding.applyTenantBranding(cfg, {
         titleId: "book-title",
         subtitleId: "book-subtitle",
-        subtitleText: "{company} — aufs Handy legen",
+        subtitleText: "{company}, aufs Handy legen",
         heroSelector: "#book-hero",
         primaryButtonSelector: ".btn-book-primary",
         titlePrefix: "",

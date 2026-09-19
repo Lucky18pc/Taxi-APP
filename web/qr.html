@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>QR-Code — Taxi online bestellen</title>
+  <title>QR-Code. Taxi online bestellen</title>
   <meta name="theme-color" content="#ffcc00">
   <link rel="stylesheet" href="styles.css">
   <script src="analytics.js" defer></script>
@@ -117,12 +117,12 @@
 <body class="qr-page">
   <main class="qr-wrap">
     <h1 id="qr-title">Taxi bestellen</h1>
-    <p class="lead" id="qr-subtitle">QR für Ihren Betrieb — oder ohne Zusatz die deutschlandweite Luckys Taxi App</p>
+    <p class="lead" id="qr-subtitle">QR für Ihren Betrieb, oder ohne Zusatz die deutschlandweite Luckys Taxi App</p>
 
     <div class="qr-card">
       <img id="qr-image" width="280" height="280" alt="QR-Code zur Online-Buchung">
       <p class="qr-url">Link: <a id="qr-link" href="#"></a></p>
-      <p class="note" style="margin-top:0.75rem">PNG speichern und bei einem Drucker oder Online-Shop hochladen — kein Spezialdienst nötig.</p>
+      <p class="note" style="margin-top:0.75rem">PNG speichern und bei einem Drucker oder Online-Shop hochladen, kein Spezialdienst nötig.</p>
       <div class="qr-actions no-print">
         <button type="button" class="btn" id="qr-download">PNG speichern (druckfertig)</button>
         <button type="button" class="btn secondary" onclick="window.print()">Seite drucken</button>
@@ -136,11 +136,11 @@
     </ul>
 
     <section class="qr-print-box no-print">
-      <h2>Drucken lassen — wer macht das?</h2>
-      <p><strong>Sie</strong> — es gibt keinen offiziellen „QR-Druck-Service“ für die App. Ablauf:</p>
+      <h2>Drucken lassen, wer macht das?</h2>
+      <p><strong>Sie</strong>: es gibt keinen offiziellen „QR-Druck-Service“ für die App. Ablauf:</p>
       <ol style="margin:0.5rem 0 0 1.1rem;padding:0">
         <li>Hier <strong>PNG speichern</strong> (ca. 1200×1200 px, gut für Druck).</li>
-        <li>Datei an einen Anbieter Ihrer Wahl — z. B. <strong>Copyshop vor Ort</strong>, <strong>Vistaprint</strong>, <strong>FLYERALARM</strong>, <strong>Avery</strong> (Aufkleber), oder <strong>eigener Drucker</strong> auf A4.</li>
+        <li>Datei an einen Anbieter Ihrer Wahl, z. B. <strong>Copyshop vor Ort</strong>, <strong>Vistaprint</strong>, <strong>FLYERALARM</strong>, <strong>Avery</strong> (Aufkleber), oder <strong>eigener Drucker</strong> auf A4.</li>
         <li>Größe im Auto: QR mindestens <strong>4×4 cm</strong>, besser 6×6 cm; daneben kurz „Taxi scannen &amp; bestellen“.</li>
       </ol>
       <p style="margin:0.75rem 0 0">Visitenkarten: PNG beim Karten-Drucker hochladen. Aufkleber: „Wetterfester Aufkleber“ oder Folie wählen.</p>
@@ -226,8 +226,8 @@
           if (!cfg || !cfg.companyName) return;
           document.getElementById("qr-title").textContent = cfg.companyName;
           document.getElementById("qr-subtitle").textContent =
-            "QR scannen — Taxi bei " + cfg.companyName + " bestellen";
-          document.title = "QR-Code — " + cfg.companyName;
+            "QR scannen. Taxi bei " + cfg.companyName + " bestellen";
+          document.title = "QR-Code, " + cfg.companyName;
           if (window.TenantBranding) {
             TenantBranding.applyTenantBranding(cfg, { titleId: "qr-title" });
           }

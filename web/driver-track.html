@@ -32,7 +32,7 @@
     body { background: var(--bg-yellow); }
     [hidden] { display: none !important; }
 
-    /* —— Login (wie Simulator) —— */
+    /* --- Login (wie Simulator) --- */
     #screen-login {
       min-height: 100dvh;
       display: flex;
@@ -133,7 +133,7 @@
       text-align: center;
     }
 
-    /* —— Home (wie Simulator) —— */
+    /* --- Home (wie Simulator) --- */
     #screen-home {
       min-height: 100dvh;
       background:
@@ -329,7 +329,7 @@
       font-size: 0.8rem;
       color: rgba(12,28,52,0.75);
     }
-    .btn-accept, .btn-done {
+    .btn-accept.btn-done {
       width: 100%;
       margin-top: 0.65rem;
       border: 0;
@@ -341,14 +341,14 @@
     }
     .btn-accept { background: #e67e22; }
     .btn-done { background: #2ecc71; }
-    .btn-accept:disabled, .btn-done:disabled { opacity: 0.55; cursor: wait; }
+    .btn-accept:disabled.btn-done:disabled { opacity: 0.55; cursor: wait; }
 
     .empty {
       margin: 0;
       color: rgba(12,28,52,0.75);
     }
 
-    /* —— Pause-Spiele —— */
+    /* --- Pause-Spiele --- */
     #screen-games, #screen-game {
       min-height: 100dvh;
       background: var(--yellow);
@@ -549,7 +549,7 @@
       </button>
 
       <p class="error-line" id="error-text" hidden></p>
-      <p class="gps-line" id="gps-active" hidden>Live-Tracking aktiv — Standort wird an den Fahrgast gesendet.</p>
+      <p class="gps-line" id="gps-active" hidden>Live-Tracking aktiv. Standort wird an den Fahrgast gesendet.</p>
       <p class="gps-err" id="gps-error" hidden></p>
       <p class="coords" id="coords"></p>
 
@@ -580,7 +580,7 @@
       <button type="button" class="game-card" data-game="memory">
         <div class="game-card-text">
           <strong>Taxi Memory</strong>
-          <span>Paare finden — 8 Karten, ruhiges Tempo.</span>
+          <span>Paare finden, 8 Karten, ruhiges Tempo.</span>
         </div>
         <span class="chev">▶</span>
       </button>
@@ -594,7 +594,7 @@
       <button type="button" class="game-card" data-game="naechste">
         <div class="game-card-text">
           <strong>Nächste Fahrt</strong>
-          <span>Funkspruch lesen — richtiges Ziel antippen, bevor die Zeit abläuft.</span>
+          <span>Funkspruch lesen, richtiges Ziel antippen, bevor die Zeit abläuft.</span>
         </div>
         <span class="chev">▶</span>
       </button>
@@ -1038,7 +1038,7 @@
         "Neue Bestellung eingegangen.",
         "Fahrgast wartet schon.",
         "Leitstelle: nächste Fahrt für dich.",
-        "App-Auftrag — schnell entscheiden!",
+        "App-Auftrag, schnell entscheiden!",
       ];
       let score = 0;
       let lives = 3;
@@ -1073,7 +1073,7 @@
           </div>
           <div class="auftrag-card">
             <div class="route">${lives === 0 ? "Schicht vorbei" : "Nächste Fahrt"}</div>
-            <p class="status-line">Abholung lesen, Ziel wählen — bevor die Zeit abläuft.</p>
+            <p class="status-line">Abholung lesen, Ziel wählen, bevor die Zeit abläuft.</p>
           </div>
           <button type="button" class="btn-navy" id="n-start">${lives === 0 ? "Nochmal" : "Funk an"}</button>
         `;
@@ -1144,7 +1144,7 @@
             high = score;
             hsSet(highKey, high);
           }
-          feedback = streak >= 3 ? "Serie! Weiter so." : "Richtig — Motor an!";
+          feedback = streak >= 3 ? "Serie! Weiter so." : "Richtig. Motor an!";
           running = false;
           renderRound();
           setTimeout(neueRunde, 450);
@@ -1158,8 +1158,8 @@
         lives -= 1;
         streak = 0;
         feedback = timeout
-          ? `Zu langsam — Ziel war ${destination}.`
-          : `Falsch — richtig war ${destination}.`;
+          ? `Zu langsam. Ziel war ${destination}.`
+          : `Falsch, richtig war ${destination}.`;
         running = false;
         renderRound();
         if (lives <= 0) {
@@ -1226,7 +1226,7 @@
       try {
         const snap = await getDoc(doc(db, "user", state.driverUid));
         const online = Boolean(snap.data()?.isOnline);
-        setOnlineLocal(online, online ? "Online — bereit." : "Du bist offline.");
+        setOnlineLocal(online, online ? "Online, bereit." : "Du bist offline.");
       } catch (err) {
         setError(`Status laden: ${err.message || err}`);
       }
@@ -1258,7 +1258,7 @@
           { isOnline: online, onlineUpdatedAt: serverTimestamp() },
           { merge: true }
         );
-        el.statusText.textContent = online ? "Online — bereit." : "Du bist offline.";
+        el.statusText.textContent = online ? "Online, bereit." : "Du bist offline.";
         if (!online) {
           state.bookings = [];
           state.acceptedBookingId = null;
@@ -1345,12 +1345,12 @@
         !list.some((b) => b.bookingId === state.acceptedBookingId)
       ) {
         const kept = state.bookings.find((b) => b.bookingId === state.acceptedBookingId);
-        next = kept ? [kept, ...list] : list;
-        el.statusText.textContent = `Fahrt aktiv — plus ${list.length} weitere offen.`;
+        next = kept ? [kept...list] : list;
+        el.statusText.textContent = `Fahrt aktiv, plus ${list.length} weitere offen.`;
       } else if (list.length === 0) {
-        el.statusText.textContent = "Online — keine offenen Fahrten.";
+        el.statusText.textContent = "Online, keine offenen Fahrten.";
       } else {
-        el.statusText.textContent = `Online — ${list.length} offene Fahrt(en).`;
+        el.statusText.textContent = `Online, ${list.length} offene Fahrt(en).`;
       }
 
       state.bookings = next;
@@ -1369,7 +1369,7 @@
         showBanner(
           fresh.length === 1
             ? preview
-            : `${fresh.length} neue Fahrten — z. B. ${preview}`
+            : `${fresh.length} neue Fahrten, z. B. ${preview}`
         );
       } else {
         incoming.forEach((id) => state.knownIds.add(id));
@@ -1436,7 +1436,7 @@
         state.knownIds.add(bookingId);
         state.bookings = [booking];
         el.statusText.textContent =
-          "Fahrt angenommen — GPS-Tracking aktiv. Nach Abschluss unten tippen.";
+          "Fahrt angenommen. GPS-Tracking aktiv. Nach Abschluss unten tippen.";
         clearBanner();
         renderRides();
         startGps(bookingId);
@@ -1452,7 +1452,7 @@
       const isCard = /karte|card/i.test(String(booking.paymentMethod || ""));
       const promptText = isCard
         ? "Taxameter-Betrag in Euro (Pflicht für Kartenzahlung), z.B. 18.50:"
-        : "Taxameter-Betrag in Euro (optional), z.B. 18.50 — Abbrechen = ohne Betrag:";
+        : "Taxameter-Betrag in Euro (optional), z.B. 18.50. Abbrechen = ohne Betrag:";
       const raw = window.prompt(promptText, "");
       if (isCard && (raw === null || !String(raw).trim())) {
         setError("Kartenzahlung: Betrag erforderlich.");
@@ -1480,10 +1480,10 @@
         state.acceptedBookingId = null;
         state.knownIds.delete(bookingId);
         if (data && data.payUrl) {
-          el.statusText.textContent = "Fahrt erledigt — Zahlungslink bereit.";
+          el.statusText.textContent = "Fahrt erledigt. Zahlungslink bereit.";
           try {
             await navigator.clipboard.writeText(data.payUrl);
-            el.statusText.textContent = "Fahrt erledigt — Zahlungslink in Zwischenablage kopiert.";
+            el.statusText.textContent = "Fahrt erledigt. Zahlungslink in Zwischenablage kopiert.";
           } catch (_) {
             window.prompt("Zahlungslink für den Fahrgast (kopieren):", data.payUrl);
           }

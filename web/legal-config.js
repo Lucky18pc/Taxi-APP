@@ -1,7 +1,7 @@
 /**
- * Plattform-Anbieter vs. Taxi-Betrieb — getrennte Firmendaten aus /api/config.
+ * Plattform-Anbieter vs. Taxi-Betrieb: getrennte Firmendaten aus /api/config.
  *
- * Plattform (platform*): Datenschutz, Impressum Anbieter, AGB, Kündigung — Software-Anbieter.
+ * Plattform (platform*): Datenschutz, Impressum Anbieter, AGB, Kündigung: Software-Anbieter.
  * Betrieb (companyName, legal*, centralPhone): Leitstelle, Fahrgäste, Fahrten.
  */
 (function () {
@@ -25,10 +25,10 @@
 
   function applyPlatformContact(cfg) {
     setText("legal-company", cfg.platformCompanyName, "Code & Grow");
-    setText("legal-street", cfg.platformStreet, "Straße — Plattform in Einstellungen eintragen");
-    setText("legal-city", cfg.platformCity, "PLZ Ort — Plattform in Einstellungen eintragen");
-    setText("legal-owner", cfg.platformOwner, "Inhaber — Plattform in Einstellungen eintragen");
-    setText("legal-vat", cfg.platformVatId, "USt-IdNr. — Plattform in Einstellungen eintragen");
+    setText("legal-street", cfg.platformStreet, "Straße: Plattform in Einstellungen eintragen");
+    setText("legal-city", cfg.platformCity, "PLZ Ort: Plattform in Einstellungen eintragen");
+    setText("legal-owner", cfg.platformOwner, "Inhaber: Plattform in Einstellungen eintragen");
+    setText("legal-vat", cfg.platformVatId, "USt-IdNr.: Plattform in Einstellungen eintragen");
 
     const email = platformEmail(cfg);
     const emailEl = document.getElementById("legal-email");
@@ -66,7 +66,7 @@
     const responsible = [cfg.platformOwner, cfg.platformStreet, cfg.platformCity]
       .filter((x) => (x || "").trim())
       .join(", ");
-    setText("legal-responsible", responsible, "Wie oben — Inhaber und Anschrift (Plattform)");
+    setText("legal-responsible", responsible, "Wie oben: Inhaber und Anschrift (Plattform)");
 
     document.querySelectorAll("[data-legal-company]").forEach((el) => {
       const name = (cfg.platformCompanyName || "").trim() || "Code & Grow";
@@ -92,11 +92,11 @@
       section.hidden = !hasOperator;
     }
 
-    setText("operator-company", company, "Taxi-Betrieb — in Einstellungen eintragen");
-    setText("operator-street", cfg.legalStreet, "Straße — Taxi-Betrieb in Einstellungen");
-    setText("operator-city", cfg.legalCity, "PLZ Ort — Taxi-Betrieb in Einstellungen");
-    setText("operator-owner", cfg.legalOwner, "Inhaber — Taxi-Betrieb in Einstellungen");
-    setText("operator-vat", cfg.vatId, "USt-IdNr. — Taxi-Betrieb in Einstellungen");
+    setText("operator-company", company, "Taxi-Betrieb: in Einstellungen eintragen");
+    setText("operator-street", cfg.legalStreet, "Straße: Taxi-Betrieb in Einstellungen");
+    setText("operator-city", cfg.legalCity, "PLZ Ort: Taxi-Betrieb in Einstellungen");
+    setText("operator-owner", cfg.legalOwner, "Inhaber: Taxi-Betrieb in Einstellungen");
+    setText("operator-vat", cfg.vatId, "USt-IdNr.: Taxi-Betrieb in Einstellungen");
 
     const opEmail = (cfg.legalEmail || "").trim();
     const opEmailEl = document.getElementById("operator-email");

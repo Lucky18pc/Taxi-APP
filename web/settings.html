@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TaxiApp — Einstellungen</title>
+  <title>TaxiApp. Einstellungen</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css">
   <style>
@@ -24,7 +24,7 @@
       margin-bottom: 0.35rem;
       color: var(--secondary);
     }
-    .field input, .field textarea {
+    .field input.field textarea {
       width: 100%;
       padding: 0.65rem 0.75rem;
       border: 1px solid #d1d5db;
@@ -216,7 +216,7 @@
 <body>
   <header class="hero" style="padding-bottom: 2.5rem">
     <h1>Einstellungen</h1>
-    <p>Taxi-Betrieb, Zentrale-Nummer und Fahrer — ohne Code, im Browser.</p>
+    <p>Taxi-Betrieb, Zentrale-Nummer und Fahrer, ohne Code, im Browser.</p>
   </header>
 
   <main class="settings-wrap">
@@ -231,7 +231,7 @@
       <h2>Das schicken Sie Fahrgästen</h2>
       <p class="field-hint" style="margin-top:0">
         Diesen Link teilen: der Fahrgast bekommt <strong>Ihren</strong> Button (Firmenname und Symbol).
-        Zusätzlich gibt es die bundesweite <a href="book.html">Luckys Taxi App</a> —
+        Zusätzlich gibt es die bundesweite <a href="book.html">Luckys Taxi App</a>.
         wenn die PLZ in Ihr Gebiet fällt, kommt die Buchung trotzdem zu Ihnen.
       </p>
       <div class="customer-example" aria-label="Beispiel für Fahrgäste">
@@ -242,7 +242,7 @@
           <span class="app-icon-label" id="example-home-label">Luckys Taxi</span>
         </div>
         <button type="button" class="customer-page-btn" id="example-page-btn" disabled>Luckys Taxi App aufs Handy</button>
-        <p class="customer-page-caption">Gelber Knopf auf der Bestellseite — nur Vorschau, nicht zum Tippen.</p>
+        <p class="customer-page-caption">Gelber Knopf auf der Bestellseite, nur Vorschau, nicht zum Tippen.</p>
       </div>
       <p><code id="guest-book-url">https://luckystaxiapp.de/book.html</code></p>
       <div class="btn-row">
@@ -274,7 +274,7 @@
       <h2>Wofür ist diese App?</h2>
       <p class="field-hint" style="margin-top:0">
         In vielen Städten gibt es eine <strong>große Taxizentrale</strong> (Anrufe werden an freie Fahrer verteilt).
-        Diese Einstellungen gelten <strong>Ihrem Taxi-Betrieb</strong> — nicht der städtischen Zentrale.
+        Diese Einstellungen gelten <strong>Ihrem Taxi-Betrieb</strong>: nicht der städtischen Zentrale.
         Mit der App gewinnen <strong>Sie</strong> eigene Kunden (Marke, Link, App): Adresse auf der Karte,
         Buchung in <a href="dispatch.html">Ihrer Leitstelle</a>, Fahrer von <strong>Ihnen</strong> zuweisen.
         Die Funkzentrale kann parallel weiterlaufen.
@@ -292,7 +292,7 @@
         <div class="field">
           <label for="centralPhone">Zentrale Telefonnummer (für Anruf)</label>
           <input id="centralPhone" name="centralPhone" required placeholder="+496211234567">
-          <p class="field-hint">Format mit Ländervorwahl — die App wählt diese Nummer bei „Zentrale anrufen“.</p>
+          <p class="field-hint">Format mit Ländervorwahl, die App wählt diese Nummer bei „Zentrale anrufen“.</p>
         </div>
         <div class="field">
           <label for="centralPhoneDisplay">Anzeige in App (optional)</label>
@@ -371,32 +371,32 @@
             <option value="Europe/Riga">Lettland (Riga)</option>
             <option value="Europe/Tallinn">Estland (Tallinn)</option>
           </select>
-          <p class="field-hint">Für Abholzeit und Nachtzuschlag-Fenster (22–6 Uhr in dieser Zeitzone).</p>
+          <p class="field-hint">Für Abholzeit und Nachtzuschlag-Fenster (22-6 Uhr in dieser Zeitzone).</p>
         </div>
         <div class="field">
           <label for="currency">Währung</label>
           <select id="currency" name="currency">
-            <option value="eur">EUR — Euro</option>
-            <option value="gbp">GBP — Britisches Pfund</option>
-            <option value="chf">CHF — Schweizer Franken</option>
-            <option value="pln">PLN — Polnischer Złoty</option>
-            <option value="czk">CZK — Tschechische Krone</option>
-            <option value="sek">SEK — Schwedische Krone</option>
-            <option value="nok">NOK — Norwegische Krone</option>
-            <option value="dkk">DKK — Dänische Krone</option>
-            <option value="huf">HUF — Ungarischer Forint</option>
-            <option value="ron">RON — Rumänischer Leu</option>
-            <option value="bgn">BGN — Bulgarischer Lew</option>
-            <option value="hrk">HRK — Kroatische Kuna</option>
+            <option value="eur">EUR. Euro</option>
+            <option value="gbp">GBP. Britisches Pfund</option>
+            <option value="chf">CHF. Schweizer Franken</option>
+            <option value="pln">PLN. Polnischer Złoty</option>
+            <option value="czk">CZK. Tschechische Krone</option>
+            <option value="sek">SEK. Schwedische Krone</option>
+            <option value="nok">NOK. Norwegische Krone</option>
+            <option value="dkk">DKK. Dänische Krone</option>
+            <option value="huf">HUF. Ungarischer Forint</option>
+            <option value="ron">RON. Rumänischer Leu</option>
+            <option value="bgn">BGN. Bulgarischer Lew</option>
+            <option value="hrk">HRK. Kroatische Kuna</option>
           </select>
-          <p class="field-hint">Für spätere Kartenzahlung (Stripe) — Buchung selbst bleibt ohne Festpreis.</p>
+          <p class="field-hint">Für spätere Kartenzahlung (Stripe). Buchung selbst bleibt ohne Festpreis.</p>
         </div>
         <div class="field">
           <div class="toggle-row">
             <div>
-              <strong>Nachtzuschlag (22:00 – 06:00 Uhr)</strong>
+              <strong>Nachtzuschlag (22:00 - 06:00 Uhr)</strong>
               <p class="field-hint" style="margin:0">
-                Ein: Taxameter kann Nachttarif in diesem Zeitraum — Fahrgäste werden bei passender Abholzeit informiert.
+                Ein: Taxameter kann Nachttarif in diesem Zeitraum. Fahrgäste werden bei passender Abholzeit informiert.
                 Aus: Kein Nachtzuschlag bei Ihrem Betrieb (häufig so eingestellt).
               </p>
             </div>
@@ -415,7 +415,7 @@
     <section class="settings-card">
       <h2>Plattform-Anbieter (Website, Datenschutz, AGB)</h2>
       <p class="field-hint" style="margin-top:0">
-        <strong>Ihre Daten als Software-/Plattform-Anbieter</strong> (Luckys Taxi App) — erscheinen in
+        <strong>Ihre Daten als Software-/Plattform-Anbieter</strong> (Luckys Taxi App), erscheinen in
         Datenschutzerklärung, Impressum (Plattform), AGB und Kündigung. Nicht die Adresse des Taxi-Unternehmers.
       </p>
       <form id="platform-legal-form">
@@ -456,7 +456,7 @@
     <section class="settings-card">
       <h2>Taxi-Betrieb (Leitstelle &amp; Fahrten)</h2>
       <p class="field-hint" style="margin-top:0">
-        <strong>Daten des Taxi-Unternehmers</strong> — Firmenname und Zentrale oben; hier optional Anschrift für
+        <strong>Daten des Taxi-Unternehmers</strong>: Firmenname und Zentrale oben; hier optional Anschrift für
         Impressum-Abschnitt „Taxi-Betrieb“ und Fahrgast-Kontakt.
       </p>
       <form id="operator-legal-form">
@@ -572,7 +572,7 @@
             <span class="app-icon-label" id="brand-preview-name">Vorschau</span>
           </div>
           <button type="button" class="customer-page-btn" id="brand-example-btn" disabled>Taxi aufs Handy</button>
-          <p class="customer-page-caption">Ändern Sie Name, Logo und Farben — die Vorschau folgt sofort.</p>
+          <p class="customer-page-caption">Ändern Sie Name, Logo und Farben, die Vorschau folgt sofort.</p>
         </div>
         <div class="btn-row">
           <button type="submit" class="btn-primary">Erscheinungsbild speichern</button>
@@ -583,7 +583,7 @@
     <section class="settings-card">
       <h2>Servicegebiet (PLZ)</h2>
       <p class="field-hint" style="margin-top:0">
-        Fahrgäste werden diesem Betrieb zugeordnet, wenn ihre <strong>PLZ</strong> passt — oder GPS im Radius.
+        Fahrgäste werden diesem Betrieb zugeordnet, wenn ihre <strong>PLZ</strong> passt, oder GPS im Radius.
       </p>
       <form id="service-area-form">
         <div class="field">
@@ -608,7 +608,7 @@
       <h2>Fahrer</h2>
       <p class="field-hint" style="margin-top:0">
         Name, Handy, Taxinummer, Kennzeichen, P-Schein und Profilfoto.
-        Fahrer können sich selbst anmelden über den Link unten — Status „pending“ bis Sie freischalten.
+        Fahrer können sich selbst anmelden über den Link unten. Status „pending“ bis Sie freischalten.
       </p>
       <p class="field-hint" id="driver-register-link-wrap" style="margin-top:0.5rem">
         Fahrer-Link:
@@ -1047,7 +1047,7 @@
             <label>Live-Tracking (Fahrer-Handy)</label>
             <p class="field-hint" style="margin:0 0 0.35rem">PIN: <strong>${escapeAttr(driver.trackingPin)}</strong></p>
             <p class="field-hint" style="margin:0 0 0.35rem">ID: <code style="font-size:0.78rem">${escapeAttr(driver.driverId)}</code></p>
-            <p class="field-hint" style="margin:0"><a href="${trackUrl}" target="_blank" rel="noopener">driver-track.html öffnen</a> — Link an Fahrer senden oder auf Handy ablegen.</p>
+            <p class="field-hint" style="margin:0"><a href="${trackUrl}" target="_blank" rel="noopener">driver-track.html öffnen</a>: Link an Fahrer senden oder auf Handy ablegen.</p>
           </div>
           ` : ""}
           <div class="btn-row">
@@ -1069,7 +1069,7 @@
       const data = await res.json();
       document.getElementById("drivers-list").innerHTML =
         (data.drivers || []).map((d) => driverForm(d)).join("") ||
-        '<p class="field-hint">Noch keine Fahrer — unten hinzufügen oder Fahrer-Link teilen.</p>';
+        '<p class="field-hint">Noch keine Fahrer, unten hinzufügen oder Fahrer-Link teilen.</p>';
 
       for (const img of document.querySelectorAll("[data-photo-preview]")) {
         const btn = img.closest("[data-open-doc]");
@@ -1174,7 +1174,7 @@
       return Promise.all([loadConfig(), loadCompliance(), loadDrivers()]);
     }).catch(() => {
       document.getElementById("offline-banner").style.display = "block";
-      showToast("Backend nicht erreichbar — siehe Hinweis oben.", true);
+      showToast("Backend nicht erreichbar, siehe Hinweis oben.", true);
     });
   </script>
 </body>

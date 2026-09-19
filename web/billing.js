@@ -79,7 +79,7 @@
 
         setStatus(
           (window.LuckysI18n && window.LuckysI18n.t("billing.thanks")) ||
-            "Danke! Ihre Anfrage ist eingegangen — wir melden uns per E-Mail.",
+            "Danke! Ihre Anfrage ist eingegangen. Wir melden uns per E-Mail.",
           false
         );
         form.reset();
@@ -99,7 +99,7 @@
     if (config.enabled && statusEl) {
       statusEl.textContent =
         (window.LuckysI18n && window.LuckysI18n.t("billing.online")) ||
-        "Online-Abo verfügbar — Rechnung kommt automatisch per E-Mail von Stripe.";
+        "Online-Abo verfügbar. Rechnung kommt automatisch per E-Mail von Stripe.";
       statusEl.hidden = false;
       statusEl.className = "billing-status ok";
     }

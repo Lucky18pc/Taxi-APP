@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fahrt bezahlen — Luckys Taxi App</title>
+  <title>Fahrt bezahlen. Luckys Taxi App</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css">
   <script src="https://js.stripe.com/v3/"></script>
@@ -143,7 +143,7 @@
             style: "currency",
             currency: "EUR",
           });
-          showMsg("Vielen Dank — Zahlung eingegangen.", "ok");
+          showMsg("Vielen Dank. Zahlung eingegangen.", "ok");
           return;
         }
 
@@ -205,7 +205,7 @@
             payBtn.hidden = true;
             statusEl.textContent = "Bezahlt";
           } else {
-            showMsg("Zahlung abgeschlossen — Status: " + (paymentIntent && paymentIntent.status), "ok");
+            showMsg("Zahlung abgeschlossen. Status: " + (paymentIntent && paymentIntent.status), "ok");
           }
         });
       } catch (err) {

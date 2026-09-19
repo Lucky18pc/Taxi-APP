@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TaxiApp Zentrale — Leitstelle</title>
+  <title>TaxiApp Zentrale. Leitstelle</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css">
   <style>
@@ -39,14 +39,14 @@
     .driver-status-available { color: #065f46; font-weight: 700; }
     .driver-status-busy { color: #92400e; font-weight: 700; }
     .driver-status-offline { color: #6b7280; font-weight: 700; }
-    .booking-card, .call-card {
+    .booking-card.call-card {
       background: var(--card);
       border-radius: var(--radius);
       padding: 1rem 1.25rem;
       margin-bottom: 0.75rem;
       box-shadow: var(--shadow);
     }
-    .booking-card h3, .call-card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+    .booking-card h3.call-card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
     .booking-meta { font-size: 0.85rem; color: #1c304f; margin: 0.2rem 0; opacity: 0.9; }
     .night-badge { color: #5b21b6; font-weight: 600; }
     .status-badge {
@@ -95,13 +95,13 @@
       border-radius: 10px;
       border: 1px solid #e5e7eb;
     }
-    .booking-actions, .call-actions {
+    .booking-actions.call-actions {
       margin-top: 0.75rem;
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
     }
-    .booking-actions button, .call-actions button, .booking-actions a {
+    .booking-actions button.call-actions button.booking-actions a {
       font-size: 0.85rem;
       font-weight: 600;
       text-decoration: none;
@@ -157,7 +157,7 @@
 <body>
   <header class="hero" style="padding-bottom: 2.5rem">
     <h1 id="company-title">Zentrale / Leitstelle</h1>
-    <p id="company-subtitle">App-Buchungen — Fahrer zuweisen</p>
+    <p id="company-subtitle">App-Buchungen. Fahrer zuweisen</p>
   </header>
 
   <main class="dispatch-wrap">
@@ -178,7 +178,7 @@
 
     <div id="no-drivers-banner" class="driver-setup-banner" role="status">
       <strong>Noch keine Fahrer angelegt</strong>
-      Unter <a id="settings-link" href="settings.html">Einstellungen → Fahrer</a> Name, Handy und Kennzeichen eintragen —
+      Unter <a id="settings-link" href="settings.html">Einstellungen → Fahrer</a> Name, Handy und Kennzeichen eintragen.
       danach können Sie hier bei jeder Buchung einen Fahrer zuweisen.
     </div>
 
@@ -210,7 +210,7 @@
   <script src="leitstelle-auth.js"></script>
   <script>
     const STATUS_LABELS = {
-      confirmed: "Neu — bestätigt",
+      confirmed: "Neu, bestätigt",
       accepted: "Angenommen",
       assigned: "Fahrer unterwegs",
       completed: "Erledigt",
@@ -325,7 +325,7 @@
           titleId: "company-title",
           documentTitle: true,
           titlePrefix: "",
-          titleSuffix: " — Leitstelle",
+          titleSuffix: ". Leitstelle",
         });
         document.getElementById("company-title").textContent = cfg.companyName || "Zentrale";
         const display = cfg.centralPhoneDisplay || cfg.centralPhone || "—";
@@ -410,7 +410,7 @@
       const allOffline = !hasAssignableDrivers();
       const selectDisabled = allOffline ? " disabled" : "";
       const offlineHint = allOffline
-        ? `<p class="assign-hint" style="margin-top:0.5rem;margin-bottom:0">Alle Fahrer sind <strong>offline</strong> — in den Einstellungen Status auf „frei“ setzen.</p>`
+        ? `<p class="assign-hint" style="margin-top:0.5rem;margin-bottom:0">Alle Fahrer sind <strong>offline</strong>: in den Einstellungen Status auf „frei“ setzen.</p>`
         : "";
 
       return `
@@ -460,7 +460,7 @@
           ${statusBadge(b.status || "confirmed")}
           <h3>${escapeHtml(b.addressLine)}</h3>
           ${b.destinationAddressLine ? `<p class="booking-meta"><strong>Ziel:</strong> ${escapeHtml(b.destinationAddressLine)}</p>` : ""}
-          ${b.nightSurchargeApplies ? `<p class="booking-meta night-badge">🌙 Nachtzuschlag-Zeitraum (22–6 Uhr) — Hinweis für Fahrer</p>` : ""}
+          ${b.nightSurchargeApplies ? `<p class="booking-meta night-badge">🌙 Nachtzuschlag-Zeitraum (22-6 Uhr). Hinweis für Fahrer</p>` : ""}
           <p class="booking-meta">${new Date(b.pickupDate).toLocaleString("de-DE")} · ${escapeHtml(b.paymentMethod)} · ${formatBookingAmount(b)}${b.tipAmount > 0 ? ` · Trinkgeld-Wunsch ${Number(b.tipAmount).toFixed(2)} €` : ""}</p>
           <p class="booking-meta">ID: ${b.bookingId.slice(0, 8)}…</p>
           <img class="booking-map" src="${staticMapUrl(b.latitude, b.longitude)}" alt="Karte Abholpunkt" loading="lazy" width="520" height="200">

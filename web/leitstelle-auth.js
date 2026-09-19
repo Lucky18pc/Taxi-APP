@@ -190,7 +190,7 @@
     if (res.status === 401) {
       clearPin();
       showLogin();
-      throw new Error("Anmeldung erforderlich — bitte PIN erneut eingeben.");
+      throw new Error("Anmeldung erforderlich. Bitte PIN erneut eingeben.");
     }
     return res;
   }

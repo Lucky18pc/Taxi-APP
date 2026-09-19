@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Luckys Admin — Dashboard</title>
+  <title>Luckys Admin. Dashboard</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="luckys-taxi-admin-logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,7 +70,7 @@
     .login-card .sub { margin: 0 0 1.1rem; color: var(--muted); font-weight: 600; }
     .field { margin-bottom: 0.9rem; text-align: left; }
     .field label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem; }
-    .field input, .field select, .field textarea {
+    .field input.field select.field textarea {
       width: 100%;
       padding: 0.7rem 0.75rem;
       border: 2px solid var(--navy);
@@ -79,7 +79,7 @@
       background: #fff;
       color: var(--navy);
     }
-    .field input:focus, .field select:focus, .field textarea:focus {
+    .field input:focus.field select:focus.field textarea:focus {
       outline: none;
       box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.45);
     }
@@ -162,7 +162,7 @@
       font-weight: 700;
       cursor: pointer;
     }
-    .nav-btn:hover, .nav-btn.active {
+    .nav-btn:hover.nav-btn.active {
       background: rgba(255, 204, 0, 0.18);
       color: var(--yellow);
     }
@@ -312,7 +312,7 @@
     <div class="login-card">
       <img src="luckys-taxi-admin-logo.svg" width="96" height="96" alt="Luckys Taxi Admin">
       <h1>Luckys Admin</h1>
-      <p class="sub">Neues Dashboard — Freischaltung &amp; Nachweise</p>
+      <p class="sub">Neues Dashboard. Freischaltung &amp; Nachweise</p>
       <p class="meta" style="margin-bottom:1rem">ADMIN_PIN von Render. Mit „Angemeldet bleiben“ bleibst du auf diesem Gerät eingeloggt.</p>
       <form id="admin-login-form">
         <div class="field">
@@ -380,7 +380,7 @@
             <button type="button" class="btn btn-ghost btn-sm" id="refresh-inquiries">Aktualisieren</button>
           </div>
           <div id="inquiries-list" class="inquiry-list"></div>
-          <p id="inquiries-empty" class="empty-hint hidden">Noch keine Tarif-Anfragen — Formular auf der Startseite.</p>
+          <p id="inquiries-empty" class="empty-hint hidden">Noch keine Tarif-Anfragen. Formular auf der Startseite.</p>
         </div>
       </section>
 

@@ -125,7 +125,7 @@
           callDriver.hidden = false;
         }
       } else {
-        driverLine.textContent = "Noch kein Fahrer zugewiesen — Leitstelle arbeitet daran.";
+        driverLine.textContent = "Noch kein Fahrer zugewiesen. Leitstelle arbeitet daran.";
         callDriver.hidden = true;
       }
 
@@ -134,7 +134,7 @@
         statusEl.textContent = "Dein Taxi ist unterwegs.";
       } else if (snapshot.driver) {
         statusEl.className = "status warn";
-        statusEl.textContent = "Fahrer zugewiesen — GPS startet gleich.";
+        statusEl.textContent = "Fahrer zugewiesen. GPS startet gleich.";
       } else if (snapshot.status === "completed") {
         statusEl.className = "status ok";
         statusEl.textContent = "Fahrt abgeschlossen.";
@@ -143,7 +143,7 @@
         statusEl.textContent = "Fahrt storniert.";
       } else {
         statusEl.className = "status warn";
-        statusEl.textContent = "Buchung bestätigt — Fahrer folgt.";
+        statusEl.textContent = "Buchung bestätigt. Fahrer folgt.";
       }
 
       updateMarkers(snapshot);

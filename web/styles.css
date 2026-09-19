@@ -998,7 +998,7 @@ body.legal-taxi .legal-page > .note {
 
 .legal-back { margin-top: 1.5rem; }
 
-/* Die App — Zugang & Klick-Weg */
+/* Die App: Zugang & Klick-Weg */
 .app-access {
   display: grid;
   gap: 1rem;
@@ -1965,7 +1965,7 @@ body.home-taxi .billing-status.ok {
   color: #fff !important;
 }
 
-/* —— Globales Taxi-Gelb: Zentrale, Einstellungen, Admin, Legal, QR … —— */
+/* Globales Taxi-Gelb: Zentrale, Einstellungen, Admin, Legal, QR */
 .hero:not(:has(.hero-bg)),
 .hero.ops-hero {
   background: #ffcc00;

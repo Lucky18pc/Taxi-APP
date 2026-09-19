@@ -78,7 +78,7 @@
       margin-bottom: 0.35rem;
       color: #0c1c34;
     }
-    .field input, .field textarea, .field select {
+    .field input.field textarea.field select {
       width: 100%;
       padding: 0.7rem 0.75rem;
       border: 2px solid #d1d5db;
@@ -88,7 +88,7 @@
       background: #fffdf0;
       border: 2px solid #0c1c34;
     }
-    .field input:focus, .field textarea:focus, .field select:focus {
+    .field input:focus.field textarea:focus.field select:focus {
       outline: none;
       border-color: #ffcc00;
       box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.35);
@@ -135,7 +135,7 @@
   <header class="onboard-hero">
     <p class="hero-badge" data-i18n="onboard.badge">Plattform mieten</p>
     <h1 data-i18n="onboard.h1">Plattform mieten</h1>
-    <p class="onboard-lead" data-i18n="onboard.lead">Luckys ist Plattformanbieter — keine eigene Taxikonzession. Sie mieten Leitstelle, Browser-Buchung und App unter Ihrem Betriebsnamen. <strong>14 Tage unverbindlich testen</strong>, danach monatlich kündbar. Für die Freischaltung brauchen wir Konzessionsdaten (und optional Fahrer-Nachweise). Ihre Fahrgäste zahlen nach Taxameter bar oder per Kartenzahlung.</p>
+    <p class="onboard-lead" data-i18n="onboard.lead">Luckys ist Plattformanbieter, keine eigene Taxikonzession. Sie mieten Leitstelle, Browser-Buchung und App unter Ihrem Betriebsnamen. <strong>14 Tage unverbindlich testen</strong>, danach monatlich kündbar. Für die Freischaltung brauchen wir Konzessionsdaten (und optional Fahrer-Nachweise). Ihre Fahrgäste zahlen nach Taxameter bar oder per Kartenzahlung.</p>
   </header>
 
   <main class="onboard-wrap">
@@ -165,7 +165,7 @@
         <div class="field">
           <label for="postalPrefixes" data-i18n="onboard.plz">PLZ-Präfixe (Region) *</label>
           <input id="postalPrefixes" name="postalPrefixes" required placeholder="68">
-          <p class="field-hint" data-i18n="onboard.plzHint">z. B. <code>68</code> für Mannheim — kommagetrennt.</p>
+          <p class="field-hint" data-i18n="onboard.plzHint">z. B. <code>68</code> für Mannheim, kommagetrennt.</p>
         </div>
         <div class="field">
           <label for="postalCodes">Einzelne PLZ (optional)</label>
@@ -174,7 +174,7 @@
         <div class="field">
           <label for="planId" data-i18n="onboard.plan">Gewünschter Tarif</label>
           <select id="planId" name="planId">
-            <option value="fleet" data-i18n="onboard.planFleet" selected>Pro Fahrzeug — ab 9,90 €/Monat (1. Auto 9,90 · 2. Auto 18,90 · +9 € je weiteres)</option>
+            <option value="fleet" data-i18n="onboard.planFleet" selected>Pro Fahrzeug, ab 9,90 €/Monat (1. Auto 9,90 · 2. Auto 18,90 · +9 € je weiteres)</option>
           </select>
         </div>
 
@@ -266,7 +266,7 @@
       <div id="result-box" class="result-box">
         <p><strong data-i18n="onboard.thanks">Vielen Dank! Ihre Anfrage ist eingegangen.</strong></p>
         <p id="result-message" data-i18n="onboard.result">Wir prüfen Ihre Daten und melden uns per E-Mail mit Ihren Zugangslinks.</p>
-        <p class="field-hint" data-i18n="onboard.wait">In der Regel innerhalb von 1–2 Werktagen. Fragen: <a href="index.html#operators">Tarife &amp; Kontakt</a></p>
+        <p class="field-hint" data-i18n="onboard.wait">In der Regel innerhalb von 1-2 Werktagen. Fragen: <a href="index.html#operators">Tarife &amp; Kontakt</a></p>
       </div>
     </div>
 

@@ -8,7 +8,7 @@
     },
     inquiries: {
       title: "Anfragen",
-      sub: "Tarif-Anfragen von der Startseite — antworten oder als Mandant übernehmen.",
+      sub: "Tarif-Anfragen von der Startseite: antworten oder als Mandant übernehmen.",
     },
     create: {
       title: "Neu anlegen",
@@ -220,7 +220,7 @@
     for (const inquiry of items) {
       const item = document.createElement("article");
       item.className = "inquiry-item";
-      const mailSubject = encodeURIComponent(`Luckys Taxi App — Tarif ${planLabel(inquiry.planId)}`);
+      const mailSubject = encodeURIComponent(`Luckys Taxi App: Tarif ${planLabel(inquiry.planId)}`);
       item.innerHTML = `
         <div>
           <div class="chip-row">
@@ -533,11 +533,11 @@
             const slug = params.get("o");
             if (connect === "return" && slug) {
               alert(
-                `Stripe Connect für „${slug}“ — Onboarding abgeschlossen oder fortgesetzt. Status prüfen.`
+                `Stripe Connect für „${slug}”: Onboarding abgeschlossen oder fortgesetzt. Status prüfen.`
               );
               history.replaceState({}, "", "admin.html");
             } else if (connect === "refresh" && slug) {
-              alert(`Connect-Link abgelaufen — bitte für „${slug}“ erneut „Stripe Connect“ klicken.`);
+              alert(`Connect-Link abgelaufen. Bitte für „${slug}“ erneut „Stripe Connect“ klicken.`);
               history.replaceState({}, "", "admin.html");
             }
           });
