@@ -113,7 +113,8 @@ Deshalb waren offene Rechts- und Sicherheitsfragen dort **Prüfaufträge**, kein
 3. `/widerruf.html` → Abschnitte A/B/C  
 4. Startseite Footer → Spalten Fahrgäste / Betriebe / Hilfe / Rechtliches; Leitstelle nur über `betrieb.html`  
 5. `/book.html` → Vertragspartner-Hinweis  
-6. Startseite `#operators` → Badge „14 Tage…“ gelb auf dunkelblau (lesbar)  
+6. Startseite `#operators` → Badge „14 Tage…“ **gelb auf dunkelblau** (nicht leer/unlesbar)  
+6b. Hero → CTA weiß mit **dunklem Text**; Outline **gelb auf Navy**; Wege in gelben Boxen  
 7. Hero → klare Pfade Betrieb vs. Fahrgast  
 8. Tarife → Formel + Beispiele 1/2/5 Autos; Gebühr-Box mit Bar/Karte/Stripe  
 9. Tarif-Checkliste → kein „eigene App“-Overclaim; App Store folgt klar gekennzeichnet  
