@@ -8,7 +8,7 @@ Nur noch das, was **du / Berater** erledigen müsst:
 |------|-----|-----|
 | P0 | Steuer Kleinunternehmer / Umsatz § 19 | [STEUERBERATER-KLEINUNTERNEHMER.md](STEUERBERATER-KLEINUNTERNEHMER.md) |
 | P0 | Anwaltliche Freigabe Rechtstexte (+ PBefG) | Anwalt |
-| P0 | Stripe Connect Identität abschließen | Stripe Dashboard |
+| P0 | Stripe Connect Identität | läuft — Warte auf Bescheid von Stripe |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore einmal testen | Render / TOMs |
 | P1 | Konzession vor Buchung in der UI sichtbar | `book.html` Feinschliff |
