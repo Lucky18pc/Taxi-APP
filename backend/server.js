@@ -466,20 +466,78 @@ function resolvePublicBaseUrl(req) {
 }
 
 async function geocodePlace(query, country = "DE") {
-  const q = String(query || "").trim();
-  if (!q) return null;
-  const url = new URL("https://nominatim.openstreetmap.org/search");
-  url.searchParams.set("format", "json");
-  url.searchParams.set("limit", "1");
-  url.searchParams.set("countrycodes", String(country || "DE").toLowerCase());
-  url.searchParams.set("q", q);
-  const response = await fetch(url, {
-    headers: { "User-Agent": "LuckysTaxiApp/1.0 (fleet-onboarding)" },
+  const result = await nominatimSearch(query, { countrycodes: country, limit: 1 });
+  if (!result?.length) return null;
+  return { lat: Number(result[0].lat), lng: Number(result[0].lon) };
+}
+
+const NOMINATIM_UA = "LuckysTaxiApp/1.0 (https://luckystaxiapp.de; kontakt@luckystaxiapp.de)";
+const NOMINATIM_BASE = String(process.env.GEOCODING_BASE_URL || "https://nominatim.openstreetmap.org").replace(/\/$/, "");
+let nominatimChain = Promise.resolve();
+let nominatimLastAt = 0;
+
+/** Serialisiert Anfragen und hält ≤1/s an den öffentlichen Nominatim-Dienst (Policy). */
+function enqueueNominatim(fn) {
+  const run = nominatimChain.then(async () => {
+    const wait = Math.max(0, 1100 - (Date.now() - nominatimLastAt));
+    if (wait) await new Promise((r) => setTimeout(r, wait));
+    nominatimLastAt = Date.now();
+    return fn();
   });
-  if (!response.ok) return null;
-  const data = await response.json();
-  if (!Array.isArray(data) || !data.length) return null;
-  return { lat: Number(data[0].lat), lng: Number(data[0].lon) };
+  nominatimChain = run.then(
+    () => undefined,
+    () => undefined
+  );
+  return run;
+}
+
+async function nominatimFetch(path, params) {
+  const url = new URL(`${NOMINATIM_BASE}${path}`);
+  Object.entries(params).forEach(([k, v]) => {
+    if (v != null && v !== "") url.searchParams.set(k, String(v));
+  });
+  const response = await enqueueNominatim(() =>
+    fetch(url, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": NOMINATIM_UA,
+      },
+    })
+  );
+  if (!response.ok) {
+    const err = new Error(`Geocoding HTTP ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+  return response.json();
+}
+
+async function nominatimSearch(query, { countrycodes = "de", limit = 1 } = {}) {
+  const q = String(query || "").trim().slice(0, 200);
+  if (q.length < 3) return [];
+  const data = await nominatimFetch("/search", {
+    format: "json",
+    limit: Math.min(Number(limit) || 1, 3),
+    countrycodes: String(countrycodes || "de").toLowerCase(),
+    q,
+    addressdetails: 0,
+  });
+  return Array.isArray(data) ? data : [];
+}
+
+async function nominatimReverse(lat, lon) {
+  const latitude = Number(lat);
+  const longitude = Number(lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+  return nominatimFetch("/reverse", {
+    format: "json",
+    lat: latitude.toFixed(6),
+    lon: longitude.toFixed(6),
+    addressdetails: 1,
+    "accept-language": "de",
+    zoom: 18,
+  });
 }
 
 async function prepareFleetOperatorBody(req) {
@@ -1430,6 +1488,48 @@ app.post("/api/contact", async (req, res) => {
 
 app.get("/api/contact/inquiries", requireAdmin, (_req, res) => {
   res.json({ inquiries });
+});
+
+/** Geocoding-Proxy (Nominatim) — Browser spricht nicht mehr direkt mit OSM. */
+app.get("/api/geocode", async (req, res) => {
+  try {
+    const q = String(req.query.q || req.query.query || "").trim();
+    if (q.length < 3) return res.status(400).json({ error: "query too short" });
+    const country = String(req.query.country || "de").slice(0, 8);
+    const data = await nominatimSearch(q, { countrycodes: country, limit: 1 });
+    if (!data.length) return res.status(404).json({ error: "not found" });
+    res.json({
+      latitude: Number(data[0].lat),
+      longitude: Number(data[0].lon),
+      attribution: "© OpenStreetMap contributors",
+      provider: "nominatim",
+    });
+  } catch (err) {
+    console.error("geocode", err.message);
+    res.status(err.status === 429 ? 429 : 502).json({ error: "geocoding unavailable" });
+  }
+});
+
+app.get("/api/geocode/reverse", async (req, res) => {
+  try {
+    const lat = Number(req.query.lat ?? req.query.latitude);
+    const lon = Number(req.query.lon ?? req.query.lng ?? req.query.longitude);
+    const data = await nominatimReverse(lat, lon);
+    if (!data) return res.status(400).json({ error: "lat/lon required" });
+    const addr = data.address || {};
+    res.json({
+      street: addr.road || addr.pedestrian || addr.footway || "",
+      houseNumber: addr.house_number || "",
+      postalCode: addr.postcode || "",
+      city: addr.city || addr.town || addr.village || addr.municipality || "",
+      formatted: data.display_name || "",
+      attribution: "© OpenStreetMap contributors",
+      provider: "nominatim",
+    });
+  } catch (err) {
+    console.error("geocode/reverse", err.message);
+    res.status(err.status === 429 ? 429 : 502).json({ error: "geocoding unavailable" });
+  }
 });
 
 app.get("/api/operators/resolve", (req, res) => {

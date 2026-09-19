@@ -59,6 +59,9 @@
       <p>
         Zur Bestimmung des Abholorts und zur Kartendarstellung kann der Gerätestandort verarbeitet werden
         (Einwilligung in den Systemeinstellungen). Rechtsgrundlage: Art. 6 Abs. 1 lit. a und lit. b DSGVO.
+        Die Umwandlung von GPS bzw. Adresstext in Buchungskoordinaten läuft über unseren Geocoding-Proxy
+        (OpenStreetMap/Nominatim oder austauschbarer Dienst) — siehe Abschnitt Empfänger. Es werden nur die
+        für die Abholung nötigen Angaben übermittelt.
       </p>
       <h3>3.2 Buchungsdaten</h3>
       <p>
@@ -134,6 +137,17 @@
         <li><strong>Stripe Payments Europe Ltd.</strong> / verbundene Unternehmen — Zahlungen, Billing, Connect</li>
         <li><strong>Resend</strong> — E-Mail-Versand, sofern aktiviert</li>
         <li><strong>Google Ireland Limited</strong> — Analytics nur nach Einwilligung</li>
+        <li>
+          <strong>OpenStreetMap / Nominatim</strong> (bzw. ein austauschbarer Geocoding-Endpunkt) —
+          Auflösung von Adressen und GPS in Koordinaten bzw. Adresstext für die Buchung.
+          Anfragen laufen über unseren Server-Proxy (<code>/api/geocode</code>); übermittelt werden nur
+          die für die Suche nötige Adresszeile bzw. gerundete Koordinaten, nicht der gesamte Browser-Fingerabdruck.
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung der Buchung).
+          Datenverarbeitung durch die OpenStreetMap Foundation bzw. den Betreiber der gewählten Instanz —
+          siehe auch
+          <a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noopener noreferrer">Nominatim-Nutzungsrichtlinie</a>.
+          Attribution: © OpenStreetMap-Mitwirkende.
+        </li>
         <li>Zugewiesener <strong>Taxi-Betrieb</strong> und dessen Fahrer (zur Vertragserfüllung der Fahrt)</li>
       </ul>
 

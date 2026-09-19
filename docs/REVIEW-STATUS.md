@@ -69,6 +69,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P1 | Öffentliche E-Mail → `kontakt@luckystaxiapp.de` | erledigt 19.09. — DNS/SPF/DKIM noch manuell: [EMAIL-MARKENADRESSE.md](EMAIL-MARKENADRESSE.md) |
 | P1 | Footer nach Zielgruppen + Betreiberzugang | erledigt 19.09. — `betrieb.html` |
 | P1 | Hero-Vorschaubilder: 1,7 MB-PNG weg, WebP + lazy | erledigt 19.09. |
+| P1 | Geocoding: Proxy + Datenschutz + Attribution | erledigt 19.09. — [GEOCODING.md](GEOCODING.md) |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |
@@ -87,7 +88,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | [STRIPE-ZWEI-KONTEN.md](STRIPE-ZWEI-KONTEN.md) | Shop vs. Taxi Stripe |
 | [STRIPE-CONNECT.md](STRIPE-CONNECT.md) | Betriebe auszahlen |
 | [GOOGLE-ANALYTICS.md](GOOGLE-ANALYTICS.md) | GA-Setup (Consent beachten) |
-| [EMAIL-MARKENADRESSE.md](EMAIL-MARKENADRESSE.md) | kontakt@ + SPF/DKIM/DMARC |
+| [GEOCODING.md](GEOCODING.md) | Nominatim-Proxy, Attribution, Skalierung |
 
 ---
 

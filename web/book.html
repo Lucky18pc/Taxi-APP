@@ -184,6 +184,13 @@
       color: #ffcc00;
       font-weight: 700;
     }
+    .geo-attrib {
+      margin: 0.85rem auto 0;
+      font-size: 0.75rem;
+      line-height: 1.4;
+      opacity: 0.85;
+      max-width: 36rem;
+    }
   </style>
 </head>
 <body class="book-taxi" data-i18n-title="meta.bookTitle">
@@ -304,6 +311,10 @@
       <a href="datenschutz.html" data-i18n="nav.privacy">Datenschutz</a>
       <a href="agb.html">AGB</a>
     </nav>
+    <p class="geo-attrib">
+      Adresssuche / GPS-Auflösung: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>-Mitwirkende
+      (über unseren Server-Proxy, siehe <a href="datenschutz.html">Datenschutz</a>).
+    </p>
   </footer>
 
   <script src="tenant-branding.js"></script>
@@ -349,17 +360,16 @@
 
     async function reverseGeocode(lat, lon) {
       try {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1&accept-language=de`;
+        const url = `/api/geocode/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
         const res = await fetch(url, { headers: { Accept: "application/json" } });
         if (!res.ok) throw new Error("reverse failed");
         const data = await res.json();
-        const addr = data.address || {};
         return {
-          street: addr.road || addr.pedestrian || addr.footway || "",
-          houseNumber: addr.house_number || "",
-          postalCode: addr.postcode || "",
-          city: addr.city || addr.town || addr.village || addr.municipality || "",
-          formatted: data.display_name || composeAddressLine(),
+          street: data.street || "",
+          houseNumber: data.houseNumber || "",
+          postalCode: data.postalCode || "",
+          city: data.city || "",
+          formatted: data.formatted || composeAddressLine(),
         };
       } catch {
         return {
@@ -373,12 +383,12 @@
     }
 
     async function geocodeAddress(query) {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+      const url = `/api/geocode?q=${encodeURIComponent(query)}&country=de`;
       const res = await fetch(url, { headers: { Accept: "application/json" } });
       if (!res.ok) throw new Error("Geocoding fehlgeschlagen");
       const data = await res.json();
-      if (!data.length) throw new Error(tx("book.addressNotFound"));
-      return { latitude: Number(data[0].lat), longitude: Number(data[0].lon) };
+      if (data.latitude == null || data.longitude == null) throw new Error(tx("book.addressNotFound"));
+      return { latitude: Number(data.latitude), longitude: Number(data.longitude) };
     }
 
     document.getElementById("btn-gps").addEventListener("click", () => {
