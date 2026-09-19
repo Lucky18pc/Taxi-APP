@@ -3,6 +3,9 @@
 **Cloud-Plattform für TaxiApp:** [Render.com](https://render.com) — **nicht** Firebase.  
 (CollectionShop läuft separat auf Firebase; die TaxiApp ist ein eigenes Projekt.)
 
+**Stripe:** eigenes Konto nur für Luckys Taxi — nicht die Collection-Shop-Keys.  
+→ [STRIPE-ZWEI-KONTEN.md](STRIPE-ZWEI-KONTEN.md)
+
 ## Live-URLs (Standard)
 
 **Öffentlich (Strato-Domain → Render):** https://luckystaxiapp.de  
@@ -29,8 +32,8 @@ iOS-App: `TaxiConfig.swift` → `cloudBackendURL` darf `https://luckystaxiapp.de
 | Variable | Pflicht | Zweck |
 |----------|---------|--------|
 | `ADMIN_PIN` | **Ja (empfohlen)** | PIN für Leitstelle & Einstellungen |
-| `STRIPE_SECRET_KEY` | Nein* | Stripe Secret — Abo + Fahrgast-Kartenzahlung |
-| `STRIPE_PUBLISHABLE_KEY` | Nein* | `pk_test_…` / `pk_live_…` für `pay.html` |
+| `STRIPE_SECRET_KEY` | Nein* | Stripe Secret — **nur Taxi-Konto** (Abo + Fahrgast-Kartenzahlung) |
+| `STRIPE_PUBLISHABLE_KEY` | Nein* | `pk_test_…` / `pk_live_…` für `pay.html` (Taxi-Konto) |
 | `STRIPE_TERMINAL_LOCATION_ID` | Nein* | Tap to Pay — Stripe Terminal Location (`tml_…`) |
 | `STRIPE_PRICE_FLEET` | Nein | Stripe Price-ID Pro Fahrzeug (Basis, z. B. 9,90 €) |
 | `STRIPE_PRICE_STARTER` | Nein | (Alt) Stripe Price-ID Starter |

@@ -143,7 +143,7 @@
     if (hint) {
       hint.textContent = slug
         ? `PIN für Betrieb „${slug}“ (dispatchPin oder ADMIN_PIN).`
-        : "Bitte PIN eingeben (ADMIN_PIN auf Render oder Betriebs-PIN).";
+        : "Bitte Leitstellen-PIN Ihres Betriebs eingeben.";
     }
     document.getElementById("leitstelle-login").classList.add("visible");
   }

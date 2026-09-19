@@ -2,9 +2,12 @@
 
 Minimaler Server für Stripe PaymentIntents (Testmodus).
 
+**Stripe-Keys:** nur vom **Luckys-Taxi**-Konto — nicht Collection Shop.  
+Siehe [`docs/STRIPE-ZWEI-KONTEN.md`](../docs/STRIPE-ZWEI-KONTEN.md).
+
 ## Setup
 
-1. Stripe Dashboard → Developers → API keys → `sk_test_…` kopieren
+1. Stripe Dashboard (**Taxi**-Konto) → Developers → API keys → `sk_test_…` kopieren
 2. `.env` anlegen:
 
 ```bash

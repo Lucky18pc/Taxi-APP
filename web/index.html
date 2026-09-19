@@ -44,7 +44,12 @@
         "name": "Luckys Taxi App",
         "applicationCategory": "TravelApplication",
         "operatingSystem": "iOS, Web",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "offers": {
+          "@type": "Offer",
+          "price": "9.90",
+          "priceCurrency": "EUR",
+          "description": "Ab 9,90 €/Monat pro Fahrzeug für Taxi-Betriebe (Softwaremiete). Fahrgast-App kostenlos."
+        },
         "description": "Software zum Mieten für konzessionierte Taxi-Betriebe: Online-Buchung und digitale Leitstelle unter dem Betriebsnamen. Anbieter: Code & Grow."
       },
       {
@@ -117,10 +122,12 @@
               <div class="iphone-screen iphone-screen-shot">
                 <img
                   class="app-screen-shot"
-                  src="fahrgast-start-preview.png"
-                  width="1206"
-                  height="2622"
+                  src="fahrgast-start-preview.jpg"
+                  width="600"
+                  height="1305"
                   alt="Luckys Taxi App: Startseite für Fahrgäste"
+                  decoding="async"
+                  fetchpriority="high"
                 >
                 <span class="app-shimmer" aria-hidden="true"></span>
               </div>
@@ -193,7 +200,7 @@
           <ul class="checklist">
             <li>iPhone-App und <a href="book.html">Browser-Buchung</a> angebunden an <strong>Ihre</strong> Leitstelle</li>
             <li><strong>App-Design nach Wunsch</strong> — Ihr Logo, Ihre Farben, Auftritt Ihres Taxi-Betriebs</li>
-            <li><a href="dispatch.html">Leitstelle</a> und <a href="settings.html">Einstellungen</a> (Name, Zentrale, Fahrer, Impressum)</li>
+            <li>Digitale Leitstelle und Betriebseinstellungen (Name, Zentrale, Fahrer, Impressum) — Zugang mit Betriebs-PIN nach Onboarding</li>
             <li><a href="qr.html">QR-Code als PNG</a> — druckfertig für Aufkleber und Karten</li>
             <li>Hosting, Updates, E-Mail-Support</li>
             <li>App Store / TestFlight, sobald die Plattform-App live ist</li>
@@ -248,7 +255,8 @@
         </article>
       </div>
       <p class="note" style="margin-top:1rem">
-        Die Plattformgebühr beträgt <strong>1,9&nbsp;%</strong> auf <strong>Bar- und Kartenzahlungen</strong> der vermittelten Fahrten (Karte bei Auszahlung, Bar in der Monatsabrechnung). Monatspreis und Fahrt-Provision sind getrennt.
+        Die Plattformgebühr beträgt <strong>1,9&nbsp;%</strong> auf <strong>Bar- und Kartenzahlungen</strong> der
+        über die Software abgewickelten Fahrten (Karte bei Auszahlung, Bar in der Monatsabrechnung). Monatspreis und Fahrt-Provision sind getrennt.
         Rechnungen: automatisch per Stripe (Online-Abo) oder manuell über Lexoffice/sevDesk — <a href="rechnungen.html">Details</a>.
       </p>
     </section>
@@ -314,9 +322,8 @@
       </div>
 
       <p class="note stripe-note">
-        <strong>Cloud-Leitstelle:</strong>
-        <a href="https://taxiapp-api.onrender.com/dispatch.html">dispatch.html</a> ·
-        <a href="https://taxiapp-api.onrender.com/settings.html">settings.html</a>.
+        <strong>Leitstelle für Partner-Betriebe:</strong>
+        Zugang nur mit Betriebs-PIN (nach Onboarding). Die öffentliche Marketing-Seite verlinkt die Leitstelle nicht mehr direkt.
         Kartenzahlung und Bar am Taxameter möglich.
       </p>
     </section>
@@ -420,7 +427,7 @@
         </article>
         <article class="sales-card">
           <h3>Leitstelle sofort nutzbar</h3>
-          <p><a href="dispatch.html">dispatch.html</a> zeigt Buchungen live. <a href="settings.html">settings.html</a> für Nummer, Fahrer und Impressum — ohne Programmierkenntnisse.</p>
+          <p>Nach dem Onboarding zeigt die digitale Leitstelle Buchungen live. Einstellungen für Nummer, Fahrer und Impressum — ohne Programmierkenntnisse, Zugang mit Betriebs-PIN.</p>
         </article>
         <article class="sales-card">
           <h3>Fair kalkuliert</h3>
@@ -514,8 +521,6 @@
       <a href="#gruender">Über den Gründer</a>
       <a href="#faq">Fragen</a>
       <a href="#zentrale-vs-app" data-i18n="nav.vs">Zentrale vs. App</a>
-      <a href="dispatch.html" data-i18n="nav.dispatch">Zentrale</a>
-      <a href="settings.html" data-i18n="nav.settings">Einstellungen</a>
       <a href="impressum.html" data-i18n="nav.imprint">Impressum</a>
       <a href="datenschutz.html" data-i18n="nav.privacy">Datenschutz</a>
       <a href="agb.html" data-i18n="nav.terms">AGB Fahrgäste</a>

@@ -2,6 +2,9 @@
 
 **Status:** MVP implementiert (Code) — Live braucht Stripe-Keys auf Render.
 
+**Stripe-Konto:** Keys gehören zum **Luckys-Taxi**-Konto, nicht Collection Shop.  
+→ [STRIPE-ZWEI-KONTEN.md](STRIPE-ZWEI-KONTEN.md) · Metadata: `product=taxi`
+
 ## Ablauf
 
 1. Fahrgast bucht mit **Zahlung: Karte** (Web `book.html` oder iOS `PaymentView`).

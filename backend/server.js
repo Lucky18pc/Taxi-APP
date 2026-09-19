@@ -40,6 +40,12 @@ const billingPriceIds = {
   fleet: String(process.env.STRIPE_PRICE_FLEET || "").trim(),
 };
 
+/** Stripe-Konto = nur Luckys Taxi (nicht Collection Shop). Siehe docs/STRIPE-ZWEI-KONTEN.md */
+const STRIPE_PRODUCT_META = Object.freeze({
+  product: "taxi",
+  productName: "Luckys Taxi App",
+});
+
 function isBillingConfigured() {
   return Boolean(stripe && Object.values(billingPriceIds).some(Boolean));
 }
@@ -137,6 +143,7 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
   const connectAccountId = String(fleetOp?.stripeConnectAccountId || "").trim();
 
   const metadata = {
+    ...STRIPE_PRODUCT_META,
     bookingId: booking.bookingId,
     operatorId: booking.operatorId || "",
     channel: wantTerminal ? "terminal" : "online",
@@ -1304,10 +1311,10 @@ app.post("/api/billing/checkout", async (req, res) => {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/billing-success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/index.html#operators`,
-      metadata: { planId, companyName, trialDays: "14" },
+      metadata: { ...STRIPE_PRODUCT_META, planId, companyName, trialDays: "14" },
       subscription_data: {
         trial_period_days: 14,
-        metadata: { planId, companyName },
+        metadata: { ...STRIPE_PRODUCT_META, planId, companyName },
       },
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
@@ -1684,6 +1691,7 @@ app.post("/api/fleet/operators/:slug/connect/onboard", requireAdmin, async (req,
           product_description: "Taxi-Fahrten — Auszahlung über Luckys Taxi App / Code & Grow",
         },
         metadata: {
+          ...STRIPE_PRODUCT_META,
           operatorSlug: operator.slug,
           operatorId: operator.operatorId,
         },
@@ -2926,6 +2934,7 @@ app.post("/create-payment-intent", async (req, res) => {
       amount,
       currency,
       automatic_payment_methods: { enabled: true },
+      metadata: { ...STRIPE_PRODUCT_META },
     };
 
     if (receiptEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(receiptEmail)) {

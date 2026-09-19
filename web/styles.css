@@ -1049,7 +1049,58 @@ body.legal-taxi .legal-page > .note {
 .screen-extra {
   margin-top: 0.5rem !important;
   font-size: 0.88rem !important;
-  color: #6b7280 !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* Cookie-/Analytics-Consent */
+#luckys-consent-banner {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #0c1c34;
+  color: #fff;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+#luckys-consent-banner p {
+  margin: 0;
+  flex: 1 1 16rem;
+  max-width: 40rem;
+}
+#luckys-consent-banner a {
+  color: #ffcc00;
+}
+.luckys-consent-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.luckys-consent-accept,
+.luckys-consent-decline {
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.luckys-consent-accept {
+  background: #ffcc00;
+  color: #0c1c34;
+}
+.luckys-consent-decline {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
 }
 
 .stripe-note {

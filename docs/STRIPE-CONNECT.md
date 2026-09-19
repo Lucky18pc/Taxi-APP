@@ -2,6 +2,8 @@
 
 Für **Code & Grow** / Luckys Taxi App. Ziel: Taxi-Betriebe können Auszahlungen empfangen, du behältst 2 % / 1,5 % Provision.
 
+**Voraussetzung:** Connect läuft im **Taxi**-Stripe-Konto (Render-Keys). Collection Shop hat ein separates Konto — siehe [STRIPE-ZWEI-KONTEN.md](STRIPE-ZWEI-KONTEN.md).
+
 ---
 
 ## Teil A — Connect im Stripe Dashboard (einmalig, du)

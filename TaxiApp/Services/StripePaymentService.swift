@@ -6,6 +6,7 @@ enum StripePaymentError: LocalizedError {
     case invalidResponse
     case backendError(String)
     case noViewController
+    case paymentsDisabled
 
     var errorDescription: String? {
         switch self {
@@ -17,6 +18,8 @@ enum StripePaymentError: LocalizedError {
             return message
         case .noViewController:
             return "Zahlungsdialog konnte nicht geöffnet werden."
+        case .paymentsDisabled:
+            return "Kartenzahlung ist auf dem Server noch nicht aktiv (Stripe-Keys fehlen)."
         }
     }
 }
@@ -47,11 +50,40 @@ struct StripePaymentService {
         let clientSecret: String
     }
 
+    private struct StripeConfigResponse: Decodable {
+        let paymentsEnabled: Bool
+        let publishableKey: String?
+    }
+
     @MainActor
-    private func configureStripeIfNeeded() {
-        if StripeAPI.defaultPublishableKey != TaxiConfig.stripePublishableKey {
-            StripeAPI.defaultPublishableKey = TaxiConfig.stripePublishableKey
+    private func configureStripeIfNeeded() async throws {
+        let key = try await resolvePublishableKey()
+        if StripeAPI.defaultPublishableKey != key {
+            StripeAPI.defaultPublishableKey = key
         }
+    }
+
+    /// Nimmt einen echten Key aus TaxiConfig, sonst denselben Key wie `pay.html` vom Backend.
+    private func resolvePublishableKey() async throws -> String {
+        let configured = TaxiConfig.stripePublishableKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !configured.isEmpty, !configured.contains("PLACEHOLDER"), configured.hasPrefix("pk_") {
+            return configured
+        }
+
+        guard let url = URL(string: "\(TaxiConfig.stripeBackendURL)/api/stripe/config") else {
+            throw StripePaymentError.invalidBackendURL
+        }
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw StripePaymentError.invalidResponse
+        }
+
+        let cfg = try JSONDecoder().decode(StripeConfigResponse.self, from: data)
+        guard cfg.paymentsEnabled, let key = cfg.publishableKey, key.hasPrefix("pk_") else {
+            throw StripePaymentError.paymentsDisabled
+        }
+        return key
     }
 
     func fetchClientSecret(
@@ -59,7 +91,7 @@ struct StripePaymentService {
         currency: String = "eur",
         receiptEmail: String? = nil
     ) async throws -> String {
-        await configureStripeIfNeeded()
+        try await configureStripeIfNeeded()
         guard let url = URL(string: "\(TaxiConfig.stripeBackendURL)/create-payment-intent") else {
             throw StripePaymentError.invalidBackendURL
         }
@@ -91,26 +123,34 @@ struct StripePaymentService {
 
     @MainActor
     func presentPaymentSheet(clientSecret: String, completion: @escaping (Bool) -> Void) {
-        configureStripeIfNeeded()
-        guard let viewController = Self.topViewController() else {
-            completion(false)
-            return
-        }
-
-        var configuration = PaymentSheet.Configuration()
-        configuration.merchantDisplayName = "TaxiApp"
-
-        let paymentSheet = PaymentSheet(
-            paymentIntentClientSecret: clientSecret,
-            configuration: configuration
-        )
-
-        paymentSheet.present(from: viewController) { result in
-            switch result {
-            case .completed:
-                completion(true)
-            case .canceled, .failed:
+        Task {
+            do {
+                try await configureStripeIfNeeded()
+            } catch {
                 completion(false)
+                return
+            }
+
+            guard let viewController = Self.topViewController() else {
+                completion(false)
+                return
+            }
+
+            var configuration = PaymentSheet.Configuration()
+            configuration.merchantDisplayName = "Luckys Taxi"
+
+            let paymentSheet = PaymentSheet(
+                paymentIntentClientSecret: clientSecret,
+                configuration: configuration
+            )
+
+            paymentSheet.present(from: viewController) { result in
+                switch result {
+                case .completed:
+                    completion(true)
+                case .canceled, .failed:
+                    completion(false)
+                }
             }
         }
     }

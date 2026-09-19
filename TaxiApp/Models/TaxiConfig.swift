@@ -125,7 +125,8 @@ enum TaxiConfig {
     // MARK: - Stripe
 
     /// Optionaler Override. Leer/`PLACEHOLDER` → Key kommt live von `/api/stripe/config` (wie `pay.html`).
-    /// Nur setzen, wenn du lokal ohne Cloud testest: `pk_test_…` aus dem Stripe Dashboard.
+    /// Nur setzen, wenn du lokal ohne Cloud testest: `pk_test_…` aus dem **Taxi**-Stripe-Konto
+    /// (nicht Collection Shop — siehe docs/STRIPE-ZWEI-KONTEN.md).
     static let stripePublishableKey = "pk_test_PLACEHOLDER"
 
     /// Cloud-Backend (öffentliche Domain bei Strato → Render Custom Domain).
