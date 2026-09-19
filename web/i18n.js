@@ -212,7 +212,7 @@
       "plan.fee15": "1.9% on cash and card payments",
       "plan.fee19": "1.9% on cash and card payments",
       "plan.f1": "Your app with company logo",
-      "plan.f2": "Online card payments (Stripe)",
+      "plan.f2": "Online card payments",
       "plan.f3": "Trip overview & dispatch",
       "plan.f4": "Email support",
       "plan.f5": "Everything in Starter",

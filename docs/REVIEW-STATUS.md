@@ -63,6 +63,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P0 | Anwaltliche Freigabe Rechtstexte | intern |
 | P0 | Stripe Connect Identität (falls noch Prüfung) | Stripe Dashboard |
 | P1 | Sprache DE/EN (Umschalter + hreflang); Marketing ohne Dateinamen | erledigt 19.09. |
+| P1 | Linguistik: zwei Wege Betrieb / Fahrgast; Hinweisboxen + Badge-Kontrast | erledigt 19.09. (`index.html` / `styles.css`) |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |
@@ -92,3 +93,5 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 3. `/widerruf.html` → Abschnitte A/B/C  
 4. Startseite Footer → kein Link „Zentrale“ / „Einstellungen“  
 5. `/book.html` → Vertragspartner-Hinweis  
+6. Startseite `#operators` → Badge „14 Tage…“ gelb auf dunkelblau (lesbar)  
+7. Hero → klare Pfade Betrieb vs. Fahrgast  

@@ -181,6 +181,26 @@ a { color: var(--primary); }
   font-weight: 900;
 }
 
+.hero-paths {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.25rem auto 0.85rem;
+  max-width: 36rem;
+  text-align: left;
+}
+
+.hero-path {
+  margin: 0;
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.hero-path strong {
+  font-weight: 900;
+}
+
 .hero-cta {
   display: inline-block;
   background: #fff;
@@ -1428,8 +1448,8 @@ body.cities-hub .site-footer a {
 }
 
 .ops-rent .badge {
-  background: #ffcc00;
-  color: #0c1c34;
+  background: #0c1c34;
+  color: #ffcc00;
   font-weight: 800;
 }
 
@@ -1617,7 +1637,7 @@ body.home-taxi .ops-rent h2 {
 
 body.home-taxi .ops-rent > .lead,
 body.home-taxi .ops-rent > .sales-sub,
-body.home-taxi .ops-rent > p:not(.note) {
+body.home-taxi .ops-rent > p:not(.note):not(.badge):not(.offer-pill) {
   color: #0c1c34 !important;
   font-size: 1.1rem;
   font-weight: 700;
@@ -1628,12 +1648,21 @@ body.home-taxi .ops-rent .sales-sub {
   font-weight: 900;
 }
 
-body.home-taxi .ops-rent > .badge {
-  background: #0c1c34;
-  color: #fff !important;
-  font-weight: 900;
-  font-size: 1rem;
-  padding: 0.45rem 0.9rem;
+/* Wichtig: Badge darf NICHT von p:not(.note) überschrieben werden (Kontrast) */
+body.home-taxi .ops-rent > p.badge,
+body.home-taxi .ops-rent > .badge,
+body.home-taxi .ops-rent > .offer-pill {
+  display: inline-block;
+  background: #0c1c34 !important;
+  color: #ffcc00 !important;
+  font-weight: 900 !important;
+  font-size: 1rem !important;
+  line-height: 1.35;
+  padding: 0.55rem 1rem !important;
+  border-radius: 999px;
+  border: 2px solid #0c1c34;
+  margin: 0.75rem 0 0;
+  max-width: 100%;
 }
 
 body.home-taxi .ops-rent .btn-ops-cta {
@@ -1731,14 +1760,23 @@ body.home-taxi .ops-rent .plan .btn.secondary {
   border: none;
 }
 
-body.home-taxi .ops-rent > .note {
+body.home-taxi .ops-rent > .note,
+body.home-taxi .ops-rent > .ops-aside {
   color: #0c1c34 !important;
-  font-weight: 700;
+  background: rgba(12, 28, 52, 0.08);
+  border-left: 4px solid #0c1c34;
+  padding: 0.75rem 1rem;
+  border-radius: 0 10px 10px 0;
+  font-weight: 600;
+  font-size: 0.98rem;
+  max-width: 42rem;
 }
 
-body.home-taxi .ops-rent > .note a {
+body.home-taxi .ops-rent > .note a,
+body.home-taxi .ops-rent > .ops-aside a {
   color: #0c1c34 !important;
   text-decoration: underline;
+  font-weight: 800;
 }
 
 body.home-taxi .ops-rent .sales-card {
