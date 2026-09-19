@@ -2,6 +2,18 @@
 
 Stand: September 2026. **Zwei Apps**, zwei Bundle-IDs.
 
+## App-Store-Verantwortung (Festlegung)
+
+| Thema | Zuständig |
+|-------|-----------|
+| Apple Developer Program / Team | **Code & Grow** (Pece Carmine) — Konto und Zahlung der Jahresgebühr |
+| Store-Einträge der gemeinsamen Plattform-Apps | Code & Grow |
+| Builds, Archive, Review-Einreichung, Updates | Code & Grow |
+| Betriebsprofil (Name, Logo, Farben, Texte) | jeweiliger Taxi-Betrieb |
+| Separater Store-Eintrag pro Betrieb | **nicht** Standardtarif — nur nach gesonderter Vereinbarung |
+
+Standardmodell: **eine gemeinsame Fahrgast-App** mit Betriebsprofil (Apple Review Guideline 4.2.6 / Template-Apps). Keine „eigene App mit Firmenlogo“ als eigener Store-Eintrag im Monatspreis.
+
 | App | Bundle-ID | Xcode-Projekt |
 |-----|-----------|----------------|
 | **Fahrgast** (Kunden-Store) | `com.collection.FahrgastApp` | `~/CollectionApp/FahrgastApp` |
