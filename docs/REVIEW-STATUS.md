@@ -68,6 +68,7 @@ Stand: 19. September 2026 · Website `luckystaxiapp.de`
 | P1 | „Eigene App“-Versprechen präzisiert (PWA heute; Store folgt; Account Code & Grow) | erledigt 19.09. — [TESTFLIGHT.md](TESTFLIGHT.md) |
 | P1 | Öffentliche E-Mail → `kontakt@luckystaxiapp.de` | erledigt 19.09. — DNS/SPF/DKIM noch manuell: [EMAIL-MARKENADRESSE.md](EMAIL-MARKENADRESSE.md) |
 | P1 | Footer nach Zielgruppen + Betreiberzugang | erledigt 19.09. — `betrieb.html` |
+| P1 | Hero-Vorschaubilder: 1,7 MB-PNG weg, WebP + lazy | erledigt 19.09. |
 | P1 | MFA / Passkeys für Admin | [TOMS.md](TOMS.md) |
 | P1 | Backup-Restore testen | TOMs |
 | P1 | Konzession sichtbar vor Buchung (UI) | `book.html` Feinschliff |
