@@ -1,6 +1,6 @@
 # Tap to Pay — Karte ans Fahrer-Handy
 
-**Status:** Backend Phase B implementiert · NFC in der Fahrer-App braucht noch Stripe-Terminal-SDK + Apple-Freigabe  
+**Status:** Backend Phase B ✅ · Apple Tap-to-Pay-Entitlement **erteilt** (Sep 2026) · NFC-Collect in Xcode noch verdrahten  
 **Verwandt:** Online-Zahlung `docs/KARTENZAHLUNG-FAHRGAST.md` (live)
 
 ## Was Fahrgäste meinen
@@ -26,18 +26,17 @@ Das ist **nicht** die Online-Zahlung auf dem Handy des Gastes (Zahlungslink).
 | Stripe Terminal SDK Collect (NFC-UI) | ⏳ Xcode + Apple Entitlement |
 | Android Tap to Pay | ⏳ später |
 
-## Deine To-dos (ohne die geht NFC nicht)
+## Deine To-dos (jetzt, Freigabe ist da)
 
 1. **Stripe Dashboard** → Terminal → **Location** anlegen (Adresse DE)  
 2. Location-ID kopieren → Render Environment:  
    `STRIPE_TERMINAL_LOCATION_ID=tml_…`  
-3. Optional: `STRIPE_TERMINAL_SIMULATED=1` nur für Tests  
-4. **Apple Developer** → Tap to Pay on iPhone **Entitlement** beantragen  
-   (`com.apple.developer.proximity-reader.payment.acceptance`)  
-5. In Xcode (Fahrer-Target): SPM  
-   `https://github.com/stripe/stripe-terminal-ios`  
-6. Entitlement-Datei dem Target zuweisen (Beispiel: `FahrerApp/LuckysTaxiFahrer.entitlements`)  
-7. Gerät: **iPhone XS+**, aktuelles iOS, physisches Gerät (kein Simulator für echtes NFC)
+3. Optional zum Testen: `STRIPE_TERMINAL_SIMULATED=1`  
+4. ~~Apple Entitlement~~ ✅ erteilt (Mail Apple Developer Relations)  
+5. In Xcode (Fahrer-Target): Capability **Tap to Pay on iPhone** aktivieren + SPM Stripe Terminal  
+6. Entitlement-Datei dem Target zuweisen (`LuckysTaxiFahrer.entitlements`)  
+7. Gerät: **iPhone XS+**, aktuelles iOS, physisches Gerät (kein Simulator für echtes NFC)  
+8. Collect-UI in `TapToPayService` verdrahten (siehe `docs/XCODE-FAHRER-TAP-TO-PAY.md`)
 
 Stripe-Anleitung: [Tap to Pay on iPhone](https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?platform=ios)
 
@@ -71,8 +70,9 @@ Header: `Authorization: Bearer <DRIVER_API_KEY>` oder `X-Driver-Key`.
 
 - [x] Connection-Token + tap-pay PaymentIntent
 - [x] Fahrer-App Zahlungsart-Dialog
+- [x] Apple Entitlement (Development) erteilt
 - [ ] Location-ID auf Render
-- [ ] Apple Entitlement + Terminal SDK Collect fertig verdrahten
+- [ ] Terminal SDK Collect fertig verdrahten
 - [ ] Test mit Simulator-Reader / Testkarten
 
 ### Phase C — Rollout
