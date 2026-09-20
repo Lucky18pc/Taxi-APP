@@ -49,6 +49,7 @@
   </main>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     const API_BASE = location.origin.includes("localhost") || location.origin.includes("127.0.0.1")
       ? "http://127.0.0.1:4242"
@@ -62,19 +63,68 @@
     const driverLine = document.getElementById("driver-line");
     const callDriver = document.getElementById("call-driver");
     const callCentral = document.getElementById("call-central");
+    const headerSub = document.getElementById("header-sub");
 
+    let mapMode = "leaflet"; // leaflet | google
     let map;
+    let googleMap;
     let pickupMarker;
     let taxiMarker;
+    let gPickup;
+    let gTaxi;
     let pollTimer;
+    let socket;
+    let streamIntervalMs = 2500;
 
     function telHref(phone) {
       return `tel:${String(phone || "").replace(/\s/g, "")}`;
     }
 
-    function ensureMap() {
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.async = true;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    async function initMapProvider(platform) {
+      const key = platform?.thirdParty?.googleMaps?.browserKey;
+      if (key) {
+        try {
+          await loadScript(
+            `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&v=weekly`
+          );
+          mapMode = "google";
+          headerSub.textContent = "Google Maps · Live via Socket.io (~2,5 s).";
+          return;
+        } catch (_) {
+          /* Leaflet-Fallback */
+        }
+      }
+      mapMode = "leaflet";
+      headerSub.textContent = "Karte (OSM) · Live via Socket.io (~2,5 s).";
+    }
+
+    function ensureMap(center) {
+      const lat = center?.[0] ?? 51.1657;
+      const lng = center?.[1] ?? 10.4515;
+      if (mapMode === "google") {
+        if (googleMap) return;
+        googleMap = new google.maps.Map(document.getElementById("map"), {
+          center: { lat, lng },
+          zoom: 14,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        });
+        return;
+      }
       if (map) return;
-      map = L.map("map").setView([51.1657, 10.4515], 6);
+      map = L.map("map").setView([lat, lng], 6);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -83,6 +133,17 @@
 
     function fitMarkers(coords) {
       if (!coords.length) return;
+      if (mapMode === "google" && googleMap) {
+        if (coords.length === 1) {
+          googleMap.setCenter({ lat: coords[0][0], lng: coords[0][1] });
+          googleMap.setZoom(15);
+          return;
+        }
+        const bounds = new google.maps.LatLngBounds();
+        coords.forEach(([la, ln]) => bounds.extend({ lat: la, lng: ln }));
+        googleMap.fitBounds(bounds, 40);
+        return;
+      }
       if (coords.length === 1) {
         map.setView(coords[0], 15);
         return;
@@ -91,8 +152,34 @@
     }
 
     function updateMarkers(snapshot) {
-      ensureMap();
       const pickup = [snapshot.pickup.latitude, snapshot.pickup.longitude];
+      ensureMap(pickup);
+
+      if (mapMode === "google" && googleMap) {
+        const p = { lat: pickup[0], lng: pickup[1] };
+        if (!gPickup) {
+          gPickup = new google.maps.Marker({ map: googleMap, position: p, title: "Abholung" });
+        } else {
+          gPickup.setPosition(p);
+        }
+        const coords = [pickup];
+        if (snapshot.hasDriverLocation && snapshot.driver?.latitude != null) {
+          const taxi = [snapshot.driver.latitude, snapshot.driver.longitude];
+          coords.push(taxi);
+          const t = { lat: taxi[0], lng: taxi[1] };
+          if (!gTaxi) {
+            gTaxi = new google.maps.Marker({ map: googleMap, position: t, title: "Taxi" });
+          } else {
+            gTaxi.setPosition(t);
+          }
+        } else if (gTaxi) {
+          gTaxi.setMap(null);
+          gTaxi = null;
+        }
+        fitMarkers(coords);
+        return;
+      }
+
       if (!pickupMarker) {
         pickupMarker = L.marker(pickup).addTo(map).bindPopup("Abholung");
       } else {
@@ -116,6 +203,7 @@
     }
 
     function updateUi(snapshot) {
+      if (snapshot.streamIntervalMs) streamIntervalMs = snapshot.streamIntervalMs;
       pickupLine.textContent = `Abholung: ${snapshot.pickup.addressLine}`;
 
       if (snapshot.driver) {
@@ -167,16 +255,52 @@
       }
     }
 
-    fetch("/api/config")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((cfg) => {
-        if (cfg?.centralPhone) callCentral.href = telHref(cfg.centralPhone);
-      })
-      .catch(() => {});
+    function connectSocket() {
+      if (!bookingId || typeof io !== "function") return;
+      const origin = API_BASE || location.origin;
+      socket = io(origin, { path: "/socket.io", transports: ["websocket", "polling"] });
+      socket.on("connect", () => {
+        socket.emit("subscribe:booking", bookingId);
+      });
+      socket.on("tracking:update", (payload) => {
+        if (payload?.bookingId === bookingId) updateUi(payload);
+      });
+    }
 
-    poll();
-    pollTimer = setInterval(poll, 4000);
-    window.addEventListener("pagehide", () => clearInterval(pollTimer));
+    function startFallbackPoll() {
+      clearInterval(pollTimer);
+      // Fallback etwas langsamer als Stream — Socket liefert ~2,5 s
+      pollTimer = setInterval(poll, Math.max(streamIntervalMs * 2, 5000));
+    }
+
+    (async function boot() {
+      let platform = null;
+      try {
+        const r = await fetch(`${API_BASE || ""}/api/platform`);
+        if (r.ok) platform = await r.json();
+      } catch (_) {}
+
+      if (platform?.realtime?.locationIntervalMs) {
+        streamIntervalMs = platform.realtime.locationIntervalMs;
+      }
+
+      await initMapProvider(platform);
+
+      fetch("/api/config?operator=mannheim")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((cfg) => {
+          if (cfg?.centralPhone) callCentral.href = telHref(cfg.centralPhone);
+        })
+        .catch(() => {});
+
+      await poll();
+      connectSocket();
+      startFallbackPoll();
+      window.addEventListener("pagehide", () => {
+        clearInterval(pollTimer);
+        if (socket) socket.disconnect();
+      });
+    })();
   </script>
 </body>
 </html>

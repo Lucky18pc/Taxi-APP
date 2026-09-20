@@ -409,7 +409,8 @@ final class DriverLocationReporter: NSObject, ObservableObject, CLLocationManage
     override init() {
         super.init()
         manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+        manager.distanceFilter = 5
         manager.allowsBackgroundLocationUpdates = false
     }
 
@@ -429,7 +430,8 @@ final class DriverLocationReporter: NSObject, ObservableObject, CLLocationManage
         guard let location = locations.last else { return }
         Task { @MainActor in
             let now = Date()
-            if let lastSent, now.timeIntervalSince(lastSent) < 12 { return }
+            // Phase 1: Live-Stream alle ~2,5 s (Backend + Socket.io)
+            if let lastSent, now.timeIntervalSince(lastSent) < 2.5 { return }
             lastSent = now
             let uid = driverUid
             let booking = bookingId

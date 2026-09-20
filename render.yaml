@@ -1,5 +1,6 @@
 # TaxiApp Backend — Deploy auf Render.com (Go-Live-Plattform)
-# Firebase: nicht verwendet — CollectionShop läuft separat auf Firebase.
+# Firebase: Fahrer Auth/Firestore clientseitig; Backend bleibt Node/Express (Phase 1).
+# Optional Env: GOOGLE_MAPS_BROWSER_KEY, TWILIO_*, LOCATION_STREAM_INTERVAL_MS
 # https://render.com/docs/blueprint-spec
 #
 # 1. Repo auf GitHub pushen → Render deployt automatisch
@@ -42,5 +43,20 @@ services:
       - key: CONTACT_NOTIFY_EMAIL
         value: kontakt@luckystaxiapp.de
       - key: GA_MEASUREMENT_ID
+        sync: false
+      # Phase 1 — optional Realtime / Maps / SMS-OTP
+      - key: LOCATION_STREAM_INTERVAL_MS
+        value: "2500"
+      - key: GOOGLE_MAPS_BROWSER_KEY
+        sync: false
+      - key: MAPBOX_ACCESS_TOKEN
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: OTP_DEV_CODE
         sync: false
     # Persistent Disk — Buchungen und Mandanten bleiben nach Deploy erhalten.

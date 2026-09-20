@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const http = require("http");
 const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
@@ -7,6 +8,9 @@ const path = require("path");
 const fs = require("fs");
 const { createFleetOperatorsStore } = require("./fleet-operators");
 const { mountPwaBrandRoutes } = require("./pwa-brand");
+const { createRealtimeHub, LOCATION_STREAM_INTERVAL_MS } = require("./realtime");
+const { mountOtpRoutes } = require("./otp-auth");
+const { mountPlatformPhase1Routes } = require("./platform-phase1");
 const {
   createUploadMiddleware,
   saveDocumentFile,
@@ -840,6 +844,32 @@ function publicDriverTracking(driver) {
   };
 }
 
+/** Öffentliches Tracking-Snapshot für HTTP + Socket.io. */
+function buildTrackingPayload(bookingId) {
+  const booking = findBooking(bookingId);
+  if (!booking) return null;
+  const driver = booking.assignedDriverId ? findDriver(booking.assignedDriverId) : null;
+  return {
+    bookingId: booking.bookingId,
+    status: booking.status,
+    pickup: {
+      latitude: booking.latitude,
+      longitude: booking.longitude,
+      addressLine: booking.addressLine,
+    },
+    driver: driver ? publicDriverTracking(driver) : null,
+    hasDriverLocation: driver ? driverHasFreshLocation(driver) : false,
+    streamIntervalMs: LOCATION_STREAM_INTERVAL_MS,
+  };
+}
+
+/** Wird nach createRealtimeHub gesetzt — kein No-Op-Crash vor Init. */
+let realtimeHub = {
+  publishDriverLocation() {},
+  publishBookingTracking() {},
+  intervalMs: LOCATION_STREAM_INTERVAL_MS,
+};
+
 function operatorSlugFromRequest(req) {
   const querySlug = String(req.query.operator || req.query.o || "").trim().toLowerCase();
   if (querySlug) return querySlug;
@@ -1292,6 +1322,9 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "..", "web")));
+
+mountOtpRoutes(app);
+mountPlatformPhase1Routes(app, { intervalMs: LOCATION_STREAM_INTERVAL_MS });
 
 app.get("/health", (_req, res) => {
   res.json({
@@ -2764,12 +2797,15 @@ app.post("/api/driver/location", requireDriverApp, (req, res) => {
     driver.activeBookingId = bookingId;
   }
 
+  realtimeHub.publishDriverLocation(driver, bookingId || null);
+
   res.json({
     ok: true,
     driverId: driver.driverId,
     firebaseUid: driver.firebaseUid || null,
     activeBookingId: driver.activeBookingId || null,
     updatedAt: driver.lastLocationAt,
+    streamIntervalMs: LOCATION_STREAM_INTERVAL_MS,
   });
 });
 
@@ -2803,34 +2839,23 @@ app.post("/api/drivers/:id/location", (req, res) => {
     driver.status = "busy";
   }
 
+  realtimeHub.publishDriverLocation(driver, bookingId || null);
+
   res.json({
     ok: true,
     driverId: driver.driverId,
     activeBookingId: driver.activeBookingId || null,
     updatedAt: driver.lastLocationAt,
+    streamIntervalMs: LOCATION_STREAM_INTERVAL_MS,
   });
 });
 
 /** Fahrgast verfolgt zugewiesenes Taxi (öffentlich per Buchungs-ID). */
 app.get("/api/public/bookings/:id/tracking", (req, res) => {
-  const booking = findBooking(req.params.id);
-  if (!booking) {
+  const payload = buildTrackingPayload(req.params.id);
+  if (!payload) {
     return res.status(404).json({ error: "Booking not found" });
   }
-
-  const driver = booking.assignedDriverId ? findDriver(booking.assignedDriverId) : null;
-  const payload = {
-    bookingId: booking.bookingId,
-    status: booking.status,
-    pickup: {
-      latitude: booking.latitude,
-      longitude: booking.longitude,
-      addressLine: booking.addressLine,
-    },
-    driver: driver ? publicDriverTracking(driver) : null,
-    hasDriverLocation: driver ? driverHasFreshLocation(driver) : false,
-  };
-
   res.json(payload);
 });
 
@@ -3084,9 +3109,15 @@ app.post("/create-payment-intent", async (req, res) => {
 
 const host = process.env.HOST || "0.0.0.0";
 
-app.listen(port, host, () => {
+const httpServer = http.createServer(app);
+realtimeHub = createRealtimeHub(httpServer, { buildTrackingPayload });
+
+httpServer.listen(port, host, () => {
   const publicUrl = process.env.PUBLIC_BASE_URL || `http://${host}:${port}`;
   console.log(`TaxiApp backend listening on ${publicUrl}`);
+  console.log(
+    `Realtime Socket.io: path=/socket.io interval=${LOCATION_STREAM_INTERVAL_MS}ms`
+  );
 });
 
 // redeploy: Tap to Pay terminal API 2026-09-05T22:10:00Z

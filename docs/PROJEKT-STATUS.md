@@ -28,9 +28,9 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 | Leitstelle Web | ✅ | `dispatch.html` |
 | Einstellungen Web | ✅ | `settings.html` |
 | PWA Buchung | ✅ | `book.html` |
-| Live-Tracking API | ✅ | `server.js` — neu |
-| Fahrer GPS Web | ✅ | `driver-track.html` — neu |
-| Fahrgast Tracking Web | ✅ | `track.html` — neu |
+| Live-Tracking API | ✅ | `server.js` — Socket.io + HTTP |
+| Fahrer GPS Web | ✅ | `driver-track.html` — ~2,5 s |
+| Fahrgast Tracking Web | ✅ | `track.html` — Socket.io + Google Maps optional |
 | Kartenzahlung Fahrgast (Zahlungslink) | ✅ | `pay.html` + Stripe PI |
 | Stripe zwei Konten (Shop ≠ Taxi) | ✅ | Docs + Metadata `product=taxi` · `docs/STRIPE-ZWEI-KONTEN.md` |
 | Stripe Connect Provision (application_fee) | ✅ | Onboarding: Admin → Stripe Connect · `docs/STRIPE-CONNECT.md` |
@@ -61,7 +61,7 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 |---------|--------|---------|
 | Fahrer in Leitstelle zuweisen | ✅ | `dispatch.html` |
 | GPS senden (Browser) | ✅ | `driver-track.html` |
-| Native Fahrer-iOS-App | 🟡 | Login-Session + GPS-Push im Spiegelcode; Xcode-Projekt extern |
+| Native Fahrer-iOS-App | 🟡 | Login (async) + GPS ~2,5 s + optional SMS-OTP; Xcode-Projekt extern |
 | Tap to Pay NFC | ⏳ | Apple-Freigabe + Stripe Terminal SDK |
 
 ### Analytics & Recht
@@ -92,7 +92,7 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 - [ ] Storno durch Fahrgast
 - [ ] Firebase Analytics Events in der App
 - [ ] Buchungs-Historie im Kundenprofil
-- [ ] WebSocket statt Polling für Tracking
+- [x] WebSocket/Socket.io statt Polling für Tracking (Phase 1)
 
 ---
 
@@ -160,6 +160,7 @@ Für einen **lokalen Taxi-Betrieb als Pilot** ist das Projekt mit Phase A **betr
 | Thema | Datei |
 |-------|--------|
 | Live-Tracking Anleitung | `docs/LIVE-TRACKING.md` |
+| Phase-1 Architektur | `docs/PHASE-1-ARCHITEKTUR.md` |
 | Pilot E-Mail Vorlage | `docs/PILOT-START.md` |
 | Render Deploy | `docs/RENDER-GO-LIVE.md` |
 | Domain / Sichtbarkeit (Strato + Search Console) | `docs/STRATO-SICHTBARKEIT.md` |

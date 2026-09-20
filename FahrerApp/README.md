@@ -2,10 +2,11 @@
 
 ## Features (aktuell)
 
-1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
+1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`) — async/await; optional **SMS-OTP** via Backend
 2. **Online / Schicht** — wird in Firestore gespeichert (`isOnline`)
 3. **Fahrtenliste** — offene Buchungen vom Render-Backend
 4. **Annehmen / Erledigt** — Driver-API ohne ADMIN_PIN
+5. **GPS** — alle ~2,5 s an Backend (Socket.io pusht an Fahrgast-Tracking)
 
 ## Dateien in Xcode übernehmen
 
