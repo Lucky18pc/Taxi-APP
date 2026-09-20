@@ -1,6 +1,9 @@
-# Xcode Schritt für Schritt — Luckys Taxi
+# Luckys Taxi — Einrichtung Schritt für Schritt
 
 Stand: September 2026. **Eins nach dem anderen.** Nicht alles auf einmal.
+
+**In Cursor (dieses Repo):** Backend-URLs, Keys in Swift-Dateien, Docs, Snippets.  
+**Nur auf dem Mac in Xcode:** Signing/Team, Archive, TestFlight-Upload, Info.plist-Capabilities im Xcode-Target (wenn das Store-Projekt unter CollectionApp liegt).
 
 Offizielle Store-Projekte (typisch auf dem Mac):
 
