@@ -334,42 +334,16 @@ a { color: var(--primary); }
   background: #1c304f;
 }
 
-/* Weißer Schimmer-Strich wie in der iOS-App */
-.app-shimmer {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  overflow: hidden;
-  border-radius: inherit;
-}
-
+/* Früher: weißer Schimmer-Strich über App-Vorschau-Screenshots.
+   Für Werbung deaktiviert — lief über Profilfotos (z. B. Lucky). */
+.app-shimmer,
 .app-shimmer::before {
-  content: "";
-  position: absolute;
-  top: -15%;
-  left: -55%;
-  width: 42%;
-  height: 130%;
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.02) 30%,
-    rgba(255, 255, 255, 0.22) 48%,
-    rgba(255, 255, 255, 0.55) 50%,
-    rgba(255, 255, 255, 0.18) 52%,
-    rgba(255, 255, 255, 0.03) 70%,
-    transparent 100%
-  );
-  transform: skewX(-20deg);
-  animation: shimmer-sweep 2.6s ease-in-out infinite;
+  display: none !important;
+  animation: none !important;
 }
 
 @keyframes shimmer-sweep {
-  0% { transform: translateX(0) skewX(-20deg); opacity: 0; }
-  12% { opacity: 1; }
-  55% { transform: translateX(280%) skewX(-20deg); opacity: 1; }
-  70%, 100% { transform: translateX(320%) skewX(-20deg); opacity: 0; }
+  0%, 100% { transform: none; opacity: 0; }
 }
 
 .app-pickup {
