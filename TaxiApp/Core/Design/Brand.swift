@@ -110,21 +110,14 @@ private struct LightShimmerModifier: ViewModifier {
 }
 
 extension View {
-    /// Licht-Schimmer mit Blitzerstreifen — Buttons, Balken, Karten.
+    /// Früher: Licht-Schimmer / Blitzerstreifen. Deaktiviert — silberne Streifen entfernt.
     func lightShimmer(
         active: Bool = true,
         cornerRadius: CGFloat = 12,
         tone: ShimmerTone = .onLight,
         intensity: CGFloat = 1.0
     ) -> some View {
-        modifier(
-            LightShimmerModifier(
-                active: active,
-                cornerRadius: cornerRadius,
-                tone: tone,
-                intensity: intensity
-            )
-        )
+        self
     }
 
     /// Lesbare Eingabefelder im Buchungsflow — dunkler Text auf hellem Grund (auch bei Dark Mode).
@@ -132,34 +125,22 @@ extension View {
         modifier(BookingFormTextFieldModifier())
     }
 
-    /// Dezenter Schimmer entlang des Kreisrands — z. B. Profilbild.
+    /// Früher: Schimmer am Kreisrand. Deaktiviert.
     func circleRingShimmer(
         active: Bool = true,
         lineWidth: CGFloat = 2.5,
         intensity: CGFloat = 0.55
     ) -> some View {
-        modifier(
-            CircularRingShimmerModifier(
-                active: active,
-                lineWidth: lineWidth,
-                intensity: intensity
-            )
-        )
+        self
     }
 
-    /// Marineblauer Diamant-Schimmer (schräg) — z. B. Firmenlogo im Header.
+    /// Früher: schräger Diamant-Schimmer. Deaktiviert.
     func diamondShimmer(
         active: Bool = true,
         cornerRadius: CGFloat = 10,
         intensity: CGFloat = 1.0
     ) -> some View {
-        modifier(
-            DiamondShimmerModifier(
-                active: active,
-                cornerRadius: cornerRadius,
-                intensity: intensity
-            )
-        )
+        self
     }
 }
 
