@@ -102,7 +102,7 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 - [ ] Native Fahrer-iOS-App
 - [ ] Kartenzahlung Fahrgast (Stripe live) — MVP-Code da, siehe `docs/KARTENZAHLUNG-FAHRGAST.md`
 - [ ] Tap to Pay am Fahrer-Handy — geplant `docs/TAP-TO-PAY.md`
-- [ ] Automatische Fahrerzuweisung
+- [ ] Automatische Fahrerzuweisung — **MVP Phase 3:** Geohash-Matching + 15s-Timeout (`docs/PHASE-3-MATCHING.md`)
 - [ ] Krankenfahrt / Kostenträger (`docs/KRANKENFAHRTEN-KOSTENTRAEGER.md`)
 - [ ] Rechnungen / Mahnwesen (`docs/FAHRT-AUF-RECHNUNG-MAHNWESEN.md`)
 - [ ] CI/CD, Monitoring (Sentry)
@@ -162,6 +162,7 @@ Für einen **lokalen Taxi-Betrieb als Pilot** ist das Projekt mit Phase A **betr
 | Live-Tracking Anleitung | `docs/LIVE-TRACKING.md` |
 | Phase-1 Architektur | `docs/PHASE-1-ARCHITEKTUR.md` |
 | Phase-2 Datenmodelle | `docs/PHASE-2-DATENMODELLE.md` |
+| Phase-3 Matching | `docs/PHASE-3-MATCHING.md` |
 | Pilot E-Mail Vorlage | `docs/PILOT-START.md` |
 | Render Deploy | `docs/RENDER-GO-LIVE.md` |
 | Domain / Sichtbarkeit (Strato + Search Console) | `docs/STRATO-SICHTBARKEIT.md` |

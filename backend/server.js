@@ -14,6 +14,8 @@ const { mountPlatformPhase1Routes } = require("./platform-phase1");
 const { createCoreStore } = require("./core-store");
 const { mountCoreModelRoutes } = require("./core-api");
 const { RIDE_STATUSES, VEHICLE_STATUSES, DRIVER_TO_VEHICLE_STATUS } = require("./core-models");
+const { rankAvailableDrivers, DEFAULT_RADIUS_KM, DEFAULT_PRECISION } = require("./matching");
+const { createAutoDispatch, OFFER_TIMEOUT_MS } = require("./auto-dispatch");
 const {
   createUploadMiddleware,
   saveDocumentFile,
@@ -398,6 +400,29 @@ function syncCoreLocation(driver, latitude, longitude, bookingId) {
     });
   });
 }
+
+/** Phase-3 Auto-Dispatch — wird nach findDriver-Definition genutzt (Closure). */
+const autoDispatch = createAutoDispatch({
+  timeoutMs: OFFER_TIMEOUT_MS,
+  radiusKm: DEFAULT_RADIUS_KM,
+  getDrivers: () => drivers,
+  findBooking: (id) => findBooking(id),
+  findDriver: (id) => findDriver(id),
+  saveBookings: () => saveBookings(),
+  saveDrivers: () => saveDriversConfig(),
+  syncCoreBooking: (booking, extra) => syncCoreBooking(booking, extra),
+  syncCoreDriver: (driver) => syncCoreDriver(driver),
+  emit: (event, payload) => {
+    try {
+      if (realtimeHub?.io && payload?.bookingId) {
+        realtimeHub.io.to(`booking:${payload.bookingId}`).emit(event, payload);
+      }
+      console.log(`[dispatch] ${event}`, payload?.bookingId || "", payload?.driverId || "");
+    } catch (_) {
+      /* ignore */
+    }
+  },
+});
 
 /** @type {Array<{operatorId:string,planId:string,email:string,companyName:string,stripeCustomerId:string|null,stripeSubscriptionId:string|null,status:string,createdAt:string,updatedAt:string}>} */
 let operators = loadJsonArray(operatorsFilePath);
@@ -1373,6 +1398,83 @@ mountOtpRoutes(app);
 mountPlatformPhase1Routes(app, { intervalMs: LOCATION_STREAM_INTERVAL_MS });
 mountCoreModelRoutes(app, { store: coreStore, requireAdmin });
 
+/** Phase 3 — Spatial Matching & Auto-Dispatch */
+app.get("/api/matching/schema", (_req, res) => {
+  res.json({
+    phase: 3,
+    label: "Spatial Index, Matching-Logik & 15-Sekunden-Timeout",
+    method: "geohash+haversine",
+    postgisAlternative: "ST_DWithin",
+    offerTimeoutMs: autoDispatch.timeoutMs,
+    defaultRadiusKm: DEFAULT_RADIUS_KM,
+    geohashPrecision: DEFAULT_PRECISION,
+  });
+});
+
+app.get("/api/matching/drivers", requireAdmin, (req, res) => {
+  try {
+    const latitude = Number(req.query.lat ?? req.query.latitude);
+    const longitude = Number(req.query.lng ?? req.query.longitude);
+    const radiusKm = req.query.radiusKm ? Number(req.query.radiusKm) : DEFAULT_RADIUS_KM;
+    let pool = filterDriversForRequest(req);
+    if (!pool.length && !fleet.enabled()) pool = drivers;
+    const result = rankAvailableDrivers({
+      latitude,
+      longitude,
+      drivers: pool,
+      radiusKm,
+      requireFreshLocation: String(req.query.requireFresh || "1") !== "0",
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message || "matching failed" });
+  }
+});
+
+app.post("/api/matching/dispatch/:id", requireAdmin, (req, res) => {
+  try {
+    const force = Boolean(req.body?.force);
+    const result = autoDispatch.startDispatch(req.params.id, { force });
+    const booking = findBooking(req.params.id);
+    res.status(201).json({
+      bookingId: req.params.id,
+      dispatch: result.dispatch,
+      matching: {
+        count: result.matching?.count ?? 0,
+        origin: result.matching?.origin,
+        radiusKm: result.matching?.radiusKm,
+        drivers: (result.matching?.drivers || []).slice(0, 10),
+      },
+      booking: booking
+        ? {
+            status: booking.status,
+            assignedDriverId: booking.assignedDriverId,
+            dispatch: autoDispatch.publicDispatch(booking),
+          }
+        : null,
+    });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message || "dispatch failed" });
+  }
+});
+
+app.get("/api/matching/dispatch/:id", (req, res) => {
+  const booking = findBooking(req.params.id);
+  if (!booking) return res.status(404).json({ error: "Booking not found" });
+  res.json({
+    bookingId: booking.bookingId,
+    status: booking.status,
+    assignedDriverId: booking.assignedDriverId || null,
+    dispatch: autoDispatch.publicDispatch(booking),
+  });
+});
+
+app.delete("/api/matching/dispatch/:id", requireAdmin, (req, res) => {
+  const dispatch = autoDispatch.stopDispatch(req.params.id);
+  if (!dispatch) return res.status(404).json({ error: "No dispatch for booking" });
+  res.json({ bookingId: req.params.id, dispatch });
+});
+
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
@@ -1386,6 +1488,11 @@ app.get("/health", (_req, res) => {
     authRequired: Boolean(adminPin) || fleet.anyOperatorPinRequired(),
     analytics: Boolean(gaMeasurementId),
     core: coreStore.stats(),
+    matching: {
+      offerTimeoutMs: autoDispatch.timeoutMs,
+      radiusKm: DEFAULT_RADIUS_KM,
+      geohashPrecision: DEFAULT_PRECISION,
+    },
   });
 });
 
@@ -2576,6 +2683,19 @@ app.post("/api/bookings", (req, res) => {
   const ride = syncCoreBooking(booking, {
     passengerName: booking.passengerEmail || "Fahrgast",
   });
+
+  let dispatchResult = null;
+  const wantAuto =
+    Boolean(req.body.autoDispatch) ||
+    String(process.env.MATCH_AUTO_START || "").trim() === "1";
+  if (wantAuto) {
+    try {
+      dispatchResult = autoDispatch.startDispatch(booking.bookingId);
+    } catch (error) {
+      console.warn("auto-dispatch on create:", error.message || error);
+    }
+  }
+
   const operatorLabel = fleetOperator ? ` [${fleetOperator.slug}]` : "";
   console.log(`Buchung ${booking.bookingId}${operatorLabel}: ${addressLine}${destinationAddressLine ? ` → ${destinationAddressLine}` : ""}`);
   res.status(201).json({
@@ -2583,6 +2703,7 @@ app.post("/api/bookings", (req, res) => {
     rideId: ride?.rideId || null,
     operatorId: booking.operatorId || null,
     operatorSlug: fleetOperator?.slug || null,
+    dispatch: dispatchResult?.dispatch || autoDispatch.publicDispatch(booking),
   });
 });
 
@@ -2693,9 +2814,24 @@ app.get("/api/driver/open-bookings", (req, res) => {
     return res.status(400).json({ error: "operator query required (z.B. ?operator=mannheim)" });
   }
 
+  const driverUid = String(req.query.driverUid || "").trim();
+  const viewer =
+    (driverUid && (findDriverByFirebaseUid(driverUid) || findDriver(driverUid))) || null;
+
   const open = filterBookingsForRequest(req).filter((booking) => {
     if (booking.assignedDriverId) return false;
-    return booking.status === "confirmed" || booking.status === "accepted";
+    if (booking.status !== "confirmed" && booking.status !== "accepted") return false;
+
+    const dispatchStatus = booking.dispatch?.status;
+    if (dispatchStatus === "offering") {
+      if (!viewer) return false;
+      return booking.dispatch.offerDriverId === viewer.driverId;
+    }
+    if (dispatchStatus === "searching" || dispatchStatus === "exhausted") {
+      return false;
+    }
+    // Ohne Auto-Dispatch: wie bisher für alle sichtbaren offenen Buchungen
+    return true;
   });
 
   res.json({
@@ -2709,6 +2845,8 @@ app.get("/api/driver/open-bookings", (req, res) => {
       longitude: b.longitude,
       status: b.status,
       createdAt: b.createdAt,
+      dispatch: autoDispatch.publicDispatch(b),
+      offerExpiresAt: b.dispatch?.expiresAt || null,
     })),
   });
 });
@@ -2743,6 +2881,22 @@ app.patch("/api/driver/bookings/:id/accept", requireDriverApp, (req, res) => {
     return res.status(500).json({ error: "Could not link driver profile" });
   }
 
+  // Phase 3: aktives Offer nur für den angebotenen Fahrer
+  if (booking.dispatch?.status === "offering") {
+    const accepted = autoDispatch.acceptOffer(booking, fleetDriver);
+    if (!accepted.ok) {
+      return res.status(409).json({ error: accepted.error || "Offer not available" });
+    }
+    console.log(
+      `Fahrer-App (auto-dispatch): ${driverName} hat ${booking.bookingId} angenommen`
+    );
+    return res.json({
+      ...booking,
+      fleetDriverId: fleetDriver.driverId,
+      dispatch: autoDispatch.publicDispatch(booking),
+    });
+  }
+
   booking.assignedDriverId = fleetDriver.driverId;
   booking.assignedFirebaseUid = driverUid;
   booking.assignedDriverName = driverName;
@@ -2760,6 +2914,36 @@ app.patch("/api/driver/bookings/:id/accept", requireDriverApp, (req, res) => {
   res.json({
     ...booking,
     fleetDriverId: fleetDriver.driverId,
+  });
+});
+
+app.post("/api/driver/bookings/:id/decline", requireDriverApp, (req, res) => {
+  const booking = findBooking(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+  if (!bookingMatchesRequest(req, booking)) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+
+  const driverUid = String(req.body.driverUid || "").trim();
+  if (!driverUid) {
+    return res.status(400).json({ error: "driverUid required" });
+  }
+  const fleetDriver =
+    findDriverByFirebaseUid(driverUid) || findDriver(driverUid) || null;
+  if (!fleetDriver) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+
+  const result = autoDispatch.declineOffer(booking, fleetDriver.driverId);
+  if (!result.ok) {
+    return res.status(409).json({ error: result.error || "decline failed" });
+  }
+  res.json({
+    ok: true,
+    bookingId: booking.bookingId,
+    dispatch: result.dispatch,
   });
 });
 
@@ -3202,6 +3386,14 @@ httpServer.listen(port, host, () => {
   console.log(
     `Realtime Socket.io: path=/socket.io interval=${LOCATION_STREAM_INTERVAL_MS}ms`
   );
+  console.log(
+    `Matching: geohash+haversine radius=${DEFAULT_RADIUS_KM}km offerTimeout=${autoDispatch.timeoutMs}ms`
+  );
+  try {
+    autoDispatch.recoverOpenOffers(bookings);
+  } catch (error) {
+    console.warn("dispatch recovery:", error.message || error);
+  }
 });
 
 // redeploy: Tap to Pay terminal API 2026-09-05T22:10:00Z
