@@ -167,6 +167,7 @@ Für einen **lokalen Taxi-Betrieb als Pilot** ist das Projekt mit Phase A **betr
 | Phase-6 Simulation | `docs/PHASE-6-SIMULATION.md` |
 | Phase-7 Recht/GoBD | `docs/PHASE-7-RECHT-GOBD.md` |
 | Phase-8 Deploy/Store | `docs/PHASE-8-DEPLOY-RELEASE.md` · `docs/APP-STORE-METADATA.md` |
+| Xcode Schritt für Schritt | `docs/XCODE-SCHRITT-FUER-SCHRITT.md` |
 | Pilot E-Mail Vorlage | `docs/PILOT-START.md` |
 | Render Deploy | `docs/RENDER-GO-LIVE.md` |
 | Domain / Sichtbarkeit (Strato + Search Console) | `docs/STRATO-SICHTBARKEIT.md` |
