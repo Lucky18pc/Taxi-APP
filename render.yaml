@@ -68,4 +68,17 @@ services:
         value: "6"
       - key: MATCH_AUTO_START
         sync: false
+      # Phase 7 — GoBD / Retention
+      - key: RECEIPT_VAT_PERCENT
+        value: "7"
+      - key: LOCATION_RETENTION_SECONDS
+        value: "3600"
+      - key: RESEND_FROM
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: DRIVER_API_KEY
+        sync: false
     # Persistent Disk — Buchungen und Mandanten bleiben nach Deploy erhalten.
+    # SSL: Custom Domain im Render-Dashboard (Let's Encrypt automatisch).
+    # Multi-Cloud-Alternative: backend/Dockerfile — docs/PHASE-8-DEPLOY-RELEASE.md

@@ -1,13 +1,14 @@
 <!--
-  Phase 4 — in Xcode Info des Fahrer-Targets ergänzen:
+  Phase 4 + 8 — in Xcode Info des Fahrer-Targets ergänzen
+  (Bundle-ID: com.collection.Luckys-Taxi-Fahrer).
 
-  Privacy — Location Always and When In Use Usage Description:
-    „Luckys Taxi Fahrer sendet deinen Standort alle 2,5 Sekunden an die Leitstelle,
-     auch wenn das Display gesperrt ist, solange du online bist.“
-
-  UIBackgroundModes:
-    <key>UIBackgroundModes</key>
-    <array>
-      <string>location</string>
-    </array>
+  Paste-fertige App Review Notes: docs/APP-STORE-METADATA.md §4
 -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Luckys Taxi Fahrer benötigt deinen Standort, um dich der Leitstelle zuzuordnen und den Fahrgast während der Anfahrt live zu informieren.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>Luckys Taxi Fahrer sendet deinen Standort während der aktiven Schicht alle 2,5 Sekunden an die Leitstelle und das Fahrgast-Tracking — auch bei gesperrtem Display. So bleiben Disposition, ETA und Navigation sicher. Offline oder nach Schichtende wird kein Standort im Hintergrund gesendet.</string>
+<key>UIBackgroundModes</key>
+<array>
+  <string>location</string>
+</array>

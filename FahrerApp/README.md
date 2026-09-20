@@ -23,6 +23,9 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | `DriverBooking.swift` | Modelle |
 | `TapToPayService.swift` | Tap to Pay Backend + SDK-Hook |
 | `LuckysTaxiFahrer.entitlements` | Apple Tap-to-Pay Entitlement (nach Freigabe) |
+| `Info-BackgroundLocation.plist.snippet` | Always-Location + `UIBackgroundModes: location` (Phase 8 Review) |
+
+**App Store:** Metadaten + paste-fertige Review Notes zur Hintergrund-Ortung → `docs/APP-STORE-METADATA.md`
 
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
 Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)

@@ -3,6 +3,8 @@
 **Cloud-Plattform für TaxiApp:** [Render.com](https://render.com) — **nicht** Firebase.  
 (CollectionShop läuft separat auf Firebase; die TaxiApp ist ein eigenes Projekt.)
 
+**Phase 8:** Multi-Cloud (Docker) + Store-Metadaten → [PHASE-8-DEPLOY-RELEASE.md](PHASE-8-DEPLOY-RELEASE.md) · [APP-STORE-METADATA.md](APP-STORE-METADATA.md)
+
 **Stripe:** eigenes Konto nur für Luckys Taxi — nicht die Collection-Shop-Keys.  
 → [STRIPE-ZWEI-KONTEN.md](STRIPE-ZWEI-KONTEN.md)
 

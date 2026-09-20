@@ -79,3 +79,14 @@ Standardmodell: **eine gemeinsame Fahrgast-App** mit Betriebsprofil (Apple Revie
 - Kartenzahlung: `docs/KARTENZAHLUNG-FAHRGAST.md`
 - Connect: `docs/STRIPE-CONNECT.md`
 - Tap to Pay: `docs/TAP-TO-PAY.md` · `docs/APPLE-TAP-TO-PAY-FREIGABE.md`
+- **Store-Metadaten & Hintergrund-GPS Review Notes:** `docs/APP-STORE-METADATA.md`
+- **Deploy (Render + Docker Multi-Cloud):** `docs/PHASE-8-DEPLOY-RELEASE.md`
+
+---
+
+## D — App Review Notes (Fahrer / Hintergrund-Standort)
+
+Vor öffentlicher Einreichung der Fahrer-App die paste-fertigen Notes aus
+`docs/APP-STORE-METADATA.md` §4 in App Store Connect einfügen.
+Begründung: Sicherheit, Leitstellen-Disposition und Live-Navigation/ETA während der Schicht —
+nicht Marketing-Tracking. Fahrgast-App nur When-In-Use.
