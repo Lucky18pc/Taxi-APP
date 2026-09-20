@@ -20,9 +20,13 @@ enum DriverAPIError: LocalizedError {
 }
 
 enum DriverAPI {
-    static func openBookings(operatorSlug: String) async throws -> [DriverBooking] {
+    static func openBookings(operatorSlug: String, driverUid: String? = nil) async throws -> [DriverBooking] {
         var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/open-bookings")
-        components?.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        var items = [URLQueryItem(name: "operator", value: operatorSlug)]
+        if let driverUid, !driverUid.isEmpty {
+            items.append(URLQueryItem(name: "driverUid", value: driverUid))
+        }
+        components?.queryItems = items
         guard let url = components?.url else { throw DriverAPIError.badURL }
 
         let (data, response) = try await URLSession.shared.data(from: url)
@@ -34,6 +38,27 @@ enum DriverAPI {
             return try JSONDecoder().decode(OpenBookingsResponse.self, from: data).bookings
         } catch {
             throw DriverAPIError.decoding
+        }
+    }
+
+    static func declineBooking(bookingId: String, driverUid: String, operatorSlug: String) async throws {
+        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/bookings/\(bookingId)/decline") else {
+            throw DriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components?.url else { throw DriverAPIError.badURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.driverApiKey, forHTTPHeaderField: "X-Driver-Key")
+        request.setValue("Bearer \(BackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["driverUid": driverUid])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw DriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
         }
     }
 

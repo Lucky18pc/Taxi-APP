@@ -163,6 +163,7 @@ Für einen **lokalen Taxi-Betrieb als Pilot** ist das Projekt mit Phase A **betr
 | Phase-1 Architektur | `docs/PHASE-1-ARCHITEKTUR.md` |
 | Phase-2 Datenmodelle | `docs/PHASE-2-DATENMODELLE.md` |
 | Phase-3 Matching | `docs/PHASE-3-MATCHING.md` |
+| Phase-4 Apps | `docs/PHASE-4-APPS.md` |
 | Pilot E-Mail Vorlage | `docs/PILOT-START.md` |
 | Render Deploy | `docs/RENDER-GO-LIVE.md` |
 | Domain / Sichtbarkeit (Strato + Search Console) | `docs/STRATO-SICHTBARKEIT.md` |

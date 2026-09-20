@@ -36,6 +36,8 @@ struct BookingService {
         let longitude: Double
         let addressLine: String
         let destinationAddressLine: String?
+        let destinationLatitude: Double?
+        let destinationLongitude: Double?
         let paymentMethod: String
         let passengerEmail: String?
         let totalAmount: Double
@@ -43,6 +45,7 @@ struct BookingService {
         let tipAmount: Double
         let operatorSlug: String?
         let postalCode: String?
+        let autoDispatch: Bool?
     }
 
     private struct BookingResponse: Decodable {
@@ -80,6 +83,8 @@ struct BookingService {
             longitude: summary.pickupLocation.longitude,
             addressLine: summary.pickupLocation.addressLine,
             destinationAddressLine: destination.isEmpty ? nil : destination,
+            destinationLatitude: summary.pickupLocation.destinationLatitude,
+            destinationLongitude: summary.pickupLocation.destinationLongitude,
             paymentMethod: summary.paymentMethodLabel,
             passengerEmail: summary.passengerEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 ? nil
@@ -88,7 +93,8 @@ struct BookingService {
             tariffAmount: summary.tariffAmount,
             tipAmount: summary.tipAmount,
             operatorSlug: TaxiConfig.defaultOperatorSlug.isEmpty ? nil : TaxiConfig.defaultOperatorSlug,
-            postalCode: postal
+            postalCode: postal,
+            autoDispatch: true
         )
 
         var request = URLRequest(url: url)

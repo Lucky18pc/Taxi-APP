@@ -16,6 +16,7 @@ const { mountCoreModelRoutes } = require("./core-api");
 const { RIDE_STATUSES, VEHICLE_STATUSES, DRIVER_TO_VEHICLE_STATUS } = require("./core-models");
 const { rankAvailableDrivers, DEFAULT_RADIUS_KM, DEFAULT_PRECISION } = require("./matching");
 const { createAutoDispatch, OFFER_TIMEOUT_MS } = require("./auto-dispatch");
+const { mountMapsServiceRoutes, calculateFareFromKm } = require("./maps-services");
 const {
   createUploadMiddleware,
   saveDocumentFile,
@@ -592,7 +593,7 @@ async function nominatimSearch(query, { countrycodes = "de", limit = 1 } = {}) {
   if (q.length < 3) return [];
   const data = await nominatimFetch("/search", {
     format: "json",
-    limit: Math.min(Number(limit) || 1, 3),
+    limit: Math.min(Number(limit) || 1, 8),
     countrycodes: String(countrycodes || "de").toLowerCase(),
     q,
     addressdetails: 0,
@@ -1397,6 +1398,7 @@ app.use(express.static(path.join(__dirname, "..", "web")));
 mountOtpRoutes(app);
 mountPlatformPhase1Routes(app, { intervalMs: LOCATION_STREAM_INTERVAL_MS });
 mountCoreModelRoutes(app, { store: coreStore, requireAdmin });
+mountMapsServiceRoutes(app, { nominatimSearch });
 
 /** Phase 3 — Spatial Matching & Auto-Dispatch */
 app.get("/api/matching/schema", (_req, res) => {
@@ -2636,6 +2638,10 @@ app.post("/api/bookings", (req, res) => {
   }
 
   const destinationAddressLine = String(req.body.destinationAddressLine || "").trim();
+  const destinationLatitude = Number(req.body.destinationLatitude);
+  const destinationLongitude = Number(req.body.destinationLongitude);
+  const hasDestCoords =
+    Number.isFinite(destinationLatitude) && Number.isFinite(destinationLongitude);
   const configSource = operatorConfigForNightSurcharge(fleetOperator);
 
   const nightEnabled = Boolean(configSource.nightSurchargeEnabled);
@@ -2664,6 +2670,8 @@ app.post("/api/bookings", (req, res) => {
     longitude,
     addressLine,
     destinationAddressLine: destinationAddressLine || null,
+    destinationLatitude: hasDestCoords ? destinationLatitude : null,
+    destinationLongitude: hasDestCoords ? destinationLongitude : null,
     paymentMethod: req.body.paymentMethod || "Unbekannt",
     passengerEmail: String(req.body.passengerEmail || req.body.receiptEmail || "").trim() || null,
     totalAmount: Number(req.body.totalAmount) || 0,
@@ -2835,19 +2843,54 @@ app.get("/api/driver/open-bookings", (req, res) => {
   });
 
   res.json({
-    bookings: open.map((b) => ({
-      bookingId: b.bookingId,
-      pickupDate: b.pickupDate,
-      addressLine: b.addressLine,
-      destinationAddressLine: b.destinationAddressLine || null,
-      paymentMethod: b.paymentMethod || null,
-      latitude: b.latitude,
-      longitude: b.longitude,
-      status: b.status,
-      createdAt: b.createdAt,
-      dispatch: autoDispatch.publicDispatch(b),
-      offerExpiresAt: b.dispatch?.expiresAt || null,
-    })),
+    bookings: open.map((b) => {
+      let estimatedFare = null;
+      let estimatedEarnings = null;
+      if (
+        Number.isFinite(b.latitude) &&
+        Number.isFinite(b.longitude) &&
+        Number.isFinite(b.destinationLatitude) &&
+        Number.isFinite(b.destinationLongitude)
+      ) {
+        try {
+          const km = require("./geohash").haversineKm(
+            b.latitude,
+            b.longitude,
+            b.destinationLatitude,
+            b.destinationLongitude
+          );
+          const quote = calculateFareFromKm(km);
+          estimatedFare = quote.fare;
+          estimatedEarnings = quote.fare;
+        } catch (_) {
+          /* ignore */
+        }
+      } else if (Number.isFinite(Number(b.tariffAmount)) && Number(b.tariffAmount) > 0) {
+        estimatedFare = Number(b.tariffAmount);
+        estimatedEarnings = Number(b.tariffAmount);
+      } else if (Number.isFinite(Number(b.totalAmount)) && Number(b.totalAmount) > 0) {
+        estimatedFare = Number(b.totalAmount);
+        estimatedEarnings = Number(b.totalAmount);
+      }
+
+      return {
+        bookingId: b.bookingId,
+        pickupDate: b.pickupDate,
+        addressLine: b.addressLine,
+        destinationAddressLine: b.destinationAddressLine || null,
+        paymentMethod: b.paymentMethod || null,
+        latitude: b.latitude,
+        longitude: b.longitude,
+        destinationLatitude: b.destinationLatitude ?? null,
+        destinationLongitude: b.destinationLongitude ?? null,
+        status: b.status,
+        createdAt: b.createdAt,
+        estimatedFare,
+        estimatedEarnings,
+        dispatch: autoDispatch.publicDispatch(b),
+        offerExpiresAt: b.dispatch?.expiresAt || null,
+      };
+    }),
   });
 });
 
