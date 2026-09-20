@@ -161,6 +161,7 @@ Für einen **lokalen Taxi-Betrieb als Pilot** ist das Projekt mit Phase A **betr
 |-------|--------|
 | Live-Tracking Anleitung | `docs/LIVE-TRACKING.md` |
 | Phase-1 Architektur | `docs/PHASE-1-ARCHITEKTUR.md` |
+| Phase-2 Datenmodelle | `docs/PHASE-2-DATENMODELLE.md` |
 | Pilot E-Mail Vorlage | `docs/PILOT-START.md` |
 | Render Deploy | `docs/RENDER-GO-LIVE.md` |
 | Domain / Sichtbarkeit (Strato + Search Console) | `docs/STRATO-SICHTBARKEIT.md` |

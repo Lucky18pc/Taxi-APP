@@ -11,6 +11,9 @@ const { mountPwaBrandRoutes } = require("./pwa-brand");
 const { createRealtimeHub, LOCATION_STREAM_INTERVAL_MS } = require("./realtime");
 const { mountOtpRoutes } = require("./otp-auth");
 const { mountPlatformPhase1Routes } = require("./platform-phase1");
+const { createCoreStore } = require("./core-store");
+const { mountCoreModelRoutes } = require("./core-api");
+const { RIDE_STATUSES, VEHICLE_STATUSES, DRIVER_TO_VEHICLE_STATUS } = require("./core-models");
 const {
   createUploadMiddleware,
   saveDocumentFile,
@@ -353,6 +356,49 @@ function saveJsonArray(filePath, data) {
 
 const bookings = loadJsonArray(bookingsFilePath);
 const phoneCalls = loadJsonArray(callsFilePath);
+/** Phase-2 Kernmodelle (User / Vehicle / Ride / Location). */
+const coreStore = createCoreStore({ dataDir });
+
+function safeCoreSync(label, fn) {
+  try {
+    return fn();
+  } catch (error) {
+    console.warn(`core-models [${label}]:`, error.message || error);
+    return null;
+  }
+}
+
+function syncCoreDriver(driver) {
+  return safeCoreSync("driver", () => coreStore.syncFromLegacyDriver(driver));
+}
+
+function syncCoreBooking(booking, extra = {}) {
+  return safeCoreSync("booking", () =>
+    coreStore.syncFromLegacyBooking(booking, {
+      findLegacyDriver: findDriver,
+      ...extra,
+    })
+  );
+}
+
+function syncCoreLocation(driver, latitude, longitude, bookingId) {
+  return safeCoreSync("location", () => {
+    const synced = coreStore.syncFromLegacyDriver(driver);
+    const coreDriverId = synced.user?.userId || driver.driverId;
+    const ride = bookingId ? coreStore.findRideByBookingId(bookingId) : null;
+    if (synced.vehicle) {
+      coreStore.setVehicleStatus(synced.vehicle.vehicleId, VEHICLE_STATUSES.BESETZT);
+    }
+    return coreStore.recordLocation({
+      driverId: coreDriverId,
+      latitude,
+      longitude,
+      bookingId: bookingId || null,
+      rideId: ride?.rideId || null,
+    });
+  });
+}
+
 /** @type {Array<{operatorId:string,planId:string,email:string,companyName:string,stripeCustomerId:string|null,stripeSubscriptionId:string|null,status:string,createdAt:string,updatedAt:string}>} */
 let operators = loadJsonArray(operatorsFilePath);
 /** @type {Array<{inquiryId:string,planId:string,email:string,companyName:string,message:string,createdAt:string}>} */
@@ -1325,6 +1371,7 @@ app.use(express.static(path.join(__dirname, "..", "web")));
 
 mountOtpRoutes(app);
 mountPlatformPhase1Routes(app, { intervalMs: LOCATION_STREAM_INTERVAL_MS });
+mountCoreModelRoutes(app, { store: coreStore, requireAdmin });
 
 app.get("/health", (_req, res) => {
   res.json({
@@ -1338,6 +1385,7 @@ app.get("/health", (_req, res) => {
     multiTenant: fleet.enabled(),
     authRequired: Boolean(adminPin) || fleet.anyOperatorPinRequired(),
     analytics: Boolean(gaMeasurementId),
+    core: coreStore.stats(),
   });
 });
 
@@ -2348,7 +2396,13 @@ app.post(
 
     drivers.push(driver);
     saveDriversConfig();
-    res.status(201).json({ ...driver, ...driverCompliancePublic(driver) });
+    const core = syncCoreDriver(driver);
+    res.status(201).json({
+      ...driver,
+      ...driverCompliancePublic(driver),
+      coreUserId: core?.user?.userId || null,
+      coreVehicleId: core?.vehicle?.vehicleId || null,
+    });
   }
 );
 
@@ -2400,6 +2454,7 @@ app.put(
     }
 
     saveDriversConfig();
+    syncCoreDriver(driver);
     res.json({ ...driver, ...driverCompliancePublic(driver) });
   }
 );
@@ -2434,6 +2489,15 @@ app.patch("/api/drivers/:id/status", requireAdmin, (req, res) => {
 
   driver.status = status;
   saveDriversConfig();
+  const core = syncCoreDriver(driver);
+  if (core?.vehicle) {
+    const mapped = DRIVER_TO_VEHICLE_STATUS[status];
+    if (mapped) {
+      safeCoreSync("vehicle-status", () =>
+        coreStore.setVehicleStatus(core.vehicle.vehicleId, mapped)
+      );
+    }
+  }
   res.json(driver);
 });
 
@@ -2509,10 +2573,14 @@ app.post("/api/bookings", (req, res) => {
 
   bookings.unshift(booking);
   saveBookings();
+  const ride = syncCoreBooking(booking, {
+    passengerName: booking.passengerEmail || "Fahrgast",
+  });
   const operatorLabel = fleetOperator ? ` [${fleetOperator.slug}]` : "";
   console.log(`Buchung ${booking.bookingId}${operatorLabel}: ${addressLine}${destinationAddressLine ? ` → ${destinationAddressLine}` : ""}`);
   res.status(201).json({
     bookingId: booking.bookingId,
+    rideId: ride?.rideId || null,
     operatorId: booking.operatorId || null,
     operatorSlug: fleetOperator?.slug || null,
   });
@@ -2555,6 +2623,14 @@ app.patch("/api/bookings/:id/status", requireAdmin, (req, res) => {
   booking.status = status;
   booking.updatedAt = new Date().toISOString();
   saveBookings();
+  syncCoreBooking(booking, {
+    rideStatus:
+      status === "cancelled"
+        ? RIDE_STATUSES.CANCELLED
+        : status === "completed"
+          ? RIDE_STATUSES.COMPLETED
+          : undefined,
+  });
   res.json(booking);
 });
 
@@ -2574,6 +2650,7 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
     booking.assignedDriverId = null;
     booking.updatedAt = new Date().toISOString();
     saveBookings();
+    syncCoreBooking(booking, { rideStatus: RIDE_STATUSES.RIDE_REQUEST });
     return res.json(booking);
   }
 
@@ -2601,6 +2678,8 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
 
   console.log(`Buchung ${booking.bookingId} → Fahrer ${driver.name}`);
   saveBookings();
+  syncCoreDriver(driver);
+  syncCoreBooking(booking, { rideStatus: RIDE_STATUSES.ACCEPTED });
   res.json(booking);
 });
 
@@ -2673,6 +2752,8 @@ app.patch("/api/driver/bookings/:id/accept", requireDriverApp, (req, res) => {
   fleetDriver.activeBookingId = booking.bookingId;
   saveBookings();
   saveDriversConfig();
+  syncCoreDriver(fleetDriver);
+  syncCoreBooking(booking, { rideStatus: RIDE_STATUSES.ACCEPTED });
   console.log(
     `Fahrer-App: ${driverName} (${driverUid} → fleet ${fleetDriver.driverId}) hat ${booking.bookingId} angenommen`
   );
@@ -2724,6 +2805,7 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res
   releaseDriverFromBooking(booking);
   booking.status = "completed";
   booking.updatedAt = new Date().toISOString();
+  syncCoreBooking(booking, { rideStatus: RIDE_STATUSES.COMPLETED });
 
   let payUrl = null;
   if (wantsCard && Number.isFinite(booking.totalAmount) && booking.totalAmount >= 0.5) {
@@ -2798,6 +2880,7 @@ app.post("/api/driver/location", requireDriverApp, (req, res) => {
   }
 
   realtimeHub.publishDriverLocation(driver, bookingId || null);
+  syncCoreLocation(driver, latitude, longitude, bookingId || null);
 
   res.json({
     ok: true,
@@ -2840,6 +2923,7 @@ app.post("/api/drivers/:id/location", (req, res) => {
   }
 
   realtimeHub.publishDriverLocation(driver, bookingId || null);
+  syncCoreLocation(driver, latitude, longitude, bookingId || null);
 
   res.json({
     ok: true,
