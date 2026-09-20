@@ -17,6 +17,7 @@ const { RIDE_STATUSES, VEHICLE_STATUSES, DRIVER_TO_VEHICLE_STATUS } = require(".
 const { rankAvailableDrivers, DEFAULT_RADIUS_KM, DEFAULT_PRECISION } = require("./matching");
 const { createAutoDispatch, OFFER_TIMEOUT_MS } = require("./auto-dispatch");
 const { mountMapsServiceRoutes, calculateFareFromKm } = require("./maps-services");
+const { createReceiptStore, mountReceiptRoutes } = require("./gobd-receipts");
 const {
   createUploadMiddleware,
   saveDocumentFile,
@@ -855,6 +856,55 @@ async function sendContactNotification(inquiry) {
   }
 }
 
+/** Phase 7 — Resend mit optionalen PDF-Anhängen (Quittungen). */
+async function sendResendEmail({ to, subject, text, attachments }) {
+  if (!resendApiKey) {
+    const err = new Error("RESEND_API_KEY missing");
+    err.code = "email_not_configured";
+    throw err;
+  }
+  const payload = {
+    from: resendFromEmail,
+    to: Array.isArray(to) ? to : [to],
+    subject,
+    text,
+  };
+  if (Array.isArray(attachments) && attachments.length) {
+    payload.attachments = attachments.map((a) => ({
+      filename: a.filename,
+      content: a.content,
+      content_type: a.contentType || "application/pdf",
+    }));
+  }
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Resend ${response.status}: ${body}`);
+  }
+  return response.json().catch(() => ({}));
+}
+
+const receiptStore = createReceiptStore({
+  dataDir,
+  getTenantConfig: () => tenantConfig,
+  getFleetOperator: (operatorId) => {
+    if (!operatorId) return null;
+    return (
+      fleet.findById?.(operatorId) ||
+      fleet.list?.(true)?.find((op) => op.operatorId === operatorId) ||
+      null
+    );
+  },
+  sendEmail: sendResendEmail,
+});
+
 function saveBookings() {
   saveJsonArray(bookingsFilePath, bookings);
 }
@@ -1349,6 +1399,25 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
           markBookingPaid(booking, intent.id);
           saveBookings();
           console.log(`Fahrgastzahlung OK: ${bookingId} · ${intent.id}`);
+          try {
+            const result = await receiptStore.onPaymentSucceeded(booking, intent.id);
+            if (result?.receipt) {
+              booking.receiptId = result.receipt.receiptId;
+              booking.receiptNumber = result.receipt.receiptNumber;
+              saveBookings();
+            }
+            if (result?.mail?.ok) {
+              console.log(`Quittung per E-Mail: ${result.receipt.receiptNumber} → ${result.receipt.passengerEmail}`);
+            } else if (result?.mail?.skipped) {
+              console.log(
+                `Quittung PDF bereit (${result.receipt.receiptNumber}), Mail: ${result.mail.reason}`
+              );
+            } else if (result?.mail?.error) {
+              console.warn(`Quittungs-Mail fehlgeschlagen: ${result.mail.error}`);
+            }
+          } catch (error) {
+            console.error("GoBD-Quittung nach Zahlung:", error.message || error);
+          }
         } else {
           console.log(`payment_intent.succeeded ohne Buchung: ${intent.id}`);
         }
@@ -1399,6 +1468,7 @@ mountOtpRoutes(app);
 mountPlatformPhase1Routes(app, { intervalMs: LOCATION_STREAM_INTERVAL_MS });
 mountCoreModelRoutes(app, { store: coreStore, requireAdmin });
 mountMapsServiceRoutes(app, { nominatimSearch });
+mountReceiptRoutes(app, { store: receiptStore, requireAdmin });
 
 /** Phase 3 — Spatial Matching & Auto-Dispatch */
 app.get("/api/matching/schema", (_req, res) => {
@@ -2751,6 +2821,18 @@ app.patch("/api/bookings/:id/status", requireAdmin, (req, res) => {
 
   booking.status = status;
   booking.updatedAt = new Date().toISOString();
+
+  if (status === "completed" && Number(booking.totalAmount) > 0) {
+    try {
+      const receipt = receiptStore.ensureReceiptForBooking(booking);
+      receiptStore.generatePdf(receipt);
+      booking.receiptId = receipt.receiptId;
+      booking.receiptNumber = receipt.receiptNumber;
+    } catch (error) {
+      console.warn("GoBD-Quittung (Admin-Status):", error.message || error);
+    }
+  }
+
   saveBookings();
   syncCoreBooking(booking, {
     rideStatus:
@@ -3034,6 +3116,19 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res
   booking.updatedAt = new Date().toISOString();
   syncCoreBooking(booking, { rideStatus: RIDE_STATUSES.COMPLETED });
 
+  let receipt = null;
+  try {
+    if (req.body.passengerEmail) {
+      booking.passengerEmail = String(req.body.passengerEmail).trim() || booking.passengerEmail;
+    }
+    receipt = receiptStore.ensureReceiptForBooking(booking);
+    receiptStore.generatePdf(receipt);
+    booking.receiptId = receipt.receiptId;
+    booking.receiptNumber = receipt.receiptNumber;
+  } catch (error) {
+    console.warn("GoBD-Quittung bei Abschluss:", error.message || error);
+  }
+
   let payUrl = null;
   if (wantsCard && Number.isFinite(booking.totalAmount) && booking.totalAmount >= 0.5) {
     if (!stripe) {
@@ -3043,6 +3138,7 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res
       return res.status(503).json({
         error: "Stripe not configured — Kartenzahlung nicht möglich",
         booking,
+        receipt,
       });
     }
     try {
@@ -3050,6 +3146,11 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res
       payUrl = buildPayUrl(req, booking);
       if (result.alreadyPaid) {
         payUrl = null;
+        try {
+          await receiptStore.onPaymentSucceeded(booking, booking.paymentIntentId);
+        } catch (error) {
+          console.warn("Quittung nach alreadyPaid:", error.message || error);
+        }
       }
     } catch (error) {
       console.error("complete+payment:", error);
@@ -3058,6 +3159,7 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res
       return res.status(500).json({
         error: error.message || "PaymentIntent failed",
         booking,
+        receipt,
       });
     }
   }
@@ -3067,6 +3169,16 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res
   res.json({
     ...booking,
     payUrl,
+    receipt: receipt
+      ? {
+          receiptId: receipt.receiptId,
+          receiptNumber: receipt.receiptNumber,
+          grossAmount: receipt.grossAmount,
+          vatPercent: receipt.vatPercent,
+          vatAmount: receipt.vatAmount,
+          netAmount: receipt.netAmount,
+        }
+      : null,
   });
 });
 

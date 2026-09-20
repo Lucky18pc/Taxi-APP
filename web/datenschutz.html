@@ -55,7 +55,7 @@
       </ul>
 
       <h2>3. Fahrgäste. App und Browser-Buchung</h2>
-      <h3>3.1 Standortdaten (GPS)</h3>
+      <h3>3.1 Standortdaten (GPS) und Echtzeit-Tracking</h3>
       <p>
         Zur Bestimmung des Abholorts und zur Kartendarstellung kann der Gerätestandort verarbeitet werden
         (Einwilligung in den Systemeinstellungen). Rechtsgrundlage: Art. 6 Abs. 1 lit. a und lit. b DSGVO.
@@ -63,22 +63,39 @@
         (OpenStreetMap/Nominatim oder austauschbarer Dienst), siehe Abschnitt Empfänger. Es werden nur die
         für die Abholung nötigen Angaben übermittelt.
       </p>
+      <p>
+        <strong>Echtzeit-Standortdaten des Fahrzeugs</strong> (Fahrer-GPS während Schicht/Anfahrt) werden
+        in kurzen Intervallen (typisch ca.&nbsp;2,5&nbsp;Sekunden) an das Backend übermittelt und an den
+        Fahrgast bzw. die Leitstelle weitergegeben, solange die Fahrt aktiv ist. Zweck: Disposition,
+        ETA und Live-Tracking der gebuchten Fahrt (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;b DSGVO).
+      </p>
+      <ul>
+        <li><strong>Kein Bewegungsprofil:</strong> Es wird kein dauerhaftes Bewegungsprofil über die Fahrt hinaus aufgebaut.</li>
+        <li><strong>Live-Stream:</strong> Roh-GPS-Punkte für Live-Tracking werden nur kurzfristig vorgehalten
+          (Standard: bis zu <strong>1&nbsp;Stunde</strong> nach letzter Meldung bzw. bis Fahrtende; konfigurierbar,
+          siehe <code>/api/legal/retention</code>).</li>
+        <li><strong>Buchungsbezug:</strong> Abholadresse/Koordinaten und optional Zieladresse bleiben als
+          Fahrtnachweis mit der Buchung verknüpft (siehe Speicherdauer).</li>
+      </ul>
       <h3>3.2 Buchungsdaten</h3>
       <p>
-        Verarbeitet werden u. a. Abholadresse/Koordinaten, optional Ziel, Wunschzeit, Kontakt (Telefon/Name),
+        Verarbeitet werden u. a. Abholadresse/Koordinaten, optional Ziel, Wunschzeit, Kontakt (Telefon/Name/E-Mail),
         Zahlungsart, Status, zugewiesener Fahrer, Beträge und Zahlungsstatus. Speicherung im Backend des Betriebs/der Plattform.
       </p>
       <h3>3.3 Live-Tracking</h3>
       <p>
         Während der Anfahrt kann der ungefähre Fahrzeugstandort an Sie übermittelt werden, sofern freigeschaltet.
-        Quelle ist die Standortmeldung des Fahrer-Geräts.
+        Quelle ist die Standortmeldung des Fahrer-Geräts. Nach Fahrtende bzw. Ablauf der kurzen Live-Frist
+        entfällt die Echtzeit-Anzeige; steuerlich relevante Start-/Zielangaben verbleiben in der Buchung/Quittung.
       </p>
-      <h3>3.4 Zahlungsdaten</h3>
+      <h3>3.4 Zahlungsdaten und Quittungen</h3>
       <p>
         Bei Kartenzahlung (Zahlungslink) oder <strong>Tap to Pay</strong> erfolgt die Zahlungsabwicklung durch
         <strong>Stripe Payments Europe Ltd.</strong> / verbundene Unternehmen. Karten­primärdaten liegen bei Stripe,
         nicht auf den Anwendungsservern von Code &amp; Grow. Es werden Zahlungsmetadaten (Betrag, Status, Payment-Intent-ID,
         Zeitpunkt, Buchungsbezug, Plattformgebühr) gespeichert.
+        Nach erfolgreicher Zahlung kann eine <strong>fortlaufend nummerierte PDF-Quittung</strong> (GoBD)
+        erzeugt und per E-Mail an die hinterlegte Fahrgast-Adresse versendet werden (Resend).
         Hinweise von Stripe: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener noreferrer">stripe.com/de/privacy</a>.
       </p>
 
@@ -111,12 +128,58 @@
       <h2>6. Speicherdauer, Buchhaltung und Finanzamt</h2>
       <p>
         Wir speichern Daten nur so lange, wie es für die Zwecke erforderlich ist, und länger, wenn gesetzliche
-        Aufbewahrungspflichten bestehen.
+        Aufbewahrungspflichten bestehen. Technische Übersicht: <code>/api/legal/retention</code>.
       </p>
+      <table class="legal-table" style="width:100%;border-collapse:collapse;margin:1rem 0">
+        <thead>
+          <tr>
+            <th style="text-align:left;border-bottom:1px solid #ccc;padding:0.4rem">Datenkategorie</th>
+            <th style="text-align:left;border-bottom:1px solid #ccc;padding:0.4rem">Frist</th>
+            <th style="text-align:left;border-bottom:1px solid #ccc;padding:0.4rem">Rechtsgrundlage / Hinweis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:0.4rem;vertical-align:top">Echtzeit-GPS (Live-Stream)</td>
+            <td style="padding:0.4rem;vertical-align:top">kurzfristig (ca.&nbsp;1&nbsp;h / Fahrtende)</td>
+            <td style="padding:0.4rem;vertical-align:top">Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;b — keine dauerhafte Bewegungsprofil-Archivierung</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;vertical-align:top">Abhol-/Zielkoordinaten in der Buchung</td>
+            <td style="padding:0.4rem;vertical-align:top"><strong>8 Jahre</strong></td>
+            <td style="padding:0.4rem;vertical-align:top">Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;c i.&nbsp;V.&nbsp;m.&nbsp;§&nbsp;147 AO / GoBD-Nachweis</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;vertical-align:top">Quittungen / PDF-Belege (fortlaufende Nr.)</td>
+            <td style="padding:0.4rem;vertical-align:top"><strong>8 Jahre</strong></td>
+            <td style="padding:0.4rem;vertical-align:top">GoBD / AO — unveränderbar nach Ausstellung</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;vertical-align:top">Buchungs- und Zahlungsmetadaten</td>
+            <td style="padding:0.4rem;vertical-align:top"><strong>8 Jahre</strong></td>
+            <td style="padding:0.4rem;vertical-align:top">§&nbsp;147 AO (Plattformgebühren, Connect, Abo)</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;vertical-align:top">Geschäftsbriefe / Korrespondenz</td>
+            <td style="padding:0.4rem;vertical-align:top"><strong>6 Jahre</strong></td>
+            <td style="padding:0.4rem;vertical-align:top">soweit gesetzlich vorgeschrieben</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;vertical-align:top">Konzessions-/P-Schein-Uploads</td>
+            <td style="padding:0.4rem;vertical-align:top">Vertragsdauer + Nachfrist</td>
+            <td style="padding:0.4rem;vertical-align:top">Löschung auf Anfrage, soweit keine Pflicht entgegensteht</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;vertical-align:top">Server-Logs</td>
+            <td style="padding:0.4rem;vertical-align:top">Tage bis Wochen</td>
+            <td style="padding:0.4rem;vertical-align:top">Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f — Betrieb/Sicherheit</td>
+          </tr>
+        </tbody>
+      </table>
       <ul>
         <li><strong>Buchungs- und Zahlungsbelege / Abrechnungsdaten:</strong> <strong>8 Jahre</strong>
           nach §&nbsp;147 AO, beginnend mit Ablauf des Kalenderjahres der Entstehung, soweit steuerlich relevant
-          (z. B. Plattformgebühren, Connect-Auszahlungen, Abo-Rechnungen).</li>
+          (z. B. Plattformgebühren, Connect-Auszahlungen, Abo-Rechnungen, Fahrgast-Quittungen).</li>
         <li><strong>Geschäftsbriefe / vertragsrelevante Korrespondenz:</strong> <strong>6 Jahre</strong>, soweit gesetzlich vorgeschrieben.</li>
         <li><strong>Live-Standorte:</strong> nur kurzfristig für Disposition und Tracking während der Fahrt; keine dauerhafte Bewegungsprofil-Archivierung darüber hinaus.</li>
         <li><strong>Konzessions-/P-Schein-Uploads:</strong> für die Dauer der Geschäftsbeziehung zuzüglich angemessener Nachfrist; Löschung auf Anfrage, soweit keine Aufbewahrungspflicht entgegensteht.</li>
@@ -124,9 +187,16 @@
       </ul>
       <p>
         Für Kartenzahlungen und Auszahlungen nutzen wir <strong>Stripe</strong> als Zahlungs- und Belegsystem.
+        Zusätzlich erzeugt die Plattform <strong>GoBD-konforme Quittungen</strong> mit fortlaufender Nummerierung,
+        MwSt.-Ausweis, Startort und Zeitstempel; PDF-Versand an den Fahrgast nach erfolgreichem Zahlungseingang
+        (sofern E-Mail hinterlegt und Resend konfiguriert).
         Buchungsmetadaten speichern wir zusätzlich auf unseren Plattform-Servern (Hosting bei Render.com).
         Betriebe führen eigene steuerliche Aufzeichnungen. Eine vollständige DATEV-Buchhaltung ist nicht Bestandteil
         der Standardplattform; Exports und Belege aus Stripe sowie der Leitstelle können genutzt werden.
+      </p>
+      <p class="note">
+        Diese Texte sind Musterangaben und ersetzen keine individuelle Rechtsberatung. Vor Marketing/Go-Live
+        bitte Anwalt und Steuerberater prüfen lassen.
       </p>
 
       <h2>7. Empfänger / Auftragsverarbeitung</h2>

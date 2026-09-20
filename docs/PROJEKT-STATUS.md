@@ -165,6 +165,7 @@ Für einen **lokalen Taxi-Betrieb als Pilot** ist das Projekt mit Phase A **betr
 | Phase-3 Matching | `docs/PHASE-3-MATCHING.md` |
 | Phase-4 Apps | `docs/PHASE-4-APPS.md` |
 | Phase-6 Simulation | `docs/PHASE-6-SIMULATION.md` |
+| Phase-7 Recht/GoBD | `docs/PHASE-7-RECHT-GOBD.md` |
 | Pilot E-Mail Vorlage | `docs/PILOT-START.md` |
 | Render Deploy | `docs/RENDER-GO-LIVE.md` |
 | Domain / Sichtbarkeit (Strato + Search Console) | `docs/STRATO-SICHTBARKEIT.md` |
