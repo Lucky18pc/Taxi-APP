@@ -27,6 +27,12 @@
     "additionalVehicleEuroPerMonth": 9.0,
     "platformFeePercent": 1.9,
     "platformFeeAppliesTo": ["cash", "card"],
+    "brokerageFeePercent": 5.0,
+    "brokerageFeeAppliesTo": ["app", "web", "qr"],
+    "brokerageFeeNote": "Fest 5 % Vermittlung für alle Betriebe, nur bei App/Web/QR. Plus 1,9 % Plattformgebühr → zusammen 6,9 %. Straße/Zentrale ohne unsere Buchung: 0 % Vermittlung.",
+    "setupFeeStandardEuro": 99,
+    "setupFeePremiumEuro": 299,
+    "setupFeeNote": "Einmalig: Mandant, Branding, Leitstelle, QR, Zahlungsstart, Einweisung. Kein Abo-Vorschuss.",
     "plans": [
       {
         "id": "fleet",
@@ -36,6 +42,7 @@
         "vehicleLimit": "pro Fahrzeug (1. Auto 9,90 € · 2. Auto 18,90 € · jedes weitere +9 €)",
         "cardPlatformFeePercent": 1.9,
         "cashPlatformFeePercent": 1.9,
+        "brokerageFeePercent": 5.0,
         "features": [
           "Eigene App mit Firmenlogo",
           "Online-Kartenzahlung (Stripe)",
@@ -46,5 +53,5 @@
       }
     ]
   },
-  "platformFeeExplanation": "Die Plattformgebühr beträgt 1,9 % auf Bar- und Kartenzahlungen der vermittelten Fahrten und wird monatlich abgerechnet bzw. bei Kartenzahlung bei Auszahlung einbehalten. Monatspreis und Fahrt-Provision sind getrennt."
+  "platformFeeExplanation": "Vier Positionen: Einrichtung, Monatsabo, 1,9 % Plattformgebühr, fest 5 % Vermittlung nur bei App-/Web-/QR (zusammen 6,9 %). Straße/Zentrale ohne unsere Buchung: keine Vermittlung."
 }

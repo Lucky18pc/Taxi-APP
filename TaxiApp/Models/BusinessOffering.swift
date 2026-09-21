@@ -11,6 +11,10 @@ enum BusinessOffering {
     static let firstVehicleEuroPerMonth = 9.9
     static let additionalVehicleEuroPerMonth = 9.0
     static let platformFeePercent = 1.9
+    /// Fest für alle Betriebe — nur App/Web/QR.
+    static let brokerageFeePercent = 5.0
+    static let setupFeeStandardEuro = 99.0
+    static let setupFeePremiumEuro = 299.0
 
     /// Startseite mit Unternehmer-Tarifen (Browser-Buchung / Anfrage-Formular).
     static var operatorsWebURL: URL? {
@@ -37,6 +41,7 @@ enum BusinessOffering {
             vehicleLimit: "pro Fahrzeug (1. Auto 9,90 € · 2. Auto 18,90 € · jedes weitere +9 €)",
             cardPlatformFeePercent: platformFeePercent,
             cashPlatformFeePercent: platformFeePercent,
+            brokerageFeePercent: brokerageFeePercent,
             features: [
                 "Eigene App mit Firmenlogo",
                 "Online-Kartenzahlung (Stripe)",
@@ -48,7 +53,7 @@ enum BusinessOffering {
     ]
 
     static let platformFeeExplanation =
-        "Die Plattformgebühr beträgt 1,9 % auf Bar- und Kartenzahlungen der vermittelten Fahrten und wird monatlich abgerechnet bzw. bei Kartenzahlung bei Auszahlung einbehalten."
+        "1,9 % Plattformgebühr auf Bar- und Kartenzahlungen, plus fest 5 % Vermittlung bei App-, Web- und QR-Buchung (zusammen 6,9 %). Straße oder Zentrale ohne unsere Buchung: nur 1,9 %. Einmalige Einrichtung ab 99 €."
 
     /// Monatliches Abo für `vehicleCount` Fahrzeuge.
     static func monthlyPriceEuro(forVehicleCount vehicleCount: Int) -> Double {
@@ -56,10 +61,12 @@ enum BusinessOffering {
         return firstVehicleEuroPerMonth + Double(n - 1) * additionalVehicleEuroPerMonth
     }
 
-    /// Provision in Cent für Stripe Connect (`application_fee_amount`), sobald Connect aktiv ist.
-    static func platformFeeInCents(forCardAmountInCents amount: Int, planId: String = "fleet") -> Int {
-        let percent = operatorPlans.first { $0.id == planId }?.cardPlatformFeePercent ?? platformFeePercent
-        return Int((Double(amount) * percent / 100.0).rounded())
+    /// Gesamtanteil in Cent für Stripe Connect (`application_fee_amount`) bei digital vermittelter Fahrt.
+    static func platformFeeInCents(forCardAmountInCents amount: Int, planId: String = "fleet", applyBrokerage: Bool = true) -> Int {
+        let plan = operatorPlans.first { $0.id == planId }
+        let platform = plan?.cardPlatformFeePercent ?? platformFeePercent
+        let brokerage = applyBrokerage ? (plan?.brokerageFeePercent ?? brokerageFeePercent) : 0
+        return Int((Double(amount) * (platform + brokerage) / 100.0).rounded())
     }
 }
 
@@ -70,6 +77,7 @@ struct OperatorPlan: Identifiable, Hashable {
     let vehicleLimit: String
     let cardPlatformFeePercent: Double
     let cashPlatformFeePercent: Double
+    let brokerageFeePercent: Double
     let features: [String]
     let highlighted: Bool
 
@@ -79,8 +87,12 @@ struct OperatorPlan: Identifiable, Hashable {
     }
 
     var formattedPlatformFee: String {
-        String(format: "%.1f %% auf Bar- und Kartenzahlungen", cardPlatformFeePercent)
-            .replacingOccurrences(of: ".", with: ",")
+        String(
+            format: "%.1f %% Plattform + %.0f %% Vermittlung (App/Web/QR)",
+            cardPlatformFeePercent,
+            brokerageFeePercent
+        )
+        .replacingOccurrences(of: ".", with: ",")
     }
 
     var mailtoPartnerURL: URL? {

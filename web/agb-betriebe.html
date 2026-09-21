@@ -50,8 +50,13 @@
         jedes weitere Fahrzeug <strong>+9,00&nbsp;€</strong> / Monat (sofern nicht anders vereinbart).
         Es gibt keinen separaten Grundpreis, der Monatsbetrag ergibt sich nur aus der Fahrzeuganzahl.
       </p>
+      <p>
+        <strong>Einrichtungsgebühr (einmalig):</strong> für Go-Live-Arbeit (Mandant, Branding, Leitstelle, QR, Zahlungsstart, Einweisung),
+        sofern vereinbart: <strong>99&nbsp;€</strong> Standard bzw. <strong>299&nbsp;€</strong> inkl. längerer Schulung.
+        Die Einrichtung ist kein Abo-Vorschuss und ersetzt keine Kündigungsfrist; sie bleibt auch nach Kündigung der Monatsmiete erbracht.
+      </p>
       <ul>
-        <li><strong>Beispiele:</strong> 1 Auto = 9,90&nbsp;€ · 2 Autos = 18,90&nbsp;€ · 5 Autos = 45,90&nbsp;€ / Monat</li>
+        <li><strong>Beispiele Monatsabo:</strong> 1 Auto = 9,90&nbsp;€ · 2 Autos = 18,90&nbsp;€ · 5 Autos = 45,90&nbsp;€ / Monat</li>
         <li>Monatlich kündbar, siehe <a href="kuendigung.html">Kündigung</a> und <a href="widerruf.html">Widerruf</a> (Verbraucher/Unternehmer je nach Status)</li>
         <li>Abrechnung des Monatsentgelts über Stripe Billing / Checkout, soweit aktiviert, sonst per Rechnung</li>
       </ul>
@@ -74,24 +79,32 @@
         für das Betriebsprofil; er erhält keinen eigenen Apple-Developer-Account im Standardtarif.
       </p>
 
-      <h2>4. Plattformgebühr (Provision)</h2>
+      <h2>4. Plattformgebühr und Vermittlung</h2>
       <p>
         Zusätzlich zum Monatsentgelt behält Code &amp; Grow eine <strong>Plattformgebühr von 1,9&nbsp;%</strong>
-        auf den <strong>Fahrpreis</strong> der über die Software abgewickelten und abgeschlossenen Fahrten ein,
-        bei <strong>Barzahlung</strong> und bei <strong>Kartenzahlung</strong> (Zahlungslink und/oder Tap to Pay).
+        auf abgeschlossene Bar- und Kartenzahlungen, die über die Software erfasst werden
+        (ohne Trinkgeld; Storno ohne Zahlung und volle Erstattung zählen nicht).
         Monatsabo und Plattformgebühr sind getrennte Positionen.
+      </p>
+      <p>
+        Zusätzlich fällt eine <strong>Vermittlungsgebühr von 5&nbsp;%</strong> an, wenn die Fahrt über
+        <strong>App, Web oder QR</strong> der Plattform vermittelt wurde — für alle Betriebe gleich.
+        Bei Straße, Taxistand oder reiner Zentralenfahrt ohne unsere Buchung entfällt die Vermittlung.
+        Zusammen mit der Plattformgebühr ergeben sich dann <strong>6,9&nbsp;%</strong>
+        vom erfassten Fahrpreis (ohne Trinkgeld), sofern nicht anders vereinbart.
       </p>
       <ul>
         <li><strong>Bemessungsgrundlage:</strong> erfasster Fahrtbetrag (Taxameter / in der Leitstelle dokumentierter Fahrpreis)</li>
         <li><strong>Nicht bemessen:</strong> Trinkgeld; stornierte Fahrten ohne Zahlung; Beträge, die vollständig rückerstattet wurden</li>
-        <li><strong>Kartenzahlung:</strong> 1,9&nbsp;% werden bei der Auszahlung einbehalten.
-          Gebühren des Zahlungsdienstleisters Stripe für die Kartenakzeptanz kommen hinzu und sind nicht in den 1,9&nbsp;% enthalten</li>
-        <li><strong>Barzahlung:</strong> 1,9&nbsp;% in der monatlichen Plattformabrechnung anhand der in der Software erfassten Barfahrten.
-          Nachweis über Fahrtdatensätze in Leitstelle und App. Bei bestrittenen Beträgen: Korrektur über den Support mit Fahrtbezug und Zeitraum</li>
+        <li><strong>Kartenzahlung:</strong> Anteile werden bei der Auszahlung einbehalten.
+          Gebühren des Zahlungsdienstleisters Stripe für die Kartenakzeptanz kommen hinzu</li>
+        <li><strong>Barzahlung:</strong> Anteile in der monatlichen Plattformabrechnung anhand der erfassten Fahrten.
+          Korrekturen über den Support mit Fahrtbezug und Zeitraum</li>
       </ul>
       <p>
-        <strong>Beispiel:</strong> 2.000&nbsp;€ Fahrtumsatz über die Software in einem Monat ergeben 38&nbsp;€ Plattformgebühr,
-        zuzüglich Stripe-Kartengebühren bei Kartenzahlungen.
+        <strong>Beispiel:</strong> 2.000&nbsp;€ Umsatz über App/Web/QR ergeben ca. 38&nbsp;€ Plattformgebühr (1,9&nbsp;%)
+        plus ca. 100&nbsp;€ Vermittlung (5&nbsp;%), zusammen ca. 138&nbsp;€,
+        zuzüglich Stripe bei Kartenzahlungen.
       </p>
       <p>
         Bei eingerichtetem <strong>Stripe Connect</strong> wird der Nettobetrag zugunsten des Betriebs

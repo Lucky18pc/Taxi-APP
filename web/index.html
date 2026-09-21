@@ -63,7 +63,7 @@
             "name": "Was kostet die gemietete Plattform für Taxi-Betriebe?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "14 Tage unverbindlich testen. Danach: 1. Auto 9,90 €/Monat, jedes weitere +9,00 € (2 Autos 18,90 €, 5 Autos 45,90 €), monatlich kündbar. Plus 1,9 % Plattformgebühr auf abgeschlossene Bar- und Kartenzahlungen über die Software. Enthalten: Fahrgast-Buchung, Leitstelle und QR unter Ihrem Betriebsnamen."
+              "text": "14 Tage unverbindlich testen. Danach: einmalige Einrichtung ab 99 € (299 € inkl. Schulung), Monatsabo ab 9,90 €/Fahrzeug, 1,9 % Plattformgebühr, plus fest 5 % Vermittlung nur bei App-, Web- und QR-Buchung (zusammen 6,9 %). Straße oder Zentrale ohne unsere Buchung: keine Vermittlung."
             }
           },
           {
@@ -261,6 +261,9 @@
             <li><span>5 Autos</span> <strong>45,90 € / Monat</strong></li>
           </ul>
           <p class="meta" data-i18n="plan.fee19">Plus 1,9 % Plattformgebühr auf Bar- und Kartenzahlungen</p>
+          <p class="meta" data-i18n="plan.brokerFee">Plus 5 % Vermittlung bei App-, Web- und QR-Buchung (für alle Betriebe gleich)</p>
+          <p class="meta" data-i18n="plan.vsCompetitors">Andere große Vermittler behalten oft ein Viertel bis ein Drittel — bei uns bleiben über 90 % beim Betrieb.</p>
+          <p class="meta" data-i18n="plan.setupFee">Einmalige Einrichtung: ab 99 € (Standard) · 299 € (inkl. Schulung)</p>
           <ul class="checklist">
             <li data-i18n="plan.f1">Online-Buchung und Betriebsprofil (Name/Logo), heute nutzbar</li>
             <li data-i18n="plan.f2">Online-Kartenzahlung</li>
@@ -281,17 +284,30 @@
         </article>
       </div>
       <div class="ops-aside fee-explain" style="margin-top:1rem">
-        <p><strong>Zwei getrennte Kosten:</strong> Monatsabo (Software) und 1,9&nbsp;% Plattformgebühr (nur auf abgeschlossene Fahrten über die Software).</p>
+        <p><strong>Vier Einnahmen / Kosten:</strong>
+          einmalige Einrichtung, Monatsabo, 1,9&nbsp;% Plattformgebühr,
+          <strong>5&nbsp;% Vermittlung</strong> bei digital vermittelten Fahrten (für alle Betriebe gleich).</p>
         <ul>
-          <li><strong>Zählt:</strong> Fahrpreis laut Taxameter bzw. erfasster Fahrtbetrag bei Bar und Karte</li>
-          <li><strong>Zählt nicht:</strong> Trinkgeld, stornierte Fahrten ohne Zahlung, vollständig erstattete Beträge</li>
-          <li><strong>Karte:</strong> 1,9&nbsp;% werden bei der Auszahlung einbehalten; Stripe-Kartengebühren kommen hinzu</li>
-          <li><strong>Bar:</strong> 1,9&nbsp;% in der Monatsabrechnung anhand der erfassten Barfahrten; Korrekturen über den Support</li>
+          <li><strong>Einrichtung (einmalig):</strong> Mandant, Logo, Leitstelle, QR, Zahlungsstart, Einweisung.
+            <strong>99&nbsp;€</strong> Standard · <strong>299&nbsp;€</strong> inkl. längerer Schulung.
+            Kein Abo-Vorschuss.</li>
+          <li><strong>Monatsabo:</strong> Softwaremiete (kündbar)</li>
+          <li><strong>1,9&nbsp;% Plattformgebühr:</strong> auf abgeschlossene Bar- und Kartenzahlungen über die Software</li>
+          <li><strong>5&nbsp;% Vermittlung:</strong> fest für alle, nur bei Fahrt über <strong>App, Web oder QR</strong>.
+            Straße, Taxistand oder Zentrale ohne unsere Buchung: <strong>0&nbsp;%</strong> Vermittlung.</li>
+          <li><strong>Zusammen bei App-Buchung:</strong> 1,9&nbsp;% + 5&nbsp;% = <strong>6,9&nbsp;%</strong> vom Fahrpreis (ohne Trinkgeld)</li>
+          <li><strong>Zählt:</strong> Fahrpreis laut Taxameter / erfasster Betrag</li>
+          <li><strong>Zählt nicht:</strong> Trinkgeld, Storno ohne Zahlung, volle Erstattung</li>
+          <li><strong>Karte:</strong> Anteile bei Auszahlung einbehalten; Stripe-Kartengebühren kommen hinzu</li>
+          <li><strong>Bar:</strong> Anteile in der Monatsabrechnung; Korrekturen über den Support</li>
         </ul>
         <p class="fee-examples">
-          <strong>Beispiel:</strong> 2.000&nbsp;€ Fahrtumsatz über die App ergeben ca. <strong>38&nbsp;€</strong> Plattformgebühr
-          (plus Stripe bei Kartenzahlungen). Abo-Rechnungen gehen per E-Mail, sobald das Abo aktiv ist.
-          <a href="rechnungen.html">Rechnungsdetails</a> · gleichlautend in den
+          <strong>Beispiel</strong> (2 Autos, Einrichtung 99&nbsp;€, 2.000&nbsp;€ App-Umsatz):
+          18,90&nbsp;€/Monat Abo + ca. 38&nbsp;€ (1,9&nbsp;%) + ca. <strong>100&nbsp;€</strong> (5&nbsp;% Vermittlung)
+          = ca. <strong>138&nbsp;€</strong> Fahrtanteil (plus Stripe bei Karte).
+          Viele große Vermittlungsplattformen behalten oft etwa <strong>ein Viertel bis ein Drittel</strong> vom Fahrpreis ein;
+          bei uns bleiben bei App-Buchung über <strong>90&nbsp;%</strong> beim Betrieb (plus Ihr Name, nicht ein fremdes Portal).
+          <a href="rechnungen.html">Rechnungsdetails</a> ·
           <a href="agb-betriebe.html">AGB für Betriebe</a>.
         </p>
       </div>
@@ -468,7 +484,9 @@
         </article>
         <article class="sales-card">
           <h3>Fair kalkuliert</h3>
-          <p>Monatspreis: 1. Auto 9,90 €, jedes weitere +9 € (z. B. 5 Autos 45,90 €), monatlich kündbar. Plus <strong>1,9 %</strong> auf abgeschlossene <strong>Bar- und Kartenzahlungen</strong>.</p>
+          <p>Einmalig Einrichtung ab 99&nbsp;€. Danach Monatspreis ab 9,90&nbsp;€/Fahrzeug, monatlich kündbar.
+            Plus <strong>1,9&nbsp;%</strong> Plattformgebühr und fest <strong>5&nbsp;%</strong> Vermittlung bei App-/Web-/QR-Buchung
+            (zusammen 6,9&nbsp;%).</p>
         </article>
       </div>
 
@@ -509,9 +527,13 @@
       <div class="sales-grid">
       <article class="sales-card">
         <h3>Was zahlt ein Taxi-Betrieb?</h3>
-        <p><strong>14 Tage unverbindlich testen</strong>. Danach: 1.&nbsp;Auto <strong>9,90&nbsp;€/Monat</strong>, jedes weitere <strong>+9,00&nbsp;€</strong>
-          (Beispiel: 2 Autos 18,90&nbsp;€, 5 Autos 45,90&nbsp;€), monatlich kündbar. Plus <strong>1,9&nbsp;%</strong> auf abgeschlossene Bar- und Kartenzahlungen
-          über die Software (ohne Trinkgeld; Storno ohne Zahlung zählt nicht). Details und Beispiele unter
+        <p><strong>14 Tage unverbindlich testen</strong>. Danach:
+          <strong>Einrichtung einmalig</strong> (ab 99&nbsp;€ / 299&nbsp;€ mit Schulung),
+          <strong>Monatsabo</strong> (1.&nbsp;Auto 9,90&nbsp;€, jedes weitere +9,00&nbsp;€, monatlich kündbar),
+          <strong>1,9&nbsp;%</strong> Plattformgebühr,
+          plus fest <strong>5&nbsp;% Vermittlung</strong> nur bei App-, Web- und QR-Buchung
+          (zusammen <strong>6,9&nbsp;%</strong>).
+          Straße/Zentrale ohne unsere Buchung: keine Vermittlung. Details unter
           <a href="#operators">Tarife</a> und in den <a href="agb-betriebe.html">AGB für Betriebe</a>.</p>
       </article>
       <article class="sales-card">

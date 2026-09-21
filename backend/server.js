@@ -86,6 +86,53 @@ function markBookingPaid(booking, paymentIntentId) {
   return true;
 }
 
+/** Vermittlung nur bei App/Web/QR — Straße/Zentrale ohne Plattform-Buchung: false. */
+function normalizeMediationChannel(raw) {
+  const value = String(raw || "web").trim().toLowerCase();
+  if (["app", "ios", "android", "iphone"].includes(value)) return "app";
+  if (["qr", "qrcode", "qr-code"].includes(value)) return "qr";
+  if (["street", "strasse", "zentrale", "dispatch_street", "phone"].includes(value)) {
+    return "street";
+  }
+  return "web";
+}
+
+function shouldApplyBrokerageFee(booking) {
+  const raw = String(booking?.mediationChannel || booking?.bookingSource || "web")
+    .trim()
+    .toLowerCase();
+  if (!raw || raw === "street" || raw === "zentrale" || raw === "dispatch_street") {
+    return false;
+  }
+  const allowed = offering.operators?.brokerageFeeAppliesTo || ["app", "web", "qr"];
+  return allowed.map((x) => String(x).toLowerCase()).includes(raw) || raw === "online";
+}
+
+function resolveRideFeeBreakdown(amountCents, { applyBrokerage }) {
+  const ops = offering.operators || {};
+  const plan = (ops.plans || []).find((p) => p.id === "fleet") || ops.plans?.[0];
+  const platformRaw = Number(ops.platformFeePercent ?? plan?.cardPlatformFeePercent);
+  const brokerageRaw = Number(ops.brokerageFeePercent ?? plan?.brokerageFeePercent);
+  const platformFeePercent = Number.isFinite(platformRaw) ? platformRaw : 1.9;
+  const brokerageFeePercent =
+    applyBrokerage && Number.isFinite(brokerageRaw) ? brokerageRaw : 0;
+  const totalFeePercent = platformFeePercent + brokerageFeePercent;
+  const platformFeeCents = Math.max(0, Math.round((amountCents * platformFeePercent) / 100));
+  const brokerageFeeCents = Math.max(0, Math.round((amountCents * brokerageFeePercent) / 100));
+  let applicationFeeCents = platformFeeCents + brokerageFeeCents;
+  if (applicationFeeCents >= amountCents) {
+    applicationFeeCents = Math.max(0, amountCents - 1);
+  }
+  return {
+    platformFeePercent,
+    brokerageFeePercent,
+    totalFeePercent,
+    platformFeeCents,
+    brokerageFeeCents,
+    applicationFeeCents,
+  };
+}
+
 async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "online" } = {}) {
   const amountCents = eurosToCents(booking.totalAmount);
   const wantTerminal = channel === "terminal";
@@ -134,12 +181,17 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
 
   const fleetOp = booking.operatorId ? fleet.findById(booking.operatorId) : null;
   const planId = String(fleetOp?.planId || "fleet").trim() || "fleet";
-  const plan = offering.operators?.plans?.find((p) => p.id === planId);
-  const globalFee = Number(offering.operators?.platformFeePercent);
-  const planFee = Number(plan?.cardPlatformFeePercent);
-  const feePercent = Number.isFinite(globalFee) ? globalFee : planFee;
-  const platformFeePercent = Number.isFinite(feePercent) ? feePercent : 1.9;
-  const platformFeeCents = Math.max(0, Math.round((amountCents * platformFeePercent) / 100));
+  const fees = resolveRideFeeBreakdown(amountCents, {
+    applyBrokerage: shouldApplyBrokerageFee(booking),
+  });
+  const {
+    platformFeePercent,
+    brokerageFeePercent,
+    totalFeePercent,
+    platformFeeCents,
+    brokerageFeeCents,
+    applicationFeeCents,
+  } = fees;
   const connectAccountId = String(fleetOp?.stripeConnectAccountId || "").trim();
 
   const metadata = {
@@ -147,8 +199,13 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
     bookingId: booking.bookingId,
     operatorId: booking.operatorId || "",
     channel: wantTerminal ? "terminal" : "online",
+    mediationChannel: String(booking.mediationChannel || "web"),
     platformFeePercent: String(platformFeePercent),
     platformFeeCents: String(platformFeeCents),
+    brokerageFeePercent: String(brokerageFeePercent),
+    brokerageFeeCents: String(brokerageFeeCents),
+    totalFeePercent: String(totalFeePercent),
+    applicationFeeCents: String(applicationFeeCents),
   };
 
   const params = wantTerminal
@@ -166,9 +223,9 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
         metadata,
       };
 
-  // Stripe Connect: Geld an Betrieb, Plattformgebühr einbehalten
-  if (!wantTerminal && connectAccountId && platformFeeCents > 0 && platformFeeCents < amountCents) {
-    params.application_fee_amount = platformFeeCents;
+  // Stripe Connect: Geld an Betrieb, Plattform- + Vermittlungsgebühr einbehalten
+  if (connectAccountId && applicationFeeCents > 0 && applicationFeeCents < amountCents) {
+    params.application_fee_amount = applicationFeeCents;
     params.transfer_data = { destination: connectAccountId };
   }
 
@@ -184,6 +241,10 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
   booking.paymentAmountCents = amountCents;
   booking.platformFeePercent = platformFeePercent;
   booking.platformFeeCents = platformFeeCents;
+  booking.brokerageFeePercent = brokerageFeePercent;
+  booking.brokerageFeeCents = brokerageFeeCents;
+  booking.totalFeePercent = totalFeePercent;
+  booking.applicationFeeCents = applicationFeeCents;
   booking.stripeConnectAccountId = connectAccountId || null;
   booking.updatedAt = new Date().toISOString();
   saveBookings();
@@ -2468,6 +2529,7 @@ app.post("/api/bookings", (req, res) => {
     paymentStatus: isCardPaymentMethod(req.body.paymentMethod) ? "awaiting_fare" : null,
     paymentIntentId: null,
     paymentAccessToken: null,
+    mediationChannel: normalizeMediationChannel(req.body.mediationChannel || req.body.source || req.body.channel),
     nightSurchargeApplies,
     status: "confirmed",
     assignedDriverId: null,
