@@ -101,7 +101,13 @@
       padding: 0.7rem 1rem;
       transition: transform 0.12s ease, filter 0.12s ease;
     }
-    .btn:hover { filter: brightness(1.03); }
+    .btn:disabled,
+    .btn[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: none;
+      box-shadow: none;
+    }
     .btn:active { transform: translateY(1px); }
     .btn-yellow {
       background: var(--yellow);
@@ -465,6 +471,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=20260921-logo-csv"></script>
+  <script src="admin.js?v=20260921-copy-links"></script>
 </body>
 </html>

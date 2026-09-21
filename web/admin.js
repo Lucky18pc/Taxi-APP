@@ -98,8 +98,27 @@
     return `<span class="badge ${cls}">${status}</span>`;
   }
 
-  function copyText(text) {
-    navigator.clipboard?.writeText(text).catch(() => {});
+  async function copyText(text) {
+    const value = String(text || "");
+    if (!value.trim()) throw new Error("Keine Links zum Kopieren");
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return;
+      }
+    } catch {
+      /* Fallback unten */
+    }
+    const ta = document.createElement("textarea");
+    ta.value = value;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    if (!ok) throw new Error("Kopieren nicht möglich — bitte Links manuell markieren.");
   }
 
   function formatDate(iso) {
@@ -356,7 +375,11 @@
           <a href="${links.driverOnboard || "#"}" target="_blank" rel="noopener">Fahrer-Reg.</a>
         </div>
         <div class="actions">
-          <button type="button" class="btn btn-ghost btn-sm copy-links">Links kopieren</button>
+          <button type="button" class="btn btn-ghost btn-sm copy-links"${
+            op.complianceComplete
+              ? ""
+              : ' disabled title="Erst Nachweise vollständig ausfüllen (Konzession usw.)"'
+          }>Links kopieren</button>
           ${
             op.status !== "active"
               ? `<button type="button" class="btn btn-ok btn-sm activate">Aktivieren</button>`
@@ -367,16 +390,28 @@
         </div>
       `;
 
-      card.querySelector(".copy-links")?.addEventListener("click", () => {
-        copyText(
-          [
-            `Leitstelle: ${links.dispatch}`,
-            `Einstellungen: ${links.settings}`,
-            `Buchung: ${links.book}`,
-            `QR: ${links.qr}`,
-            `Fahrer-Registrierung: ${links.driverOnboard || ""}`,
-          ].join("\n")
-        );
+      card.querySelector(".copy-links")?.addEventListener("click", async () => {
+        if (!op.complianceComplete) {
+          alert(
+            "Nachweise unvollständig. Bitte zuerst Konzession (Nummer + Dokument) hinterlegen, dann Links kopieren."
+          );
+          return;
+        }
+        try {
+          await copyText(
+            [
+              `Betrieb: ${op.companyName} (${op.slug})`,
+              `Leitstelle: ${links.dispatch || ""}`,
+              `Einstellungen: ${links.settings || ""}`,
+              `Buchung: ${links.book || ""}`,
+              `QR: ${links.qr || ""}`,
+              `Fahrer-Registrierung: ${links.driverOnboard || ""}`,
+            ].join("\n")
+          );
+          alert("Links in die Zwischenablage kopiert.");
+        } catch (err) {
+          alert(err.message || "Kopieren fehlgeschlagen");
+        }
       });
       wireLogoUpload(card, op);
       card.querySelector(".activate")?.addEventListener("click", () => {
@@ -562,7 +597,7 @@
       if (!res.ok) throw new Error("Zugriff verweigert");
       showApp();
       showPanel("tenants");
-      await refreshAll();
+      await withRefreshBusy(refreshAll);
     } catch (err) {
       clearPin();
       errEl.textContent = err.message;
@@ -628,16 +663,20 @@
       await loadTenants();
       showPanel("tenants");
       if (data.links) {
-        copyText(
-          [
-            `Leitstelle: ${data.links.dispatch}`,
-            `Einstellungen: ${data.links.settings}`,
-            `Buchung: ${data.links.book}`,
-            `QR: ${data.links.qr}`,
-            `Fahrer-Registrierung: ${data.links.driverOnboard || ""}`,
-          ].join("\n")
-        );
-        alert(`Mandant „${data.operator.companyName}“ angelegt. Links in Zwischenablage kopiert.`);
+        try {
+          await copyText(
+            [
+              `Leitstelle: ${data.links.dispatch}`,
+              `Einstellungen: ${data.links.settings}`,
+              `Buchung: ${data.links.book}`,
+              `QR: ${data.links.qr}`,
+              `Fahrer-Registrierung: ${data.links.driverOnboard || ""}`,
+            ].join("\n")
+          );
+          alert(`Mandant „${data.operator.companyName}“ angelegt. Links in Zwischenablage kopiert.`);
+        } catch {
+          alert(`Mandant „${data.operator.companyName}“ angelegt. Links konnten nicht kopiert werden — bitte auf der Karte nutzen.`);
+        }
       }
     } catch (err) {
       errEl.textContent = err.message;
