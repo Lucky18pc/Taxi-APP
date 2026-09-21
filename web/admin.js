@@ -41,16 +41,35 @@
   }
 
   async function apiFetch(url, options = {}) {
-    const res = await fetch(url, {
-      ...options,
-      headers: { ...(options.headers || {}), ...authHeaders() },
-    });
-    if (res.status === 401) {
-      clearPin();
-      showLogin();
-      throw new Error("PIN ungültig oder ADMIN_PIN nicht gesetzt.");
+    const headers = { ...(options.headers || {}), ...authHeaders() };
+    // FormData braucht den Browser-Boundary — Content-Type nicht setzen
+    if (typeof FormData !== "undefined" && options.body instanceof FormData) {
+      delete headers["Content-Type"];
+      delete headers["content-type"];
     }
-    return res;
+    const controller = new AbortController();
+    const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 25000;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, {
+        ...options,
+        headers,
+        signal: options.signal || controller.signal,
+      });
+      if (res.status === 401) {
+        clearPin();
+        showLogin();
+        throw new Error("PIN ungültig oder ADMIN_PIN nicht gesetzt.");
+      }
+      return res;
+    } catch (err) {
+      if (err && err.name === "AbortError") {
+        throw new Error("Server antwortet nicht (Timeout). Bitte erneut versuchen.");
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   function showLogin() {
@@ -487,7 +506,40 @@
   }
 
   async function refreshAll() {
-    await Promise.all([loadTenants(), loadInquiries()]);
+    const errors = [];
+    try {
+      await loadTenants();
+    } catch (err) {
+      errors.push(err.message || "Mandanten fehlgeschlagen");
+    }
+    try {
+      await loadInquiries();
+    } catch (err) {
+      errors.push(err.message || "Anfragen fehlgeschlagen");
+    }
+    if (errors.length) {
+      throw new Error(errors.join(" · "));
+    }
+  }
+
+  async function withRefreshBusy(run) {
+    const btn = document.getElementById("refresh-all");
+    const csvBtn = document.getElementById("export-tenants-csv");
+    const prev = btn ? btn.textContent : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Lädt…";
+    }
+    if (csvBtn) csvBtn.disabled = true;
+    try {
+      await run();
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prev || "Aktualisieren";
+      }
+      if (csvBtn) csvBtn.disabled = false;
+    }
   }
 
   document.querySelectorAll(".nav-btn").forEach((btn) => {
@@ -533,7 +585,7 @@
 
   document.getElementById("refresh-all").addEventListener("click", async () => {
     try {
-      await refreshAll();
+      await withRefreshBusy(refreshAll);
     } catch (err) {
       alert(err.message || "Aktualisieren fehlgeschlagen.");
     }
@@ -599,7 +651,7 @@
         if (res.ok) {
           showApp();
           showPanel("tenants");
-          return refreshAll().then(() => {
+          return withRefreshBusy(refreshAll).then(() => {
             const params = new URLSearchParams(window.location.search);
             const connect = params.get("connect");
             const slug = params.get("o");
@@ -617,7 +669,10 @@
         clearPin();
         showLogin();
       })
-      .catch(() => showLogin());
+      .catch((err) => {
+        console.error(err);
+        showLogin();
+      });
   } else {
     showLogin();
   }
