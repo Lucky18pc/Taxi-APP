@@ -4,7 +4,7 @@
   const PANEL_COPY = {
     tenants: {
       title: "Mandanten",
-      sub: "Betriebe prüfen, Nachweise öffnen, freischalten und Links kopieren.",
+      sub: "Betriebe prüfen, Logo speichern, Nachweise öffnen, freischalten und Links kopieren.",
     },
     inquiries: {
       title: "Anfragen",
@@ -202,6 +202,57 @@
     `;
   }
 
+  function brandingBlock(op) {
+    const logo = String(op.logoUrl || "").trim();
+    const preview = logo
+      ? `<img class="logo-preview" src="${escapeHtml(logo)}" alt="Logo ${escapeHtml(op.companyName)}" onerror="this.style.display='none'">`
+      : `<div class="logo-placeholder">Logo</div>`;
+    return `
+      <div class="brand-box">
+        <strong>Betriebs-Logo</strong>
+        <div class="logo-row" style="margin-top:0.45rem">
+          ${preview}
+          <div style="flex:1;min-width:160px">
+            <input type="file" class="logo-file" accept="image/png,image/jpeg" style="font-size:0.78rem;width:100%">
+            <div class="chip-row" style="margin-top:0.35rem">
+              <button type="button" class="btn btn-navy btn-sm upload-logo">Logo speichern</button>
+            </div>
+            <div class="meta" style="margin-top:0.25rem">PNG/JPEG, max. 5&nbsp;MB. Erscheint in Buchung und Leitstelle.</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function wireLogoUpload(card, op) {
+    const btn = card.querySelector(".upload-logo");
+    const input = card.querySelector(".logo-file");
+    if (!btn || !input) return;
+    btn.addEventListener("click", async () => {
+      const file = input.files && input.files[0];
+      if (!file) {
+        alert("Bitte zuerst eine PNG- oder JPEG-Datei wählen.");
+        return;
+      }
+      const body = new FormData();
+      body.append("logo", file);
+      btn.disabled = true;
+      try {
+        const res = await apiFetch(`/api/fleet/operators/${encodeURIComponent(op.slug)}/logo`, {
+          method: "POST",
+          body,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Logo-Upload fehlgeschlagen");
+        await loadTenants();
+      } catch (err) {
+        alert(err.message || "Logo-Upload fehlgeschlagen");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
   async function loadInquiries() {
     const res = await apiFetch("/api/contact/inquiries");
     const data = await res.json();
@@ -277,6 +328,7 @@
           </div>
         </div>
         ${complianceBlock(op)}
+        ${brandingBlock(op)}
         <div class="link-row">
           <a href="${links.dispatch || "#"}" target="_blank" rel="noopener">Leitstelle</a>
           <a href="${links.settings || "#"}" target="_blank" rel="noopener">Settings</a>
@@ -307,6 +359,7 @@
           ].join("\n")
         );
       });
+      wireLogoUpload(card, op);
       card.querySelector(".activate")?.addEventListener("click", () => {
         if (op.complianceGaps?.length) {
           const ok = confirm(
@@ -483,6 +536,25 @@
       await refreshAll();
     } catch (err) {
       alert(err.message || "Aktualisieren fehlgeschlagen.");
+    }
+  });
+
+  document.getElementById("export-tenants-csv")?.addEventListener("click", async () => {
+    try {
+      const res = await apiFetch("/api/fleet/operators.csv");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "CSV-Export fehlgeschlagen");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `luckys-mandanten-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message || "CSV-Export fehlgeschlagen");
     }
   });
 

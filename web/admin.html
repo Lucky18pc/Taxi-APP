@@ -269,6 +269,39 @@
     }
     .compliance .warn { color: var(--warn); font-weight: 800; margin-top: 0.35rem; }
     .compliance .ok { color: var(--ok); font-weight: 800; margin-top: 0.35rem; }
+    .brand-box {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.7rem 0.75rem;
+      font-size: 0.8rem;
+    }
+    .brand-box .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .brand-box .logo-preview {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 2px solid var(--navy);
+      background: #fff;
+    }
+    .brand-box .logo-placeholder {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      border: 2px dashed var(--navy);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: #fff;
+    }
     .driver-panel {
       margin-top: 0.55rem;
       padding: 0.65rem;
@@ -351,9 +384,12 @@
       <div class="topbar">
         <div>
           <h1 id="panel-title">Mandanten</h1>
-          <p id="panel-sub">Betriebe prüfen, Nachweise öffnen, freischalten und Links kopieren.</p>
+          <p id="panel-sub">Betriebe prüfen, Logo speichern, Nachweise öffnen, freischalten und Links kopieren.</p>
         </div>
-        <button type="button" class="btn btn-navy btn-sm" id="refresh-all">Aktualisieren</button>
+        <div class="actions" style="flex-wrap:nowrap">
+          <button type="button" class="btn btn-ghost btn-sm" id="export-tenants-csv">CSV</button>
+          <button type="button" class="btn btn-navy btn-sm" id="refresh-all">Aktualisieren</button>
+        </div>
       </div>
 
       <section id="panel-tenants" class="panel active">

@@ -1701,6 +1701,117 @@ app.patch("/api/fleet/operators/:slug", requireAdmin, async (req, res) => {
   }
 });
 
+/** Logo-Datei hochladen (Admin) → speichert Datei und setzt logoUrl auf öffentliche URL. */
+app.post(
+  "/api/fleet/operators/:slug/logo",
+  requireAdmin,
+  (req, res, next) => {
+    upload.single("logo")(req, res, (err) => {
+      if (err) return res.status(400).json({ error: err.message || "Upload fehlgeschlagen" });
+      next();
+    });
+  },
+  (req, res) => {
+    try {
+      const slug = String(req.params.slug || "").trim().toLowerCase();
+      const operator = fleet.findBySlug(slug);
+      if (!operator) return res.status(404).json({ error: "Operator not found" });
+      const file = req.file;
+      if (!file) return res.status(400).json({ error: "logo file required (PNG oder JPEG)" });
+      if (file.mimetype !== "image/jpeg" && file.mimetype !== "image/png") {
+        return res.status(400).json({ error: "Logo nur als PNG oder JPEG" });
+      }
+
+      if (operator.logoDocument) {
+        deleteDocumentFile(dataDir, operator.logoDocument);
+      }
+      const meta = saveDocumentFile(dataDir, operator.operatorId, "logo", file);
+      const baseUrl = resolvePublicBaseUrl(req).replace(/\/$/, "");
+      const logoUrl = `${baseUrl}/api/public/operators/${encodeURIComponent(slug)}/logo`;
+      const updated = fleet.updateOperator(slug, {
+        logoUrl,
+        logoDocument: meta,
+      });
+      res.json({
+        operator: fleet.toAdminSummary(updated, baseUrl),
+        logoUrl,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message || "Logo-Upload fehlgeschlagen" });
+    }
+  }
+);
+
+/** Öffentliches Logo für Buchung / Branding (kein Admin-PIN). */
+app.get("/api/public/operators/:slug/logo", (req, res) => {
+  const slug = String(req.params.slug || "").trim().toLowerCase();
+  const operator = fleet.findBySlug(slug);
+  if (!operator) return res.status(404).json({ error: "Operator not found" });
+  const meta = operator.logoDocument;
+  if (meta?.relativePath) {
+    const abs = resolveAbsolutePath(dataDir, meta.relativePath);
+    if (!abs) return res.status(404).json({ error: "Logo file missing" });
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.setHeader("Content-Type", meta.mimeType || "image/png");
+    return fs.createReadStream(abs).pipe(res);
+  }
+  const external = String(operator.logoUrl || "").trim();
+  if (/^https:\/\//i.test(external) && !external.includes("/api/public/operators/")) {
+    return res.redirect(302, external);
+  }
+  return res.status(404).json({ error: "No logo" });
+});
+
+app.get("/api/fleet/operators.csv", requireAdmin, (req, res) => {
+  const rows = [
+    [
+      "slug",
+      "companyName",
+      "status",
+      "billingEmail",
+      "centralPhone",
+      "city",
+      "planId",
+      "logoUrl",
+      "stripeConnectAccountId",
+      "concessionNumber",
+      "createdAt",
+    ],
+  ];
+  for (const op of fleet.list(true)) {
+    rows.push([
+      op.slug || "",
+      op.companyName || "",
+      op.status || "",
+      op.billingEmail || op.legalEmail || "",
+      op.centralPhone || "",
+      op.city || "",
+      op.planId || "",
+      op.logoUrl || "",
+      op.stripeConnectAccountId || "",
+      op.concessionNumber || "",
+      op.createdAt || "",
+    ]);
+  }
+  const csv = rows
+    .map((cols) =>
+      cols
+        .map((cell) => {
+          const s = String(cell ?? "");
+          if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+          return s;
+        })
+        .join(",")
+    )
+    .join("\n");
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="luckys-mandanten-${new Date().toISOString().slice(0, 10)}.csv"`
+  );
+  res.send(`\uFEFF${csv}\n`);
+});
+
 app.delete("/api/fleet/operators/:slug", requireAdmin, (req, res) => {
   try {
     const slug = String(req.params.slug || "").trim().toLowerCase();
@@ -1712,6 +1823,9 @@ app.delete("/api/fleet/operators/:slug", requireAdmin, (req, res) => {
     const docs = existing.documents || {};
     for (const meta of Object.values(docs)) {
       if (meta) deleteDocumentFile(dataDir, meta);
+    }
+    if (existing.logoDocument) {
+      deleteDocumentFile(dataDir, existing.logoDocument);
     }
 
     const keptDrivers = [];

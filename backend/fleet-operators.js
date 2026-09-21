@@ -500,6 +500,9 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
     if (patch.documents !== undefined && typeof patch.documents === "object") {
       operator.documents = { ...(operator.documents || {}), ...patch.documents };
     }
+    if (patch.logoDocument !== undefined) {
+      operator.logoDocument = patch.logoDocument || null;
+    }
     if (patch.dispatchPin !== undefined) {
       operator.dispatchPin = String(patch.dispatchPin).trim();
     }
