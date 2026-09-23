@@ -5,19 +5,18 @@ const crypto = require("crypto");
 const BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 function base32Encode(buffer) {
-  let bits = 0;
-  let value = 0;
-  let output = "";
-  for (const byte of buffer) {
-    value = (value << 8) | byte;
-    bits += 8;
-    while (bits >= 5) {
-      output += BASE32[(value >>> (bits - 5)) & 31];
-      bits -= 5;
-    }
+  const bytes = Buffer.from(buffer);
+  let bits = "";
+  for (const byte of bytes) {
+    bits += byte.toString(2).padStart(8, "0");
   }
-  if (bits > 0) {
-    output += BASE32[(value << (5 - bits)) & 31];
+  let output = "";
+  for (let i = 0; i + 5 <= bits.length; i += 5) {
+    output += BASE32[parseInt(bits.slice(i, i + 5), 2)];
+  }
+  if (bits.length % 5 !== 0) {
+    const rem = bits.slice(bits.length - (bits.length % 5));
+    output += BASE32[parseInt(rem.padEnd(5, "0"), 2)];
   }
   return output;
 }
@@ -27,20 +26,15 @@ function base32Decode(input) {
     .toUpperCase()
     .replace(/=+$/g, "")
     .replace(/[^A-Z2-7]/g, "");
-  let bits = 0;
-  let value = 0;
-  const bytes = [];
+  let bits = "";
   for (const ch of cleaned) {
     const idx = BASE32.indexOf(ch);
     if (idx < 0) continue;
-    value = (value << 5) | idx;
-    bits += 5;
-    while (bits >= 8) {
-      bits -= 8;
-      bytes.push((value >>> bits) & 0xff);
-    }
-    // Wichtig: nur Restbits behalten (sonst falscher Key vs. Google Authenticator)
-    value &= bits === 0 ? 0 : (1 << bits) - 1;
+    bits += idx.toString(2).padStart(5, "0");
+  }
+  const bytes = [];
+  for (let i = 0; i + 8 <= bits.length; i += 8) {
+    bytes.push(parseInt(bits.slice(i, i + 8), 2));
   }
   return Buffer.from(bytes);
 }
@@ -75,8 +69,7 @@ function verifyTotp(secretBase32, token, window = 2) {
 }
 
 function currentTotp(secretBase32) {
-  const counter = Math.floor(Date.now() / 1000 / 30);
-  return hotp(secretBase32, counter);
+  return hotp(secretBase32, Math.floor(Date.now() / 1000 / 30));
 }
 
 function otpauthUrl({ secret, accountName, issuer }) {

@@ -149,7 +149,11 @@
     errEl.textContent = "";
 
     try {
-      const res = await apiFetch("/api/auth/mfa/setup", { method: "POST" });
+      const res = await apiFetch("/api/auth/mfa/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reset: true }),
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "MFA-Setup fehlgeschlagen");
 

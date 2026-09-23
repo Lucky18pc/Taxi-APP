@@ -1574,8 +1574,8 @@ app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
   if (adminMfa.enabled) {
     return res.status(400).json({ error: "MFA ist bereits aktiv" });
   }
-  // Gleichen Pending-Secret behalten, sonst wechselt der QR und der App-Code passt nie.
-  if (!adminMfa.pendingSecret) {
+  const forceNew = Boolean(req.body?.reset || req.query?.reset);
+  if (forceNew || !adminMfa.pendingSecret) {
     adminMfa.pendingSecret = generateSecret();
     saveAdminMfa(adminMfa);
   }
