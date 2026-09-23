@@ -975,7 +975,9 @@ function verifyRequestPin(req, pin) {
 
 /** Plattform-Admin MFA (TOTP) — nur ADMIN_PIN, nicht Betriebs-PIN. */
 const adminMfaPath = path.join(dataDir, "admin-mfa.json");
+const adminSessionsPath = path.join(dataDir, "admin-sessions.json");
 const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+/** @type {Map<string, { expires: number }>} */
 const adminSessions = new Map();
 
 function loadAdminMfa() {
@@ -998,12 +1000,42 @@ function saveAdminMfa(state) {
   fs.writeFileSync(adminMfaPath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
 }
 
+function loadAdminSessionsFromDisk() {
+  try {
+    if (!fs.existsSync(adminSessionsPath)) return;
+    const raw = JSON.parse(fs.readFileSync(adminSessionsPath, "utf8"));
+    const now = Date.now();
+    for (const [token, meta] of Object.entries(raw.sessions || {})) {
+      if (meta && Number(meta.expires) > now) {
+        adminSessions.set(token, { expires: Number(meta.expires) });
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function saveAdminSessionsToDisk() {
+  purgeExpiredAdminSessions();
+  const sessions = {};
+  for (const [token, meta] of adminSessions.entries()) {
+    sessions[token] = { expires: meta.expires };
+  }
+  fs.writeFileSync(
+    adminSessionsPath,
+    `${JSON.stringify({ sessions }, null, 2)}\n`,
+    "utf8"
+  );
+}
+
 let adminMfa = loadAdminMfa();
 let adminMfaSetupSecret = null;
+loadAdminSessionsFromDisk();
 
 function createAdminSession() {
   const token = crypto.randomBytes(32).toString("hex");
   adminSessions.set(token, { expires: Date.now() + ADMIN_SESSION_TTL_MS });
+  saveAdminSessionsToDisk();
   return token;
 }
 
@@ -1584,6 +1616,7 @@ app.post("/api/auth/mfa/disable", requireAdmin, (req, res) => {
   adminMfaSetupSecret = null;
   saveAdminMfa(adminMfa);
   adminSessions.clear();
+  saveAdminSessionsToDisk();
   console.log("Admin-MFA deaktiviert.");
   res.json({ ok: true, mfaEnabled: false });
 });

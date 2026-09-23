@@ -139,26 +139,33 @@
   }
 
   async function startMfaSetup() {
-    document.getElementById("admin-login-form").classList.add("hidden");
-    document.getElementById("admin-mfa-setup").classList.remove("hidden");
+    const setupEl = document.getElementById("admin-mfa-setup");
+    const formEl = document.getElementById("admin-login-form");
     const errEl = document.getElementById("mfa-setup-error");
+    setupEl.classList.remove("hidden");
+    formEl.classList.add("hidden");
     errEl.classList.add("hidden");
-    const res = await apiFetch("/api/auth/mfa/setup", { method: "POST" });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "MFA-Setup fehlgeschlagen");
-    document.getElementById("mfa-secret").textContent = data.secret || "";
-    const canvasHost = document.getElementById("mfa-qr");
-    canvasHost.innerHTML = "";
-    if (window.QRCode) {
-      // qrcodejs erwartet ein Element, nicht zwingend canvas
-      const holder = document.createElement("div");
-      canvasHost.replaceWith(holder);
-      holder.id = "mfa-qr";
-      holder.style.cssText = "display:inline-block;border:2px solid #0c1c34;border-radius:12px;padding:8px;background:#fff";
-      // eslint-disable-next-line no-new
-      new QRCode(holder, { text: data.otpauthUrl, width: 200, height: 200 });
-    } else {
-      canvasHost.outerHTML = `<img id="mfa-qr" alt="QR" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.otpauthUrl)}">`;
+    errEl.textContent = "";
+
+    try {
+      const res = await apiFetch("/api/auth/mfa/setup", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "MFA-Setup fehlgeschlagen");
+
+      document.getElementById("mfa-secret").textContent = data.secret || "";
+
+      let host = document.getElementById("mfa-qr");
+      if (!host) {
+        host = document.createElement("div");
+        host.id = "mfa-qr";
+        setupEl.querySelector("div[style*='text-align:center']")?.appendChild(host);
+      }
+      host.outerHTML = `<img id="mfa-qr" alt="QR-Code MFA" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=${encodeURIComponent(data.otpauthUrl)}">`;
+    } catch (err) {
+      errEl.textContent = err.message || "MFA-Setup fehlgeschlagen";
+      errEl.classList.remove("hidden");
+      formEl.classList.remove("hidden");
+      throw err;
     }
   }
 
@@ -709,18 +716,35 @@
 
       setAuth({
         sessionToken: data.sessionToken || "",
-        pin: data.sessionToken ? "" : pin,
+        pin,
         remember,
       });
 
+      const submitBtn = document.getElementById("admin-login-submit");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Bitte warten…";
+
       if (data.mfaSetupRequired) {
-        await startMfaSetup();
+        try {
+          await startMfaSetup();
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "★ Anmelden ★";
+        }
         return;
       }
 
       await enterAppAfterAuth();
+      submitBtn.disabled = false;
+      submitBtn.textContent = "★ Anmelden ★";
     } catch (err) {
       clearAuth();
+      document.getElementById("admin-login-form").classList.remove("hidden");
+      const submitBtn = document.getElementById("admin-login-submit");
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = mfaStep ? "Code bestätigen" : "★ Anmelden ★";
+      }
       errEl.textContent = err.message;
       errEl.classList.remove("hidden");
     }
