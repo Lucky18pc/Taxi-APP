@@ -1,5 +1,6 @@
 (function () {
-  const STORAGE_KEY = "taxiapp_platform_admin_pin";
+  const PIN_KEY = "taxiapp_platform_admin_pin";
+  const SESSION_KEY = "taxiapp_platform_admin_session";
 
   const PANEL_COPY = {
     tenants: {
@@ -20,29 +21,40 @@
     },
   };
 
+  let pendingPin = "";
+  let mfaStep = false;
+
+  function getSession() {
+    return localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY) || "";
+  }
+
   function getPin() {
-    return localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY) || "";
+    return localStorage.getItem(PIN_KEY) || sessionStorage.getItem(PIN_KEY) || "";
   }
 
-  function setPin(pin, remember) {
-    clearPin();
-    if (remember) localStorage.setItem(STORAGE_KEY, pin);
-    else sessionStorage.setItem(STORAGE_KEY, pin);
+  function setAuth({ sessionToken, pin, remember }) {
+    clearAuth();
+    const store = remember ? localStorage : sessionStorage;
+    if (sessionToken) store.setItem(SESSION_KEY, sessionToken);
+    if (pin) store.setItem(PIN_KEY, pin);
   }
 
-  function clearPin() {
-    localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_KEY);
+  function clearAuth() {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(PIN_KEY);
+    sessionStorage.removeItem(PIN_KEY);
   }
 
   function authHeaders() {
+    const session = getSession();
+    if (session) return { Authorization: `Bearer ${session}` };
     const pin = getPin();
     return pin ? { Authorization: `Bearer ${pin}` } : {};
   }
 
   async function apiFetch(url, options = {}) {
     const headers = { ...(options.headers || {}), ...authHeaders() };
-    // FormData braucht den Browser-Boundary — Content-Type nicht setzen
     if (typeof FormData !== "undefined" && options.body instanceof FormData) {
       delete headers["Content-Type"];
       delete headers["content-type"];
@@ -57,9 +69,14 @@
         signal: options.signal || controller.signal,
       });
       if (res.status === 401) {
-        clearPin();
-        showLogin();
-        throw new Error("PIN ungültig oder ADMIN_PIN nicht gesetzt.");
+        const body = await res.clone().json().catch(() => ({}));
+        clearAuth();
+        if (body.mfaRequired) {
+          showMfaCodeStep();
+        } else {
+          showLogin();
+        }
+        throw new Error(body.error || "Anmeldung abgelaufen — bitte erneut anmelden.");
       }
       return res;
     } catch (err) {
@@ -73,13 +90,76 @@
   }
 
   function showLogin() {
+    mfaStep = false;
+    pendingPin = "";
     document.getElementById("admin-login").classList.remove("hidden");
     document.getElementById("admin-app").classList.add("hidden");
+    document.getElementById("admin-mfa-setup").classList.add("hidden");
+    document.getElementById("admin-login-form").classList.remove("hidden");
+    document.getElementById("pin-field").classList.remove("hidden");
+    document.getElementById("totp-field").classList.add("hidden");
+    document.getElementById("remember-row").classList.remove("hidden");
+    document.getElementById("admin-totp").value = "";
+    document.getElementById("admin-login-submit").textContent = "★ Anmelden ★";
+  }
+
+  function showMfaCodeStep() {
+    mfaStep = true;
+    document.getElementById("admin-login").classList.remove("hidden");
+    document.getElementById("admin-app").classList.add("hidden");
+    document.getElementById("admin-mfa-setup").classList.add("hidden");
+    document.getElementById("admin-login-form").classList.remove("hidden");
+    document.getElementById("pin-field").classList.add("hidden");
+    document.getElementById("totp-field").classList.remove("hidden");
+    document.getElementById("remember-row").classList.add("hidden");
+    document.getElementById("admin-login-submit").textContent = "Code bestätigen";
+    document.getElementById("admin-totp").focus();
   }
 
   function showApp() {
     document.getElementById("admin-login").classList.add("hidden");
     document.getElementById("admin-app").classList.remove("hidden");
+    document.getElementById("admin-mfa-setup").classList.add("hidden");
+  }
+
+  async function enterAppAfterAuth() {
+    showApp();
+    showPanel("tenants");
+    await withRefreshBusy(refreshAll);
+    const params = new URLSearchParams(window.location.search);
+    const connect = params.get("connect");
+    const slug = params.get("o");
+    if (connect === "return" && slug) {
+      alert(`Stripe Connect für „${slug}”: Onboarding abgeschlossen oder fortgesetzt. Status prüfen.`);
+      history.replaceState({}, "", "admin.html");
+    } else if (connect === "refresh" && slug) {
+      alert(`Connect-Link abgelaufen. Bitte für „${slug}“ erneut „Stripe Connect“ klicken.`);
+      history.replaceState({}, "", "admin.html");
+    }
+  }
+
+  async function startMfaSetup() {
+    document.getElementById("admin-login-form").classList.add("hidden");
+    document.getElementById("admin-mfa-setup").classList.remove("hidden");
+    const errEl = document.getElementById("mfa-setup-error");
+    errEl.classList.add("hidden");
+    const res = await apiFetch("/api/auth/mfa/setup", { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "MFA-Setup fehlgeschlagen");
+    document.getElementById("mfa-secret").textContent = data.secret || "";
+    const canvasHost = document.getElementById("mfa-qr");
+    canvasHost.innerHTML = "";
+    if (window.QRCode) {
+      // qrcodejs erwartet ein Element, nicht zwingend canvas
+      const holder = document.createElement("div");
+      canvasHost.replaceWith(holder);
+      holder.id = "mfa-qr";
+      holder.style.cssText = "display:inline-block;border:2px solid #0c1c34;border-radius:12px;padding:8px;background:#fff";
+      // eslint-disable-next-line no-new
+      new QRCode(holder, { text: data.otpauthUrl, width: 200, height: 200 });
+    } else {
+      canvasHost.outerHTML = `<img id="mfa-qr" alt="QR" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.otpauthUrl)}">`;
+    }
   }
 
   function showPanel(id) {
@@ -590,24 +670,85 @@
     e.preventDefault();
     const errEl = document.getElementById("admin-login-error");
     errEl.classList.add("hidden");
-    const pin = document.getElementById("admin-pin").value.trim();
     const remember = document.getElementById("admin-remember")?.checked !== false;
-    setPin(pin, remember);
+    const pin = mfaStep ? pendingPin : document.getElementById("admin-pin").value.trim();
+    const totp = document.getElementById("admin-totp").value.trim();
+
+    if (!mfaStep) {
+      pendingPin = pin;
+      if (!pin) {
+        errEl.textContent = "Bitte PIN eingeben.";
+        errEl.classList.remove("hidden");
+        return;
+      }
+    } else if (!totp) {
+      errEl.textContent = "Bitte Authenticator-Code eingeben.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+
     try {
-      const res = await apiFetch("/api/fleet/operators");
-      if (!res.ok) throw new Error("Zugriff verweigert");
-      showApp();
-      showPanel("tenants");
-      await withRefreshBusy(refreshAll);
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pin,
+          totp: mfaStep || totp ? totp : undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data.mfaRequired) {
+          showMfaCodeStep();
+          errEl.textContent = data.error || "Bitte Authenticator-Code eingeben.";
+          errEl.classList.remove("hidden");
+          return;
+        }
+        throw new Error(data.error || "Anmeldung fehlgeschlagen");
+      }
+
+      setAuth({
+        sessionToken: data.sessionToken || "",
+        pin: data.sessionToken ? "" : pin,
+        remember,
+      });
+
+      if (data.mfaSetupRequired) {
+        await startMfaSetup();
+        return;
+      }
+
+      await enterAppAfterAuth();
     } catch (err) {
-      clearPin();
+      clearAuth();
+      errEl.textContent = err.message;
+      errEl.classList.remove("hidden");
+    }
+  });
+
+  document.getElementById("mfa-confirm-btn").addEventListener("click", async () => {
+    const errEl = document.getElementById("mfa-setup-error");
+    errEl.classList.add("hidden");
+    const code = document.getElementById("mfa-confirm-code").value.trim();
+    const remember = document.getElementById("admin-remember")?.checked !== false;
+    try {
+      const res = await apiFetch("/api/auth/mfa/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ totp: code }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Aktivierung fehlgeschlagen");
+      setAuth({ sessionToken: data.sessionToken || getSession(), remember });
+      await enterAppAfterAuth();
+    } catch (err) {
       errEl.textContent = err.message;
       errEl.classList.remove("hidden");
     }
   });
 
   document.getElementById("admin-logout").addEventListener("click", () => {
-    clearPin();
+    clearAuth();
     showLogin();
   });
 
@@ -685,35 +826,27 @@
     }
   });
 
-  if (getPin()) {
-    apiFetch("/api/fleet/operators")
-      .then((res) => {
-        if (res.ok) {
-          showApp();
-          showPanel("tenants");
-          return withRefreshBusy(refreshAll).then(() => {
-            const params = new URLSearchParams(window.location.search);
-            const connect = params.get("connect");
-            const slug = params.get("o");
-            if (connect === "return" && slug) {
-              alert(
-                `Stripe Connect für „${slug}”: Onboarding abgeschlossen oder fortgesetzt. Status prüfen.`
-              );
-              history.replaceState({}, "", "admin.html");
-            } else if (connect === "refresh" && slug) {
-              alert(`Connect-Link abgelaufen. Bitte für „${slug}“ erneut „Stripe Connect“ klicken.`);
-              history.replaceState({}, "", "admin.html");
-            }
-          });
-        }
-        clearPin();
-        showLogin();
-      })
-      .catch((err) => {
-        console.error(err);
-        showLogin();
-      });
-  } else {
-    showLogin();
+  async function tryRestoreSession() {
+    if (!getSession() && !getPin()) {
+      showLogin();
+      return;
+    }
+    try {
+      const res = await apiFetch("/api/fleet/operators");
+      if (!res.ok) throw new Error("session");
+      const statusRes = await apiFetch("/api/auth/mfa/status");
+      const status = statusRes.ok ? await statusRes.json() : { enabled: false };
+      if (!status.enabled) {
+        await startMfaSetup();
+        return;
+      }
+      await enterAppAfterAuth();
+    } catch (err) {
+      console.error(err);
+      clearAuth();
+      showLogin();
+    }
   }
+
+  tryRestoreSession();
 })();

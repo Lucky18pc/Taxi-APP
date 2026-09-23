@@ -20,7 +20,7 @@ Prüfen: Inkognito → Banner → Ablehnen → Network ohne `googletagmanager.co
 | `ADMIN_PIN` auf Render für Admin-/Schreib-APIs | ✅ empfohlen / Pflicht auf Render |
 | Betriebs-PIN (`dispatchPin`) pro Mandant | ✅ |
 | Öffentliche Marketing-Links zu dispatch/settings entfernt | ✅ |
-| MFA für privilegierte Zugänge | ⏳ geplant (aktuell PIN; MFA = nächster Schritt) |
+| MFA für privilegierte Zugänge | ✅ Admin: TOTP (Authenticator) nach PIN — `admin.html` / `docs/ADMIN-MFA.md` |
 | Rate-Limit bei PIN-Login | ✅ `/api/auth/verify` (max. 12 / 15 Min. pro IP) |
 | Client fail-closed bei Auth-Check-Fehler | ✅ `leitstelle-auth.js` |
 | Rollen/Rechte fein granular (Fahrer vs. Admin vs. Mandant) | 🟡 teilweise (Fleet-Slugs, Admin vs. Leitstelle) |
@@ -55,7 +55,7 @@ Prüfen: Inkognito → Banner → Ablehnen → Network ohne `googletagmanager.co
 
 ## Nächste technische Schritte (Priorität)
 
-1. MFA oder starker 2. Faktor für Admin (z. B. TOTP / Passkey)  
+1. ~~MFA für Admin (TOTP)~~ ✅  
 2. Backup-Restore-Test des Data-Volumes dokumentieren  
 3. Periodische Lösch-/Export-Checks für abgelaufene Betriebsdaten  
 4. AVV mit Betrieben (Art. 28) im Onboarding hinterlegen  

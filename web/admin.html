@@ -352,19 +352,44 @@
       <img src="luckys-taxi-admin-logo.svg" width="96" height="96" alt="Luckys Taxi Admin">
       <h1>Luckys Admin</h1>
       <p class="sub">Neues Dashboard. Freischaltung &amp; Nachweise</p>
-      <p class="meta" style="margin-bottom:1rem">ADMIN_PIN von Render. Mit „Angemeldet bleiben“ bleibst du auf diesem Gerät eingeloggt.</p>
+      <p class="meta" style="margin-bottom:1rem">ADMIN_PIN von Render. Mit MFA (Authenticator) zusätzlich abgesichert.</p>
+
       <form id="admin-login-form">
-        <div class="field">
+        <div class="field" id="pin-field">
           <label for="admin-pin">PIN</label>
-          <input id="admin-pin" type="password" required autocomplete="current-password">
+          <input id="admin-pin" type="password" autocomplete="current-password">
         </div>
-        <label class="check-row">
+        <div class="field hidden" id="totp-field">
+          <label for="admin-totp">Authenticator-Code</label>
+          <input id="admin-totp" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="6-stelliger Code">
+        </div>
+        <label class="check-row" id="remember-row">
           <input id="admin-remember" type="checkbox" checked>
           Angemeldet bleiben
         </label>
-        <button type="submit" class="btn btn-yellow">★ Anmelden ★</button>
+        <button type="submit" class="btn btn-yellow" id="admin-login-submit">★ Anmelden ★</button>
         <p id="admin-login-error" class="login-error hidden"></p>
       </form>
+
+      <div id="admin-mfa-setup" class="hidden" style="margin-top:1.25rem;text-align:left">
+        <h2 style="margin:0 0 0.5rem;font-size:1.05rem">MFA einrichten</h2>
+        <p class="meta" style="margin-bottom:0.75rem">
+          Authenticator-App (z. B. Google Authenticator) öffnen, QR scannen, Code bestätigen.
+          Einmalig — danach bei jedem Login PIN + Code.
+        </p>
+        <div style="text-align:center;margin:0.75rem 0">
+          <canvas id="mfa-qr" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff"></canvas>
+        </div>
+        <p class="meta" style="word-break:break-all;font-size:0.75rem">
+          Geheimnis (manuell): <strong id="mfa-secret"></strong>
+        </p>
+        <div class="field">
+          <label for="mfa-confirm-code">Code aus der App</label>
+          <input id="mfa-confirm-code" type="text" inputmode="numeric" maxlength="6" placeholder="6 Ziffern">
+        </div>
+        <button type="button" class="btn btn-navy" id="mfa-confirm-btn" style="width:100%">MFA aktivieren</button>
+        <p id="mfa-setup-error" class="login-error hidden"></p>
+      </div>
     </div>
   </div>
 
@@ -475,6 +500,7 @@
     </main>
   </div>
 
-  <script src="admin.js?v=20260921-1956"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="admin.js?v=20260923-mfa"></script>
 </body>
 </html>

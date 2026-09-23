@@ -17,6 +17,7 @@ const {
   OPERATOR_DOC_FIELDS,
   DRIVER_DOC_FIELDS,
 } = require("./compliance-uploads");
+const { generateSecret, verifyTotp, otpauthUrl } = require("./totp");
 
 const port = process.env.PORT || 4242;
 const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -972,6 +973,58 @@ function verifyRequestPin(req, pin) {
   return fleet.verifyPin(pin, operatorSlug, adminPin);
 }
 
+/** Plattform-Admin MFA (TOTP) — nur ADMIN_PIN, nicht Betriebs-PIN. */
+const adminMfaPath = path.join(dataDir, "admin-mfa.json");
+const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+const adminSessions = new Map();
+
+function loadAdminMfa() {
+  try {
+    if (!fs.existsSync(adminMfaPath)) {
+      return { enabled: false, secret: null, enabledAt: null };
+    }
+    const raw = JSON.parse(fs.readFileSync(adminMfaPath, "utf8"));
+    return {
+      enabled: Boolean(raw.enabled && raw.secret),
+      secret: raw.secret ? String(raw.secret) : null,
+      enabledAt: raw.enabledAt || null,
+    };
+  } catch {
+    return { enabled: false, secret: null, enabledAt: null };
+  }
+}
+
+function saveAdminMfa(state) {
+  fs.writeFileSync(adminMfaPath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+}
+
+let adminMfa = loadAdminMfa();
+let adminMfaSetupSecret = null;
+
+function createAdminSession() {
+  const token = crypto.randomBytes(32).toString("hex");
+  adminSessions.set(token, { expires: Date.now() + ADMIN_SESSION_TTL_MS });
+  return token;
+}
+
+function purgeExpiredAdminSessions() {
+  const now = Date.now();
+  for (const [token, meta] of adminSessions.entries()) {
+    if (!meta || meta.expires <= now) adminSessions.delete(token);
+  }
+}
+
+function isValidAdminSession(token) {
+  if (!token) return false;
+  purgeExpiredAdminSessions();
+  const meta = adminSessions.get(token);
+  return Boolean(meta && meta.expires > Date.now());
+}
+
+function isPlatformAdminPin(pin) {
+  return Boolean(adminPin && pin && pin === adminPin);
+}
+
 function filterBookingsForRequest(req) {
   const operator = resolveFleetOperatorFromRequest(req);
   if (operator) {
@@ -1212,9 +1265,23 @@ function requireAdmin(req, res, next) {
   const header = String(req.headers.authorization || "");
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   const pinHeader = String(req.headers["x-admin-pin"] || "").trim();
-  const pin = bearer || pinHeader;
-  if (verifyRequestPin(req, pin)) return next();
-  return res.status(401).json({ error: "Unauthorized — PIN required" });
+  const tokenOrPin = bearer || pinHeader;
+
+  if (isValidAdminSession(tokenOrPin)) return next();
+
+  if (!verifyRequestPin(req, tokenOrPin)) {
+    return res.status(401).json({ error: "Unauthorized — PIN required" });
+  }
+
+  // Plattform-ADMIN_PIN bei aktivem MFA: Session nach TOTP nötig (Betriebs-PIN unberührt).
+  if (isPlatformAdminPin(tokenOrPin) && adminMfa.enabled) {
+    return res.status(401).json({
+      error: "MFA erforderlich — bitte erneut anmelden und Authenticator-Code eingeben.",
+      mfaRequired: true,
+    });
+  }
+
+  return next();
 }
 
 app.use(cors());
@@ -1407,13 +1474,118 @@ app.post("/api/auth/verify", (req, res) => {
       error: "Zu viele Anmeldeversuche — bitte später erneut versuchen.",
     });
   }
-  if (!authRequiredForRequest(req)) return res.json({ ok: true });
+  if (!authRequiredForRequest(req)) {
+    return res.json({ ok: true, mfaEnabled: false, sessionToken: null });
+  }
   const pin = String(req.body.pin || "").trim();
+  const totp = String(req.body.totp || req.body.code || "").trim();
   if (pin.length < 4) {
     return res.status(401).json({ error: "PIN ungültig" });
   }
-  if (verifyRequestPin(req, pin)) return res.json({ ok: true });
-  return res.status(401).json({ error: "PIN ungültig" });
+  if (!verifyRequestPin(req, pin)) {
+    return res.status(401).json({ error: "PIN ungültig" });
+  }
+
+  // Betriebs-PIN (Leitstelle): kein MFA, kein Session-Token.
+  if (!isPlatformAdminPin(pin)) {
+    return res.json({ ok: true, mfaEnabled: false, sessionToken: null, role: "operator" });
+  }
+
+  if (adminMfa.enabled) {
+    if (!totp) {
+      return res.status(401).json({
+        error: "Authenticator-Code erforderlich",
+        mfaRequired: true,
+        mfaEnabled: true,
+      });
+    }
+    if (!verifyTotp(adminMfa.secret, totp)) {
+      return res.status(401).json({
+        error: "Authenticator-Code ungültig",
+        mfaRequired: true,
+        mfaEnabled: true,
+      });
+    }
+    const sessionToken = createAdminSession();
+    return res.json({
+      ok: true,
+      mfaEnabled: true,
+      sessionToken,
+      role: "admin",
+    });
+  }
+
+  const sessionToken = createAdminSession();
+  return res.json({
+    ok: true,
+    mfaEnabled: false,
+    mfaSetupRequired: true,
+    sessionToken,
+    role: "admin",
+  });
+});
+
+app.get("/api/auth/mfa/status", requireAdmin, (_req, res) => {
+  res.json({
+    enabled: Boolean(adminMfa.enabled),
+    enabledAt: adminMfa.enabledAt || null,
+  });
+});
+
+/** QR/Secret für Authenticator — Session nach PIN-Login nötig. */
+app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
+  if (!adminPin) {
+    return res.status(503).json({ error: "ADMIN_PIN not configured" });
+  }
+  if (adminMfa.enabled) {
+    return res.status(400).json({ error: "MFA ist bereits aktiv" });
+  }
+  adminMfaSetupSecret = generateSecret();
+  const url = otpauthUrl({
+    secret: adminMfaSetupSecret,
+    accountName: "Luckys Admin",
+    issuer: "Luckys Taxi App",
+  });
+  res.json({
+    secret: adminMfaSetupSecret,
+    otpauthUrl: url,
+  });
+});
+
+app.post("/api/auth/mfa/confirm", requireAdmin, (req, res) => {
+  if (!adminMfaSetupSecret) {
+    return res.status(400).json({ error: "Zuerst /api/auth/mfa/setup aufrufen" });
+  }
+  const totp = String(req.body.totp || req.body.code || "").trim();
+  if (!verifyTotp(adminMfaSetupSecret, totp)) {
+    return res.status(401).json({ error: "Authenticator-Code ungültig — bitte erneut versuchen" });
+  }
+  adminMfa = {
+    enabled: true,
+    secret: adminMfaSetupSecret,
+    enabledAt: new Date().toISOString(),
+  };
+  adminMfaSetupSecret = null;
+  saveAdminMfa(adminMfa);
+  const sessionToken = createAdminSession();
+  console.log("Admin-MFA aktiviert (TOTP).");
+  res.json({ ok: true, mfaEnabled: true, sessionToken });
+});
+
+app.post("/api/auth/mfa/disable", requireAdmin, (req, res) => {
+  if (!adminMfa.enabled) {
+    return res.json({ ok: true, mfaEnabled: false });
+  }
+  const totp = String(req.body.totp || req.body.code || "").trim();
+  if (!verifyTotp(adminMfa.secret, totp)) {
+    return res.status(401).json({ error: "Authenticator-Code ungültig" });
+  }
+  adminMfa = { enabled: false, secret: null, enabledAt: null };
+  adminMfaSetupSecret = null;
+  saveAdminMfa(adminMfa);
+  adminSessions.clear();
+  console.log("Admin-MFA deaktiviert.");
+  res.json({ ok: true, mfaEnabled: false });
 });
 
 app.get("/api/offering", (_req, res) => {
