@@ -62,13 +62,14 @@
     const controller = new AbortController();
     const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 25000;
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const resetOn401 = options.resetOn401 !== false;
     try {
       const res = await fetch(url, {
         ...options,
         headers,
         signal: options.signal || controller.signal,
       });
-      if (res.status === 401) {
+      if (res.status === 401 && resetOn401) {
         const body = await res.clone().json().catch(() => ({}));
         clearAuth();
         if (body.mfaRequired) {
@@ -755,19 +756,37 @@
     errEl.classList.add("hidden");
     const code = document.getElementById("mfa-confirm-code").value.trim();
     const remember = document.getElementById("admin-remember")?.checked !== false;
+    const btn = document.getElementById("mfa-confirm-btn");
+    if (!/^\d{6}$/.test(code)) {
+      errEl.textContent = "Bitte genau 6 Ziffern aus der Authenticator-App eingeben.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "Prüfe…";
     try {
       const res = await apiFetch("/api/auth/mfa/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ totp: code }),
+        resetOn401: false,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Aktivierung fehlgeschlagen");
-      setAuth({ sessionToken: data.sessionToken || getSession(), remember });
+      setAuth({
+        sessionToken: data.sessionToken || getSession(),
+        pin: getPin(),
+        remember,
+      });
       await enterAppAfterAuth();
     } catch (err) {
-      errEl.textContent = err.message;
+      errEl.textContent =
+        err.message ||
+        "Code falsch. Aktuellen Code aus der App nehmen (wechselt alle 30 Sek.). Alten Authenticator-Eintrag löschen und denselben QR neu scannen.";
       errEl.classList.remove("hidden");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "MFA aktivieren";
     }
   });
 

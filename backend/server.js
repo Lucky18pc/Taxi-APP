@@ -983,16 +983,17 @@ const adminSessions = new Map();
 function loadAdminMfa() {
   try {
     if (!fs.existsSync(adminMfaPath)) {
-      return { enabled: false, secret: null, enabledAt: null };
+      return { enabled: false, secret: null, enabledAt: null, pendingSecret: null };
     }
     const raw = JSON.parse(fs.readFileSync(adminMfaPath, "utf8"));
     return {
       enabled: Boolean(raw.enabled && raw.secret),
       secret: raw.secret ? String(raw.secret) : null,
       enabledAt: raw.enabledAt || null,
+      pendingSecret: raw.pendingSecret ? String(raw.pendingSecret) : null,
     };
   } catch {
-    return { enabled: false, secret: null, enabledAt: null };
+    return { enabled: false, secret: null, enabledAt: null, pendingSecret: null };
   }
 }
 
@@ -1029,7 +1030,6 @@ function saveAdminSessionsToDisk() {
 }
 
 let adminMfa = loadAdminMfa();
-let adminMfaSetupSecret = null;
 loadAdminSessionsFromDisk();
 
 function createAdminSession() {
@@ -1572,32 +1572,42 @@ app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
   if (adminMfa.enabled) {
     return res.status(400).json({ error: "MFA ist bereits aktiv" });
   }
-  adminMfaSetupSecret = generateSecret();
+  // Gleichen Pending-Secret behalten, sonst wechselt der QR und der App-Code passt nie.
+  if (!adminMfa.pendingSecret) {
+    adminMfa.pendingSecret = generateSecret();
+    saveAdminMfa(adminMfa);
+  }
+  const secret = adminMfa.pendingSecret;
   const url = otpauthUrl({
-    secret: adminMfaSetupSecret,
+    secret,
     accountName: "Luckys Admin",
     issuer: "Luckys Taxi App",
   });
   res.json({
-    secret: adminMfaSetupSecret,
+    secret,
     otpauthUrl: url,
   });
 });
 
 app.post("/api/auth/mfa/confirm", requireAdmin, (req, res) => {
-  if (!adminMfaSetupSecret) {
-    return res.status(400).json({ error: "Zuerst /api/auth/mfa/setup aufrufen" });
+  const pending = adminMfa.pendingSecret;
+  if (!pending) {
+    return res.status(400).json({
+      error: "Kein MFA-Setup aktiv — bitte Seite neu laden und QR erneut scannen.",
+    });
   }
   const totp = String(req.body.totp || req.body.code || "").trim();
-  if (!verifyTotp(adminMfaSetupSecret, totp)) {
-    return res.status(401).json({ error: "Authenticator-Code ungültig — bitte erneut versuchen" });
+  if (!verifyTotp(pending, totp)) {
+    return res.status(400).json({
+      error: "Authenticator-Code ungültig oder abgelaufen — neuen Code aus der App nehmen (nicht den PIN).",
+    });
   }
   adminMfa = {
     enabled: true,
-    secret: adminMfaSetupSecret,
+    secret: pending,
     enabledAt: new Date().toISOString(),
+    pendingSecret: null,
   };
-  adminMfaSetupSecret = null;
   saveAdminMfa(adminMfa);
   const sessionToken = createAdminSession();
   console.log("Admin-MFA aktiviert (TOTP).");
@@ -1610,10 +1620,9 @@ app.post("/api/auth/mfa/disable", requireAdmin, (req, res) => {
   }
   const totp = String(req.body.totp || req.body.code || "").trim();
   if (!verifyTotp(adminMfa.secret, totp)) {
-    return res.status(401).json({ error: "Authenticator-Code ungültig" });
+    return res.status(400).json({ error: "Authenticator-Code ungültig" });
   }
-  adminMfa = { enabled: false, secret: null, enabledAt: null };
-  adminMfaSetupSecret = null;
+  adminMfa = { enabled: false, secret: null, enabledAt: null, pendingSecret: null };
   saveAdminMfa(adminMfa);
   adminSessions.clear();
   saveAdminSessionsToDisk();
