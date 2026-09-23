@@ -20,7 +20,7 @@ Die **Kunden-App** bucht die Fahrt. Der **Fahrer** (oder die **Leitstelle**) erf
 |--------|-------------------|---------------------|
 | Buchung | `POST /api/bookings` → `bookings.json` | Unverändert; optional `paymentMethod: "Rechnung"` |
 | Kartenzahlung | Stripe Payment Intent (Kunde, eigenes Handy) | Separater **Zahlungslink** auf offene Rechnung |
-| Rechnungen Plattform | `docs/RECHNUNGEN-ABRECHNUNG.md` (Abo 49/99 €) | **Fahrgast-Rechnungen** pro Taxi-Betrieb |
+| Rechnungen Plattform | `docs/RECHNUNGEN-ABRECHNUNG.md` (Abo ab 9,90 €/Fahrzeug) | **Fahrgast-Rechnungen** pro Taxi-Betrieb |
 | Leitstelle | `web/dispatch.html` | Tab „Offene Posten“ + Mahnstatus |
 
 ---

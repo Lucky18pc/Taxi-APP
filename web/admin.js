@@ -137,8 +137,9 @@
   }
 
   function planLabel(planId) {
-    if (planId === "starter") return "Starter";
-    if (planId === "business") return "Business";
+    if (planId === "fleet") return "Pro Fahrzeug";
+    if (planId === "starter") return "Starter (alt)";
+    if (planId === "business") return "Business (alt)";
     return planId || "Allgemein";
   }
 

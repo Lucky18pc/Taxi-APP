@@ -437,7 +437,11 @@
               <div class="field"><label for="new-city">Stadt *</label><input id="new-city" name="city" required></div>
               <div class="field"><label for="new-postalPrefixes">PLZ-Präfixe *</label><input id="new-postalPrefixes" name="postalPrefixes" required placeholder="68"></div>
               <div class="field"><label for="new-planId">Tarif</label>
-                <select id="new-planId" name="planId"><option value="starter">Starter (5 Fahrer)</option><option value="business">Business</option></select>
+                <select id="new-planId" name="planId">
+                  <option value="fleet" selected>Pro Fahrzeug (ab 9,90 €)</option>
+                  <option value="starter">Starter alt (5 Fahrer)</option>
+                  <option value="business">Business alt</option>
+                </select>
               </div>
               <div class="field"><label for="new-billingEmail">Rechnungs-E-Mail</label><input id="new-billingEmail" name="billingEmail" type="email"></div>
               <div class="field"><label for="new-dispatchPin">Leitstellen-PIN</label><input id="new-dispatchPin" name="dispatchPin" inputmode="numeric"></div>
