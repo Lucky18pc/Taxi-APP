@@ -46,8 +46,8 @@ enum TapToPayService {
     private static func driverRequest(_ url: URL, method: String = "GET", body: [String: Any]? = nil) throws -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.setValue(BackendConfig.driverApiKey, forHTTPHeaderField: "X-Driver-Key")
-        request.setValue("Bearer \(BackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue(FahrerBackendConfig.driverApiKey, forHTTPHeaderField: "X-Driver-Key")
+        request.setValue("Bearer \(FahrerBackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
         if let body {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -56,7 +56,7 @@ enum TapToPayService {
     }
 
     static func isEnabled(operatorSlug: String) async -> Bool {
-        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/terminal/config") else {
+        guard var components = URLComponents(string: "\(FahrerBackendConfig.baseURL)/api/terminal/config") else {
             return false
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
@@ -81,7 +81,7 @@ enum TapToPayService {
         totalAmount: Double
     ) async throws -> TapToPaySession {
         guard var components = URLComponents(
-            string: "\(BackendConfig.baseURL)/api/driver/bookings/\(bookingId)/tap-pay"
+            string: "\(FahrerBackendConfig.baseURL)/api/driver/bookings/\(bookingId)/tap-pay"
         ) else {
             throw TapToPayError.backend("Ungültige URL")
         }
@@ -104,7 +104,7 @@ enum TapToPayService {
     }
 
     static func fetchConnectionToken(operatorSlug: String) async throws -> String {
-        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/terminal/connection-token") else {
+        guard var components = URLComponents(string: "\(FahrerBackendConfig.baseURL)/api/terminal/connection-token") else {
             throw TapToPayError.backend("Ungültige URL")
         }
         components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
@@ -157,26 +157,40 @@ enum TapToPayService {
 
 #if canImport(StripeTerminal)
 
-/// Token-Provider + einmaliger Collect-Lauf für Tap to Pay.
+/// Langlebiger Token-Provider (Terminal.initWithTokenProvider behält nur eine weak/unowned Referenz-Semantik — wir halten ihn selbst).
 @MainActor
-private final class TerminalTapToPayRunner: NSObject, ConnectionTokenProvider, DiscoveryDelegate, TapToPayReaderDelegate {
-    private var tokenContinuation: CheckedContinuation<String, Error>?
+private final class TerminalTokenHolder: NSObject, ConnectionTokenProvider {
+    static let shared = TerminalTokenHolder()
+    var operatorSlug: String = ""
+
+    func fetchConnectionToken(_ completion: @escaping ConnectionTokenCompletionBlock) {
+        let slug = operatorSlug
+        Task {
+            do {
+                let secret = try await TapToPayService.fetchConnectionToken(operatorSlug: slug)
+                completion(secret, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+    }
+}
+
+/// Einmaliger Collect-Lauf für Tap to Pay (Stripe Terminal SDK 5.x).
+@MainActor
+private final class TerminalTapToPayRunner: NSObject, DiscoveryDelegate, TapToPayReaderDelegate {
     private var discoverContinuation: CheckedContinuation<Reader, Error>?
-    private var operatorSlug: String = ""
     private var discoverCancelable: Cancelable?
 
     static func run(operatorSlug: String, clientSecret: String, locationId: String) async throws {
-        let runner = TerminalTapToPayRunner()
-        runner.operatorSlug = operatorSlug
-
-        if !Terminal.hasTokenProvider {
-            Terminal.setTokenProvider(runner)
+        TerminalTokenHolder.shared.operatorSlug = operatorSlug
+        if !Terminal.isInitialized() {
+            Terminal.initWithTokenProvider(TerminalTokenHolder.shared)
         }
 
+        let runner = TerminalTapToPayRunner()
         let reader = try await runner.discoverTapToPayReader()
-        let config = try TapToPayConnectionConfigurationBuilder(locationId: locationId)
-            .setDelegate(runner)
-            .build()
+        let config = try TapToPayConnectionConfigurationBuilder(delegate: runner, locationId: locationId).build()
 
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             Terminal.shared.connectReader(reader, connectionConfig: config) { connected, error in
@@ -225,12 +239,18 @@ private final class TerminalTapToPayRunner: NSObject, ConnectionTokenProvider, D
                 }
             }
         }
+
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            Terminal.shared.disconnectReader { _ in cont.resume() }
+        }
     }
 
     private func discoverTapToPayReader() async throws -> Reader {
-        discoverCancelable?.cancel { _ in }
-        let config = try DiscoveryConfigurationBuilder()
-            .setDiscoveryMethod(.tapToPay)
+        if let cancelable = discoverCancelable {
+            try? await cancelable.cancel()
+        }
+        let config = try TapToPayDiscoveryConfigurationBuilder()
+            .setSimulated(false)
             .build()
 
         return try await withCheckedThrowingContinuation { cont in
@@ -239,20 +259,10 @@ private final class TerminalTapToPayRunner: NSObject, ConnectionTokenProvider, D
                 if let error {
                     self.discoverContinuation?.resume(throwing: TapToPayError.failed(error.localizedDescription))
                     self.discoverContinuation = nil
+                } else if self.discoverContinuation != nil {
+                    self.discoverContinuation?.resume(throwing: TapToPayError.failed("Kein Tap-to-Pay-Reader gefunden (echtes iPhone nötig)."))
+                    self.discoverContinuation = nil
                 }
-            }
-        }
-    }
-
-    // MARK: ConnectionTokenProvider
-
-    func fetchConnectionToken(_ completion: @escaping ConnectionTokenCompletionBlock) {
-        Task {
-            do {
-                let secret = try await TapToPayService.fetchConnectionToken(operatorSlug: operatorSlug)
-                completion(secret, nil)
-            } catch {
-                completion(nil, error)
             }
         }
     }
@@ -262,9 +272,12 @@ private final class TerminalTapToPayRunner: NSObject, ConnectionTokenProvider, D
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         guard let cont = discoverContinuation, let reader = readers.first else { return }
         discoverContinuation = nil
-        discoverCancelable?.cancel { _ in }
+        let cancelable = discoverCancelable
         discoverCancelable = nil
         cont.resume(returning: reader)
+        if let cancelable {
+            Task { try? await cancelable.cancel() }
+        }
     }
 
     // MARK: TapToPayReaderDelegate
@@ -275,7 +288,7 @@ private final class TerminalTapToPayRunner: NSObject, ConnectionTokenProvider, D
 
     func tapToPayReader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {}
 
-    func tapToPayReader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {}
+    func tapToPayReader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions) {}
 
     func tapToPayReader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {}
 }
