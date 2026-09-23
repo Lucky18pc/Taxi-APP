@@ -23,7 +23,7 @@ App pollt /api/public/bookings/:id/tracking alle 4 s
 | Backend API | `backend/server.js` |
 | Fahrer GPS (Web) | `web/driver-track.html` |
 | Fahrer-PIN | `web/settings.html` → Fahrer |
-| Leitstelle-Link | `web/dispatch.html` → „GPS starten“ |
+| Leitstelle-Link | `web/dispatch.html` → „GPS starten“ + **Live-Karte** (Fahrer-Punkte) |
 | Fahrgast-Karte | `FahrgastApp` → `LiveTrackingScreen.swift` |
 
 ## API

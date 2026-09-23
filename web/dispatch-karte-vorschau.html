@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vorschau — Karten-Leitstelle (Demo)</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {
+      --ink: #0c1c34;
+      --yellow: #ffe08a;
+      --taxi: #f5c518;
+      --panel: #fffdf5;
+      --ok: #065f46;
+      --busy: #92400e;
+      --off: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: "Segoe UI", system-ui, sans-serif; color: var(--ink); background: #0c1c34; }
+    .banner {
+      background: #f59e0b;
+      color: #0c1c34;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 0.55rem 1rem;
+      letter-spacing: 0.02em;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      height: calc(100% - 2.2rem);
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; grid-template-rows: 42vh 1fr; }
+    }
+    aside {
+      background: var(--panel);
+      border-right: 3px solid var(--ink);
+      overflow: auto;
+      padding: 1rem 1rem 1.5rem;
+    }
+    aside h1 { margin: 0 0 0.25rem; font-size: 1.15rem; }
+    aside .sub { margin: 0 0 1rem; font-size: 0.82rem; opacity: 0.85; }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .stat {
+      background: var(--yellow);
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      padding: 0.45rem 0.4rem;
+      text-align: center;
+    }
+    .stat b { display: block; font-size: 1.2rem; }
+    .stat span { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
+    h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; margin: 1rem 0 0.5rem; }
+    .driver, .job {
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 12px;
+      padding: 0.65rem 0.75rem;
+      margin-bottom: 0.55rem;
+    }
+    .driver { display: flex; gap: 0.65rem; align-items: center; cursor: pointer; }
+    .driver:hover { background: #fff8cc; }
+    .dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      flex-shrink: 0; border: 2px solid var(--ink);
+    }
+    .dot.free { background: #34d399; }
+    .dot.busy { background: #fbbf24; }
+    .dot.off { background: #9ca3af; }
+    .driver strong { display: block; font-size: 0.92rem; }
+    .driver small { color: #1c304f; opacity: 0.8; }
+    .job h3 { margin: 0 0 0.25rem; font-size: 0.92rem; }
+    .job p { margin: 0.15rem 0; font-size: 0.8rem; }
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      background: #dbeafe;
+      color: #1e40af;
+      margin-bottom: 0.3rem;
+    }
+    .badge.urgent { background: #fee2e2; color: #991b1b; }
+    .job-actions { margin-top: 0.45rem; display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .job-actions button {
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 2px solid var(--ink);
+      background: var(--yellow);
+      border-radius: 8px;
+      padding: 0.3rem 0.55rem;
+      cursor: pointer;
+    }
+    .job-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
+    #map { height: 100%; width: 100%; }
+    .taxi-pin {
+      background: var(--taxi);
+      border: 2.5px solid var(--ink);
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 900;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
+    .taxi-pin.busy { background: #fb923c; }
+    .pickup-pin {
+      background: #fff;
+      border: 2.5px solid #dc2626;
+      color: #dc2626;
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 0.65rem;
+      font-weight: 900;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .hint {
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      padding: 0.65rem;
+      background: #ffe08a;
+      border: 2px dashed var(--ink);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">ALTE DEMO — die echte Karten-Leitstelle ist jetzt <a href="dispatch.html" style="color:#0c1c34">dispatch.html</a></div>
+  <div class="layout">
+    <aside>
+      <h1>Karten-Leitstelle</h1>
+      <p class="sub">Luckys Demo · Speyer / Rhein-Neckar</p>
+      <div class="stats">
+        <div class="stat"><b id="n-free">0</b><span>Frei</span></div>
+        <div class="stat"><b id="n-busy">0</b><span>Besetzt</span></div>
+        <div class="stat"><b id="n-jobs">0</b><span>Offen</span></div>
+      </div>
+
+      <h2>Fahrer live</h2>
+      <div id="drivers"></div>
+
+      <h2>Offene Fahrten</h2>
+      <div id="jobs"></div>
+
+      <p class="hint">
+        Die Punkte bewegen sich nur zur Demo. Später würden echte GPS-Daten von der Fahrer-App hier landen.
+        Noch <strong>nicht</strong> produktiv — nur Vorzeigen.
+      </p>
+    </aside>
+    <div id="map"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Demo-Zentrum: Speyer
+    const CENTER = [49.317, 8.431];
+
+    const drivers = [
+      { id: "d1", name: "Ali K.", plate: "SP-TK 12", status: "free", lat: 49.319, lng: 8.428, heading: 40 },
+      { id: "d2", name: "Mara S.", plate: "SP-TX 44", status: "busy", lat: 49.312, lng: 8.438, heading: 200 },
+      { id: "d3", name: "Jonas R.", plate: "DUW-TA 7", status: "free", lat: 49.325, lng: 8.441, heading: 110 },
+      { id: "d4", name: "Elena P.", plate: "SP-TC 21", status: "off", lat: 49.308, lng: 8.422, heading: 0 },
+    ];
+
+    const jobs = [
+      { id: "j1", address: "Asternweg 21, Speyer", when: "sofort", status: "neu", urgent: true, lat: 49.321, lng: 8.435 },
+      { id: "j2", address: "Bahnhof Speyer", when: "19:40", status: "wartend", urgent: false, lat: 49.314, lng: 8.427 },
+    ];
+
+    const map = L.map("map", { zoomControl: true }).setView(CENTER, 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap",
+    }).addTo(map);
+
+    const markers = {};
+
+    function pinHtml(driver) {
+      const cls = driver.status === "busy" ? "taxi-pin busy" : "taxi-pin";
+      const label = driver.status === "off" ? "—" : "TX";
+      return `<div class="${cls}">${label}</div>`;
+    }
+
+    function statusLabel(s) {
+      if (s === "free") return "Frei";
+      if (s === "busy") return "Besetzt";
+      return "Offline";
+    }
+
+    function refreshStats() {
+      document.getElementById("n-free").textContent = drivers.filter((d) => d.status === "free").length;
+      document.getElementById("n-busy").textContent = drivers.filter((d) => d.status === "busy").length;
+      document.getElementById("n-jobs").textContent = jobs.length;
+    }
+
+    function renderDrivers() {
+      const box = document.getElementById("drivers");
+      box.innerHTML = drivers.map((d) => `
+        <div class="driver" data-id="${d.id}">
+          <span class="dot ${d.status}"></span>
+          <div>
+            <strong>${d.name}</strong>
+            <small>${d.plate} · ${statusLabel(d.status)}</small>
+          </div>
+        </div>
+      `).join("");
+      box.querySelectorAll(".driver").forEach((el) => {
+        el.addEventListener("click", () => {
+          const d = drivers.find((x) => x.id === el.dataset.id);
+          if (d && markers[d.id]) {
+            map.flyTo([d.lat, d.lng], 15, { duration: 0.6 });
+            markers[d.id].openPopup();
+          }
+        });
+      });
+    }
+
+    function renderJobs() {
+      const box = document.getElementById("jobs");
+      box.innerHTML = jobs.map((j) => `
+        <div class="job">
+          <span class="badge ${j.urgent ? "urgent" : ""}">${j.urgent ? "Neu · sofort" : j.status}</span>
+          <h3>${j.address}</h3>
+          <p>Abholung: ${j.when}</p>
+          <div class="job-actions">
+            <button type="button" disabled title="Nur Demo">Zuweisen</button>
+            <button type="button" onclick="focusJob('${j.id}')">Auf Karte</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    window.focusJob = function (id) {
+      const j = jobs.find((x) => x.id === id);
+      if (!j) return;
+      map.flyTo([j.lat, j.lng], 15, { duration: 0.5 });
+    };
+
+    jobs.forEach((j) => {
+      const icon = L.divIcon({
+        className: "",
+        html: `<div class="pickup-pin">ABHOL</div>`,
+        iconSize: [52, 22],
+        iconAnchor: [26, 11],
+      });
+      L.marker([j.lat, j.lng], { icon })
+        .addTo(map)
+        .bindPopup(`<strong>${j.address}</strong><br>${j.when}`);
+    });
+
+    drivers.forEach((d) => {
+      const icon = L.divIcon({
+        className: "",
+        html: pinHtml(d),
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+      const m = L.marker([d.lat, d.lng], { icon })
+        .addTo(map)
+        .bindPopup(`<strong>${d.name}</strong><br>${d.plate}<br>${statusLabel(d.status)}`);
+      markers[d.id] = m;
+    });
+
+    function tick() {
+      drivers.forEach((d) => {
+        if (d.status === "off") return;
+        const speed = d.status === "busy" ? 0.00018 : 0.00012;
+        d.heading += (Math.random() - 0.5) * 40;
+        const rad = (d.heading * Math.PI) / 180;
+        d.lat += Math.cos(rad) * speed;
+        d.lng += Math.sin(rad) * speed;
+        // nicht zu weit wegdriften
+        if (Math.abs(d.lat - CENTER[0]) > 0.025) d.heading += 180;
+        if (Math.abs(d.lng - CENTER[1]) > 0.035) d.heading += 180;
+        markers[d.id].setLatLng([d.lat, d.lng]);
+        markers[d.id].setIcon(L.divIcon({
+          className: "",
+          html: pinHtml(d),
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        }));
+      });
+    }
+
+    refreshStats();
+    renderDrivers();
+    renderJobs();
+    setInterval(tick, 1200);
+    setInterval(() => { refreshStats(); renderDrivers(); }, 3000);
+  </script>
+</body>
+</html>

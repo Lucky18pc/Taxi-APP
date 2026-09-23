@@ -2321,6 +2321,7 @@ app.get("/api/drivers", requireAdmin, (req, res) => {
     return {
       ...rest,
       ...driverCompliancePublic(d),
+      locationFresh: driverHasFreshLocation(d),
     };
   });
   res.json({ drivers: list });
@@ -2939,6 +2940,7 @@ app.post("/api/driver/location", requireDriverApp, (req, res) => {
   if (bookingId) {
     driver.activeBookingId = bookingId;
   }
+  saveDriversConfig();
 
   res.json({
     ok: true,
@@ -2978,6 +2980,7 @@ app.post("/api/drivers/:id/location", (req, res) => {
   if (driver.status === "offline") {
     driver.status = "busy";
   }
+  saveDriversConfig();
 
   res.json({
     ok: true,
