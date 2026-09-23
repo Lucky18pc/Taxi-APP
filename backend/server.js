@@ -1569,6 +1569,8 @@ app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
   if (!adminPin) {
     return res.status(503).json({ error: "ADMIN_PIN not configured" });
   }
+  // Immer frisch von Disk (Render kann mehrere Instanzen haben).
+  adminMfa = loadAdminMfa();
   if (adminMfa.enabled) {
     return res.status(400).json({ error: "MFA ist bereits aktiv" });
   }
@@ -1590,6 +1592,7 @@ app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
 });
 
 app.post("/api/auth/mfa/confirm", requireAdmin, (req, res) => {
+  adminMfa = loadAdminMfa();
   const pending = adminMfa.pendingSecret;
   if (!pending) {
     return res.status(400).json({

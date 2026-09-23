@@ -35,10 +35,12 @@ function base32Decode(input) {
     if (idx < 0) continue;
     value = (value << 5) | idx;
     bits += 5;
-    if (bits >= 8) {
-      bytes.push((value >>> (bits - 8)) & 255);
+    while (bits >= 8) {
       bits -= 8;
+      bytes.push((value >>> bits) & 0xff);
     }
+    // Wichtig: nur Restbits behalten (sonst falscher Key vs. Google Authenticator)
+    value &= bits === 0 ? 0 : (1 << bits) - 1;
   }
   return Buffer.from(bytes);
 }
@@ -62,7 +64,7 @@ function hotp(secretBase32, counter) {
   return String(code % 1_000_000).padStart(6, "0");
 }
 
-function verifyTotp(secretBase32, token, window = 1) {
+function verifyTotp(secretBase32, token, window = 2) {
   const code = String(token || "").replace(/\s/g, "");
   if (!/^\d{6}$/.test(code) || !secretBase32) return false;
   const counter = Math.floor(Date.now() / 1000 / 30);
@@ -70,6 +72,11 @@ function verifyTotp(secretBase32, token, window = 1) {
     if (hotp(secretBase32, counter + i) === code) return true;
   }
   return false;
+}
+
+function currentTotp(secretBase32) {
+  const counter = Math.floor(Date.now() / 1000 / 30);
+  return hotp(secretBase32, counter);
 }
 
 function otpauthUrl({ secret, accountName, issuer }) {
@@ -87,5 +94,8 @@ function otpauthUrl({ secret, accountName, issuer }) {
 module.exports = {
   generateSecret,
   verifyTotp,
+  currentTotp,
   otpauthUrl,
+  base32Decode,
+  base32Encode,
 };
