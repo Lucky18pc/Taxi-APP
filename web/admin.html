@@ -397,6 +397,7 @@
         </p>
         <button type="button" class="btn btn-navy" id="mfa-confirm-btn" style="width:100%">MFA aktivieren</button>
         <button type="button" class="btn btn-ghost" id="mfa-reset-btn" style="width:100%;margin-top:0.5rem">Neuen QR erzeugen</button>
+        <button type="button" class="btn btn-ghost" id="mfa-skip-btn" style="width:100%;margin-top:0.5rem">Später einrichten — weiter zum Admin</button>
         <p id="mfa-setup-error" class="login-error hidden"></p>
       </div>
     </div>
@@ -416,6 +417,7 @@
       <button type="button" class="nav-btn" data-panel="create">Neu anlegen</button>
       <button type="button" class="nav-btn" data-panel="analytics">Analytics</button>
       <div class="side-foot">
+        <button type="button" class="btn btn-ghost btn-sm" id="admin-setup-mfa" style="width:100%;color:#fff;border-color:rgba(255,255,255,0.35);margin-bottom:0.5rem">MFA einrichten</button>
         <button type="button" class="btn btn-ghost btn-sm" id="admin-logout" style="width:100%;color:#fff;border-color:rgba(255,255,255,0.35)">Abmelden</button>
       </div>
     </aside>
@@ -509,6 +511,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=20260924-mfa9"></script>
+  <script src="admin.js?v=20260924-mfa10"></script>
 </body>
 </html>

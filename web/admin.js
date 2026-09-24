@@ -916,6 +916,27 @@
     }
   });
 
+  document.getElementById("mfa-skip-btn")?.addEventListener("click", async () => {
+    try {
+      await enterAppAfterAuth();
+    } catch (err) {
+      const errEl = document.getElementById("mfa-setup-error");
+      errEl.textContent = err.message || "Weiter ohne MFA fehlgeschlagen — bitte neu anmelden.";
+      errEl.classList.remove("hidden");
+    }
+  });
+
+  document.getElementById("admin-setup-mfa")?.addEventListener("click", async () => {
+    document.getElementById("admin-app").classList.add("hidden");
+    document.getElementById("admin-login").classList.remove("hidden");
+    try {
+      await startMfaSetup({ reset: true });
+    } catch (err) {
+      alert(err.message || "MFA-Setup fehlgeschlagen");
+      showApp();
+    }
+  });
+
   document.getElementById("admin-logout").addEventListener("click", () => {
     clearAuth();
     showLogin();
@@ -1003,13 +1024,12 @@
     try {
       const res = await apiFetch("/api/fleet/operators");
       if (!res.ok) throw new Error("session");
+      // MFA ist optional — nicht mehr bei jedem Laden erzwingen.
+      await enterAppAfterAuth();
       const statusRes = await apiFetch("/api/auth/mfa/status");
       const status = statusRes.ok ? await statusRes.json() : { enabled: false };
-      if (!status.enabled) {
-        await startMfaSetup();
-        return;
-      }
-      await enterAppAfterAuth();
+      const mfaBtn = document.getElementById("admin-setup-mfa");
+      if (mfaBtn) mfaBtn.classList.toggle("hidden", Boolean(status.enabled));
     } catch (err) {
       console.error(err);
       clearAuth();

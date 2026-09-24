@@ -270,25 +270,44 @@ const offering = JSON.parse(
 );
 
 function resolveDataDir() {
-  const preferred = process.env.DATA_DIR || path.join(__dirname, "data");
-  try {
-    fs.mkdirSync(preferred, { recursive: true });
-    fs.accessSync(preferred, fs.constants.W_OK);
-    return preferred;
-  } catch (error) {
-    const fallback = path.join(__dirname, "data");
-    console.warn(
-      `DATA_DIR "${preferred}" nicht nutzbar (${error.code}) — Fallback: ${fallback}`
-    );
-    fs.mkdirSync(fallback, { recursive: true });
-    return fallback;
+  // DATEN_DIR = häufiger Tippfehler in der Render-UI; /var/data = Persistent Disk.
+  const fromEnv = String(process.env.DATA_DIR || process.env.DATEN_DIR || "").trim();
+  const candidates = [];
+  if (fromEnv) candidates.push(fromEnv);
+  if (process.env.RENDER || process.env.RENDER_SERVICE_ID) {
+    candidates.push("/var/data");
   }
+  candidates.push(path.join(__dirname, "data"));
+
+  const tried = [];
+  for (const preferred of candidates) {
+    try {
+      fs.mkdirSync(preferred, { recursive: true });
+      fs.accessSync(preferred, fs.constants.W_OK);
+      if (fromEnv && preferred !== fromEnv) {
+        console.warn(`DATA_DIR: "${fromEnv}" nicht nutzbar — nutze ${preferred}`);
+      } else if (process.env.DATEN_DIR && !process.env.DATA_DIR && preferred === fromEnv) {
+        console.warn('Hinweis: Env heißt "DATEN_DIR" — bitte in Render in DATA_DIR umbenennen.');
+      }
+      return preferred;
+    } catch (error) {
+      tried.push(`${preferred} (${error.code || error.message})`);
+    }
+  }
+  const fallback = path.join(__dirname, "data");
+  console.warn(`DATA_DIR: keine Variante nutzbar [${tried.join("; ")}] — Fallback ${fallback}`);
+  fs.mkdirSync(fallback, { recursive: true });
+  return fallback;
 }
 
 const dataDir = resolveDataDir();
-if (process.env.RENDER && dataDir.includes("/opt/render/project")) {
+console.log(`Datenverzeichnis: ${dataDir}`);
+if (
+  (process.env.RENDER || process.env.RENDER_SERVICE_ID) &&
+  dataDir.includes("/opt/render/project")
+) {
   console.warn(
-    "WARNUNG: DATA_DIR zeigt auf den Repo-Ordner (ephemeral). In Render Environment DATA_DIR=/var/data setzen und Persistent Disk mounten — sonst sterben Sessions/MFA nach jedem Deploy."
+    "WARNUNG: Kein Persistent Disk — Sessions/MFA gehen bei jedem Deploy verloren. In Render DATA_DIR=/var/data setzen und Disk auf /var/data mounten."
   );
 }
 const adminPin = String(process.env.ADMIN_PIN || "").trim();
@@ -1541,6 +1560,8 @@ app.post("/api/auth/verify", (req, res) => {
     return res.json({ ok: true, mfaEnabled: false, sessionToken: null, role: "operator" });
   }
 
+  adminMfa = loadAdminMfa();
+
   if (adminMfa.enabled) {
     if (!totp) {
       return res.status(401).json({
@@ -1565,11 +1586,13 @@ app.post("/api/auth/verify", (req, res) => {
     });
   }
 
+  // MFA noch nicht aktiv: Admin mit PIN nutzen; Setup optional (nicht blockierend).
   const sessionToken = createAdminSession();
   return res.json({
     ok: true,
     mfaEnabled: false,
-    mfaSetupRequired: true,
+    mfaSetupRequired: false,
+    mfaSetupOptional: true,
     sessionToken,
     role: "admin",
   });
