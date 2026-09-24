@@ -12,6 +12,10 @@ Plattform-Admin (`admin.html`) nutzt **PIN + Authenticator-App**.
 
 **Wichtig:** Der QR bleibt stabil, bis MFA aktiv ist. Seite neu laden erzeugt keinen neuen Secret. Nur **„Neuen QR erzeugen“** wechselt ihn — dann alten Authenticator-Eintrag löschen und neu scannen.
 
+Bei der Aktivierung den **ADMIN_PIN** noch einmal im Feld eintragen (nach Deploy ist die Browser-Session oft tot).
+
+Auf Render muss `DATA_DIR=/var/data` mit Persistent Disk gesetzt sein — sonst gehen Sessions/MFA-Secrets bei jedem Deploy verloren.
+
 ## Technik
 
 | Teil | Ort |

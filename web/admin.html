@@ -384,6 +384,10 @@
           Geheimnis (manuell): <strong id="mfa-secret"></strong>
         </p>
         <div class="field">
+          <label for="mfa-confirm-pin">ADMIN_PIN (nochmal)</label>
+          <input id="mfa-confirm-pin" type="password" autocomplete="current-password" placeholder="Dein Render ADMIN_PIN">
+        </div>
+        <div class="field">
           <label for="mfa-confirm-code">Code aus der App</label>
           <input id="mfa-confirm-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 Ziffern">
         </div>
@@ -501,6 +505,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=20260924-mfa6"></script>
+  <script src="admin.js?v=20260924-mfa7"></script>
 </body>
 </html>

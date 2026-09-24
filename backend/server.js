@@ -285,6 +285,11 @@ function resolveDataDir() {
 }
 
 const dataDir = resolveDataDir();
+if (process.env.RENDER && dataDir.includes("/opt/render/project")) {
+  console.warn(
+    "WARNUNG: DATA_DIR zeigt auf den Repo-Ordner (ephemeral). In Render Environment DATA_DIR=/var/data setzen und Persistent Disk mounten — sonst sterben Sessions/MFA nach jedem Deploy."
+  );
+}
 const adminPin = String(process.env.ADMIN_PIN || "").trim();
 
 /** Shared secret für Fahrer-App-Endpunkte. Auf Render per DRIVER_API_KEY überschreiben. */
@@ -1302,11 +1307,13 @@ function requireAdmin(req, res, next) {
   const header = String(req.headers.authorization || "");
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   const pinHeader = String(req.headers["x-admin-pin"] || "").trim();
+  const bodyPin = String(req.body?.pin || "").trim();
 
   if (isValidAdminSession(bearer) || isValidAdminSession(pinHeader)) return next();
 
-  // Session kann nach Deploy tot sein — dann PIN aus Header/Bearer akzeptieren.
+  // Session kann nach Deploy tot sein — PIN aus Header, Bearer oder Body.
   const pin =
+    (bodyPin && verifyRequestPin(req, bodyPin) && bodyPin) ||
     (pinHeader && verifyRequestPin(req, pinHeader) && pinHeader) ||
     (bearer && verifyRequestPin(req, bearer) && bearer) ||
     "";

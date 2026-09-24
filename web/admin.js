@@ -67,7 +67,8 @@
   }
 
   async function apiFetch(url, options = {}) {
-    const headers = { ...(options.headers || {}), ...authHeaders() };
+    // Explizite Header (z. B. PIN bei MFA) schlagen Session-Defaults.
+    const headers = { ...authHeaders(), ...(options.headers || {}) };
     if (typeof FormData !== "undefined" && options.body instanceof FormData) {
       delete headers["Content-Type"];
       delete headers["content-type"];
@@ -85,7 +86,7 @@
       // Tote Session nach Deploy: einmal mit PIN allein erneut versuchen.
       if (res.status === 401 && getSession() && (getPin() || pendingPin)) {
         dropStaleSession();
-        const retryHeaders = { ...(options.headers || {}), ...authHeaders() };
+        const retryHeaders = { ...authHeaders(), ...(options.headers || {}) };
         if (typeof FormData !== "undefined" && options.body instanceof FormData) {
           delete retryHeaders["Content-Type"];
           delete retryHeaders["content-type"];
@@ -176,12 +177,28 @@
     errEl.classList.add("hidden");
     errEl.textContent = "";
     document.getElementById("mfa-confirm-code").value = "";
+    const pinInput = document.getElementById("mfa-confirm-pin");
+    if (pinInput && !pinInput.value) {
+      pinInput.value = getPin() || pendingPin || "";
+    }
+
+    const pin = (pinInput?.value || getPin() || pendingPin || "").trim();
+    if (pin) pendingPin = pin;
 
     try {
+      // MFA-Setup bewusst mit PIN auth (nicht tote Session nach Deploy).
+      const headers = { "Content-Type": "application/json" };
+      if (pin) {
+        headers.Authorization = `Bearer ${pin}`;
+        headers["X-Admin-Pin"] = pin;
+      } else {
+        Object.assign(headers, authHeaders());
+      }
       const res = await apiFetch("/api/auth/mfa/setup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reset ? { reset: true } : {}),
+        headers,
+        body: JSON.stringify(reset ? { reset: true, pin } : { pin }),
+        resetOn401: false,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "MFA-Setup fehlgeschlagen");
@@ -194,7 +211,6 @@
         host.id = "mfa-qr";
         setupEl.querySelector("div[style*='text-align:center']")?.appendChild(host);
       }
-      // QR lokal über Bild-URL; Secret bleibt auf dem Server stabil, bis „Neuen QR“ oder Confirm.
       host.outerHTML = `<img id="mfa-qr" alt="QR-Code MFA" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=${encodeURIComponent(data.otpauthUrl)}">`;
       if (reset) {
         errEl.textContent =
@@ -208,7 +224,11 @@
       errEl.style.color = "";
       errEl.textContent = err.message || "MFA-Setup fehlgeschlagen";
       errEl.classList.remove("hidden");
-      formEl.classList.remove("hidden");
+      if (String(err.message || "").includes("PIN")) {
+        errEl.textContent =
+          "Bitte ADMIN_PIN unten eintragen und „Neuen QR erzeugen“ tippen — Session nach Deploy oft abgelaufen.";
+        errEl.classList.remove("hidden");
+      }
       throw err;
     }
   }
@@ -798,6 +818,12 @@
     const errEl = document.getElementById("mfa-setup-error");
     errEl.style.color = "";
     errEl.classList.add("hidden");
+    const pin = (
+      document.getElementById("mfa-confirm-pin")?.value ||
+      getPin() ||
+      pendingPin ||
+      ""
+    ).trim();
     const code = document
       .getElementById("mfa-confirm-code")
       .value.replace(/\D/g, "")
@@ -805,25 +831,36 @@
     document.getElementById("mfa-confirm-code").value = code;
     const remember = document.getElementById("admin-remember")?.checked !== false;
     const btn = document.getElementById("mfa-confirm-btn");
+    if (!pin) {
+      errEl.textContent = "Bitte ADMIN_PIN eintragen (Feld darüber).";
+      errEl.classList.remove("hidden");
+      document.getElementById("mfa-confirm-pin")?.focus();
+      return;
+    }
     if (!/^\d{6}$/.test(code)) {
       errEl.textContent = "Bitte genau 6 Ziffern aus der Authenticator-App eingeben.";
       errEl.classList.remove("hidden");
       return;
     }
+    pendingPin = pin;
+    dropStaleSession();
     btn.disabled = true;
     btn.textContent = "Prüfe…";
     try {
-      const res = await apiFetch("/api/auth/mfa/confirm", {
+      const res = await fetch("/api/auth/mfa/confirm", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ totp: code }),
-        resetOn401: false,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${pin}`,
+          "X-Admin-Pin": pin,
+        },
+        body: JSON.stringify({ totp: code, pin }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Aktivierung fehlgeschlagen");
       setAuth({
-        sessionToken: data.sessionToken || getSession(),
-        pin: getPin(),
+        sessionToken: data.sessionToken || "",
+        pin,
         remember,
       });
       await enterAppAfterAuth();
@@ -840,6 +877,22 @@
 
   document.getElementById("mfa-reset-btn")?.addEventListener("click", async () => {
     const btn = document.getElementById("mfa-reset-btn");
+    const pin = (
+      document.getElementById("mfa-confirm-pin")?.value ||
+      getPin() ||
+      pendingPin ||
+      ""
+    ).trim();
+    if (!pin) {
+      const errEl = document.getElementById("mfa-setup-error");
+      errEl.style.color = "";
+      errEl.textContent = "Bitte zuerst ADMIN_PIN eintragen, dann „Neuen QR erzeugen“.";
+      errEl.classList.remove("hidden");
+      document.getElementById("mfa-confirm-pin")?.focus();
+      return;
+    }
+    pendingPin = pin;
+    dropStaleSession();
     btn.disabled = true;
     try {
       await startMfaSetup({ reset: true });
