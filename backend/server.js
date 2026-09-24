@@ -1302,16 +1302,21 @@ function requireAdmin(req, res, next) {
   const header = String(req.headers.authorization || "");
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   const pinHeader = String(req.headers["x-admin-pin"] || "").trim();
-  const tokenOrPin = bearer || pinHeader;
 
-  if (isValidAdminSession(tokenOrPin)) return next();
+  if (isValidAdminSession(bearer) || isValidAdminSession(pinHeader)) return next();
 
-  if (!verifyRequestPin(req, tokenOrPin)) {
+  // Session kann nach Deploy tot sein — dann PIN aus Header/Bearer akzeptieren.
+  const pin =
+    (pinHeader && verifyRequestPin(req, pinHeader) && pinHeader) ||
+    (bearer && verifyRequestPin(req, bearer) && bearer) ||
+    "";
+  if (!pin) {
     return res.status(401).json({ error: "Unauthorized — PIN required" });
   }
 
+  adminMfa = loadAdminMfa();
   // Plattform-ADMIN_PIN bei aktivem MFA: Session nach TOTP nötig (Betriebs-PIN unberührt).
-  if (isPlatformAdminPin(tokenOrPin) && adminMfa.enabled) {
+  if (isPlatformAdminPin(pin) && adminMfa.enabled) {
     return res.status(401).json({
       error: "MFA erforderlich — bitte erneut anmelden und Authenticator-Code eingeben.",
       mfaRequired: true,

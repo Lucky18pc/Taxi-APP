@@ -48,9 +48,22 @@
 
   function authHeaders() {
     const session = getSession();
-    if (session) return { Authorization: `Bearer ${session}` };
-    const pin = getPin();
-    return pin ? { Authorization: `Bearer ${pin}` } : {};
+    const pin = getPin() || pendingPin || "";
+    const headers = {};
+    if (session) {
+      headers.Authorization = `Bearer ${session}`;
+    } else if (pin) {
+      headers.Authorization = `Bearer ${pin}`;
+    }
+    // PIN zusätzlich mitsenden: nach Render-Deploy ist die Session oft tot,
+    // der PIN reicht für MFA-Setup/Confirm noch (solange MFA nicht aktiv ist).
+    if (pin) headers["X-Admin-Pin"] = pin;
+    return headers;
+  }
+
+  function dropStaleSession() {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
   }
 
   async function apiFetch(url, options = {}) {
@@ -64,11 +77,25 @@
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     const resetOn401 = options.resetOn401 !== false;
     try {
-      const res = await fetch(url, {
+      let res = await fetch(url, {
         ...options,
         headers,
         signal: options.signal || controller.signal,
       });
+      // Tote Session nach Deploy: einmal mit PIN allein erneut versuchen.
+      if (res.status === 401 && getSession() && (getPin() || pendingPin)) {
+        dropStaleSession();
+        const retryHeaders = { ...(options.headers || {}), ...authHeaders() };
+        if (typeof FormData !== "undefined" && options.body instanceof FormData) {
+          delete retryHeaders["Content-Type"];
+          delete retryHeaders["content-type"];
+        }
+        res = await fetch(url, {
+          ...options,
+          headers: retryHeaders,
+          signal: options.signal || controller.signal,
+        });
+      }
       if (res.status === 401 && resetOn401) {
         const body = await res.clone().json().catch(() => ({}));
         clearAuth();
