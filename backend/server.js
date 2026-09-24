@@ -1049,7 +1049,12 @@ function purgeExpiredAdminSessions() {
 function isValidAdminSession(token) {
   if (!token) return false;
   purgeExpiredAdminSessions();
-  const meta = adminSessions.get(token);
+  let meta = adminSessions.get(token);
+  if (!meta) {
+    // Andere Render-Instanz / frischer Worker: Sessions von Disk nachladen.
+    loadAdminSessionsFromDisk();
+    meta = adminSessions.get(token);
+  }
   return Boolean(meta && meta.expires > Date.now());
 }
 
@@ -1574,6 +1579,8 @@ app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
   if (adminMfa.enabled) {
     return res.status(400).json({ error: "MFA ist bereits aktiv" });
   }
+  // Pending-Secret stabil halten — sonst wechselt der QR und App-Codes passen nie.
+  // Neuer QR nur bei explizitem reset:true („Neuen QR erzeugen“).
   const forceNew = Boolean(req.body?.reset || req.query?.reset);
   if (forceNew || !adminMfa.pendingSecret) {
     adminMfa.pendingSecret = generateSecret();
@@ -1588,6 +1595,7 @@ app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
   res.json({
     secret,
     otpauthUrl: url,
+    reused: !forceNew,
   });
 });
 
@@ -1599,8 +1607,10 @@ app.post("/api/auth/mfa/confirm", requireAdmin, (req, res) => {
       error: "Kein MFA-Setup aktiv — bitte Seite neu laden und QR erneut scannen.",
     });
   }
-  const totp = String(req.body.totp || req.body.code || "").trim();
-  if (!verifyTotp(pending, totp)) {
+  const totp = String(req.body.totp || req.body.code || "")
+    .replace(/\D/g, "")
+    .slice(0, 6);
+  if (!verifyTotp(pending, totp, 3)) {
     return res.status(400).json({
       error: "Authenticator-Code ungültig oder abgelaufen — neuen Code aus der App nehmen (nicht den PIN).",
     });

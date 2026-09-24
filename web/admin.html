@@ -385,9 +385,10 @@
         </p>
         <div class="field">
           <label for="mfa-confirm-code">Code aus der App</label>
-          <input id="mfa-confirm-code" type="text" inputmode="numeric" maxlength="6" placeholder="6 Ziffern">
+          <input id="mfa-confirm-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 Ziffern">
         </div>
         <button type="button" class="btn btn-navy" id="mfa-confirm-btn" style="width:100%">MFA aktivieren</button>
+        <button type="button" class="btn btn-ghost" id="mfa-reset-btn" style="width:100%;margin-top:0.5rem">Neuen QR erzeugen</button>
         <p id="mfa-setup-error" class="login-error hidden"></p>
       </div>
     </div>
@@ -500,6 +501,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=20260923-mfa4"></script>
+  <script src="admin.js?v=20260924-mfa5"></script>
 </body>
 </html>

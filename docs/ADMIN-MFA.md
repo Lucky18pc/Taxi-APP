@@ -4,11 +4,13 @@ Plattform-Admin (`admin.html`) nutzt **PIN + Authenticator-App**.
 
 ## Ablauf (Präsentation / erstes Mal)
 
-1. https://luckystaxiapp.de/admin.html öffnen  
+1. https://luckystaxiapp.de/admin.html öffnen (Hard-Refresh, falls alte Seite gecacht)  
 2. **ADMIN_PIN** (Render) eingeben → Anmelden  
 3. QR-Code mit Google Authenticator / Authy / iOS-Passwörter scannen  
 4. 6-stelligen Code eingeben → **MFA aktivieren**  
 5. Ab dann: bei jedem Login **PIN**, dann **Code**
+
+**Wichtig:** Der QR bleibt stabil, bis MFA aktiv ist. Seite neu laden erzeugt keinen neuen Secret. Nur **„Neuen QR erzeugen“** wechselt ihn — dann alten Authenticator-Eintrag löschen und neu scannen.
 
 ## Technik
 

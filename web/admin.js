@@ -139,7 +139,8 @@
     }
   }
 
-  async function startMfaSetup() {
+  async function startMfaSetup(options = {}) {
+    const reset = Boolean(options.reset);
     const setupEl = document.getElementById("admin-mfa-setup");
     const formEl = document.getElementById("admin-login-form");
     const errEl = document.getElementById("mfa-setup-error");
@@ -147,12 +148,13 @@
     formEl.classList.add("hidden");
     errEl.classList.add("hidden");
     errEl.textContent = "";
+    document.getElementById("mfa-confirm-code").value = "";
 
     try {
       const res = await apiFetch("/api/auth/mfa/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reset: true }),
+        body: JSON.stringify(reset ? { reset: true } : {}),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "MFA-Setup fehlgeschlagen");
@@ -165,8 +167,18 @@
         host.id = "mfa-qr";
         setupEl.querySelector("div[style*='text-align:center']")?.appendChild(host);
       }
+      // QR lokal über Bild-URL; Secret bleibt auf dem Server stabil, bis „Neuen QR“ oder Confirm.
       host.outerHTML = `<img id="mfa-qr" alt="QR-Code MFA" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=${encodeURIComponent(data.otpauthUrl)}">`;
+      if (reset) {
+        errEl.textContent =
+          "Neuer QR erzeugt. Alten Eintrag in der Authenticator-App löschen, dann diesen QR scannen.";
+        errEl.classList.remove("hidden");
+        errEl.style.color = "#0c1c34";
+      } else {
+        errEl.style.color = "";
+      }
     } catch (err) {
+      errEl.style.color = "";
       errEl.textContent = err.message || "MFA-Setup fehlgeschlagen";
       errEl.classList.remove("hidden");
       formEl.classList.remove("hidden");
@@ -757,8 +769,13 @@
 
   document.getElementById("mfa-confirm-btn").addEventListener("click", async () => {
     const errEl = document.getElementById("mfa-setup-error");
+    errEl.style.color = "";
     errEl.classList.add("hidden");
-    const code = document.getElementById("mfa-confirm-code").value.trim();
+    const code = document
+      .getElementById("mfa-confirm-code")
+      .value.replace(/\D/g, "")
+      .slice(0, 6);
+    document.getElementById("mfa-confirm-code").value = code;
     const remember = document.getElementById("admin-remember")?.checked !== false;
     const btn = document.getElementById("mfa-confirm-btn");
     if (!/^\d{6}$/.test(code)) {
@@ -786,11 +803,23 @@
     } catch (err) {
       errEl.textContent =
         err.message ||
-        "Code falsch. Aktuellen Code aus der App nehmen (wechselt alle 30 Sek.). Alten Authenticator-Eintrag löschen und denselben QR neu scannen.";
+        "Code falsch. Aktuellen Code aus der App nehmen (wechselt alle 30 Sek.). Alten Authenticator-Eintrag löschen und denselben QR scannen — oder „Neuen QR erzeugen“.";
       errEl.classList.remove("hidden");
     } finally {
       btn.disabled = false;
       btn.textContent = "MFA aktivieren";
+    }
+  });
+
+  document.getElementById("mfa-reset-btn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("mfa-reset-btn");
+    btn.disabled = true;
+    try {
+      await startMfaSetup({ reset: true });
+    } catch {
+      /* Fehler zeigt startMfaSetup */
+    } finally {
+      btn.disabled = false;
     }
   });
 

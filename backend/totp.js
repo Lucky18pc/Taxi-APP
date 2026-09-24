@@ -73,15 +73,17 @@ function currentTotp(secretBase32) {
 }
 
 function otpauthUrl({ secret, accountName, issuer }) {
+  // Manuell percent-encoden (nicht URLSearchParams): manche Authenticator-Apps
+  // werten "+" in issuer als Leerzeichen falsch bzw. abweichend vom Secret-Scan.
   const label = encodeURIComponent(`${issuer}:${accountName}`);
-  const params = new URLSearchParams({
-    secret,
-    issuer,
-    algorithm: "SHA1",
-    digits: "6",
-    period: "30",
-  });
-  return `otpauth://totp/${label}?${params.toString()}`;
+  const q = [
+    `secret=${encodeURIComponent(secret)}`,
+    `issuer=${encodeURIComponent(issuer)}`,
+    "algorithm=SHA1",
+    "digits=6",
+    "period=30",
+  ].join("&");
+  return `otpauth://totp/${label}?${q}`;
 }
 
 module.exports = {
