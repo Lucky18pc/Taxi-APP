@@ -155,6 +155,14 @@
   async function enterAppAfterAuth() {
     showApp();
     showPanel("tenants");
+    try {
+      const statusRes = await apiFetch("/api/auth/mfa/status");
+      const status = statusRes.ok ? await statusRes.json() : { enabled: false };
+      const mfaBtn = document.getElementById("admin-setup-mfa");
+      if (mfaBtn) mfaBtn.classList.toggle("hidden", Boolean(status.enabled));
+    } catch {
+      /* ignore */
+    }
     await withRefreshBusy(refreshAll);
     const params = new URLSearchParams(window.location.search);
     const connect = params.get("connect");
