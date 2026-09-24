@@ -23,6 +23,7 @@
 
   let pendingPin = "";
   let mfaStep = false;
+  let mfaPendingSecret = "";
 
   function getSession() {
     return localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY) || "";
@@ -204,6 +205,7 @@
       if (!res.ok) throw new Error(data.error || "MFA-Setup fehlgeschlagen");
 
       document.getElementById("mfa-secret").textContent = data.secret || "";
+      mfaPendingSecret = data.secret || "";
 
       let host = document.getElementById("mfa-qr");
       if (!host) {
@@ -211,7 +213,10 @@
         host.id = "mfa-qr";
         setupEl.querySelector("div[style*='text-align:center']")?.appendChild(host);
       }
-      host.outerHTML = `<img id="mfa-qr" alt="QR-Code MFA" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=${encodeURIComponent(data.otpauthUrl)}">`;
+      const qrSrc =
+        data.qrDataUrl ||
+        `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.otpauthUrl || "")}`;
+      host.outerHTML = `<img id="mfa-qr" alt="QR-Code MFA" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff" src="${qrSrc}">`;
       if (reset) {
         errEl.textContent =
           "Neuer QR erzeugt. Alten Eintrag in der Authenticator-App löschen, dann diesen QR scannen.";
@@ -854,7 +859,11 @@
           Authorization: `Bearer ${pin}`,
           "X-Admin-Pin": pin,
         },
-        body: JSON.stringify({ totp: code, pin }),
+        body: JSON.stringify({
+          totp: code,
+          pin,
+          secret: mfaPendingSecret || document.getElementById("mfa-secret")?.textContent || "",
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Aktivierung fehlgeschlagen");

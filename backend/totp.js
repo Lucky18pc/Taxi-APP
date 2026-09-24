@@ -1,89 +1,47 @@
 "use strict";
 
-const crypto = require("crypto");
+const OTPAuth = require("otpauth");
 
-const BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-
-function base32Encode(buffer) {
-  const bytes = Buffer.from(buffer);
-  let bits = "";
-  for (const byte of bytes) {
-    bits += byte.toString(2).padStart(8, "0");
-  }
-  let output = "";
-  for (let i = 0; i + 5 <= bits.length; i += 5) {
-    output += BASE32[parseInt(bits.slice(i, i + 5), 2)];
-  }
-  if (bits.length % 5 !== 0) {
-    const rem = bits.slice(bits.length - (bits.length % 5));
-    output += BASE32[parseInt(rem.padEnd(5, "0"), 2)];
-  }
-  return output;
+function generateSecret() {
+  return new OTPAuth.Secret({ size: 20 }).base32;
 }
 
-function base32Decode(input) {
-  const cleaned = String(input || "")
-    .toUpperCase()
-    .replace(/=+$/g, "")
-    .replace(/[^A-Z2-7]/g, "");
-  let bits = "";
-  for (const ch of cleaned) {
-    const idx = BASE32.indexOf(ch);
-    if (idx < 0) continue;
-    bits += idx.toString(2).padStart(5, "0");
-  }
-  const bytes = [];
-  for (let i = 0; i + 8 <= bits.length; i += 8) {
-    bytes.push(parseInt(bits.slice(i, i + 8), 2));
-  }
-  return Buffer.from(bytes);
-}
-
-function generateSecret(bytes = 20) {
-  return base32Encode(crypto.randomBytes(bytes));
-}
-
-function hotp(secretBase32, counter) {
-  const key = base32Decode(secretBase32);
-  const buf = Buffer.alloc(8);
-  buf.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
-  buf.writeUInt32BE(counter & 0xffffffff, 4);
-  const hmac = crypto.createHmac("sha1", key).update(buf).digest();
-  const offset = hmac[hmac.length - 1] & 0xf;
-  const code =
-    ((hmac[offset] & 0x7f) << 24) |
-    ((hmac[offset + 1] & 0xff) << 16) |
-    ((hmac[offset + 2] & 0xff) << 8) |
-    (hmac[offset + 3] & 0xff);
-  return String(code % 1_000_000).padStart(6, "0");
+function makeTotp(secretBase32) {
+  return new OTPAuth.TOTP({
+    issuer: "Luckys Taxi App",
+    label: "Luckys Admin",
+    algorithm: "SHA1",
+    digits: 6,
+    period: 30,
+    secret: OTPAuth.Secret.fromBase32(String(secretBase32 || "").replace(/\s/g, "")),
+  });
 }
 
 function verifyTotp(secretBase32, token, window = 2) {
-  const code = String(token || "").replace(/\s/g, "");
+  const code = String(token || "").replace(/\D/g, "");
   if (!/^\d{6}$/.test(code) || !secretBase32) return false;
-  const counter = Math.floor(Date.now() / 1000 / 30);
-  for (let i = -window; i <= window; i++) {
-    if (hotp(secretBase32, counter + i) === code) return true;
+  try {
+    const delta = makeTotp(secretBase32).validate({ token: code, window });
+    return delta !== null;
+  } catch {
+    return false;
   }
-  return false;
 }
 
 function currentTotp(secretBase32) {
-  return hotp(secretBase32, Math.floor(Date.now() / 1000 / 30));
+  return makeTotp(secretBase32).generate();
 }
 
 function otpauthUrl({ secret, accountName, issuer }) {
-  // Manuell percent-encoden (nicht URLSearchParams): manche Authenticator-Apps
-  // werten "+" in issuer als Leerzeichen falsch bzw. abweichend vom Secret-Scan.
-  const label = encodeURIComponent(`${issuer}:${accountName}`);
-  const q = [
-    `secret=${encodeURIComponent(secret)}`,
-    `issuer=${encodeURIComponent(issuer)}`,
-    "algorithm=SHA1",
-    "digits=6",
-    "period=30",
-  ].join("&");
-  return `otpauth://totp/${label}?${q}`;
+  const totp = new OTPAuth.TOTP({
+    issuer: issuer || "Luckys Taxi App",
+    label: accountName || "Luckys Admin",
+    algorithm: "SHA1",
+    digits: 6,
+    period: 30,
+    secret: OTPAuth.Secret.fromBase32(String(secret || "").replace(/\s/g, "")),
+  });
+  return totp.toString();
 }
 
 module.exports = {
@@ -91,6 +49,4 @@ module.exports = {
   verifyTotp,
   currentTotp,
   otpauthUrl,
-  base32Decode,
-  base32Encode,
 };

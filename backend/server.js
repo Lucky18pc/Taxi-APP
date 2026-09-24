@@ -18,6 +18,7 @@ const {
   DRIVER_DOC_FIELDS,
 } = require("./compliance-uploads");
 const { generateSecret, verifyTotp, otpauthUrl } = require("./totp");
+const QRCode = require("qrcode");
 
 const port = process.env.PORT || 4242;
 const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -1582,7 +1583,7 @@ app.get("/api/auth/mfa/status", requireAdmin, (_req, res) => {
 });
 
 /** QR/Secret für Authenticator — Session nach PIN-Login nötig. */
-app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
+app.post("/api/auth/mfa/setup", requireAdmin, async (req, res) => {
   if (!adminPin) {
     return res.status(503).json({ error: "ADMIN_PIN not configured" });
   }
@@ -1604,10 +1605,22 @@ app.post("/api/auth/mfa/setup", requireAdmin, (req, res) => {
     accountName: "Luckys Admin",
     issuer: "Luckys Taxi App",
   });
+  let qrDataUrl = "";
+  try {
+    qrDataUrl = await QRCode.toDataURL(url, {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      width: 200,
+    });
+  } catch (err) {
+    console.warn("MFA QR-Erzeugung fehlgeschlagen:", err.message);
+  }
   res.json({
     secret,
     otpauthUrl: url,
-    reused: !forceNew,
+    qrDataUrl,
+    reused: Boolean(!forceNew && adminMfa.pendingSecret),
+    serverTime: new Date().toISOString(),
   });
 });
 
@@ -1616,7 +1629,19 @@ app.post("/api/auth/mfa/confirm", requireAdmin, (req, res) => {
   const pending = adminMfa.pendingSecret;
   if (!pending) {
     return res.status(400).json({
-      error: "Kein MFA-Setup aktiv — bitte Seite neu laden und QR erneut scannen.",
+      error: "Kein MFA-Setup aktiv — bitte „Neuen QR erzeugen“, scannen und Code eingeben.",
+    });
+  }
+  const clientSecret = String(req.body.secret || "")
+    .toUpperCase()
+    .replace(/[^A-Z2-7]/g, "");
+  const pendingNorm = String(pending)
+    .toUpperCase()
+    .replace(/[^A-Z2-7]/g, "");
+  if (clientSecret && clientSecret !== pendingNorm) {
+    return res.status(400).json({
+      error:
+        "Angezeigter QR passt nicht mehr zum Server — „Neuen QR erzeugen“, alten App-Eintrag löschen, neu scannen.",
     });
   }
   const totp = String(req.body.totp || req.body.code || "")
@@ -1624,7 +1649,8 @@ app.post("/api/auth/mfa/confirm", requireAdmin, (req, res) => {
     .slice(0, 6);
   if (!verifyTotp(pending, totp, 3)) {
     return res.status(400).json({
-      error: "Authenticator-Code ungültig oder abgelaufen — neuen Code aus der App nehmen (nicht den PIN).",
+      error:
+        "Authenticator-Code ungültig oder abgelaufen. Neuen Code aus der App nehmen (nicht den PIN). Tipp: Alten Eintrag löschen → Neuen QR erzeugen → sofort scannen → Code tippen.",
     });
   }
   adminMfa = {
