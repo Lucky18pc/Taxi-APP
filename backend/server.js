@@ -1626,36 +1626,51 @@ app.post("/api/auth/mfa/setup", requireAdmin, async (req, res) => {
 
 app.post("/api/auth/mfa/confirm", requireAdmin, (req, res) => {
   adminMfa = loadAdminMfa();
-  const pending = adminMfa.pendingSecret;
-  if (!pending) {
-    return res.status(400).json({
-      error: "Kein MFA-Setup aktiv — bitte „Neuen QR erzeugen“, scannen und Code eingeben.",
-    });
+  if (adminMfa.enabled) {
+    return res.status(400).json({ error: "MFA ist bereits aktiv" });
   }
-  const clientSecret = String(req.body.secret || "")
-    .toUpperCase()
-    .replace(/[^A-Z2-7]/g, "");
-  const pendingNorm = String(pending)
-    .toUpperCase()
-    .replace(/[^A-Z2-7]/g, "");
-  if (clientSecret && clientSecret !== pendingNorm) {
-    return res.status(400).json({
-      error:
-        "Angezeigter QR passt nicht mehr zum Server — „Neuen QR erzeugen“, alten App-Eintrag löschen, neu scannen.",
-    });
-  }
+
   const totp = String(req.body.totp || req.body.code || "")
     .replace(/\D/g, "")
     .slice(0, 6);
-  if (!verifyTotp(pending, totp, 3)) {
+  if (!/^\d{6}$/.test(totp)) {
+    return res.status(400).json({
+      error: "Bitte genau 6 Ziffern aus der Authenticator-App eingeben.",
+    });
+  }
+
+  // Quelle der Wahrheit: Secret vom aktuellen QR auf dem Bildschirm.
+  // So funktioniert Confirm auch, wenn Setup auf einer anderen Render-Instanz
+  // lief oder die ephemeral Disk den Pending-Secret verloren hat.
+  const fromBody = String(req.body.secret || "")
+    .toUpperCase()
+    .replace(/[^A-Z2-7]/g, "");
+  const fromDisk = String(adminMfa.pendingSecret || "")
+    .toUpperCase()
+    .replace(/[^A-Z2-7]/g, "");
+  const secret = fromBody || fromDisk;
+  if (!secret) {
+    return res.status(400).json({
+      error: "Kein MFA-Secret — bitte „Neuen QR erzeugen“, scannen und Code eingeben.",
+    });
+  }
+
+  if (!verifyTotp(secret, totp, 4)) {
+    console.warn("MFA-Confirm: TOTP mismatch", {
+      secretLen: secret.length,
+      fromBody: Boolean(fromBody),
+      fromDisk: Boolean(fromDisk),
+      same: fromBody === fromDisk || !fromBody || !fromDisk,
+    });
     return res.status(400).json({
       error:
         "Authenticator-Code ungültig oder abgelaufen. Neuen Code aus der App nehmen (nicht den PIN). Tipp: Alten Eintrag löschen → Neuen QR erzeugen → sofort scannen → Code tippen.",
     });
   }
+
   adminMfa = {
     enabled: true,
-    secret: pending,
+    secret,
     enabledAt: new Date().toISOString(),
     pendingSecret: null,
   };

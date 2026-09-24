@@ -862,7 +862,11 @@
         body: JSON.stringify({
           totp: code,
           pin,
-          secret: mfaPendingSecret || document.getElementById("mfa-secret")?.textContent || "",
+          secret: String(
+            mfaPendingSecret || document.getElementById("mfa-secret")?.textContent || ""
+          )
+            .toUpperCase()
+            .replace(/[^A-Z2-7]/g, ""),
         }),
       });
       const data = await res.json().catch(() => ({}));

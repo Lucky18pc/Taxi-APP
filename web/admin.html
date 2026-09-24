@@ -389,8 +389,12 @@
         </div>
         <div class="field">
           <label for="mfa-confirm-code">Code aus der App</label>
-          <input id="mfa-confirm-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 Ziffern">
+          <input id="mfa-confirm-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 Ziffern" name="totp-mfa-confirm">
         </div>
+        <p class="meta" style="margin:0 0 0.75rem;font-size:0.75rem">
+          Nur den Code aus dem <strong>gerade neu erzeugten</strong> Eintrag tippen.
+          Alte „Luckys“-Einträge in der App vorher löschen. Nicht den PIN hier eintragen.
+        </p>
         <button type="button" class="btn btn-navy" id="mfa-confirm-btn" style="width:100%">MFA aktivieren</button>
         <button type="button" class="btn btn-ghost" id="mfa-reset-btn" style="width:100%;margin-top:0.5rem">Neuen QR erzeugen</button>
         <p id="mfa-setup-error" class="login-error hidden"></p>
@@ -505,6 +509,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=20260924-mfa8"></script>
+  <script src="admin.js?v=20260924-mfa9"></script>
 </body>
 </html>
