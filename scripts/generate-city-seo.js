@@ -381,12 +381,12 @@ const FOREIGN_CITIES = [
 const SPECIAL = {
   speyer: {
     guest:
-      "Ob vom Hauptbahnhof zur Maximilianstraße, vom Dom zum Technik-Museum oder spät vom Rheinufer nach Hause: Mit Luckys Taxi App gibst du die Abholadresse in Speyer ein und buchst online. Der Fahrpreis steht auf dem Taxameter — du zahlst bar beim Fahrer, ohne Reservierungsgebühr in der App.",
+      "Aktuell ist in Speyer noch kein Partner-Taxi an die Plattform angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, kannst du hier online bestellen — Dom, Bahnhof, Altstadt. Wo bereits ein Partner aktiv ist, geht die Buchung unter luckystaxiapp.de/book.html.",
     operator:
       "Code & Grow (Firmensitz Speyer, Asternweg 21) betreibt die Plattform Luckys Taxi App. Für lokale Betriebe bedeutet das: Fahrgäste bestellen unter Ihrem Namen, Sie sehen Buchungen in der Browser-Leitstelle und verteilen sie an Ihre Fahrer — parallel zur städtischen Zentrale, nicht als Ersatz.",
     faqExtra: {
-      q: "Sitzt Code & Grow in Speyer?",
-      a: "Ja — Firmensitz Asternweg 21, 67346 Speyer. Code & Grow ist der Software-Anbieter hinter Luckys Taxi App, kein Taxi-Betrieb. Details im Impressum.",
+      q: "Kann ich in Speyer schon ein Taxi online bestellen?",
+      a: "Noch nicht flächendeckend: In Speyer ist aktuell kein Partner-Taxi angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, ist die Online-Buchung unter dessen Namen möglich.",
     },
     orgAddress: true,
   },
@@ -486,21 +486,74 @@ function heroSub(loc) {
   return `Online bestellen rund um ${loc.landmarks} — oder als Betrieb Ihre eigene digitale Leitstelle nutzen.`;
 }
 
+/** Regionale Nachbarn zuerst (Klickpfade Rhein-Neckar / Firmensitz Speyer). */
+const NEARBY = {
+  speyer: [
+    "mannheim",
+    "ludwigshafen",
+    "heidelberg",
+    "karlsruhe",
+    "neustadt-an-der-weinstrasse",
+    "kaiserslautern",
+    "mainz",
+    "frankfurt-am-main",
+  ],
+  mannheim: [
+    "speyer",
+    "ludwigshafen",
+    "heidelberg",
+    "karlsruhe",
+    "neustadt-an-der-weinstrasse",
+    "frankfurt-am-main",
+  ],
+  ludwigshafen: [
+    "speyer",
+    "mannheim",
+    "heidelberg",
+    "neustadt-an-der-weinstrasse",
+    "kaiserslautern",
+    "mainz",
+  ],
+  heidelberg: [
+    "speyer",
+    "mannheim",
+    "ludwigshafen",
+    "karlsruhe",
+    "frankfurt-am-main",
+  ],
+  karlsruhe: ["speyer", "mannheim", "heidelberg", "ludwigshafen", "baden-baden"],
+  "neustadt-an-der-weinstrasse": [
+    "speyer",
+    "ludwigshafen",
+    "mannheim",
+    "kaiserslautern",
+  ],
+  kaiserslautern: ["speyer", "ludwigshafen", "neustadt-an-der-weinstrasse", "mainz"],
+  mainz: ["speyer", "frankfurt-am-main", "ludwigshafen", "mannheim"],
+  "frankfurt-am-main": ["speyer", "mannheim", "heidelberg", "mainz"],
+};
+
 function relatedLinks(loc, all) {
+  const bySlug = new Map(all.map((x) => [x.slug, x]));
   const sameCountry = all.filter(
     (x) => x.country === loc.country && x.slug !== loc.slug
   );
   const countries = all.filter((x) => x.type === "country" && x.slug !== loc.slug);
   const picks = [];
-  for (const x of sameCountry) {
-    if (picks.length >= 8) break;
+  const seen = new Set();
+
+  function add(slugOrLoc) {
+    if (picks.length >= 8) return;
+    const x = typeof slugOrLoc === "string" ? bySlug.get(slugOrLoc) : slugOrLoc;
+    if (!x || x.slug === loc.slug || seen.has(x.slug)) return;
+    seen.add(x.slug);
     picks.push(x);
   }
+
+  for (const slug of NEARBY[loc.slug] || []) add(slug);
+  for (const x of sameCountry) add(x);
   if (picks.length < 6) {
-    for (const x of countries) {
-      if (picks.length >= 8) break;
-      if (!picks.find((p) => p.slug === x.slug)) picks.push(x);
-    }
+    for (const x of countries) add(x);
   }
   return picks;
 }
@@ -641,6 +694,25 @@ function renderPage(loc, all) {
   </header>
 
   <main class="wrap city-main">
+    <section class="city-faq" id="produkte" aria-labelledby="cg-products-title">
+      <h2 id="cg-products-title">Fertige Produkte von Code &amp; Grow</h2>
+      <p>Schon fertig und live — von hier aus erreichbar. Code &amp; Grow (Speyer) bietet Software zum Mieten:</p>
+      <article>
+        <h3>Luckys Taxi App</h3>
+        <p><strong>Fertig &amp; live.</strong> Digitale Leitstelle und Online-Buchung für Taxi-Betriebe.
+          <a href="../onboard.html">Plattform mieten</a> · <a href="../index.html#produkte">Alle Produkte</a></p>
+      </article>
+      <article>
+        <h3>Collection Shop</h3>
+        <p><strong>Fertig &amp; live.</strong> Onlineshop und App zum Mieten unter dem eigenen Namen.
+          <a href="https://code-und-grow.de/" rel="noopener" target="_blank">Zur Collection Shop Seite</a></p>
+      </article>
+      <article>
+        <h3>Mitarbeiter-App</h3>
+        <p><strong>Demnächst.</strong> App für Teams und Betriebe — in Vorbereitung.</p>
+      </article>
+    </section>
+
     <div class="city-split">
       <section class="city-block">
         <h2>Für Fahrgäste in ${esc(loc.name)}</h2>
@@ -650,7 +722,7 @@ function renderPage(loc, all) {
       <section class="city-block">
         <h2>Für Taxi-Betriebe in ${esc(loc.name)}</h2>
         <p>${esc(operatorText(loc))}</p>
-        <p><a class="btn secondary" href="../onboard.html">Partner werden ab 49 €</a></p>
+        <p><a class="btn secondary" href="../onboard.html">Partner werden ab 9,90 €</a></p>
       </section>
     </div>
 

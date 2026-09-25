@@ -10,7 +10,7 @@
 
   var dict = {
     de: {
-      "meta.indexTitle": "Plattform mieten für Taxi-Betriebe | Luckys Taxi App",
+      "meta.indexTitle": "Taxi-Software mieten: App & Leitstelle | Luckys Taxi App",
       "meta.bookTitle": "Taxi bestellen | Luckys Taxi App",
       "meta.onboardTitle": "Plattform mieten für Taxi-Betriebe",
       "hero.badge": "Taxi-App für Fahrgäste. Leitstelle für Taxi-Betriebe",
