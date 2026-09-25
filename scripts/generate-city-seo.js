@@ -87,7 +87,13 @@ const DE_CITIES = [
   ["Saarbrücken", "Hauptbahnhof, Altstadt, Deutsch-Französische Grenze"],
   ["Mülheim an der Ruhr", "Hauptbahnhof, Innenstadt, Ruhr"],
   ["Potsdam", "Hauptbahnhof, Sanssouci, Altstadt"],
-  ["Ludwigshafen", "Bahnhof, Innenstadt, Rheinübergang nach Mannheim"],
+  ["Ludwigshafen", "Rheinland-Pfalz, Rhein-Neckar, Bahnhof, Rheinübergang Mannheim"],
+  ["Altrip", "Rhein, Fähre, Ludwigshafen-Umland"],
+  ["Waldsee", "Rheinauen, Bahnhof, Speyer-Umland"],
+  ["Schifferstadt", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
+  ["Mutterstadt", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
+  ["Maxdorf", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
+  ["Limburgerhof", "Bahnhof, BASF-Umland, Rhein-Pfalz-Kreis"],
   ["Oldenburg", "Hauptbahnhof, Innenstadt, Schloss"],
   ["Osnabrück", "Hauptbahnhof, Altstadt, Universität"],
   ["Leverkusen", "Hauptbahnhof, BayArena, Rheinufer"],
@@ -396,6 +402,12 @@ const SPECIAL = {
     operator:
       "In Mannheim kennt man die große Taxizentrale — und trotzdem fehlt vielen Betrieben ein eigener digitaler Kanal. Luckys Taxi App bringt Online-Buchung, Leitstellen-Ansicht und QR-Code unter Ihrem Firmennamen. Zusatzaufträge von Stammkunden und Hotels, ohne die Zentrale abzuschalten.",
   },
+  ludwigshafen: {
+    guest:
+      "In Ludwigshafen (Rheinland-Pfalz, Metropolregion Rhein-Neckar) und dem Umland — Altrip, Schifferstadt, Mutterstadt, Limburgerhof, Maxdorf, Waldsee — buchst du online, sobald ein Partner-Betrieb angebunden ist. Abholadresse und Zeit angeben; der Preis kommt vom Taxameter.",
+    operator:
+      "Ludwigshafen liegt in Rheinland-Pfalz, mitten in der Metropolregion Rhein-Neckar. Viele Taxibetriebe in der Stadt und im Rhein-Pfalz-Kreis (Altrip, Schifferstadt, Mutterstadt, Limburgerhof, Maxdorf, Waldsee) holen sich mit Luckys Taxi App Online-Buchung, Leitstelle und QR unter ihrem Namen — parallel zur Zentrale. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
 };
 
 function buildLocations() {
@@ -474,9 +486,9 @@ function guestText(loc) {
 function operatorText(loc) {
   if (SPECIAL[loc.slug]?.operator) return SPECIAL[loc.slug].operator;
   if (loc.type === "country") {
-    return `Taxi-Betriebe in ${loc.name} holen sich mit Luckys Taxi App einen eigenen digitalen Kanal: Online-Buchung, Browser-Leitstelle und QR-Code unter Ihrem Firmennamen — ab 49 €/Monat, monatlich kündbar. Ideal für Stammkunden, Hotels und Firmenfahrten neben Funk und Telefon.`;
+    return `Taxi-Betriebe in ${loc.name} holen sich mit Luckys Taxi App einen eigenen digitalen Kanal: Online-Buchung, Browser-Leitstelle und QR-Code unter Ihrem Firmennamen — ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar. Ideal für Stammkunden, Hotels und Firmenfahrten neben Funk und Telefon.`;
   }
-  return `Für Taxi-Betriebe in ${loc.name}: Fahrgäste bestellen unter Ihrem Namen. Sie sehen Anfragen in der Leitstelle und weisen Ihre Fahrer zu — parallel zur klassischen Zentrale. Starter ab 49 €/Monat, Business 99 €/Monat, monatlich kündbar.`;
+  return `Für Taxi-Betriebe in ${loc.name}: Fahrgäste bestellen unter Ihrem Namen. Sie sehen Anfragen in der Leitstelle und weisen Ihre Fahrer zu — parallel zur klassischen Zentrale. Ab 9,90 €/Monat pro Fahrzeug (2 Autos 18,90 €), monatlich kündbar.`;
 }
 
 function heroSub(loc) {
@@ -489,30 +501,94 @@ function heroSub(loc) {
 /** Regionale Nachbarn zuerst (Klickpfade Rhein-Neckar / Firmensitz Speyer). */
 const NEARBY = {
   speyer: [
-    "mannheim",
     "ludwigshafen",
+    "altrip",
+    "waldsee",
+    "schifferstadt",
+    "mutterstadt",
+    "limburgerhof",
+    "maxdorf",
+    "mannheim",
     "heidelberg",
-    "karlsruhe",
-    "neustadt-an-der-weinstrasse",
-    "kaiserslautern",
-    "mainz",
-    "frankfurt-am-main",
   ],
   mannheim: [
-    "speyer",
     "ludwigshafen",
+    "speyer",
     "heidelberg",
-    "karlsruhe",
-    "neustadt-an-der-weinstrasse",
+    "altrip",
+    "schifferstadt",
+    "limburgerhof",
     "frankfurt-am-main",
   ],
   ludwigshafen: [
+    "altrip",
+    "schifferstadt",
+    "mutterstadt",
+    "limburgerhof",
+    "maxdorf",
+    "waldsee",
     "speyer",
     "mannheim",
-    "heidelberg",
-    "neustadt-an-der-weinstrasse",
-    "kaiserslautern",
-    "mainz",
+  ],
+  altrip: [
+    "ludwigshafen",
+    "mannheim",
+    "speyer",
+    "schifferstadt",
+    "mutterstadt",
+    "limburgerhof",
+    "waldsee",
+    "maxdorf",
+  ],
+  waldsee: [
+    "speyer",
+    "ludwigshafen",
+    "schifferstadt",
+    "altrip",
+    "mutterstadt",
+    "limburgerhof",
+    "maxdorf",
+    "mannheim",
+  ],
+  schifferstadt: [
+    "ludwigshafen",
+    "mutterstadt",
+    "speyer",
+    "waldsee",
+    "limburgerhof",
+    "altrip",
+    "maxdorf",
+    "mannheim",
+  ],
+  mutterstadt: [
+    "ludwigshafen",
+    "schifferstadt",
+    "limburgerhof",
+    "maxdorf",
+    "altrip",
+    "waldsee",
+    "speyer",
+    "mannheim",
+  ],
+  maxdorf: [
+    "ludwigshafen",
+    "mutterstadt",
+    "limburgerhof",
+    "schifferstadt",
+    "altrip",
+    "waldsee",
+    "speyer",
+    "mannheim",
+  ],
+  limburgerhof: [
+    "ludwigshafen",
+    "mutterstadt",
+    "schifferstadt",
+    "maxdorf",
+    "altrip",
+    "waldsee",
+    "speyer",
+    "mannheim",
   ],
   heidelberg: [
     "speyer",
@@ -525,6 +601,7 @@ const NEARBY = {
   "neustadt-an-der-weinstrasse": [
     "speyer",
     "ludwigshafen",
+    "schifferstadt",
     "mannheim",
     "kaiserslautern",
   ],
@@ -566,8 +643,8 @@ function renderPage(loc, all) {
       : `Taxi bestellen in ${loc.name} | Luckys Taxi App`;
   const desc =
     loc.type === "country"
-      ? `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Für Taxi-Betriebe: Leitstelle und Fahrgast-App ab 49 €/Monat.`
-      : `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Bar bzw. nach lokalem Tarif. Taxi-Betriebe: eigene Leitstelle ab 49 €/Monat.`;
+      ? `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Für Taxi-Betriebe: Leitstelle und Fahrgast-App ab 9,90 €/Monat pro Fahrzeug.`
+      : `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Bar bzw. nach lokalem Tarif. Taxi-Betriebe: eigene Leitstelle ab 9,90 €/Monat pro Fahrzeug.`;
 
   const areaType = loc.type === "country" ? "Country" : "City";
   const orgBlock = SPECIAL[loc.slug]?.orgAddress
@@ -589,7 +666,7 @@ function renderPage(loc, all) {
     },
     {
       q: `Was kostet Luckys Taxi App für Betriebe in ${loc.name}?`,
-      a: "Starter 49 €/Monat oder Business 99 €/Monat, monatlich kündbar — inkl. Online-Buchung, Leitstelle und QR-Code.",
+      a: "ab 9,90 €/Monat pro Fahrzeug (2 Autos 18,90 €), monatlich kündbar — inkl. Online-Buchung, Leitstelle und QR-Code.",
     },
   ];
   if (faqExtra) faqs.splice(1, 0, faqExtra);
@@ -875,20 +952,42 @@ ${urls.join("\n")}
 
 function main() {
   const all = buildLocations();
+  const onlyNew = process.env.ONLY_NEW === "1";
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  // Remove old generated HTML (keep nothing stale)
-  for (const f of fs.readdirSync(OUT_DIR)) {
-    if (f.endsWith(".html")) fs.unlinkSync(path.join(OUT_DIR, f));
+  if (!onlyNew) {
+    for (const f of fs.readdirSync(OUT_DIR)) {
+      if (f.endsWith(".html")) fs.unlinkSync(path.join(OUT_DIR, f));
+    }
   }
 
+  let written = 0;
   for (const loc of all) {
-    fs.writeFileSync(path.join(OUT_DIR, `${loc.slug}.html`), renderPage(loc, all), "utf8");
+    const out = path.join(OUT_DIR, `${loc.slug}.html`);
+    if (onlyNew && fs.existsSync(out)) continue;
+    fs.writeFileSync(out, renderPage(loc, all), "utf8");
+    written += 1;
   }
-  fs.writeFileSync(path.join(OUT_DIR, "index.html"), renderHub(all), "utf8");
-  fs.writeFileSync(SITEMAP, writeSitemap(all), "utf8");
+  if (!onlyNew) {
+    fs.writeFileSync(path.join(OUT_DIR, "index.html"), renderHub(all), "utf8");
+    fs.writeFileSync(SITEMAP, writeSitemap(all), "utf8");
+  } else {
+    // Sitemap: ensure new DE cities are listed
+    let sm = fs.readFileSync(SITEMAP, "utf8");
+    for (const loc of all) {
+      const locUrl = `${BASE}/staedte/${loc.slug}.html`;
+      if (sm.includes(locUrl)) continue;
+      const entry = `  <url>
+    <loc>${locUrl}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+`;
+      sm = sm.replace("</urlset>", `${entry}</urlset>`);
+    }
+    fs.writeFileSync(SITEMAP, sm, "utf8");
+  }
 
-  // Manifest for transparency
   fs.writeFileSync(
     path.join(OUT_DIR, "locations.generated.json"),
     JSON.stringify(
@@ -899,7 +998,11 @@ function main() {
     "utf8"
   );
 
-  console.log(`Generated ${all.length} location pages + hub + sitemap.`);
+  console.log(
+    onlyNew
+      ? `ONLY_NEW: wrote ${written} new pages; hub untouched; sitemap merged.`
+      : `Generated ${all.length} location pages + hub + sitemap.`
+  );
 }
 
 main();
