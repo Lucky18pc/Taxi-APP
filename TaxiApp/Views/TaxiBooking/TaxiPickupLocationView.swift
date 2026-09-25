@@ -115,7 +115,11 @@ struct TaxiPickupLocationView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+        }
+        .bookingFlowBackground()
+        .navigationBarBackButtonHidden(true)
+        .safeAreaPadding(.top, 8)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             BookingBottomBar(
                 forwardTitle: isResolvingPickup ? "Standort wird ermittelt…" : "Weiter zur Abholzeit",
                 forwardDisabled: isResolvingPickup,
@@ -123,9 +127,6 @@ struct TaxiPickupLocationView: View {
                 onForward: continueToScheduling
             )
         }
-        .bookingFlowBackground()
-        .navigationBarBackButtonHidden(true)
-        .safeAreaPadding(.top, 8)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()

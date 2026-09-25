@@ -277,12 +277,16 @@ private struct CircularRingShimmerModifier: ViewModifier {
 }
 
 /// Kompakte Zurück/Weiter-Leiste für iPhone (Buchungsflow).
+/// Immer über `safeAreaInset(edge: .bottom)` einbinden, damit die Buttons
+/// auf Pro Max / Home-Indicator sicher tippbar bleiben (App Review).
 struct BookingBottomBar: View {
     var backTitle: String = "Zurück"
     var forwardTitle: String
     var forwardDisabled: Bool = false
     let onBack: () -> Void
     let onForward: () -> Void
+
+    private let minTapHeight: CGFloat = 48
 
     var body: some View {
         HStack(spacing: 10) {
@@ -293,8 +297,9 @@ struct BookingBottomBar: View {
                     .minimumScaleFactor(0.85)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 11)
+                    .frame(maxWidth: .infinity, minHeight: minTapHeight)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
                     .background(Color.white.opacity(0.16))
                     .overlay {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -304,6 +309,7 @@ struct BookingBottomBar: View {
                     .lightShimmer(active: true, cornerRadius: 12, tone: .onGlass, intensity: 1.15)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(backTitle)
 
             Button(action: onForward) {
                 Text(forwardTitle)
@@ -312,8 +318,9 @@ struct BookingBottomBar: View {
                     .minimumScaleFactor(0.85)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(forwardDisabled ? Brand.primary.opacity(0.35) : Brand.primary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, minHeight: minTapHeight)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     .overlay {
@@ -325,11 +332,13 @@ struct BookingBottomBar: View {
             }
             .buttonStyle(.plain)
             .disabled(forwardDisabled)
+            .accessibilityLabel(forwardTitle)
+            .accessibilityHint(forwardDisabled ? "Zurzeit nicht verfügbar" : "Weiter")
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 16)
         .padding(.top, 10)
-        .padding(.bottom, 10)
+        .padding(.bottom, 12)
         .background {
             Brand.primary
                 .lightShimmer(active: true, cornerRadius: 0, tone: .onDark, intensity: 1.1)
