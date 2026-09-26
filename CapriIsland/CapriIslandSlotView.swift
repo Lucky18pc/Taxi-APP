@@ -1,32 +1,51 @@
 import SwiftUI
 
 // ==========================================
-// 1. SYMBOL-DEFINITIONEN
+// 1. SYMBOLE — edel, kein Comic-Sticker-Look
 // ==========================================
 enum CapriSymbolType: String, CaseIterable, Identifiable {
-    case sunglasses = "🕶️"
-    case deckchair = "🏖️"
-    case cocktail = "🍹"
-    case sailboat = "⛵"
-    case yacht = "🛥️"
-    case isabella = "👒"
-    case gianluca = "🤵"
-    case capriSun = "☀️"
-    case beachJoker = "🏄‍♂️"
+    case sunglasses, deckchair, cocktail, sailboat, yacht
+    case isabella, gianluca, capriSun, beachJoker
 
     var id: String { rawValue }
 
-    var shortName: String {
+    var title: String {
         switch self {
         case .sunglasses: return "Brille"
         case .deckchair: return "Liege"
-        case .cocktail: return "Drink"
+        case .cocktail: return "Cocktail"
         case .sailboat: return "Segel"
         case .yacht: return "Yacht"
         case .isabella: return "Isabella"
         case .gianluca: return "Gianluca"
         case .capriSun: return "Sonne"
         case .beachJoker: return "Joker"
+        }
+    }
+
+    /// SF Symbol — wirkt hochwertiger als Emoji-Comic
+    var systemImage: String {
+        switch self {
+        case .sunglasses: return "sunglasses"
+        case .deckchair: return "beach.umbrella"
+        case .cocktail: return "wineglass.fill"
+        case .sailboat: return "sailboat.fill"
+        case .yacht: return "ferry.fill"
+        case .isabella: return "crown.fill"
+        case .gianluca: return "person.fill"
+        case .capriSun: return "sun.max.fill"
+        case .beachJoker: return "sparkles"
+        }
+    }
+
+    var accent: Color {
+        switch self {
+        case .gianluca: return Color(red: 0.95, green: 0.78, blue: 0.28)
+        case .isabella: return Color(red: 0.85, green: 0.55, blue: 0.75)
+        case .yacht: return Color(red: 0.35, green: 0.65, blue: 0.95)
+        case .beachJoker: return Color(red: 0.95, green: 0.55, blue: 0.2)
+        case .capriSun: return Color(red: 1.0, green: 0.75, blue: 0.2)
+        default: return Color(red: 0.75, green: 0.82, blue: 0.88)
         }
     }
 }
@@ -43,18 +62,15 @@ final class CapriGameViewModel {
 
     var gameState: State = .idle
     var lastWin: Decimal = 0
-    var activeMessage: String = "Dreh die Walzen — Capri wartet!"
+    var activeMessage: String = "Capri Island — Walzen bereit"
 
-    /// grid[spalte][zeile] — 3 Walzen à 3 sichtbare Felder
     var grid: [[CapriSymbolType]] = [
         [.sunglasses, .isabella, .cocktail],
         [.sailboat, .gianluca, .yacht],
         [.deckchair, .beachJoker, .capriSun]
     ]
 
-    /// Steigt bei jedem Spin — triggert echte Walzen-Animation
     var spinGeneration: Int = 0
-    /// Welche Walze noch läuft (links → rechts stoppen)
     var reelSpinning: [Bool] = [false, false, false]
 
     let ladderSteps: [Decimal] = [0, 0.20, 0.50, 1, 2.50, 5, 10, 25, 50, 100]
@@ -62,38 +78,34 @@ final class CapriGameViewModel {
     var isPromenadeBlinking: Bool = false
     private var blinkTimer: Timer?
 
+    /// Stop-Zeiten der drei Trommeln (links → rechts)
+    static let stopDelays: [Double] = [2.5, 3.3, 4.1]
+
     deinit { blinkTimer?.invalidate() }
 
     func spin() {
         guard gameState != .spinning else { return }
         guard balance >= stake else {
-            activeMessage = "Nicht genügend Guthaben im Portemonnaie!"
+            activeMessage = "Nicht genügend Guthaben"
             return
         }
 
         balance -= stake
         lastWin = 0
         gameState = .spinning
-        activeMessage = "🎰 Walzen drehen…"
+        activeMessage = "Walzen laufen…"
 
-        // Ergebnis zuerst setzen — die Animation scrollt sichtbar dorthin
         let all = CapriSymbolType.allCases
-        grid = (0..<3).map { _ in
-            (0..<3).map { _ in all.randomElement()! }
-        }
+        grid = (0..<3).map { _ in (0..<3).map { _ in all.randomElement()! } }
 
         reelSpinning = [true, true, true]
         spinGeneration += 1
 
-        // Gestaffeltes Stoppen — bewusst langsamer (Collection-Shop-Feeling)
-        let stopDelays: [Double] = [2.4, 3.15, 3.9]
         for col in 0..<3 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + stopDelays[col]) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.stopDelays[col]) { [weak self] in
                 guard let self, self.gameState == .spinning else { return }
                 self.reelSpinning[col] = false
-                if col == 2 {
-                    self.finishSpinEvaluation()
-                }
+                if col == 2 { self.finishSpinEvaluation() }
             }
         }
     }
@@ -101,27 +113,24 @@ final class CapriGameViewModel {
     private func finishSpinEvaluation() {
         let hasGianluca = grid.contains { $0.contains(.gianluca) }
         let hasJoker = grid.contains { $0.contains(.beachJoker) }
-        let winChance = Int.random(in: 0..<100)
 
-        if winChance < 45 || hasGianluca {
+        if Int.random(in: 0..<100) < 45 || hasGianluca {
             lastWin = stake * Decimal(Int.random(in: 5...20)) * (hasGianluca ? 2 : 1)
             balance += lastWin
             gameState = .won
-            let winText = lastWin.formatted(.currency(code: "EUR"))
-            activeMessage = hasGianluca
-                ? "🔥 MEGA-WIN! Gianluca: \(winText)"
-                : (hasJoker ? "🏄 Joker! Gewinn: \(winText)" : "Gewinn: \(winText)")
+            let win = lastWin.formatted(.currency(code: "EUR"))
+            activeMessage = hasGianluca ? "Gianluca — \(win)" : (hasJoker ? "Joker — \(win)" : "Gewinn \(win)")
         } else {
             lastWin = 0
             gameState = .idle
-            activeMessage = "Kein Treffer — nochmal drehen!"
+            activeMessage = "Kein Treffer"
         }
     }
 
     func keepWinAndContinue() {
         lastWin = 0
         gameState = .idle
-        activeMessage = "Gewinn gesichert. Walzen bereit!"
+        activeMessage = "Gewinn gesichert"
     }
 
     func startRisk() {
@@ -129,7 +138,7 @@ final class CapriGameViewModel {
         balance -= lastWin
         currentLadderIndex = 4
         gameState = .riskLadder
-        activeMessage = "Optionales Risiko: Monte Solaro!"
+        activeMessage = "Monte Solaro — optional"
         startPromenadeAnimation()
     }
 
@@ -138,18 +147,18 @@ final class CapriGameViewModel {
         if Int.random(in: 0..<100) < 58 {
             if currentLadderIndex < ladderSteps.count - 1 {
                 currentLadderIndex += 1
-                activeMessage = "Stufe geschafft!"
+                activeMessage = "Weiter oben"
             }
         } else {
             currentLadderIndex = max(0, currentLadderIndex - 2)
             if currentLadderIndex == 0 {
-                activeMessage = "Abgestürzt — zurück zu den Walzen."
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+                activeMessage = "Abgestürzt"
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { [weak self] in
                     self?.exitRisk()
-                    self?.activeMessage = "Risiko verloren — wieder Walzen drehen!"
+                    self?.activeMessage = "Zurück zu den Walzen"
                 }
             } else {
-                activeMessage = "Etwas runtergerutscht."
+                activeMessage = "Zurückgerutscht"
             }
         }
     }
@@ -159,7 +168,7 @@ final class CapriGameViewModel {
         let amount = ladderSteps[currentLadderIndex]
         balance += amount
         exitRisk()
-        activeMessage = "Gesichert: \(amount.formatted(.currency(code: "EUR"))) — Walzen bereit."
+        activeMessage = "Gesichert · \(amount.formatted(.currency(code: "EUR")))"
     }
 
     private func exitRisk() {
@@ -171,21 +180,35 @@ final class CapriGameViewModel {
 
     private func startPromenadeAnimation() {
         blinkTimer?.invalidate()
-        blinkTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
+        blinkTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
             DispatchQueue.main.async {
-                withAnimation { self?.isPromenadeBlinking.toggle() }
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    self?.isPromenadeBlinking.toggle()
+                }
             }
         }
     }
 }
 
 // ==========================================
-// 3. 3D-WALZE (Trommel-Look wie Collection Shop)
+// 3. FARBEN / DESIGN-TOKENS
 // ==========================================
-private let capriCell: CGFloat = 86
-private let capriVisibleRows = 3
+private enum CapriTheme {
+    static let deep = Color(red: 0.05, green: 0.12, blue: 0.22)
+    static let sea = Color(red: 0.08, green: 0.28, blue: 0.42)
+    static let gold = Color(red: 0.86, green: 0.70, blue: 0.32)
+    static let goldDark = Color(red: 0.55, green: 0.40, blue: 0.14)
+    static let brass = Color(red: 0.72, green: 0.55, blue: 0.28)
+    static let panel = Color(red: 0.10, green: 0.14, blue: 0.20)
+    static let ink = Color(red: 0.92, green: 0.93, blue: 0.94)
+}
 
-/// 3D-Trommel-Walze: Zylinder-Schatten, Perspektiv-Kanten, langsameres Auslaufen.
+// ==========================================
+// 4. 3D-WALZE
+// ==========================================
+private let capriCell: CGFloat = 84
+private let capriRows = 3
+
 struct CapriReelView: View {
     let finalSymbols: [CapriSymbolType]
     let isSpinning: Bool
@@ -194,456 +217,433 @@ struct CapriReelView: View {
 
     @State private var offsetY: CGFloat = 0
     @State private var strip: [CapriSymbolType] = CapriSymbolType.allCases
-    @State private var blurAmount: CGFloat = 0
-    @State private var drumAngle: Double = 0
+    @State private var motionBlur: CGFloat = 0
 
-    private var windowHeight: CGFloat { capriCell * CGFloat(capriVisibleRows) }
+    private var windowH: CGFloat { capriCell * CGFloat(capriRows) }
 
     var body: some View {
         ZStack {
-            // Tiefe: hintere Trommelwand
-            RoundedRectangle(cornerRadius: 12)
+            // Trommel-Innenraum
+            RoundedRectangle(cornerRadius: 8)
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.08, green: 0.08, blue: 0.1),
-                            Color(red: 0.18, green: 0.16, blue: 0.14),
-                            Color(red: 0.08, green: 0.08, blue: 0.1)
+                            Color(red: 0.06, green: 0.07, blue: 0.09),
+                            Color(red: 0.14, green: 0.15, blue: 0.18),
+                            Color(red: 0.06, green: 0.07, blue: 0.09)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
 
-            // Symbolband auf der Trommel
             VStack(spacing: 0) {
-                ForEach(Array(strip.enumerated()), id: \.offset) { index, symbol in
-                    CapriSymbolCell(symbol: symbol, rowHint: index)
-                        .frame(width: capriCell - 4, height: capriCell)
+                ForEach(Array(strip.enumerated()), id: \.offset) { _, symbol in
+                    CapriMedallion(symbol: symbol)
+                        .frame(width: capriCell - 6, height: capriCell)
                 }
             }
             .offset(y: offsetY)
-            .blur(radius: blurAmount)
-            .rotation3DEffect(
-                .degrees(isSpinning ? drumAngle * 0.02 : 0),
-                axis: (x: 1, y: 0, z: 0),
-                anchor: .center,
-                perspective: 0.55
-            )
+            .blur(radius: motionBlur)
 
-            // Zylinder-Shading (Mitte hell, Ränder dunkel = 3D-Rundung)
+            // Zylinder-Rundung
             HStack(spacing: 0) {
-                LinearGradient(
-                    colors: [.black.opacity(0.55), .clear],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-                .frame(width: 14)
+                LinearGradient(colors: [.black.opacity(0.6), .clear], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: 12)
                 Spacer(minLength: 0)
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.55)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-                .frame(width: 14)
+                LinearGradient(colors: [.clear, .black.opacity(0.6)], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: 12)
             }
             .allowsHitTesting(false)
 
-            // Spekular-Glanz in der Mitte (Chrom-Trommel)
+            // Mittel-Glanz
             LinearGradient(
-                colors: [
-                    .clear,
-                    .white.opacity(0.12),
-                    .clear
-                ],
+                colors: [.clear, .white.opacity(0.08), .clear],
                 startPoint: .leading,
                 endPoint: .trailing
             )
             .allowsHitTesting(false)
 
-            // Obere/untere Trommel-Krümmung
             VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [.black.opacity(0.65), .black.opacity(0.15), .clear],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 28)
+                LinearGradient(colors: [.black.opacity(0.7), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 26)
                 Spacer()
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.15), .black.opacity(0.65)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 28)
+                LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 26)
             }
             .allowsHitTesting(false)
 
-            // Chrom-Rahmen
-            RoundedRectangle(cornerRadius: 12)
+            // Messing-Rahmen
+            RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [
-                            Color(white: 0.95),
-                            Color(white: 0.55),
-                            Color(white: 0.85),
-                            Color(white: 0.45)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        colors: [CapriTheme.gold, CapriTheme.goldDark, CapriTheme.gold],
+                        startPoint: .top,
+                        endPoint: .bottom
                     ),
-                    lineWidth: 2.5
+                    lineWidth: 1.5
                 )
         }
-        .frame(width: capriCell + 10, height: windowHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        // Gesamte Walze leicht in 3D kippen
-        .rotation3DEffect(.degrees(-6), axis: (x: 0, y: 1, z: 0), perspective: 0.65)
-        .shadow(color: .black.opacity(0.5), radius: 8, x: 4, y: 6)
-        .onAppear { snapToFinal() }
+        .frame(width: capriCell + 6, height: windowH)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .rotation3DEffect(.degrees(-5), axis: (x: 0, y: 1, z: 0), perspective: 0.7)
+        .shadow(color: .black.opacity(0.45), radius: 6, x: 3, y: 4)
+        .onAppear { snap() }
         .onChange(of: spinGeneration) { _, _ in
             guard isSpinning else { return }
-            startMechanicalSpin()
+            runSpin()
         }
         .onChange(of: isSpinning) { _, spinning in
-            if !spinning { settleOnFinal() }
+            if !spinning { settle() }
         }
     }
 
     private func buildStrip() -> [CapriSymbolType] {
-        let all = CapriSymbolType.allCases
-        var band: [CapriSymbolType] = []
-        band.append(contentsOf: finalSymbols)
-        // Weniger Zellen + längere Dauer = sichtbar langsameres Drehen
-        for _ in 0..<22 {
-            band.append(all.randomElement()!)
-        }
+        var band = finalSymbols
+        for _ in 0..<20 { band.append(CapriSymbolType.allCases.randomElement()!) }
         band.append(contentsOf: finalSymbols)
         return band
     }
 
-    private func snapToFinal() {
+    private func snap() {
         strip = finalSymbols
         offsetY = 0
-        blurAmount = 0
-        drumAngle = 0
+        motionBlur = 0
     }
 
-    private func startMechanicalSpin() {
+    private func runSpin() {
         strip = buildStrip()
         offsetY = 0
-        blurAmount = 1.2
-        drumAngle = 0
+        motionBlur = 1.0
+        let target = -CGFloat(strip.count - capriRows) * capriCell
 
-        let targetIndex = strip.count - capriVisibleRows
-        let targetOffset = -CGFloat(targetIndex) * capriCell
-
-        // Phase 1: gleichmäßig durchdrehen (langsamer als zuvor)
-        withAnimation(.linear(duration: max(1.6, stopDelay - 0.7))) {
-            offsetY = targetOffset * 0.90
-            drumAngle = 360
+        withAnimation(.linear(duration: max(1.7, stopDelay - 0.8))) {
+            offsetY = target * 0.9
         }
-
-        // Phase 2: auslaufen / einrasten
-        DispatchQueue.main.asyncAfter(deadline: .now() + max(1.5, stopDelay - 0.75)) {
-            withAnimation(.timingCurve(0.12, 0.9, 0.2, 1.0, duration: 0.75)) {
-                offsetY = targetOffset
-                blurAmount = 0
-                drumAngle = 380
+        DispatchQueue.main.asyncAfter(deadline: .now() + max(1.6, stopDelay - 0.85)) {
+            withAnimation(.timingCurve(0.1, 0.9, 0.2, 1, duration: 0.8)) {
+                offsetY = target
+                motionBlur = 0
             }
         }
     }
 
-    private func settleOnFinal() {
+    private func settle() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
             strip = finalSymbols
             offsetY = 0
-            blurAmount = 0
-            drumAngle = 0
+            motionBlur = 0
         }
     }
 }
 
-struct CapriSymbolCell: View {
+/// Medaillon statt Comic-Kachel
+struct CapriMedallion: View {
     let symbol: CapriSymbolType
-    var rowHint: Int = 0
 
     var body: some View {
         ZStack {
-            // Kachel mit leichter Wölbung (oben heller)
-            RoundedRectangle(cornerRadius: 10)
+            Circle()
                 .fill(
-                    LinearGradient(
-                        colors: tileColors,
-                        startPoint: .top,
-                        endPoint: .bottom
+                    RadialGradient(
+                        colors: [
+                            Color(white: 0.22),
+                            Color(white: 0.10)
+                        ],
+                        center: .center,
+                        startRadius: 2,
+                        endRadius: 36
                     )
                 )
-                .padding(.horizontal, 5)
-                .padding(.vertical, 3)
-                .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+                .padding(10)
 
-            VStack(spacing: 2) {
-                Text(symbol.rawValue)
-                    .font(.system(size: 34))
-                    .shadow(color: .black.opacity(0.25), radius: 1, y: 1)
-                Text(symbol.shortName)
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(symbol == .gianluca ? .black.opacity(0.8) : .black.opacity(0.45))
+            Circle()
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [symbol.accent.opacity(0.95), CapriTheme.goldDark.opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
+                )
+                .padding(10)
+
+            VStack(spacing: 3) {
+                Image(systemName: symbol.systemImage)
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.white, symbol.accent],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .symbolRenderingMode(.hierarchical)
+
+                Text(symbol.title.uppercased())
+                    .font(.system(size: 7, weight: .semibold, design: .rounded))
+                    .tracking(0.6)
+                    .foregroundStyle(CapriTheme.ink.opacity(0.7))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            LinearGradient(
-                colors: [Color(white: 0.2), Color(white: 0.12)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-    }
-
-    private var tileColors: [Color] {
-        if symbol == .gianluca {
-            return [Color.yellow.opacity(0.98), Color.orange.opacity(0.85)]
-        }
-        if symbol == .beachJoker {
-            return [Color.orange.opacity(0.95), Color.red.opacity(0.7)]
-        }
-        return [Color.white, Color(white: 0.88)]
     }
 }
 
 // ==========================================
-// 4. HAUPT-VIEW
+// 5. BUTTONS — fein, nicht plakativ
 // ==========================================
-struct CapriIslandSlotView: View {
-    @State private var vm = CapriGameViewModel()
-
-    private var moneyLabel: String {
-        "\(vm.balance.formatted(.number.precision(.fractionLength(2)))) €"
-    }
-
-    private var stakeLabel: String {
-        "Einsatz: \(vm.stake.formatted(.number.precision(.fractionLength(2)))) €"
-    }
-
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color.cyan.opacity(0.85), Color.blue.opacity(0.9), Color.indigo.opacity(0.95)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 12) {
-                header
-
-                if vm.gameState == .riskLadder {
-                    riskLadderView
-                } else {
-                    reelsView
-                }
-
-                footer
-            }
-        }
-    }
-
-    private var header: some View {
-        VStack(spacing: 4) {
-            Text("🏝️ CAPRI ISLAND SLOT 🍋")
-                .font(.system(size: 22, weight: .black))
-                .foregroundStyle(.yellow)
-                .shadow(color: .orange, radius: 4)
-
-            HStack {
-                Label(moneyLabel, systemImage: "wallet.pass")
-                    .foregroundStyle(.green)
-                Spacer()
-                Label(stakeLabel, systemImage: "dice")
-                    .foregroundStyle(.orange)
-            }
-            .font(.subheadline.bold())
-            .padding(.horizontal, 24)
-        }
-        .padding(.top, 10)
-    }
-
-    private var reelsView: some View {
-        VStack(spacing: 12) {
-            Text(vm.activeMessage)
-                .font(.subheadline.bold())
-                .foregroundStyle(.white)
-                .multilineTextAlignment(.center)
-                .frame(minHeight: 36)
-                .padding(.horizontal)
-
-            // 3D-Maschinengehäuse mit drei Trommel-Walzen
-            ZStack {
-                // Gehäuse-Korpus
-                RoundedRectangle(cornerRadius: 22)
+struct CapriPrimaryButton: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 16, weight: .semibold, design: .rounded))
+            .tracking(1.2)
+            .foregroundStyle(Color(red: 0.12, green: 0.09, blue: 0.04))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 15)
+            .background(
+                Capsule()
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.45, green: 0.22, blue: 0.08),
-                                Color(red: 0.28, green: 0.12, blue: 0.04),
-                                Color(red: 0.18, green: 0.08, blue: 0.03)
+                                Color(red: 0.95, green: 0.82, blue: 0.42),
+                                CapriTheme.gold,
+                                CapriTheme.goldDark
                             ],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
-                    .shadow(color: .black.opacity(0.55), radius: 16, y: 10)
-
-                // Obere Fase / 3D-Kante
-                VStack {
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(
-                            LinearGradient(
-                                colors: [.white.opacity(0.18), .clear],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(height: 40)
-                    Spacer()
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-
-                HStack(spacing: 10) {
-                    ForEach(0..<3, id: \.self) { col in
-                        CapriReelView(
-                            finalSymbols: vm.grid[col],
-                            isSpinning: vm.reelSpinning[col],
-                            spinGeneration: vm.spinGeneration,
-                            stopDelay: [2.4, 3.15, 3.9][col]
-                        )
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 18)
-            }
-            .overlay(
-                RoundedRectangle(cornerRadius: 22)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                Color.yellow.opacity(0.7),
-                                Color.orange.opacity(0.35),
-                                Color.yellow.opacity(0.55)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 2
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
                     )
+                    .shadow(color: CapriTheme.gold.opacity(0.35), radius: configuration.isPressed ? 2 : 8, y: 3)
             )
-            .rotation3DEffect(.degrees(8), axis: (x: 1, y: 0, z: 0), perspective: 0.7)
-            .padding(.horizontal, 8)
-
-            Spacer(minLength: 6)
-
-            VStack(spacing: 10) {
-                if vm.gameState == .won && vm.lastWin > 0 {
-                    Button("GEWINN BEHALTEN — WEITER DREHEN") {
-                        vm.keepWinAndContinue()
-                    }
-                    .buttonStyle(CapriButtonStyle(color: .green, textColor: .white))
-
-                    Button("Optional: Klippentreppe riskieren") {
-                        vm.startRisk()
-                    }
-                    .buttonStyle(CapriButtonStyle(color: .orange.opacity(0.85), textColor: .white))
-                }
-
-                Button(vm.gameState == .spinning ? "WALZEN DREHEN…" : "SPIN — WALZEN DREHEN") {
-                    vm.spin()
-                }
-                .buttonStyle(CapriButtonStyle(color: .yellow, textColor: .black))
-                .disabled(vm.gameState == .spinning || vm.gameState == .won)
-            }
-            .padding(.horizontal, 20)
-        }
-    }
-
-    private var riskLadderView: some View {
-        VStack(spacing: 8) {
-            Text("OPTIONAL: MONTE SOLARO")
-                .font(.headline)
-                .foregroundStyle(.yellow)
-
-            Text(vm.activeMessage)
-                .font(.caption)
-                .foregroundStyle(.white)
-
-            VStack(spacing: 4) {
-                ForEach(Array(vm.ladderSteps.enumerated().reversed()), id: \.offset) { index, amount in
-                    let isActive = index == vm.currentLadderIndex
-                    HStack {
-                        Text(isActive ? "⛵" : "")
-                        Spacer()
-                        Text(amount.formatted(.currency(code: "EUR")))
-                            .font(.system(size: 17, weight: isActive ? .bold : .regular))
-                            .foregroundStyle(isActive ? .black : .white.opacity(0.8))
-                        Spacer()
-                        Text(isActive ? "🌴" : "")
-                    }
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 20)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(
-                                isActive
-                                ? (vm.isPromenadeBlinking ? Color.yellow : Color.orange)
-                                : Color.white.opacity(0.15)
-                            )
-                    )
-                }
-            }
-            .padding(.horizontal, 30)
-
-            HStack(spacing: 12) {
-                Button("KLETTERN") { vm.stepLadder() }
-                    .buttonStyle(CapriButtonStyle(color: .yellow, textColor: .black))
-                    .disabled(vm.currentLadderIndex == 0)
-
-                Button("SICHERN → WALZEN") { vm.collectRisk() }
-                    .buttonStyle(CapriButtonStyle(color: .green, textColor: .white))
-            }
-            .padding(.horizontal, 20)
-        }
-    }
-
-    private var footer: some View {
-        HStack {
-            Text(vm.gameState == .riskLadder ? "⚠️ Risiko" : "🎰 Walzen")
-            Spacer()
-            Text("🤵 Gianluca")
-            Spacer()
-            Text("🏄‍♂️ Wild")
-        }
-        .font(.caption2)
-        .foregroundStyle(.white.opacity(0.8))
-        .padding(.horizontal, 30)
-        .padding(.bottom, 10)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
-struct CapriButtonStyle: ButtonStyle {
-    var color: Color
-    var textColor: Color
+struct CapriSecondaryButton: ButtonStyle {
+    var tone: Color = CapriTheme.sea
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline.bold())
-            .foregroundStyle(textColor)
+            .font(.system(size: 14, weight: .medium, design: .rounded))
+            .foregroundStyle(CapriTheme.ink)
             .frame(maxWidth: .infinity)
-            .padding()
-            .background(color)
-            .cornerRadius(12)
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .shadow(color: color.opacity(0.6), radius: 6)
+            .padding(.vertical, 13)
+            .background(
+                Capsule()
+                    .fill(tone.opacity(configuration.isPressed ? 0.45 : 0.28))
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(CapriTheme.ink.opacity(0.22), lineWidth: 1)
+                    )
+            )
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+    }
+}
+
+struct CapriGhostButton: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .regular, design: .rounded))
+            .foregroundStyle(CapriTheme.gold.opacity(0.9))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 11)
+            .background(
+                Capsule()
+                    .strokeBorder(CapriTheme.gold.opacity(0.45), lineWidth: 1)
+                    .background(Capsule().fill(Color.white.opacity(configuration.isPressed ? 0.06 : 0.03)))
+            )
+    }
+}
+
+// ==========================================
+// 6. HAUPT-VIEW
+// ==========================================
+struct CapriIslandSlotView: View {
+    @State private var vm = CapriGameViewModel()
+
+    var body: some View {
+        ZStack {
+            background
+
+            VStack(spacing: 0) {
+                topBar
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+
+                Text(vm.activeMessage)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(CapriTheme.ink.opacity(0.85))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+
+                if vm.gameState == .riskLadder {
+                    riskPanel
+                } else {
+                    machine
+                    controls
+                }
+
+                Spacer(minLength: 8)
+            }
+        }
+    }
+
+    private var background: some View {
+        ZStack {
+            LinearGradient(
+                colors: [CapriTheme.deep, CapriTheme.sea, CapriTheme.deep],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            // dezente Lichtfläche
+            RadialGradient(
+                colors: [CapriTheme.gold.opacity(0.12), .clear],
+                center: .top,
+                startRadius: 10,
+                endRadius: 320
+            )
+            .ignoresSafeArea()
+        }
+    }
+
+    private var topBar: some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("CAPRI ISLAND")
+                    .font(.system(size: 22, weight: .bold, design: .serif))
+                    .foregroundStyle(CapriTheme.gold)
+                Text("SLOT")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .tracking(3)
+                    .foregroundStyle(CapriTheme.ink.opacity(0.55))
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(vm.balance.formatted(.currency(code: "EUR")))
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(CapriTheme.ink)
+                Text("Einsatz \(vm.stake.formatted(.currency(code: "EUR")))")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(CapriTheme.ink.opacity(0.5))
+            }
+        }
+    }
+
+    private var machine: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.16, green: 0.14, blue: 0.12),
+                            Color(red: 0.08, green: 0.07, blue: 0.06)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [CapriTheme.gold.opacity(0.7), CapriTheme.goldDark.opacity(0.4)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
+                )
+                .shadow(color: .black.opacity(0.5), radius: 18, y: 10)
+
+            HStack(spacing: 8) {
+                ForEach(0..<3, id: \.self) { col in
+                    CapriReelView(
+                        finalSymbols: vm.grid[col],
+                        isSpinning: vm.reelSpinning[col],
+                        spinGeneration: vm.spinGeneration,
+                        stopDelay: CapriGameViewModel.stopDelays[col]
+                    )
+                }
+            }
+            .padding(16)
+        }
+        .padding(.horizontal, 18)
+        .rotation3DEffect(.degrees(6), axis: (x: 1, y: 0, z: 0), perspective: 0.75)
+    }
+
+    private var controls: some View {
+        VStack(spacing: 10) {
+            if vm.gameState == .won && vm.lastWin > 0 {
+                Button("Gewinn behalten") {
+                    vm.keepWinAndContinue()
+                }
+                .buttonStyle(CapriSecondaryButton(tone: Color(red: 0.15, green: 0.45, blue: 0.35)))
+
+                Button("Optional · Monte Solaro") {
+                    vm.startRisk()
+                }
+                .buttonStyle(CapriGhostButton())
+            }
+
+            Button(vm.gameState == .spinning ? "Läuft…" : "Drehen") {
+                vm.spin()
+            }
+            .buttonStyle(CapriPrimaryButton())
+            .disabled(vm.gameState == .spinning || vm.gameState == .won)
+            .opacity(vm.gameState == .spinning || vm.gameState == .won ? 0.45 : 1)
+        }
+        .padding(.horizontal, 28)
+        .padding(.top, 18)
+    }
+
+    private var riskPanel: some View {
+        VStack(spacing: 12) {
+            Text("Monte Solaro")
+                .font(.system(size: 18, weight: .semibold, design: .serif))
+                .foregroundStyle(CapriTheme.gold)
+
+            Text(vm.activeMessage)
+                .font(.system(size: 13, design: .rounded))
+                .foregroundStyle(CapriTheme.ink.opacity(0.75))
+
+            VStack(spacing: 3) {
+                ForEach(Array(vm.ladderSteps.enumerated().reversed()), id: \.offset) { index, amount in
+                    let active = index == vm.currentLadderIndex
+                    HStack {
+                        Spacer()
+                        Text(amount.formatted(.currency(code: "EUR")))
+                            .font(.system(size: 14, weight: active ? .bold : .regular, design: .rounded))
+                            .foregroundStyle(active ? CapriTheme.deep : CapriTheme.ink.opacity(0.75))
+                        Spacer()
+                    }
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(active ? (vm.isPromenadeBlinking ? CapriTheme.gold : CapriTheme.brass) : Color.white.opacity(0.06))
+                    )
+                }
+            }
+            .padding(.horizontal, 36)
+
+            HStack(spacing: 10) {
+                Button("Klettern") { vm.stepLadder() }
+                    .buttonStyle(CapriGhostButton())
+                    .disabled(vm.currentLadderIndex == 0)
+
+                Button("Sichern") { vm.collectRisk() }
+                    .buttonStyle(CapriPrimaryButton())
+            }
+            .padding(.horizontal, 28)
+        }
+        .padding(.top, 8)
     }
 }
 
