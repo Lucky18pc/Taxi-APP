@@ -185,10 +185,10 @@ struct CapriIslandSlotView: View {
                         .shadow(color: .orange, radius: 4)
 
                     HStack {
-                        Label("\(vm.balance, specifier: "%.2f") €", systemImage: "wallet.pass")
+                        Label("\(vm.balance.formatted(.number.precision(.fractionLength(2)))) €", systemImage: "wallet.pass")
                             .foregroundStyle(.green)
                         Spacer()
-                        Label("Einsatz: \(vm.stake, specifier: "%.2f") €", systemImage: "dice")
+                        Label("Einsatz: \(vm.stake.formatted(.number.precision(.fractionLength(2)))) €", systemImage: "dice")
                             .foregroundStyle(.orange)
                     }
                     .font(.subheadline)
