@@ -1843,16 +1843,19 @@ app.post("/api/auth/verify", (req, res) => {
   adminMfa = loadAdminMfa();
 
   if (adminMfa.enabled) {
-    if (!totp) {
+    const code = String(totp || "").replace(/\D/g, "").slice(0, 6);
+    if (!code) {
       return res.status(401).json({
         error: "Authenticator-Code erforderlich",
         mfaRequired: true,
         mfaEnabled: true,
       });
     }
-    if (!verifyTotp(adminMfa.secret, totp)) {
+    // Gleicher Toleranz-Fenster wie MFA-Confirm (±2 Min.).
+    if (!verifyTotp(adminMfa.secret, code, 4)) {
       return res.status(401).json({
-        error: "Authenticator-Code ungültig",
+        error:
+          "Authenticator-Code ungültig. Nur den Luckys-Eintrag von der erfolgreichen Einrichtung nutzen; alte Einträge löschen. Handy-Uhr auf automatisch.",
         mfaRequired: true,
         mfaEnabled: true,
       });
@@ -1995,7 +1998,7 @@ app.post("/api/auth/mfa/disable", requireAdmin, (req, res) => {
     return res.json({ ok: true, mfaEnabled: false });
   }
   const totp = String(req.body.totp || req.body.code || "").trim();
-  if (!verifyTotp(adminMfa.secret, totp)) {
+  if (!verifyTotp(adminMfa.secret, totp, 4)) {
     return res.status(400).json({ error: "Authenticator-Code ungültig" });
   }
   adminMfa = { enabled: false, secret: null, enabledAt: null, pendingSecret: null };
@@ -2004,6 +2007,20 @@ app.post("/api/auth/mfa/disable", requireAdmin, (req, res) => {
   saveAdminSessionsToDisk();
   console.log("Admin-MFA deaktiviert.");
   res.json({ ok: true, mfaEnabled: false });
+});
+
+/** Notfall: MFA mit ADMIN_PIN zurücksetzen (wenn Authenticator-Eintrag verloren). */
+app.post("/api/auth/mfa/recover", (req, res) => {
+  const pin = String(req.body.pin || "").trim();
+  if (!adminPin || !pin || !isPlatformAdminPin(pin)) {
+    return res.status(401).json({ error: "ADMIN_PIN ungültig" });
+  }
+  adminMfa = { enabled: false, secret: null, enabledAt: null, pendingSecret: null };
+  saveAdminMfa(adminMfa);
+  adminSessions.clear();
+  saveAdminSessionsToDisk();
+  console.log("Admin-MFA per recover zurückgesetzt.");
+  res.json({ ok: true, mfaEnabled: false, message: "MFA deaktiviert — bitte neu einrichten." });
 });
 
 app.get("/api/offering", (_req, res) => {
