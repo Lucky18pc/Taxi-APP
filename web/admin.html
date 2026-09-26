@@ -382,6 +382,13 @@
         </div>
         <p class="meta" style="word-break:break-all;font-size:0.75rem">
           Geheimnis (manuell): <strong id="mfa-secret"></strong>
+          <button type="button" class="btn btn-ghost" id="mfa-copy-secret" style="margin-top:0.35rem;padding:0.35rem 0.6rem;font-size:0.75rem">Geheimnis kopieren</button>
+        </p>
+        <p class="meta" id="mfa-expected-wrap" style="margin:0.5rem 0 0.75rem;font-size:0.85rem;font-weight:700;color:#0c1c34">
+          Server-Code jetzt: <span id="mfa-expected-code">————</span>
+          <span class="meta" style="display:block;font-weight:600;font-size:0.72rem;margin-top:0.25rem">
+            Deine App muss <strong>genau dieselbe Zahl</strong> zeigen. Sonst falscher Eintrag → löschen, Geheimnis manuell einfügen.
+          </span>
         </p>
         <div class="field">
           <label for="mfa-confirm-pin">ADMIN_PIN (nochmal)</label>

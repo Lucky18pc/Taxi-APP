@@ -214,6 +214,8 @@
 
       document.getElementById("mfa-secret").textContent = data.secret || "";
       mfaPendingSecret = data.secret || "";
+      const expectedEl = document.getElementById("mfa-expected-code");
+      if (expectedEl) expectedEl.textContent = data.currentCode || "————";
 
       let host = document.getElementById("mfa-qr");
       if (!host) {
@@ -224,10 +226,14 @@
       const qrSrc =
         data.qrDataUrl ||
         `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.otpauthUrl || "")}`;
-      host.outerHTML = `<img id="mfa-qr" alt="QR-Code MFA" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff" src="${qrSrc}">`;
+      // Cache-Buster, falls alter QR im Browser hängen bleibt.
+      const qrSrcFresh = qrSrc.startsWith("data:")
+        ? qrSrc
+        : `${qrSrc}${qrSrc.includes("?") ? "&" : "?"}t=${Date.now()}`;
+      host.outerHTML = `<img id="mfa-qr" alt="QR-Code MFA" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff" src="${qrSrcFresh}">`;
       if (reset) {
         errEl.textContent =
-          "Neuer QR erzeugt. Alten Eintrag in der Authenticator-App löschen, dann diesen QR scannen.";
+          "Neuer QR erzeugt. Alten Eintrag in der Authenticator-App löschen, dann Geheimnis manuell einfügen (zuverlässiger als scannen).";
         errEl.classList.remove("hidden");
         errEl.style.color = "#0c1c34";
       } else {
@@ -827,6 +833,28 @@
     }
   });
 
+  document.getElementById("mfa-copy-secret")?.addEventListener("click", async () => {
+    const secret = String(
+      mfaPendingSecret || document.getElementById("mfa-secret")?.textContent || ""
+    ).trim();
+    const errEl = document.getElementById("mfa-setup-error");
+    if (!secret) {
+      errEl.textContent = "Noch kein Geheimnis — bitte „Neuen QR erzeugen“.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(secret);
+      errEl.style.color = "#0c1c34";
+      errEl.textContent = "Geheimnis kopiert. In der Authenticator-App: Schlüssel einfügen (nicht scannen).";
+      errEl.classList.remove("hidden");
+    } catch {
+      errEl.style.color = "";
+      errEl.textContent = "Kopieren fehlgeschlagen — Geheimnis manuell abtippen.";
+      errEl.classList.remove("hidden");
+    }
+  });
+
   document.getElementById("mfa-confirm-btn").addEventListener("click", async () => {
     const errEl = document.getElementById("mfa-setup-error");
     errEl.style.color = "";
@@ -888,8 +916,14 @@
     } catch (err) {
       errEl.textContent =
         err.message ||
-        "Code falsch. Aktuellen Code aus der App nehmen (wechselt alle 30 Sek.). Alten Authenticator-Eintrag löschen und denselben QR scannen — oder „Neuen QR erzeugen“.";
+        "Code falsch. Oben „Server-Code jetzt“ mit der App vergleichen — müssen gleich sein. Sonst Eintrag löschen → Geheimnis kopieren → manuell einfügen.";
       errEl.classList.remove("hidden");
+      // Frischen Server-Code nachladen (ohne Secret zu wechseln).
+      try {
+        await startMfaSetup({ reset: false });
+      } catch {
+        /* ignore */
+      }
     } finally {
       btn.disabled = false;
       btn.textContent = "MFA aktivieren";

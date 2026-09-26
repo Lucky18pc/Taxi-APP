@@ -28,7 +28,7 @@ const {
   OPERATOR_DOC_FIELDS,
   DRIVER_DOC_FIELDS,
 } = require("./compliance-uploads");
-const { generateSecret, verifyTotp, otpauthUrl } = require("./totp");
+const { generateSecret, verifyTotp, currentTotp, otpauthUrl } = require("./totp");
 const QRCode = require("qrcode");
 
 const port = process.env.PORT || 4242;
@@ -1918,10 +1918,17 @@ app.post("/api/auth/mfa/setup", requireAdmin, async (req, res) => {
   } catch (err) {
     console.warn("MFA QR-Erzeugung fehlgeschlagen:", err.message);
   }
+  let currentCode = "";
+  try {
+    currentCode = currentTotp(secret);
+  } catch {
+    currentCode = "";
+  }
   res.json({
     secret,
     otpauthUrl: url,
     qrDataUrl,
+    currentCode,
     reused: Boolean(!forceNew && adminMfa.pendingSecret),
     serverTime: new Date().toISOString(),
   });
