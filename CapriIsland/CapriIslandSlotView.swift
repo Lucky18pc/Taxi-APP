@@ -23,29 +23,46 @@ enum CapriSymbolType: String, CaseIterable, Identifiable {
         }
     }
 
-    /// SF Symbol — wirkt hochwertiger als Emoji-Comic
-    var systemImage: String {
+    /// Farbige Lebenszeichen (Figuren + Capri-Motive)
+    var emoji: String {
         switch self {
-        case .sunglasses: return "sunglasses"
-        case .deckchair: return "beach.umbrella"
-        case .cocktail: return "wineglass.fill"
-        case .sailboat: return "sailboat.fill"
-        case .yacht: return "ferry.fill"
-        case .isabella: return "crown.fill"
-        case .gianluca: return "person.fill"
-        case .capriSun: return "sun.max.fill"
-        case .beachJoker: return "sparkles"
+        case .sunglasses: return "🕶️"
+        case .deckchair: return "🏖️"
+        case .cocktail: return "🍹"
+        case .sailboat: return "⛵"
+        case .yacht: return "🛥️"
+        case .isabella: return "👩‍🦱"
+        case .gianluca: return "🤵"
+        case .capriSun: return "☀️"
+        case .beachJoker: return "🏄‍♀️"
         }
     }
 
-    var accent: Color {
+    var tileTop: Color {
         switch self {
-        case .gianluca: return Color(red: 0.95, green: 0.78, blue: 0.28)
-        case .isabella: return Color(red: 0.85, green: 0.55, blue: 0.75)
-        case .yacht: return Color(red: 0.35, green: 0.65, blue: 0.95)
-        case .beachJoker: return Color(red: 0.95, green: 0.55, blue: 0.2)
-        case .capriSun: return Color(red: 1.0, green: 0.75, blue: 0.2)
-        default: return Color(red: 0.75, green: 0.82, blue: 0.88)
+        case .gianluca: return Color(red: 1.0, green: 0.92, blue: 0.55)
+        case .isabella: return Color(red: 1.0, green: 0.82, blue: 0.90)
+        case .yacht: return Color(red: 0.55, green: 0.82, blue: 1.0)
+        case .beachJoker: return Color(red: 1.0, green: 0.78, blue: 0.45)
+        case .capriSun: return Color(red: 1.0, green: 0.95, blue: 0.55)
+        case .cocktail: return Color(red: 1.0, green: 0.70, blue: 0.75)
+        case .sailboat: return Color(red: 0.70, green: 0.90, blue: 1.0)
+        case .deckchair: return Color(red: 0.70, green: 0.95, blue: 0.85)
+        case .sunglasses: return Color(red: 0.85, green: 0.88, blue: 0.95)
+        }
+    }
+
+    var tileBottom: Color {
+        switch self {
+        case .gianluca: return Color(red: 0.92, green: 0.72, blue: 0.25)
+        case .isabella: return Color(red: 0.92, green: 0.55, blue: 0.70)
+        case .yacht: return Color(red: 0.25, green: 0.55, blue: 0.90)
+        case .beachJoker: return Color(red: 0.95, green: 0.50, blue: 0.20)
+        case .capriSun: return Color(red: 0.98, green: 0.70, blue: 0.20)
+        case .cocktail: return Color(red: 0.90, green: 0.35, blue: 0.45)
+        case .sailboat: return Color(red: 0.30, green: 0.60, blue: 0.85)
+        case .deckchair: return Color(red: 0.25, green: 0.75, blue: 0.65)
+        case .sunglasses: return Color(red: 0.45, green: 0.50, blue: 0.60)
         }
     }
 }
@@ -223,14 +240,14 @@ struct CapriReelView: View {
 
     var body: some View {
         ZStack {
-            // Trommel-Innenraum
+            // Hellere Trommel — Capri-Azur, nicht pechschwarz
             RoundedRectangle(cornerRadius: 8)
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.06, green: 0.07, blue: 0.09),
-                            Color(red: 0.14, green: 0.15, blue: 0.18),
-                            Color(red: 0.06, green: 0.07, blue: 0.09)
+                            Color(red: 0.55, green: 0.78, blue: 0.92),
+                            Color(red: 0.72, green: 0.88, blue: 0.96),
+                            Color(red: 0.50, green: 0.74, blue: 0.90)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -246,34 +263,32 @@ struct CapriReelView: View {
             .offset(y: offsetY)
             .blur(radius: motionBlur)
 
-            // Zylinder-Rundung
+            // Leichte Zylinder-Rundung (subtil, nicht schwarz)
             HStack(spacing: 0) {
-                LinearGradient(colors: [.black.opacity(0.6), .clear], startPoint: .leading, endPoint: .trailing)
-                    .frame(width: 12)
+                LinearGradient(colors: [.black.opacity(0.18), .clear], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: 10)
                 Spacer(minLength: 0)
-                LinearGradient(colors: [.clear, .black.opacity(0.6)], startPoint: .leading, endPoint: .trailing)
-                    .frame(width: 12)
+                LinearGradient(colors: [.clear, .black.opacity(0.18)], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: 10)
             }
             .allowsHitTesting(false)
 
-            // Mittel-Glanz
             LinearGradient(
-                colors: [.clear, .white.opacity(0.08), .clear],
+                colors: [.clear, .white.opacity(0.22), .clear],
                 startPoint: .leading,
                 endPoint: .trailing
             )
             .allowsHitTesting(false)
 
             VStack(spacing: 0) {
-                LinearGradient(colors: [.black.opacity(0.7), .clear], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 26)
+                LinearGradient(colors: [.black.opacity(0.25), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 22)
                 Spacer()
-                LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 26)
+                LinearGradient(colors: [.clear, .black.opacity(0.25)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 22)
             }
             .allowsHitTesting(false)
 
-            // Messing-Rahmen
             RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(
                     LinearGradient(
@@ -337,53 +352,35 @@ struct CapriReelView: View {
     }
 }
 
-/// Medaillon statt Comic-Kachel
+/// Farbiges Capri-Medaillon mit Figur/Motiv
 struct CapriMedallion: View {
     let symbol: CapriSymbolType
 
     var body: some View {
         ZStack {
-            Circle()
+            RoundedRectangle(cornerRadius: 14)
                 .fill(
-                    RadialGradient(
-                        colors: [
-                            Color(white: 0.22),
-                            Color(white: 0.10)
-                        ],
-                        center: .center,
-                        startRadius: 2,
-                        endRadius: 36
-                    )
-                )
-                .padding(10)
-
-            Circle()
-                .strokeBorder(
                     LinearGradient(
-                        colors: [symbol.accent.opacity(0.95), CapriTheme.goldDark.opacity(0.7)],
+                        colors: [symbol.tileTop, symbol.tileBottom],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1.5
-                )
-                .padding(10)
-
-            VStack(spacing: 3) {
-                Image(systemName: symbol.systemImage)
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.white, symbol.accent],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
                     )
-                    .symbolRenderingMode(.hierarchical)
+                )
+                .padding(7)
+                .shadow(color: .black.opacity(0.2), radius: 3, y: 2)
 
-                Text(symbol.title.uppercased())
-                    .font(.system(size: 7, weight: .semibold, design: .rounded))
-                    .tracking(0.6)
-                    .foregroundStyle(CapriTheme.ink.opacity(0.7))
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(Color.white.opacity(0.45), lineWidth: 1)
+                .padding(7)
+
+            VStack(spacing: 2) {
+                Text(symbol.emoji)
+                    .font(.system(size: 32))
+                    .shadow(color: .black.opacity(0.15), radius: 1, y: 1)
+
+                Text(symbol.title)
+                    .font(.system(size: 8, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.black.opacity(0.65))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -497,18 +494,21 @@ struct CapriIslandSlotView: View {
     private var background: some View {
         ZStack {
             LinearGradient(
-                colors: [CapriTheme.deep, CapriTheme.sea, CapriTheme.deep],
+                colors: [
+                    Color(red: 0.20, green: 0.48, blue: 0.72),
+                    Color(red: 0.35, green: 0.68, blue: 0.88),
+                    Color(red: 0.15, green: 0.38, blue: 0.62)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
 
-            // dezente Lichtfläche
             RadialGradient(
-                colors: [CapriTheme.gold.opacity(0.12), .clear],
+                colors: [Color.yellow.opacity(0.18), .clear],
                 center: .top,
                 startRadius: 10,
-                endRadius: 320
+                endRadius: 340
             )
             .ignoresSafeArea()
         }
