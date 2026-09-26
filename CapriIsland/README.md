@@ -1,22 +1,13 @@
-# Capri Island Slot
+# Capri Island — fertig für Xcode
 
-SwiftUI-Slotspiel (Demo / Unterhaltung).
+## Nur das hier machen
 
-## Datei
+1. In Xcode links **ContentView** anklicken (blaues S).
+2. Alles löschen (⌘A, Backspace).
+3. Inhalt von `ContentView.swift` aus diesem Ordner komplett einfügen (⌘V).
+4. Speichern (⌘S).
+5. ▶ Run.
 
-- `CapriIslandSlotView.swift` — Symbole, ViewModel, UI, Button-Style, Preview
+`Capri_IslandApp.swift` nur ändern, wenn dort nicht schon `ContentView()` steht.
 
-## In Xcode einbinden
-
-1. Neues iOS-App-Projekt öffnen (z. B. „Capri Island“).
-2. `CapriIslandSlotView.swift` per Drag & Drop in den Target-Ordner ziehen (Target Membership anhaken).
-3. In der `*App.swift` als Start setzen:
-
-```swift
-WindowGroup {
-    CapriIslandSlotView()
-}
-```
-
-4. Minimum Deployment: **iOS 17+** (wegen `@Observable`).
-5. Run (⌘R).
+Gelbe XIB-Dateien (`CapriIslandSlotView` mit X-Icon) löschen.
