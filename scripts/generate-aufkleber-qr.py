@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Druckfertiger Luckys-Taxi-Aufkleber (Neugestaltung): Markenstern, 5 Sterne, QR → scan.html."""
+"""Luckys-Taxi-Aufkleber: Überschrift oben in eigener Zone, QR klar darunter."""
 from __future__ import annotations
 
 import math
@@ -10,11 +10,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "web" / "luckys-taxi-aufkleber-qr.png"
+OUT_V2 = ROOT / "web" / "luckys-taxi-aufkleber-v2.png"
 OUT_QR_ONLY = ROOT / "web" / "luckys-taxi-qr-scan.png"
 SCAN_URL = "https://luckystaxiapp.de/scan.html"
 
 YELLOW = (255, 204, 0)
-YELLOW_LIGHT = (255, 235, 130)
+YELLOW_LIGHT = (255, 236, 140)
 YELLOW_DEEP = (245, 188, 0)
 NAVY = (12, 28, 52)
 GOLD = (218, 165, 32)
@@ -23,18 +24,17 @@ WHITE = (255, 255, 255)
 
 
 def font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    candidates = [
+    for path in (
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/croscore/Arimo-Bold.ttf" if bold else "/usr/share/fonts/truetype/croscore/Arimo-Regular.ttf",
-    ]
-    for path in candidates:
+    ):
         if Path(path).is_file():
             return ImageFont.truetype(path, size=size)
     return ImageFont.load_default()
 
 
-def star_points(cx: float, cy: float, r_outer: float, r_inner: float) -> list[tuple[float, float]]:
-    pts: list[tuple[float, float]] = []
+def star_points(cx: float, cy: float, r_outer: float, r_inner: float):
+    pts = []
     for i in range(10):
         ang = math.radians(-90 + i * 36)
         rad = r_outer if i % 2 == 0 else r_inner
@@ -42,54 +42,42 @@ def star_points(cx: float, cy: float, r_outer: float, r_inner: float) -> list[tu
     return pts
 
 
-def draw_star(
-    draw: ImageDraw.ImageDraw,
-    cx: float,
-    cy: float,
-    r: float,
-    fill,
-    outline=None,
-    width: int = 0,
-) -> None:
+def draw_star(draw, cx, cy, r, fill, outline=None, width=0):
     pts = star_points(cx, cy, r, r * 0.4)
     draw.polygon(pts, fill=fill)
-    if outline and width > 0:
+    if outline and width:
         draw.line(pts + [pts[0]], fill=outline, width=width, joint="curve")
 
 
-def center_text(draw: ImageDraw.ImageDraw, text: str, y: int, fnt, fill=NAVY, canvas: int = 1500) -> None:
-    bbox = draw.textbbox((0, 0), text, font=fnt)
-    tw = bbox[2] - bbox[0]
+def center_text(draw, text, y, fnt, fill=NAVY, canvas=1500):
+    bb = draw.textbbox((0, 0), text, font=fnt)
+    tw = bb[2] - bb[0]
     draw.text(((canvas - tw) / 2, y), text, font=fnt, fill=fill)
+    # absolute bbox where text was drawn
+    return draw.textbbox(((canvas - tw) / 2, y), text, font=fnt)
 
 
-def brand_mark(size: int = 320) -> Image.Image:
-    """Navy-Stern mit gelbem Markentext — ohne Admin, ohne Sternenkreis."""
+def brand_mark(size=240) -> Image.Image:
     mark = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(mark)
     cx = cy = size / 2
     draw_star(d, cx, cy, size * 0.48, NAVY)
     lines = ["Lucky's", "Taxi", "App"]
-    f = font(max(26, int(size * 0.14)))
-    line_gaps = []
+    f = font(max(24, int(size * 0.135)))
+    gaps = []
     for line in lines:
         bb = d.textbbox((0, 0), line, font=f)
-        line_gaps.append((line, bb[2] - bb[0], bb[3] - bb[1]))
-    total_h = sum(h for _, _, h in line_gaps) + 6 * (len(lines) - 1)
+        gaps.append((line, bb[2] - bb[0], bb[3] - bb[1]))
+    total_h = sum(h for _, _, h in gaps) + 5 * (len(lines) - 1)
     y = cy - total_h / 2 + 4
-    for line, tw, th in line_gaps:
+    for line, tw, th in gaps:
         d.text((cx - tw / 2, y), line, font=f, fill=YELLOW)
-        y += th + 6
+        y += th + 5
     return mark
 
 
 def make_qr(side: int) -> Image.Image:
-    qr = qrcode.QRCode(
-        version=None,
-        error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=16,
-        border=3,
-    )
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=16, border=3)
     qr.add_data(SCAN_URL)
     qr.make(fit=True)
     raw = qr.make_image(fill_color=NAVY, back_color=WHITE).convert("RGB")
@@ -111,38 +99,34 @@ def main() -> None:
     draw = ImageDraw.Draw(img)
     draw.rounded_rectangle((28, 28, size - 28, size - 28), radius=80, outline=NAVY, width=16)
 
-    # 5 goldene Sterne oben (kompakter, alles etwas höher)
-    star_y = 100
-    gap = 90
+    # === OBERE ZONE (helleres Band): Sterne + Überschrift — weit weg vom QR ===
+    header_bottom = 320
+    draw.rounded_rectangle((48, 48, size - 48, header_bottom), radius=40, fill=YELLOW_LIGHT, outline=NAVY, width=6)
+
+    star_y = 95
+    gap = 88
     start_x = size / 2 - 2 * gap
     for i in range(5):
-        draw_star(draw, start_x + i * gap, star_y, 34, GOLD, outline=GOLD_EDGE, width=3)
+        draw_star(draw, start_x + i * gap, star_y, 32, GOLD, outline=GOLD_EDGE, width=3)
 
-    f_label = font(38)
-    f_lead = font(52)
-    f_scan = font(66)
-    f_en = font(36, bold=False)
-    f_url = font(32, bold=False)
+    center_text(draw, "5 Sterne · Sehr gut", 140, font(36))
 
-    center_text(draw, "5 Sterne · Sehr gut", 150, f_label)
+    # GROSSE Überschrift im hellen Band — kann nicht vom QR bedeckt werden
+    lead_bb = center_text(draw, "Taxi online bestellen", 210, font(56))
+    assert lead_bb[3] < header_bottom - 20, f"Lead zu tief: {lead_bb}"
 
-    # Überschrift WEIT OBEN — klar frei, nicht am QR
-    lead = "Taxi online bestellen"
-    lead_y = 205
-    center_text(draw, lead, lead_y, f_lead)
-    lead_bb = draw.textbbox((0, lead_y), lead, font=f_lead)
-
-    # Markenstern darunter
-    mark = brand_mark(250)
-    mark_y = lead_bb[3] + 12
+    # Markenstern unter dem Band
+    mark = brand_mark(230)
+    mark_y = header_bottom + 20
     img.paste(mark, ((size - mark.width) // 2, mark_y), mark)
 
-    # QR mit großzügigem Abstand unter dem Stern
-    qr_side = 500
-    qr_img = make_qr(qr_side)
-    pad = 26
+    # QR deutlich darunter
+    qr_side = 480
+    pad = 24
     qx = (size - qr_side) // 2
-    qy = mark_y + mark.height + 28 + pad
+    qy = mark_y + mark.height + 36 + pad
+    assert qy - pad > lead_bb[3] + 80, "QR zu nah an Überschrift"
+
     draw.rounded_rectangle(
         (qx - pad, qy - pad, qx + qr_side + pad, qy + qr_side + pad),
         radius=28,
@@ -150,19 +134,24 @@ def main() -> None:
         outline=NAVY,
         width=8,
     )
-    img.paste(qr_img, (qx, qy))
+    img.paste(make_qr(qr_side), (qx, qy))
 
-    below = qy + qr_side + pad + 24
-    center_text(draw, "Bitte scannen", below, f_scan)
-    center_text(draw, "Please scan me", below + 70, f_en)
-    center_text(draw, "luckystaxiapp.de/scan.html", below + 125, f_url)
+    below = qy + qr_side + pad + 22
+    center_text(draw, "Bitte scannen", below, font(64))
+    center_text(draw, "Please scan me", below + 68, font(34, bold=False))
+    center_text(draw, "luckystaxiapp.de/scan.html", below + 118, font(30, bold=False))
+
+    print(
+        f"Layout: lead_bottom={lead_bb[3]} header_band={header_bottom} "
+        f"mark_y={mark_y} qr_frame_top={qy - pad} gap_lead_to_qr={(qy - pad) - lead_bb[3]}"
+    )
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     img.save(OUT, "PNG", optimize=True)
-    print(f"Wrote {OUT} → {SCAN_URL}")
-
-    only = make_qr(1200)
-    only.save(OUT_QR_ONLY, "PNG", optimize=True)
+    img.save(OUT_V2, "PNG", optimize=True)
+    make_qr(1200).save(OUT_QR_ONLY, "PNG", optimize=True)
+    print(f"Wrote {OUT}")
+    print(f"Wrote {OUT_V2}")
     print(f"Wrote {OUT_QR_ONLY}")
 
 
