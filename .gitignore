@@ -25,6 +25,7 @@ backend/node_modules/
 # Laufzeit-Daten (Buchungen lokal)
 backend/data/*.json
 backend/data/uploads/
+backend/data/receipts-pdf/
 
 # macOS
 .DS_Store
@@ -34,3 +35,4 @@ backend/data/uploads/
 # Cursor / IDE
 .cursor/*
 !.cursor/environment.json
+__pycache__/

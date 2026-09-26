@@ -13,8 +13,14 @@ struct DriverBooking: Identifiable, Decodable {
     let paymentMethod: String?
     let latitude: Double?
     let longitude: Double?
+    let destinationLatitude: Double?
+    let destinationLongitude: Double?
     let status: String
     let createdAt: String?
+    let estimatedFare: Double?
+    let estimatedEarnings: Double?
+    let offerExpiresAt: String?
+    let dispatch: DispatchInfo?
 
     var id: String { bookingId }
 
@@ -23,6 +29,18 @@ struct DriverBooking: Identifiable, Decodable {
             return "\(addressLine) → \(destinationAddressLine)"
         }
         return addressLine
+    }
+
+    var isActiveOffer: Bool {
+        dispatch?.status == "offering" || offerExpiresAt != nil
+    }
+
+    struct DispatchInfo: Decodable {
+        let status: String?
+        let offerDriverId: String?
+        let expiresAt: String?
+        let timeoutMs: Int?
+        let attempt: Int?
     }
 }
 

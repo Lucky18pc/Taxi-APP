@@ -7,6 +7,7 @@ struct FareCalculator {
     let basePriceNight = 4.90
     let pricePerKmNight = 2.60
 
+    /// Phase-4-Formel: Grundpreis + (Kilometer * Kilometertarif).
     func calculateFare(distanceInMeters: Double) -> (price: Double, isNight: Bool) {
         let distanceInKm = distanceInMeters / 1000
         let hour = Calendar.current.component(.hour, from: Date())

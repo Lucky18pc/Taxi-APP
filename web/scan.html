@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffcc00">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Luckys Taxi App">
+  <title>Luckys Taxi App — Bitte scannen</title>
+  <link rel="icon" type="image/png" href="icon-taxi-192.png">
+  <!-- Kein externes CSS: erste Farbe sofort gelb — kein leerer/Render-artiger Start -->
+  <style>
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #ffcc00;
+      color: #0c1c34;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem 1.25rem 3rem;
+      box-sizing: border-box;
+    }
+    .stars { font-size: 1.35rem; letter-spacing: 0.12em; margin-bottom: 0.5rem; color: #d4a517; }
+    .mark { margin: 0.35rem 0 0.5rem; display: block; }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 6vw, 2.2rem);
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .lead {
+      margin: 0.65rem 0 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      opacity: 0.95;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 1.75rem;
+      background: #ffe566;
+      color: #0c1c34 !important;
+      font-weight: 900;
+      font-size: 1.25rem;
+      text-decoration: none;
+      padding: 1.15rem 1.7rem;
+      border-radius: 16px;
+      border: 4px solid #0c1c34;
+      box-shadow: 0 5px 0 #0c1c34;
+      min-width: min(100%, 300px);
+    }
+    .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0c1c34; }
+    .status {
+      margin-top: 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      min-height: 1.4em;
+    }
+    .status.ok { color: #0c1c34; }
+    .status.wait { opacity: 0.85; }
+    .hint {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      max-width: 22rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true">★★★★★</div>
+  <svg class="mark" width="96" height="96" viewBox="0 0 100 100" aria-hidden="true">
+    <polygon points="50,4 61,38 97,38 68,59 79,93 50,72 21,93 32,59 3,38 39,38" fill="#0c1c34"/>
+    <text x="50" y="42" text-anchor="middle" fill="#ffcc00" font-size="11" font-weight="800" font-family="system-ui,sans-serif">Lucky's</text>
+    <text x="50" y="54" text-anchor="middle" fill="#ffcc00" font-size="11" font-weight="800" font-family="system-ui,sans-serif">Taxi</text>
+    <text x="50" y="66" text-anchor="middle" fill="#ffcc00" font-size="11" font-weight="800" font-family="system-ui,sans-serif">App</text>
+  </svg>
+  <h1>Luckys Taxi App</h1>
+  <p class="lead">Taxi online bestellen</p>
+  <a class="btn" id="cta" href="book.html">Jetzt Taxi bestellen</a>
+  <p class="status wait" id="status">Verbindung wird geprüft…</p>
+  <p class="hint">Sichere Buchungsseite von Luckys Taxi App. Kein App-Store nötig.</p>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var slug = (params.get("o") || params.get("operator") || "").trim().toLowerCase();
+      var book = slug ? ("book.html?o=" + encodeURIComponent(slug)) : "book.html";
+      var cta = document.getElementById("cta");
+      var status = document.getElementById("status");
+      cta.href = book;
+
+      var tries = 0;
+      var maxTries = 40; // ~40s
+
+      function ready() {
+        status.textContent = "Bereit — tippen Sie den gelben Button.";
+        status.className = "status ok";
+        // Auto-Weiterleitung nur wenn Server schon warm ist (schneller Scan-Flow)
+        if (tries <= 2) {
+          status.textContent = "Weiter zur Buchung…";
+          setTimeout(function () { location.replace(book); }, 350);
+        }
+      }
+
+      function ping() {
+        tries += 1;
+        var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var t = ctrl ? setTimeout(function () { ctrl.abort(); }, 4000) : null;
+        fetch("/health", { cache: "no-store", signal: ctrl && ctrl.signal })
+          .then(function (r) {
+            if (t) clearTimeout(t);
+            if (!r.ok) throw new Error("bad");
+            return r.json().catch(function () { return {}; });
+          })
+          .then(function () { ready(); })
+          .catch(function () {
+            if (t) clearTimeout(t);
+            status.textContent = "Luckys Taxi startet… bitte einen Moment.";
+            status.className = "status wait";
+            if (tries < maxTries) setTimeout(ping, 1000);
+            else {
+              status.textContent = "Tippen Sie „Jetzt Taxi bestellen“ — die Seite lädt dann.";
+              status.className = "status ok";
+            }
+          });
+      }
+
+      ping();
+    })();
+  </script>
+</body>
+</html>

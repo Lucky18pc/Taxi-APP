@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A10000000000000000000028 /* PassengerSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* PassengerSessionStore.swift */; };
+		A10000000000000000000029 /* PlacesAutocompleteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* PlacesAutocompleteService.swift */; };
+		A1000000000000000000002A /* FareQuoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002A /* FareQuoteService.swift */; };
+		A1000000000000000000002B /* LiveTrackingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002B /* LiveTrackingScreen.swift */; };
+		A1000000000000000000002C /* PassengerOTPLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002C /* PassengerOTPLoginView.swift */; };
 		A10000000000000000000001 /* TaxiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* TaxiApp.swift */; };
 		A10000000000000000000003 /* TaxiAppProView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* TaxiAppProView.swift */; };
 		A10000000000000000000004 /* TaxiCompanyHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* TaxiCompanyHeaderView.swift */; };
@@ -49,6 +54,11 @@
 
 /* Begin PBXFileReference section */
 		A20000000000000000000000 /* TaxiApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TaxiApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000028 /* PassengerSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassengerSessionStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000029 /* PlacesAutocompleteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesAutocompleteService.swift; sourceTree = "<group>"; };
+		A2000000000000000000002A /* FareQuoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FareQuoteService.swift; sourceTree = "<group>"; };
+		A2000000000000000000002B /* LiveTrackingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTrackingScreen.swift; sourceTree = "<group>"; };
+		A2000000000000000000002C /* PassengerOTPLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassengerOTPLoginView.swift; sourceTree = "<group>"; };
 		A20000000000000000000001 /* TaxiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiApp.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* TaxiAppProView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiAppProView.swift; sourceTree = "<group>"; };
 		A20000000000000000000004 /* TaxiCompanyHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxiCompanyHeaderView.swift; sourceTree = "<group>"; };
@@ -179,6 +189,9 @@
 				A20000000000000000000019 /* StripePaymentService.swift */,
 				A2000000000000000000001E /* GeocodingService.swift */,
 				A2000000000000000000001F /* BookingService.swift */,
+				A2000000000000000000002A /* FareQuoteService.swift */,
+				A20000000000000000000029 /* PlacesAutocompleteService.swift */,
+				A20000000000000000000028 /* PassengerSessionStore.swift */,
 				A20000000000000000000020 /* DriverProfileStore.swift */,
 				A20000000000000000000023 /* CentralConfigStore.swift */,
 				A20000000000000000000026 /* PhoneDialer.swift */,
@@ -222,6 +235,8 @@
 				A20000000000000000000009 /* TaxiMapView.swift */,
 				A2000000000000000000000A /* DestinationSearchView.swift */,
 				A2000000000000000000000B /* PaymentView.swift */,
+				A2000000000000000000002C /* PassengerOTPLoginView.swift */,
+				A2000000000000000000002B /* LiveTrackingScreen.swift */,
 				A2000000000000000000000C /* TaxiBookingView.swift */,
 			);
 			path = TaxiBooking;
@@ -316,6 +331,11 @@
 				A1000000000000000000001D /* PickupLocation.swift in Sources */,
 				A1000000000000000000001E /* GeocodingService.swift in Sources */,
 				A1000000000000000000001F /* BookingService.swift in Sources */,
+				A1000000000000000000002C /* PassengerOTPLoginView.swift in Sources */,
+				A1000000000000000000002B /* LiveTrackingScreen.swift in Sources */,
+				A1000000000000000000002A /* FareQuoteService.swift in Sources */,
+				A10000000000000000000029 /* PlacesAutocompleteService.swift in Sources */,
+				A10000000000000000000028 /* PassengerSessionStore.swift in Sources */,
 				A10000000000000000000020 /* DriverProfileStore.swift in Sources */,
 				A10000000000000000000021 /* DriverProfileView.swift in Sources */,
 				A10000000000000000000022 /* CameraImagePicker.swift in Sources */,

@@ -6,6 +6,7 @@
 import SwiftUI
 import UIKit
 import CoreLocation
+import Combine
 import FirebaseAuth
 import FirebaseFirestore
 
@@ -25,17 +26,19 @@ struct HomeView: View {
     @State private var showPayMethodDialog = false
     @State private var pendingAmount: Double?
     @State private var terminalEnabled = false
+    @State private var activeOffer: DriverBooking?
     @StateObject private var locationReporter = DriverLocationReporter()
 
     private let operatorSlug = BackendConfig.defaultOperatorSlug
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 16) {
+            ZStack {
+                VStack(alignment: .leading, spacing: 16) {
                 Text("Hallo, \(driverName)")
                     .font(.title2.bold())
 
-                Toggle("Online / Schicht", isOn: $isOnline)
+                Toggle("Online / Offline", isOn: $isOnline)
                     .padding()
                     .background(Color(red: 1, green: 0.973, blue: 0.8))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -110,6 +113,27 @@ struct HomeView: View {
                                     }
                                     .buttonStyle(.borderedProminent)
                                     .tint(.green)
+
+                                    if let coord = booking.pickupCoordinate {
+                                        Menu("Navigation") {
+                                            Button("Apple Maps") {
+                                                NavigationDeepLink.open(app: .appleMaps, coordinate: coord, label: booking.addressLine)
+                                            }
+                                            Button("Google Maps") {
+                                                NavigationDeepLink.open(app: .googleMaps, coordinate: coord, label: booking.addressLine)
+                                            }
+                                            Button("Waze") {
+                                                NavigationDeepLink.open(app: .waze, coordinate: coord, label: booking.addressLine)
+                                            }
+                                            if let dest = booking.destinationCoordinate {
+                                                Divider()
+                                                Button("Zum Ziel (Apple)") {
+                                                    NavigationDeepLink.open(app: .appleMaps, coordinate: dest, label: booking.destinationAddressLine ?? "Ziel")
+                                                }
+                                            }
+                                        }
+                                        .buttonStyle(.bordered)
+                                    }
                                 } else {
                                     Button("Annehmen") {
                                         Task { await accept(booking) }
@@ -130,10 +154,28 @@ struct HomeView: View {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(Color(red: 1, green: 0.8, blue: 0).ignoresSafeArea())
+
+                if let activeOffer {
+                    Color.black.opacity(0.35).ignoresSafeArea()
+                    IncomingTripOfferModal(
+                        booking: activeOffer,
+                        onAccept: {
+                            let offer = activeOffer
+                            self.activeOffer = nil
+                            Task { await accept(offer) }
+                        },
+                        onDecline: {
+                            let offer = activeOffer
+                            self.activeOffer = nil
+                            Task { await decline(offer) }
+                        }
+                    )
+                }
+            }
             .navigationTitle("Fahrer")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-        Button("Abmelden") {
+                    Button("Abmelden") {
                         UserDefaults.standard.removeObject(forKey: "fahrer.uid")
                         UserDefaults.standard.removeObject(forKey: "fahrer.name")
                         try? Auth.auth().signOut()
@@ -143,6 +185,10 @@ struct HomeView: View {
             .task {
                 await loadOnlineStatus()
                 terminalEnabled = await TapToPayService.isEnabled(operatorSlug: operatorSlug)
+            }
+            .onReceive(Timer.publish(every: 5, on: .main, in: .common).autoconnect()) { _ in
+                guard isOnline, !isBusy else { return }
+                Task { await loadBookings() }
             }
             .alert("Taxameter-Betrag", isPresented: Binding(
                 get: { completeTarget != nil && !showPayMethodDialog },
@@ -256,9 +302,12 @@ struct HomeView: View {
         defer { isBusy = false }
 
         do {
-            let list = try await DriverAPI.openBookings(operatorSlug: operatorSlug)
+            let list = try await DriverAPI.openBookings(operatorSlug: operatorSlug, driverUid: driverUid)
             await MainActor.run {
                 bookings = list
+                if let offer = list.first(where: { $0.isActiveOffer }) {
+                    activeOffer = offer
+                }
                 statusText = list.isEmpty
                     ? "Online — keine offenen Fahrten."
                     : "Online — \(list.count) offene Fahrt(en)."
@@ -287,6 +336,24 @@ struct HomeView: View {
                 statusText = "Fahrt angenommen."
                 locationReporter.start(driverUid: driverUid, bookingId: booking.bookingId)
             }
+            await loadBookings()
+        } catch {
+            await MainActor.run {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func decline(_ booking: DriverBooking) async {
+        isBusy = true
+        errorMessage = nil
+        defer { isBusy = false }
+        do {
+            try await DriverAPI.declineBooking(
+                bookingId: booking.bookingId,
+                driverUid: driverUid,
+                operatorSlug: operatorSlug
+            )
             await loadBookings()
         } catch {
             await MainActor.run {
@@ -409,14 +476,18 @@ final class DriverLocationReporter: NSObject, ObservableObject, CLLocationManage
     override init() {
         super.init()
         manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        manager.allowsBackgroundLocationUpdates = false
+        manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+        manager.distanceFilter = 5
+        // Phase 4: Hintergrund-Standort (Display gesperrt)
+        manager.allowsBackgroundLocationUpdates = true
+        manager.pausesLocationUpdatesAutomatically = false
+        manager.showsBackgroundLocationIndicator = true
     }
 
     func start(driverUid: String, bookingId: String?) {
         self.driverUid = driverUid
         self.bookingId = bookingId
-        manager.requestWhenInUseAuthorization()
+        manager.requestAlwaysAuthorization()
         manager.startUpdatingLocation()
     }
 
@@ -429,7 +500,8 @@ final class DriverLocationReporter: NSObject, ObservableObject, CLLocationManage
         guard let location = locations.last else { return }
         Task { @MainActor in
             let now = Date()
-            if let lastSent, now.timeIntervalSince(lastSent) < 12 { return }
+            // Kontinuierlich alle ~2,5 s
+            if let lastSent, now.timeIntervalSince(lastSent) < 2.5 { return }
             lastSent = now
             let uid = driverUid
             let booking = bookingId

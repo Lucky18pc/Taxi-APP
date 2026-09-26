@@ -42,15 +42,15 @@ if [[ -z "$ADMIN_PIN" ]]; then
 fi
 
 echo "4/5 Fahrer anlegen + zuweisen …"
-driver_json=$(curl -sf --connect-timeout 15 --max-time 90 -X POST "$BASE/api/drivers" \
+driver_json=$(curl -sf --connect-timeout 15 --max-time 90 -X POST "$BASE/api/drivers?operator=mannheim" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_PIN" \
-  -d '{"name":"E2E Fahrer","phone":"+491701234567","vehicle":"MA-E2E 1"}')
+  -d '{"name":"E2E Fahrer","phone":"+491701234567","vehicle":"MA-E2E 1","operator":"mannheim"}')
 driver_id=$(echo "$driver_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['driverId'])")
 tracking_pin=$(echo "$driver_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['trackingPin'])")
 echo "   driverId=$driver_id pin=$tracking_pin"
 
-curl -sf --connect-timeout 15 --max-time 90 -X PATCH "$BASE/api/bookings/$booking_id/assign" \
+curl -sf --connect-timeout 15 --max-time 90 -X PATCH "$BASE/api/bookings/$booking_id/assign?operator=mannheim" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_PIN" \
   -d "{\"driverId\":\"$driver_id\"}" > /dev/null
@@ -62,7 +62,7 @@ curl -sf --connect-timeout 15 --max-time 90 -X POST "$BASE/api/drivers/$driver_i
 
 tracking2=$(curl -sf --connect-timeout 15 --max-time 90 "$BASE/api/public/bookings/$booking_id/tracking")
 echo "   $tracking2"
-echo "$tracking2" | grep -q '"hasDriverLocation": true'
+echo "$tracking2" | grep -q '"hasDriverLocation":true\|"hasDriverLocation": true'
 
 code=$(curl -sfI --connect-timeout 15 --max-time 90 -o /dev/null -w "%{http_code}" "$BASE/track.html")
 echo "   track.html HTTP $code"

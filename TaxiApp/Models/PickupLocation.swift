@@ -8,6 +8,9 @@ struct PickupLocation: Hashable, Codable, Sendable, Identifiable {
     var addressLine: String
     /// Zieladresse (Text), optional — wird an die Leitstelle übermittelt.
     var destinationAddressLine: String = ""
+    /// Zielkoordinaten (Places / Geocode), optional für Distance Matrix.
+    var destinationLatitude: Double? = nil
+    var destinationLongitude: Double? = nil
 
     var id: String {
         "\(latitude)-\(longitude)-\(addressLine)-\(destinationAddressLine)"
@@ -15,6 +18,11 @@ struct PickupLocation: Hashable, Codable, Sendable, Identifiable {
 
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
+    var destinationCoordinate: CLLocationCoordinate2D? {
+        guard let destinationLatitude, let destinationLongitude else { return nil }
+        return CLLocationCoordinate2D(latitude: destinationLatitude, longitude: destinationLongitude)
     }
 
     static var defaultPlaceholder: PickupLocation {

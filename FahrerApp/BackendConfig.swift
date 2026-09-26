@@ -6,8 +6,8 @@
 import Foundation
 
 enum BackendConfig {
-    /// Live-Backend (Render). Für lokales Backend: http://127.0.0.1:4242
-    static let baseURL = "https://taxiapp-api.onrender.com"
+    /// Live-Backend (Domain → Render). Lokal: http://127.0.0.1:4242
+    static let baseURL = "https://luckystaxiapp.de"
 
     /// Standard-Betrieb für den Pilot (Multi-Tenant-Slug).
     static let defaultOperatorSlug = "mannheim"

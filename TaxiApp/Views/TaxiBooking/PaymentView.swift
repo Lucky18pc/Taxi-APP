@@ -30,7 +30,7 @@ private let voucherToggleGreen = Brand.accent
 struct TaxiBookingSummary: Hashable {
     var pickupDate: Date
     var pickupLocation: PickupLocation
-    /// Fahrtpreis bei Buchung immer 0 — Endbetrag kommt vom Taxameter (Fahrer).
+    /// Geschätzter Tarif (Distance Matrix + Formel); Endbetrag kann vom Taxameter abweichen.
     var tariffAmount: Double
     /// Optionaler Trinkgeld-Wunsch (wird an Leitstelle übermittelt, nicht in App berechnet).
     var tipAmount: Double
@@ -42,8 +42,8 @@ struct TaxiBookingSummary: Hashable {
     var isImmediatePickup: Bool = false
     var passengerEmail: String = ""
 
-    /// Bei Buchung kein fester Gesamtpreis — Zahlung nach Fahrt (Taxameter / Fahrer).
-    var totalAmount: Double { 0 }
+    /// Geschätzter Tarifbetrag für Ride Request / Leitstelle.
+    var totalAmount: Double { max(0, tariffAmount) }
 
     static let taximeterFareLabel = "Nach Taxameter"
 
@@ -51,7 +51,9 @@ struct TaxiBookingSummary: Hashable {
         tariffAmount > 0 ? String(format: "%.2f €", tariffAmount) : Self.taximeterFareLabel
     }
 
-    var totalDisplayText: String { "0,00 €" }
+    var totalDisplayText: String {
+        tariffAmount > 0 ? String(format: "%.2f €", tariffAmount) : "0,00 €"
+    }
 
     func pickupTimeDisplayText(timeZone: TimeZone) -> String {
         if isImmediatePickup {
@@ -160,14 +162,15 @@ struct PaymentView: View {
     @State private var submitError: String?
     @State private var confirmedMessage = ""
     @State private var confirmedBookingId: String?
+    @State private var showLiveTracking = false
+    @State private var fareQuote: FareQuote?
+    @State private var fareQuoteError: String?
 
     let pickupDate: Date
     let pickupLocation: PickupLocation
     let isImmediatePickup: Bool
 
     private let bookingService = BookingService()
-    /// Kein Demo-Festpreis — Betrag kommt vom Taxameter am Ende der Fahrt.
-    private let tariffAmount: Double = 0
     @State private var selectedTipId: String = "none"
     @State private var useVoucher = false
     @State private var voucherText = ""
@@ -192,6 +195,10 @@ struct PaymentView: View {
 
     private var tipAmount: Double {
         selectedTipOption.amount
+    }
+
+    private var tariffAmount: Double {
+        fareQuote?.fare ?? 0
     }
 
     private var voucherAmount: Double {
@@ -270,15 +277,28 @@ struct PaymentView: View {
             )
         }
         .alert("Taxi bestellt", isPresented: $showConfirmedAlert) {
+            if confirmedBookingId != nil {
+                Button("Live auf der Karte") {
+                    showLiveTracking = true
+                }
+            }
             if let bookingId = confirmedBookingId,
-               let trackURL = URL(string: "\(TaxiConfig.stripeBackendURL)/track.html?b=\(bookingId)") {
-                Link("Taxi verfolgen", destination: trackURL)
+               let trackURL = URL(string: "\(TaxiConfig.stripeBackendURL)/track.html?bookingId=\(bookingId)") {
+                Link("Im Browser verfolgen", destination: trackURL)
             }
             Button("OK", role: .cancel) {
                 NotificationCenter.default.post(name: .taxiBookingCompleted, object: nil)
             }
         } message: {
             Text(confirmedMessage)
+        }
+        .navigationDestination(isPresented: $showLiveTracking) {
+            if let confirmedBookingId {
+                LiveTrackingScreen(bookingId: confirmedBookingId)
+            }
+        }
+        .task {
+            await refreshFareQuote()
         }
         .alert("Buchung fehlgeschlagen", isPresented: Binding(
             get: { submitError != nil },
@@ -300,21 +320,34 @@ struct PaymentView: View {
     private var tariffCard: some View {
         VStack(spacing: 6) {
             HStack {
-                Text("Fahrtpreis")
+                Text("Preis­schätzung")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
                 Spacer()
-                Text("0,00 €")
+                Text(tariffAmount > 0 ? String(format: "%.2f €", tariffAmount) : "—")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.white)
             }
-            Text(TaxiBookingSummary.taximeterFareLabel)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.9))
-            Text("Der Betrag steht erst am Ende der Fahrt auf dem Taxameter — der Fahrer kassiert.")
-                .font(.caption2)
-                .foregroundStyle(.white.opacity(0.8))
-                .multilineTextAlignment(.center)
+            if let fareQuote {
+                Text("\(fareQuote.distanceText) · \(fareQuote.durationText)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                Text(fareQuote.formula)
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.8))
+            } else if let fareQuoteError {
+                Text(fareQuoteError)
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.85))
+            } else {
+                Text(TaxiBookingSummary.taximeterFareLabel)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                Text("Zieladresse setzen für Distance-Matrix-Tarif. Endbetrag ggf. laut Taxameter.")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -577,9 +610,12 @@ struct PaymentView: View {
                     submitError = message
                 case .success(let bookingId):
                     confirmedBookingId = bookingId
+                    let estimate = tariffAmount > 0
+                        ? String(format: " Schätzung %.2f €.", tariffAmount)
+                        : ""
                     confirmedMessage = selectedPaymentMethod == .card
-                        ? "Ihr Taxi ist bestellt (ID \(bookingId.prefix(8))…). Nach der Fahrt zahlen Sie per Kartenzahlungs-Link (Betrag laut Taxameter)."
-                        : "Ihr Taxi ist bestellt (ID \(bookingId.prefix(8))…). Die Zahlung erfolgt nach der Fahrt — Betrag laut Taxameter, bar beim Fahrer."
+                        ? "Ihr Taxi ist bestellt (ID \(bookingId.prefix(8))…).\(estimate) Kartenzahlung nach der Fahrt möglich."
+                        : "Ihr Taxi ist bestellt (ID \(bookingId.prefix(8))…).\(estimate) Zahlung bar beim Fahrer."
                     showConfirmedAlert = true
                 }
             }
@@ -587,7 +623,11 @@ struct PaymentView: View {
     }
 
     private func buildSummary() -> TaxiBookingSummary {
-        TaxiBookingSummary(
+        var email = passengerEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        if email.isEmpty, let phone = UserDefaults.standard.string(forKey: "passenger.phone"), !phone.isEmpty {
+            email = "\(phone)@otp.local"
+        }
+        return TaxiBookingSummary(
             pickupDate: pickupDate,
             pickupLocation: pickupLocation,
             tariffAmount: tariffAmount,
@@ -597,8 +637,27 @@ struct PaymentView: View {
             paymentMethodLabel: selectedPaymentMethod.rawValue,
             nightSurchargeApplies: centralStore.nightSurchargeApplies(for: pickupDate),
             isImmediatePickup: isImmediatePickup,
-            passengerEmail: passengerEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+            passengerEmail: email
         )
+    }
+
+    @MainActor
+    private func refreshFareQuote() async {
+        guard let dest = pickupLocation.destinationCoordinate else {
+            fareQuote = nil
+            fareQuoteError = "Kein Ziel — Tarifschätzung übersprungen."
+            return
+        }
+        do {
+            fareQuote = try await FareQuoteService.quote(
+                origin: pickupLocation.coordinate,
+                destination: dest
+            )
+            fareQuoteError = nil
+        } catch {
+            fareQuote = nil
+            fareQuoteError = error.localizedDescription
+        }
     }
 }
 

@@ -632,7 +632,8 @@
     const OPERATOR = "mannheim";
     const DRIVER_API_KEY = "luckys-fahrer-pilot-k7m2p9qx";
     const POLL_MS = 18000;
-    const GPS_MIN_MS = 4000;
+    /** Phase 1: Koordinaten alle ~2,5 s an Backend (Socket.io pusht an Fahrgast). */
+    const GPS_MIN_MS = 2500;
 
     const firebaseConfig = {
       apiKey: "AIzaSyCNQeXaSHQ1NVUxB_1XuHgRfFgaDc3CBx8",

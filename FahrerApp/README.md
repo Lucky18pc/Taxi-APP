@@ -2,10 +2,13 @@
 
 ## Features (aktuell)
 
-1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`)
-2. **Online / Schicht** — wird in Firestore gespeichert (`isOnline`)
-3. **Fahrtenliste** — offene Buchungen vom Render-Backend
-4. **Annehmen / Erledigt** — Driver-API ohne ADMIN_PIN
+1. **Login** (Firebase Auth + Firestore `user/{uid}` mit `role: driver`) — async/await; optional **SMS-OTP** via Backend
+2. **Online / Offline** — Firestore `isOnline`
+3. **Hintergrund-GPS** — alle ~2,5 s, `allowsBackgroundLocationUpdates` (Info.plist: location background)
+4. **Fahrtenliste** + **Auftragskarte** (Incoming Trip Modal mit Countdown, Annehmen/Ablehnen)
+5. **Navigation** — Deep Links Apple Maps / Google Maps / Waze
+6. **Annehmen / Erledigt** — Driver-API ohne ADMIN_PIN
+7. **GPS** — Backend + Socket.io für Fahrgast-Tracking
 
 ## Dateien in Xcode übernehmen
 
@@ -20,6 +23,9 @@ Alle Dateien aus diesem Ordner in das Target **Luckys Taxi Fahrer** legen:
 | `DriverBooking.swift` | Modelle |
 | `TapToPayService.swift` | Tap to Pay Backend + SDK-Hook |
 | `LuckysTaxiFahrer.entitlements` | Apple Tap-to-Pay Entitlement (nach Freigabe) |
+| `Info-BackgroundLocation.plist.snippet` | Always-Location + `UIBackgroundModes: location` (Phase 8 Review) |
+
+**App Store:** Metadaten + paste-fertige Review Notes zur Hintergrund-Ortung → `docs/APP-STORE-METADATA.md`
 
 Backend-URL Standard: `https://taxiapp-api.onrender.com`  
 Operator-Slug Standard: `mannheim` (in `BackendConfig.swift` änderbar)

@@ -130,7 +130,7 @@
     </div>
 
     <ul class="qr-hint">
-      <li><strong>Jetzt:</strong> QR öffnet die <a href="book.html">Online-Buchung</a> im Browser.</li>
+      <li><strong>Jetzt:</strong> QR öffnet zuerst <a href="scan.html">Luckys Taxi App</a> (gelbe Sofort-Seite), dann die Buchung — ohne Render-Zwischenseite-Feeling.</li>
       <li><strong>Später mit iPhone-App:</strong> Neuen QR mit App-Store-Link erstellen (siehe unten).</li>
       <li>Vor dem Druck: einmal selbst scannen und testen.</li>
     </ul>
@@ -144,6 +144,22 @@
         <li>Größe im Auto: QR mindestens <strong>4×4 cm</strong>, besser 6×6 cm; daneben kurz „Taxi scannen &amp; bestellen“.</li>
       </ol>
       <p style="margin:0.75rem 0 0">Visitenkarten: PNG beim Karten-Drucker hochladen. Aufkleber: „Wetterfester Aufkleber“ oder Folie wählen.</p>
+    </section>
+
+    <section class="qr-print-box no-print">
+      <h2>Aufkleber-Vorlage (Werbung)</h2>
+      <p>
+        Neu gestaltet: Markenstern, 5 goldene Sterne, QR auf die gelbe Luckys-Seite
+        (<code>scan.html</code>) — ohne Render-Zwischenseite-Feeling.
+        Für Copyshop, Vistaprint oder Folienaufkleber (mind. 4×4&nbsp;cm, besser 6×6&nbsp;cm).
+      </p>
+      <p style="margin:0.75rem 0 0; display:flex; flex-wrap:wrap; gap:0.75rem">
+        <a class="btn" href="luckys-taxi-aufkleber-qr.png" download="luckys-taxi-aufkleber-qr.png">Aufkleber PNG herunterladen (neu, rund)</a>
+        <a class="btn secondary" href="luckys-taxi-qr-scan.png" download="luckys-taxi-qr-scan.png">Nur QR (PNG)</a>
+      </p>
+      <p class="note" style="margin-top:0.5rem">
+        Ersetzt den alten QR: rund, Sterne im Bogen, Link auf <code>scan.html</code> (Luckys gelb — ohne Render-Logo).
+      </p>
     </section>
 
     <p class="no-print" style="margin-top:1.25rem">
@@ -170,8 +186,8 @@
     (function () {
       const pageParams = new URLSearchParams(window.location.search);
       const operatorSlug = String(pageParams.get("o") || pageParams.get("operator") || "").trim().toLowerCase();
-      const bookPath = operatorSlug ? `book.html?o=${encodeURIComponent(operatorSlug)}` : "book.html";
-      const bookUrl = new URL(bookPath, window.location.href).href;
+      const scanPath = operatorSlug ? `scan.html?o=${encodeURIComponent(operatorSlug)}` : "scan.html";
+      const scanUrl = new URL(scanPath, window.location.href).href;
       const linkEl = document.getElementById("qr-link");
       const imgEl = document.getElementById("qr-image");
       const downloadBtn = document.getElementById("qr-download");
@@ -184,12 +200,12 @@
           "x" +
           size +
           "&margin=2&format=png&data=" +
-          encodeURIComponent(bookUrl)
+          encodeURIComponent(scanUrl)
         );
       }
 
-      linkEl.href = bookUrl;
-      linkEl.textContent = bookUrl;
+      linkEl.href = scanUrl;
+      linkEl.textContent = scanUrl;
       imgEl.src = qrPngUrl(280);
 
       downloadBtn.addEventListener("click", function () {

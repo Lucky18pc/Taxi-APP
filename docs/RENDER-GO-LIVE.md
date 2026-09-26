@@ -3,6 +3,8 @@
 **Cloud-Plattform für TaxiApp:** [Render.com](https://render.com) — **nicht** Firebase.  
 (CollectionShop läuft separat auf Firebase; die TaxiApp ist ein eigenes Projekt.)
 
+**Phase 8:** Multi-Cloud (Docker) + Store-Metadaten → [PHASE-8-DEPLOY-RELEASE.md](PHASE-8-DEPLOY-RELEASE.md) · [APP-STORE-METADATA.md](APP-STORE-METADATA.md)
+
 **Stripe:** eigenes Konto nur für Luckys Taxi — nicht die Collection-Shop-Keys.  
 → [STRIPE-ZWEI-KONTEN.md](STRIPE-ZWEI-KONTEN.md)
 
@@ -15,10 +17,15 @@ Domain/DNS und Sichtbarkeit: [STRATO-SICHTBARKEIT.md](STRATO-SICHTBARKEIT.md)
 |-----|-----|
 | Health | https://luckystaxiapp.de/health |
 | Startseite | https://luckystaxiapp.de/ |
+| **QR / Aufkleber (Kunden-Scan)** | https://luckystaxiapp.de/scan.html |
 | Leitstelle | https://luckystaxiapp.de/dispatch.html |
 | Einstellungen | https://luckystaxiapp.de/settings.html |
 | Payment | https://luckystaxiapp.de/pay.html (nach Fahrt, mit Token) |
 | Render-Fallback | https://taxiapp-api.onrender.com/health |
+
+**Wichtig für QR-Aufkleber:** Kunden-QR immer auf `/scan.html` zeigen (nicht direkt `book.html`).  
+`scan.html` ist eine gelbe Luckys-Sofortseite mit Button — kein Render-Logo.  
+Damit die Render-„waking up“-Seite gar nicht erst kommt: **Starter (Always On)** und/oder Keep-alive (unten).
 
 iOS-App: `TaxiConfig.swift` → `cloudBackendURL` darf `https://luckystaxiapp.de` oder `https://taxiapp-api.onrender.com` sein (gleiche Instanz).
 
@@ -81,6 +88,24 @@ https://taxiapp-api.onrender.com/settings.html — PIN eingeben, dann:
 
 Für `luckystaxiapp.de` und Search Console: **Starter**, nicht Free. Details: [STRATO-SICHTBARKEIT.md](STRATO-SICHTBARKEIT.md)
 
+### Keep-alive (wenn noch Free / gegen Einschlafen)
+
+Free-Plan schläft nach ~15 Min. Inaktivität → Kunden sehen die Render-Seite mit Logo („Virus?“-Effekt).  
+
+Option A (besser): Plan auf **Starter** stellen (Always On).  
+
+Option B: alle 10 Minuten `/health` anpingen:
+
+```bash
+# lokal / Cron / UptimeRobot / cron-job.org:
+bash scripts/keep-alive.sh https://luckystaxiapp.de
+
+# Cron-Beispiel:
+# */10 * * * *  bash /pfad/zum/repo/scripts/keep-alive.sh https://luckystaxiapp.de
+```
+
+Render Dashboard → **Cron Jobs** (falls verfügbar) oder externer Ping auf `https://luckystaxiapp.de/health`.
+
 Firebase-Umzug: **später optional** — nicht nötig für Go-Live.
 
 ---
@@ -98,6 +123,7 @@ Firebase-Umzug: **später optional** — nicht nötig für Go-Live.
 
 | Problem | Lösung |
 |---------|--------|
+| Kunden sehen Render-Logo beim QR-Scan | QR auf `scan.html`; Starter oder `scripts/keep-alive.sh`; Aufkleber neu drucken |
 | Leitstelle leer nach Buchung | App offline? Render wach? `test-cloud-e2e.sh` |
 | Einstellungen ohne PIN | `ADMIN_PIN` auf Render setzen + redeploy |
 | Alte Nummer in App | settings.html speichern, App neu starten |

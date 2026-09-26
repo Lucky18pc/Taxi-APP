@@ -1,30 +1,33 @@
-# Live-Tracking (Uber-Stil) — MVP
+# Live-Tracking (Uber-Stil) — MVP + Phase-1 Socket.io
 
-Fahrgäste sehen das zugewiesene Taxi auf der Karte. Fahrer senden GPS über eine Web-Seite (keine native Fahrer-App nötig für den Start).
+Fahrgäste sehen das zugewiesene Taxi auf der Karte. Fahrer senden GPS über Web (`driver-track.html`) oder die native Fahrer-App.
 
 ## Ablauf
 
 ```
 Fahrgast bucht (App/PWA)
         ↓
-Leitstelle weist Fahrer zu (dispatch.html)
+    Leitstelle weist Fahrer zu (dispatch.html)
         ↓
-Fahrer öffnet driver-track.html → GPS starten
+Fahrer GPS (driver-track.html oder FahrerApp) alle ~2,5 s
         ↓
-Fahrgast tippt „Taxi auf der Karte verfolgen“ (FahrgastApp)
+Backend speichert lastLat/lastLng + pusht Socket.io `tracking:update`
         ↓
-App pollt /api/public/bookings/:id/tracking alle 4 s
+Fahrgast track.html (Socket + HTTP-Fallback) / FahrgastApp
 ```
 
 ## Komponenten
 
 | Teil | Datei / Ort |
 |------|-------------|
-| Backend API | `backend/server.js` |
-| Fahrer GPS (Web) | `web/driver-track.html` |
+| Backend API + Socket.io | `backend/server.js`, `backend/realtime.js` |
+| Fahrer GPS (Web) | `web/driver-track.html` (GPS_MIN_MS = 2500) |
+| Fahrer GPS (iOS) | `FahrerApp/HomeView.swift` (~2,5 s) |
 | Fahrer-PIN | `web/settings.html` → Fahrer |
 | Leitstelle-Link | `web/dispatch.html` → „GPS starten“ + **Live-Karte** (Fahrer-Punkte) |
-| Fahrgast-Karte | `FahrgastApp` → `LiveTrackingScreen.swift` |
+| Fahrgast-Karte Web | `web/track.html` (Google Maps wenn Key, sonst Leaflet) |
+| Fahrgast-Karte App | `FahrgastApp` → `LiveTrackingScreen.swift` |
+| Architektur | `docs/PHASE-1-ARCHITEKTUR.md` |
 
 ## API
 
@@ -40,6 +43,10 @@ App pollt /api/public/bookings/:id/tracking alle 4 s
   "bookingId": "optional"
 }
 ```
+
+Oder Fahrer-App: `POST /api/driver/location` (Driver-API-Key + Firebase-UID).
+
+Nach Erfolg: Socket.io-Event an Room `booking:{id}`.
 
 ### Fahrgast liest Tracking
 
@@ -59,9 +66,16 @@ Antwort u. a.:
     "longitude": 8.465,
     "locationUpdatedAt": "2026-09-01T18:30:00.000Z"
   },
-  "hasDriverLocation": true
+  "hasDriverLocation": true,
+  "streamIntervalMs": 2500
 }
 ```
+
+### Socket.io (Phase 1)
+
+- Client: `io(origin)` → `emit("subscribe:booking", bookingId)`
+- Server: `tracking:update` mit demselben Payload wie die GET-API
+- Fallback: HTTP-Polling alle ~5 s
 
 Standort gilt als **frisch** für 2 Minuten (`DRIVER_LOCATION_MAX_AGE_MS`).
 
@@ -71,19 +85,21 @@ Standort gilt als **frisch** für 2 Minuten (`DRIVER_LOCATION_MAX_AGE_MS`).
 2. **Fahrer anlegen** — Einstellungen → Fahrer → PIN und Link erscheinen nach dem Speichern
 3. **Testbuchung** — Fahrgast-App oder `book.html`
 4. **Fahrer zuweisen** — `dispatch.html`
-5. **GPS starten** — Fahrer öffnet `driver-track.html` (Link aus Einstellungen oder Leitstelle)
-6. **Verfolgen** — Fahrgast-App → nach Bestätigung → „Taxi auf der Karte verfolgen“
+5. **GPS starten** — Fahrer öffnet `driver-track.html` oder native App
+6. **Verfolgen** — `track.html?bookingId=…` oder Fahrgast-App
+
+Optional: `GOOGLE_MAPS_BROWSER_KEY` für Google Maps auf `track.html`.
 
 ## Roadmap (nach MVP)
 
-- [ ] Native **Fahrer-iOS-App** statt Web-Seite (`docs/FAHRER-APP-ROADMAP.md`)
+- [x] Native **Fahrer-iOS-App** GPS-Spiegel (`FahrerApp/`)
 - [ ] **Push** „Dein Taxi kommt in 5 Min.“
-- [ ] **ETA** aus MapKit Directions
-- [ ] WebSocket statt Polling
+- [ ] **ETA** aus MapKit / Directions
+- [x] WebSocket/Socket.io statt reinem Polling
 - [x] Tracking auch in **book.html** (PWA) nach Buchung → `track.html`
 
 ## Sicherheit (MVP)
 
-- Fahrer: 6-stellige PIN pro Fahrer
+- Fahrer: 6-stellige PIN pro Fahrer bzw. Driver-API-Key + Firebase-UID
 - Fahrgast: Buchungs-UUID (schwer zu erraten)
 - Für Produktion später: zeitlich begrenzte Tracking-Tokens pro Buchung

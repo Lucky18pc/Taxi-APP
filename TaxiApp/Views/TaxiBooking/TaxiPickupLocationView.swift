@@ -22,6 +22,9 @@ struct TaxiPickupLocationView: View {
     @State private var postalCode = ""
     @State private var city = ""
     @State private var destinationAddress = ""
+    @State private var destinationLatitude: Double?
+    @State private var destinationLongitude: Double?
+    @State private var showDestinationSearch = false
     @State private var addressEditedByUser = false
     @State private var isApplyingGeocodeFromMap = false
     @State private var geocodeTask: Task<Void, Never>?
@@ -56,7 +59,9 @@ struct TaxiPickupLocationView: View {
             latitude: mapRegion.center.latitude,
             longitude: mapRegion.center.longitude,
             addressLine: hasAnyAddressInput ? composedAddressLine : "Abholpunkt (Pin auf Karte)",
-            destinationAddressLine: trimmedDestination
+            destinationAddressLine: trimmedDestination,
+            destinationLatitude: destinationLatitude,
+            destinationLongitude: destinationLongitude
         )
     }
 
@@ -431,6 +436,19 @@ struct TaxiPickupLocationView: View {
                 .submitLabel(.done)
                 .focused($focusedField, equals: .destination)
                 .bookingFormTextField()
+                .onChange(of: destinationAddress) { _, _ in
+                    destinationLatitude = nil
+                    destinationLongitude = nil
+                }
+
+            Button {
+                showDestinationSearch = true
+            } label: {
+                Label("Adresssuche (Places)", systemImage: "magnifyingglass")
+                    .font(.caption.weight(.semibold))
+            }
+            .buttonStyle(.bordered)
+            .tint(Brand.primary)
         }
         .padding(12)
         .background(Brand.card)
@@ -438,6 +456,22 @@ struct TaxiPickupLocationView: View {
         .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
         .colorScheme(.light)
         .id(AddressField.destination)
+        .sheet(isPresented: $showDestinationSearch) {
+            NavigationStack {
+                DestinationSearchView { place in
+                    destinationAddress = place.address
+                    destinationLatitude = place.coordinate.latitude
+                    destinationLongitude = place.coordinate.longitude
+                    showDestinationSearch = false
+                }
+                .navigationTitle("Ziel suchen")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Schließen") { showDestinationSearch = false }
+                    }
+                }
+            }
+        }
     }
 
     private func continueToScheduling() {
@@ -457,7 +491,9 @@ struct TaxiPickupLocationView: View {
                 latitude: coordinate.latitude,
                 longitude: coordinate.longitude,
                 addressLine: hasAnyAddressInput ? composedAddressLine : "Abholpunkt (Pin auf Karte)",
-                destinationAddressLine: trimmedDestination
+                destinationAddressLine: trimmedDestination,
+                destinationLatitude: destinationLatitude,
+                destinationLongitude: destinationLongitude
             )
             await MainActor.run {
                 isResolvingPickup = false

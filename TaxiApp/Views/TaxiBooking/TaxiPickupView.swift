@@ -62,7 +62,7 @@ struct TaxiPickupView: View {
                 .padding(.vertical, 10)
                 .background(Brand.primary.opacity(0.88))
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .lightShimmer(cornerRadius: 16, tone: .onDark, intensity: 0.9)
+                // Kein lightShimmer auf dieser Karte: sonst läuft der weiße Streifen über das Profilbild.
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
 
