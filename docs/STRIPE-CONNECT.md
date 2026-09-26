@@ -114,6 +114,6 @@ Erst wenn Tests klappen:
 Kartenzahlung nach Fahrt (`pay.html`) leitet mit Connect automatisch um:
 
 - Betrag → Taxi-Betrieb (`acct_…`)  
-- Gebühr → Code & Grow (2 % Starter / 1,5 % Business)
+- Gebühr → Code & Grow (**1,9 %** Plattform + ggf. **5 %** Vermittlung bei App/Web/QR → zusammen bis 6,9 %)
 
 Details API: siehe Abschnitt weiter unten in dieser Datei bzw. Admin-Button.

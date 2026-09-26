@@ -12,6 +12,12 @@
     "type": "city"
   },
   {
+    "slug": "altrip",
+    "name": "Altrip",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "arnsberg",
     "name": "Arnsberg",
     "country": "DE",
@@ -510,6 +516,12 @@
     "type": "city"
   },
   {
+    "slug": "limburgerhof",
+    "name": "Limburgerhof",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "luebeck",
     "name": "Lübeck",
     "country": "DE",
@@ -564,6 +576,12 @@
     "type": "city"
   },
   {
+    "slug": "maxdorf",
+    "name": "Maxdorf",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "minden",
     "name": "Minden",
     "country": "DE",
@@ -596,6 +614,12 @@
   {
     "slug": "muenster",
     "name": "Münster",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "mutterstadt",
+    "name": "Mutterstadt",
     "country": "DE",
     "type": "city"
   },
@@ -774,6 +798,12 @@
     "type": "city"
   },
   {
+    "slug": "schifferstadt",
+    "name": "Schifferstadt",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "schwaebisch-gmuend",
     "name": "Schwäbisch Gmünd",
     "country": "DE",
@@ -866,6 +896,12 @@
   {
     "slug": "villingen-schwenningen",
     "name": "Villingen-Schwenningen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "waldsee",
+    "name": "Waldsee",
     "country": "DE",
     "type": "city"
   },

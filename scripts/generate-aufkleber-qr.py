@@ -9,9 +9,8 @@ import qrcode
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "web" / "luckys-taxi-aufkleber-qr.png"
-OUT_V2 = ROOT / "web" / "luckys-taxi-aufkleber-v2.png"
-OUT_ROUND = ROOT / "web" / "luckys-taxi-aufkleber-rund.png"
+OUT = ROOT / "web" / "luckys-taxi-aufkleber-qr.png"  # kanonisch (ersetzt alt)
+OUT_ROUND = ROOT / "web" / "luckys-taxi-aufkleber-rund.png"  # Alias gleicher Inhalt
 OUT_QR_ONLY = ROOT / "web" / "luckys-taxi-qr-scan.png"
 SCAN_URL = "https://luckystaxiapp.de/scan.html"
 
@@ -188,14 +187,13 @@ def main() -> None:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     out.save(OUT, "PNG", optimize=True)
-    out.save(OUT_V2, "PNG", optimize=True)
     out.save(OUT_ROUND, "PNG", optimize=True)
     make_qr(1200).save(OUT_QR_ONLY, "PNG", optimize=True)
-    print(f"Wrote round sticker → {OUT_ROUND}")
-    print(f"Also → {OUT}, {OUT_V2}")
-    print(f"QR only → {OUT_QR_ONLY}")
+    print(f"Ersetzt alten Aufkleber → {OUT}")
+    print(f"Alias rund → {OUT_ROUND}")
+    print(f"Nur-QR → {OUT_QR_ONLY}")
+    print(f"QR-Ziel: {SCAN_URL}")
     print(f"lead_bottom={lead_bb[3]} qr_top={qy - pad} gap={(qy - pad) - lead_bb[3]}")
-
 
 if __name__ == "__main__":
     main()

@@ -28,6 +28,8 @@ const {
   OPERATOR_DOC_FIELDS,
   DRIVER_DOC_FIELDS,
 } = require("./compliance-uploads");
+const { generateSecret, verifyTotp, otpauthUrl } = require("./totp");
+const QRCode = require("qrcode");
 
 const port = process.env.PORT || 4242;
 const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -97,6 +99,53 @@ function markBookingPaid(booking, paymentIntentId) {
   return true;
 }
 
+/** Vermittlung nur bei App/Web/QR — Straße/Zentrale ohne Plattform-Buchung: false. */
+function normalizeMediationChannel(raw) {
+  const value = String(raw || "web").trim().toLowerCase();
+  if (["app", "ios", "android", "iphone"].includes(value)) return "app";
+  if (["qr", "qrcode", "qr-code"].includes(value)) return "qr";
+  if (["street", "strasse", "zentrale", "dispatch_street", "phone"].includes(value)) {
+    return "street";
+  }
+  return "web";
+}
+
+function shouldApplyBrokerageFee(booking) {
+  const raw = String(booking?.mediationChannel || booking?.bookingSource || "web")
+    .trim()
+    .toLowerCase();
+  if (!raw || raw === "street" || raw === "zentrale" || raw === "dispatch_street") {
+    return false;
+  }
+  const allowed = offering.operators?.brokerageFeeAppliesTo || ["app", "web", "qr"];
+  return allowed.map((x) => String(x).toLowerCase()).includes(raw) || raw === "online";
+}
+
+function resolveRideFeeBreakdown(amountCents, { applyBrokerage }) {
+  const ops = offering.operators || {};
+  const plan = (ops.plans || []).find((p) => p.id === "fleet") || ops.plans?.[0];
+  const platformRaw = Number(ops.platformFeePercent ?? plan?.cardPlatformFeePercent);
+  const brokerageRaw = Number(ops.brokerageFeePercent ?? plan?.brokerageFeePercent);
+  const platformFeePercent = Number.isFinite(platformRaw) ? platformRaw : 1.9;
+  const brokerageFeePercent =
+    applyBrokerage && Number.isFinite(brokerageRaw) ? brokerageRaw : 0;
+  const totalFeePercent = platformFeePercent + brokerageFeePercent;
+  const platformFeeCents = Math.max(0, Math.round((amountCents * platformFeePercent) / 100));
+  const brokerageFeeCents = Math.max(0, Math.round((amountCents * brokerageFeePercent) / 100));
+  let applicationFeeCents = platformFeeCents + brokerageFeeCents;
+  if (applicationFeeCents >= amountCents) {
+    applicationFeeCents = Math.max(0, amountCents - 1);
+  }
+  return {
+    platformFeePercent,
+    brokerageFeePercent,
+    totalFeePercent,
+    platformFeeCents,
+    brokerageFeeCents,
+    applicationFeeCents,
+  };
+}
+
 async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "online" } = {}) {
   const amountCents = eurosToCents(booking.totalAmount);
   const wantTerminal = channel === "terminal";
@@ -145,12 +194,17 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
 
   const fleetOp = booking.operatorId ? fleet.findById(booking.operatorId) : null;
   const planId = String(fleetOp?.planId || "fleet").trim() || "fleet";
-  const plan = offering.operators?.plans?.find((p) => p.id === planId);
-  const globalFee = Number(offering.operators?.platformFeePercent);
-  const planFee = Number(plan?.cardPlatformFeePercent);
-  const feePercent = Number.isFinite(globalFee) ? globalFee : planFee;
-  const platformFeePercent = Number.isFinite(feePercent) ? feePercent : 1.9;
-  const platformFeeCents = Math.max(0, Math.round((amountCents * platformFeePercent) / 100));
+  const fees = resolveRideFeeBreakdown(amountCents, {
+    applyBrokerage: shouldApplyBrokerageFee(booking),
+  });
+  const {
+    platformFeePercent,
+    brokerageFeePercent,
+    totalFeePercent,
+    platformFeeCents,
+    brokerageFeeCents,
+    applicationFeeCents,
+  } = fees;
   const connectAccountId = String(fleetOp?.stripeConnectAccountId || "").trim();
 
   const metadata = {
@@ -158,8 +212,13 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
     bookingId: booking.bookingId,
     operatorId: booking.operatorId || "",
     channel: wantTerminal ? "terminal" : "online",
+    mediationChannel: String(booking.mediationChannel || "web"),
     platformFeePercent: String(platformFeePercent),
     platformFeeCents: String(platformFeeCents),
+    brokerageFeePercent: String(brokerageFeePercent),
+    brokerageFeeCents: String(brokerageFeeCents),
+    totalFeePercent: String(totalFeePercent),
+    applicationFeeCents: String(applicationFeeCents),
   };
 
   const params = wantTerminal
@@ -177,9 +236,9 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
         metadata,
       };
 
-  // Stripe Connect: Geld an Betrieb, Plattformgebühr einbehalten
-  if (!wantTerminal && connectAccountId && platformFeeCents > 0 && platformFeeCents < amountCents) {
-    params.application_fee_amount = platformFeeCents;
+  // Stripe Connect: Geld an Betrieb, Plattform- + Vermittlungsgebühr einbehalten
+  if (connectAccountId && applicationFeeCents > 0 && applicationFeeCents < amountCents) {
+    params.application_fee_amount = applicationFeeCents;
     params.transfer_data = { destination: connectAccountId };
   }
 
@@ -195,6 +254,10 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
   booking.paymentAmountCents = amountCents;
   booking.platformFeePercent = platformFeePercent;
   booking.platformFeeCents = platformFeeCents;
+  booking.brokerageFeePercent = brokerageFeePercent;
+  booking.brokerageFeeCents = brokerageFeeCents;
+  booking.totalFeePercent = totalFeePercent;
+  booking.applicationFeeCents = applicationFeeCents;
   booking.stripeConnectAccountId = connectAccountId || null;
   booking.updatedAt = new Date().toISOString();
   saveBookings();
@@ -218,22 +281,46 @@ const offering = JSON.parse(
 );
 
 function resolveDataDir() {
-  const preferred = process.env.DATA_DIR || path.join(__dirname, "data");
-  try {
-    fs.mkdirSync(preferred, { recursive: true });
-    fs.accessSync(preferred, fs.constants.W_OK);
-    return preferred;
-  } catch (error) {
-    const fallback = path.join(__dirname, "data");
-    console.warn(
-      `DATA_DIR "${preferred}" nicht nutzbar (${error.code}) — Fallback: ${fallback}`
-    );
-    fs.mkdirSync(fallback, { recursive: true });
-    return fallback;
+  // DATEN_DIR = häufiger Tippfehler in der Render-UI; /var/data = Persistent Disk.
+  const fromEnv = String(process.env.DATA_DIR || process.env.DATEN_DIR || "").trim();
+  const candidates = [];
+  if (fromEnv) candidates.push(fromEnv);
+  if (process.env.RENDER || process.env.RENDER_SERVICE_ID) {
+    candidates.push("/var/data");
   }
+  candidates.push(path.join(__dirname, "data"));
+
+  const tried = [];
+  for (const preferred of candidates) {
+    try {
+      fs.mkdirSync(preferred, { recursive: true });
+      fs.accessSync(preferred, fs.constants.W_OK);
+      if (fromEnv && preferred !== fromEnv) {
+        console.warn(`DATA_DIR: "${fromEnv}" nicht nutzbar — nutze ${preferred}`);
+      } else if (process.env.DATEN_DIR && !process.env.DATA_DIR && preferred === fromEnv) {
+        console.warn('Hinweis: Env heißt "DATEN_DIR" — bitte in Render in DATA_DIR umbenennen.');
+      }
+      return preferred;
+    } catch (error) {
+      tried.push(`${preferred} (${error.code || error.message})`);
+    }
+  }
+  const fallback = path.join(__dirname, "data");
+  console.warn(`DATA_DIR: keine Variante nutzbar [${tried.join("; ")}] — Fallback ${fallback}`);
+  fs.mkdirSync(fallback, { recursive: true });
+  return fallback;
 }
 
 const dataDir = resolveDataDir();
+console.log(`Datenverzeichnis: ${dataDir}`);
+if (
+  (process.env.RENDER || process.env.RENDER_SERVICE_ID) &&
+  dataDir.includes("/opt/render/project")
+) {
+  console.warn(
+    "WARNUNG: Kein Persistent Disk — Sessions/MFA gehen bei jedem Deploy verloren. In Render DATA_DIR=/var/data setzen und Disk auf /var/data mounten."
+  );
+}
 const adminPin = String(process.env.ADMIN_PIN || "").trim();
 
 /** Shared secret für Fahrer-App-Endpunkte. Auf Render per DRIVER_API_KEY überschreiben. */
@@ -1063,6 +1150,95 @@ function verifyRequestPin(req, pin) {
   return fleet.verifyPin(pin, operatorSlug, adminPin);
 }
 
+/** Plattform-Admin MFA (TOTP) — nur ADMIN_PIN, nicht Betriebs-PIN. */
+const adminMfaPath = path.join(dataDir, "admin-mfa.json");
+const adminSessionsPath = path.join(dataDir, "admin-sessions.json");
+const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+/** @type {Map<string, { expires: number }>} */
+const adminSessions = new Map();
+
+function loadAdminMfa() {
+  try {
+    if (!fs.existsSync(adminMfaPath)) {
+      return { enabled: false, secret: null, enabledAt: null, pendingSecret: null };
+    }
+    const raw = JSON.parse(fs.readFileSync(adminMfaPath, "utf8"));
+    return {
+      enabled: Boolean(raw.enabled && raw.secret),
+      secret: raw.secret ? String(raw.secret) : null,
+      enabledAt: raw.enabledAt || null,
+      pendingSecret: raw.pendingSecret ? String(raw.pendingSecret) : null,
+    };
+  } catch {
+    return { enabled: false, secret: null, enabledAt: null, pendingSecret: null };
+  }
+}
+
+function saveAdminMfa(state) {
+  fs.writeFileSync(adminMfaPath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+}
+
+function loadAdminSessionsFromDisk() {
+  try {
+    if (!fs.existsSync(adminSessionsPath)) return;
+    const raw = JSON.parse(fs.readFileSync(adminSessionsPath, "utf8"));
+    const now = Date.now();
+    for (const [token, meta] of Object.entries(raw.sessions || {})) {
+      if (meta && Number(meta.expires) > now) {
+        adminSessions.set(token, { expires: Number(meta.expires) });
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function saveAdminSessionsToDisk() {
+  purgeExpiredAdminSessions();
+  const sessions = {};
+  for (const [token, meta] of adminSessions.entries()) {
+    sessions[token] = { expires: meta.expires };
+  }
+  fs.writeFileSync(
+    adminSessionsPath,
+    `${JSON.stringify({ sessions }, null, 2)}\n`,
+    "utf8"
+  );
+}
+
+let adminMfa = loadAdminMfa();
+loadAdminSessionsFromDisk();
+
+function createAdminSession() {
+  const token = crypto.randomBytes(32).toString("hex");
+  adminSessions.set(token, { expires: Date.now() + ADMIN_SESSION_TTL_MS });
+  saveAdminSessionsToDisk();
+  return token;
+}
+
+function purgeExpiredAdminSessions() {
+  const now = Date.now();
+  for (const [token, meta] of adminSessions.entries()) {
+    if (!meta || meta.expires <= now) adminSessions.delete(token);
+  }
+}
+
+function isValidAdminSession(token) {
+  if (!token) return false;
+  purgeExpiredAdminSessions();
+  let meta = adminSessions.get(token);
+  if (!meta) {
+    // Andere Render-Instanz / frischer Worker: Sessions von Disk nachladen.
+    loadAdminSessionsFromDisk();
+    meta = adminSessions.get(token);
+  }
+  return Boolean(meta && meta.expires > Date.now());
+}
+
+function isPlatformAdminPin(pin) {
+  return Boolean(adminPin && pin && pin === adminPin);
+}
+
 function filterBookingsForRequest(req) {
   const operator = resolveFleetOperatorFromRequest(req);
   if (operator) {
@@ -1303,9 +1479,30 @@ function requireAdmin(req, res, next) {
   const header = String(req.headers.authorization || "");
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   const pinHeader = String(req.headers["x-admin-pin"] || "").trim();
-  const pin = bearer || pinHeader;
-  if (verifyRequestPin(req, pin)) return next();
-  return res.status(401).json({ error: "Unauthorized — PIN required" });
+  const bodyPin = String(req.body?.pin || "").trim();
+
+  if (isValidAdminSession(bearer) || isValidAdminSession(pinHeader)) return next();
+
+  // Session kann nach Deploy tot sein — PIN aus Header, Bearer oder Body.
+  const pin =
+    (bodyPin && verifyRequestPin(req, bodyPin) && bodyPin) ||
+    (pinHeader && verifyRequestPin(req, pinHeader) && pinHeader) ||
+    (bearer && verifyRequestPin(req, bearer) && bearer) ||
+    "";
+  if (!pin) {
+    return res.status(401).json({ error: "Unauthorized — PIN required" });
+  }
+
+  adminMfa = loadAdminMfa();
+  // Plattform-ADMIN_PIN bei aktivem MFA: Session nach TOTP nötig (Betriebs-PIN unberührt).
+  if (isPlatformAdminPin(pin) && adminMfa.enabled) {
+    return res.status(401).json({
+      error: "MFA erforderlich — bitte erneut anmelden und Authenticator-Code eingeben.",
+      mfaRequired: true,
+    });
+  }
+
+  return next();
 }
 
 app.use(cors());
@@ -1473,7 +1670,6 @@ app.use(
         res.setHeader("Cache-Control", "public, max-age=300, s-maxage=86400");
       } else if (
         base === "luckys-taxi-aufkleber-qr.png" ||
-        base === "luckys-taxi-aufkleber-v2.png" ||
         base === "luckys-taxi-aufkleber-rund.png" ||
         base === "luckys-taxi-qr-scan.png"
       ) {
@@ -1627,13 +1823,180 @@ app.post("/api/auth/verify", (req, res) => {
       error: "Zu viele Anmeldeversuche — bitte später erneut versuchen.",
     });
   }
-  if (!authRequiredForRequest(req)) return res.json({ ok: true });
+  if (!authRequiredForRequest(req)) {
+    return res.json({ ok: true, mfaEnabled: false, sessionToken: null });
+  }
   const pin = String(req.body.pin || "").trim();
+  const totp = String(req.body.totp || req.body.code || "").trim();
   if (pin.length < 4) {
     return res.status(401).json({ error: "PIN ungültig" });
   }
-  if (verifyRequestPin(req, pin)) return res.json({ ok: true });
-  return res.status(401).json({ error: "PIN ungültig" });
+  if (!verifyRequestPin(req, pin)) {
+    return res.status(401).json({ error: "PIN ungültig" });
+  }
+
+  // Betriebs-PIN (Leitstelle): kein MFA, kein Session-Token.
+  if (!isPlatformAdminPin(pin)) {
+    return res.json({ ok: true, mfaEnabled: false, sessionToken: null, role: "operator" });
+  }
+
+  adminMfa = loadAdminMfa();
+
+  if (adminMfa.enabled) {
+    if (!totp) {
+      return res.status(401).json({
+        error: "Authenticator-Code erforderlich",
+        mfaRequired: true,
+        mfaEnabled: true,
+      });
+    }
+    if (!verifyTotp(adminMfa.secret, totp)) {
+      return res.status(401).json({
+        error: "Authenticator-Code ungültig",
+        mfaRequired: true,
+        mfaEnabled: true,
+      });
+    }
+    const sessionToken = createAdminSession();
+    return res.json({
+      ok: true,
+      mfaEnabled: true,
+      sessionToken,
+      role: "admin",
+    });
+  }
+
+  // MFA noch nicht aktiv: Admin mit PIN nutzen; Setup optional (nicht blockierend).
+  const sessionToken = createAdminSession();
+  return res.json({
+    ok: true,
+    mfaEnabled: false,
+    mfaSetupRequired: false,
+    mfaSetupOptional: true,
+    sessionToken,
+    role: "admin",
+  });
+});
+
+app.get("/api/auth/mfa/status", requireAdmin, (_req, res) => {
+  res.json({
+    enabled: Boolean(adminMfa.enabled),
+    enabledAt: adminMfa.enabledAt || null,
+  });
+});
+
+/** QR/Secret für Authenticator — Session nach PIN-Login nötig. */
+app.post("/api/auth/mfa/setup", requireAdmin, async (req, res) => {
+  if (!adminPin) {
+    return res.status(503).json({ error: "ADMIN_PIN not configured" });
+  }
+  // Immer frisch von Disk (Render kann mehrere Instanzen haben).
+  adminMfa = loadAdminMfa();
+  if (adminMfa.enabled) {
+    return res.status(400).json({ error: "MFA ist bereits aktiv" });
+  }
+  // Pending-Secret stabil halten — sonst wechselt der QR und App-Codes passen nie.
+  // Neuer QR nur bei explizitem reset:true („Neuen QR erzeugen“).
+  const forceNew = Boolean(req.body?.reset || req.query?.reset);
+  if (forceNew || !adminMfa.pendingSecret) {
+    adminMfa.pendingSecret = generateSecret();
+    saveAdminMfa(adminMfa);
+  }
+  const secret = adminMfa.pendingSecret;
+  const url = otpauthUrl({
+    secret,
+    accountName: "Luckys Admin",
+    issuer: "Luckys Taxi App",
+  });
+  let qrDataUrl = "";
+  try {
+    qrDataUrl = await QRCode.toDataURL(url, {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      width: 200,
+    });
+  } catch (err) {
+    console.warn("MFA QR-Erzeugung fehlgeschlagen:", err.message);
+  }
+  res.json({
+    secret,
+    otpauthUrl: url,
+    qrDataUrl,
+    reused: Boolean(!forceNew && adminMfa.pendingSecret),
+    serverTime: new Date().toISOString(),
+  });
+});
+
+app.post("/api/auth/mfa/confirm", requireAdmin, (req, res) => {
+  adminMfa = loadAdminMfa();
+  if (adminMfa.enabled) {
+    return res.status(400).json({ error: "MFA ist bereits aktiv" });
+  }
+
+  const totp = String(req.body.totp || req.body.code || "")
+    .replace(/\D/g, "")
+    .slice(0, 6);
+  if (!/^\d{6}$/.test(totp)) {
+    return res.status(400).json({
+      error: "Bitte genau 6 Ziffern aus der Authenticator-App eingeben.",
+    });
+  }
+
+  // Quelle der Wahrheit: Secret vom aktuellen QR auf dem Bildschirm.
+  // So funktioniert Confirm auch, wenn Setup auf einer anderen Render-Instanz
+  // lief oder die ephemeral Disk den Pending-Secret verloren hat.
+  const fromBody = String(req.body.secret || "")
+    .toUpperCase()
+    .replace(/[^A-Z2-7]/g, "");
+  const fromDisk = String(adminMfa.pendingSecret || "")
+    .toUpperCase()
+    .replace(/[^A-Z2-7]/g, "");
+  const secret = fromBody || fromDisk;
+  if (!secret) {
+    return res.status(400).json({
+      error: "Kein MFA-Secret — bitte „Neuen QR erzeugen“, scannen und Code eingeben.",
+    });
+  }
+
+  if (!verifyTotp(secret, totp, 4)) {
+    console.warn("MFA-Confirm: TOTP mismatch", {
+      secretLen: secret.length,
+      fromBody: Boolean(fromBody),
+      fromDisk: Boolean(fromDisk),
+      same: fromBody === fromDisk || !fromBody || !fromDisk,
+    });
+    return res.status(400).json({
+      error:
+        "Authenticator-Code ungültig oder abgelaufen. Neuen Code aus der App nehmen (nicht den PIN). Tipp: Alten Eintrag löschen → Neuen QR erzeugen → sofort scannen → Code tippen.",
+    });
+  }
+
+  adminMfa = {
+    enabled: true,
+    secret,
+    enabledAt: new Date().toISOString(),
+    pendingSecret: null,
+  };
+  saveAdminMfa(adminMfa);
+  const sessionToken = createAdminSession();
+  console.log("Admin-MFA aktiviert (TOTP).");
+  res.json({ ok: true, mfaEnabled: true, sessionToken });
+});
+
+app.post("/api/auth/mfa/disable", requireAdmin, (req, res) => {
+  if (!adminMfa.enabled) {
+    return res.json({ ok: true, mfaEnabled: false });
+  }
+  const totp = String(req.body.totp || req.body.code || "").trim();
+  if (!verifyTotp(adminMfa.secret, totp)) {
+    return res.status(400).json({ error: "Authenticator-Code ungültig" });
+  }
+  adminMfa = { enabled: false, secret: null, enabledAt: null, pendingSecret: null };
+  saveAdminMfa(adminMfa);
+  adminSessions.clear();
+  saveAdminSessionsToDisk();
+  console.log("Admin-MFA deaktiviert.");
+  res.json({ ok: true, mfaEnabled: false });
 });
 
 app.get("/api/offering", (_req, res) => {
@@ -1921,6 +2284,117 @@ app.patch("/api/fleet/operators/:slug", requireAdmin, async (req, res) => {
   }
 });
 
+/** Logo-Datei hochladen (Admin) → speichert Datei und setzt logoUrl auf öffentliche URL. */
+app.post(
+  "/api/fleet/operators/:slug/logo",
+  requireAdmin,
+  (req, res, next) => {
+    upload.single("logo")(req, res, (err) => {
+      if (err) return res.status(400).json({ error: err.message || "Upload fehlgeschlagen" });
+      next();
+    });
+  },
+  (req, res) => {
+    try {
+      const slug = String(req.params.slug || "").trim().toLowerCase();
+      const operator = fleet.findBySlug(slug);
+      if (!operator) return res.status(404).json({ error: "Operator not found" });
+      const file = req.file;
+      if (!file) return res.status(400).json({ error: "logo file required (PNG oder JPEG)" });
+      if (file.mimetype !== "image/jpeg" && file.mimetype !== "image/png") {
+        return res.status(400).json({ error: "Logo nur als PNG oder JPEG" });
+      }
+
+      if (operator.logoDocument) {
+        deleteDocumentFile(dataDir, operator.logoDocument);
+      }
+      const meta = saveDocumentFile(dataDir, operator.operatorId, "logo", file);
+      const baseUrl = resolvePublicBaseUrl(req).replace(/\/$/, "");
+      const logoUrl = `${baseUrl}/api/public/operators/${encodeURIComponent(slug)}/logo`;
+      const updated = fleet.updateOperator(slug, {
+        logoUrl,
+        logoDocument: meta,
+      });
+      res.json({
+        operator: fleet.toAdminSummary(updated, baseUrl),
+        logoUrl,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message || "Logo-Upload fehlgeschlagen" });
+    }
+  }
+);
+
+/** Öffentliches Logo für Buchung / Branding (kein Admin-PIN). */
+app.get("/api/public/operators/:slug/logo", (req, res) => {
+  const slug = String(req.params.slug || "").trim().toLowerCase();
+  const operator = fleet.findBySlug(slug);
+  if (!operator) return res.status(404).json({ error: "Operator not found" });
+  const meta = operator.logoDocument;
+  if (meta?.relativePath) {
+    const abs = resolveAbsolutePath(dataDir, meta.relativePath);
+    if (!abs) return res.status(404).json({ error: "Logo file missing" });
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.setHeader("Content-Type", meta.mimeType || "image/png");
+    return fs.createReadStream(abs).pipe(res);
+  }
+  const external = String(operator.logoUrl || "").trim();
+  if (/^https:\/\//i.test(external) && !external.includes("/api/public/operators/")) {
+    return res.redirect(302, external);
+  }
+  return res.status(404).json({ error: "No logo" });
+});
+
+app.get("/api/fleet/operators.csv", requireAdmin, (req, res) => {
+  const rows = [
+    [
+      "slug",
+      "companyName",
+      "status",
+      "billingEmail",
+      "centralPhone",
+      "city",
+      "planId",
+      "logoUrl",
+      "stripeConnectAccountId",
+      "concessionNumber",
+      "createdAt",
+    ],
+  ];
+  for (const op of fleet.list(true)) {
+    rows.push([
+      op.slug || "",
+      op.companyName || "",
+      op.status || "",
+      op.billingEmail || op.legalEmail || "",
+      op.centralPhone || "",
+      op.city || "",
+      op.planId || "",
+      op.logoUrl || "",
+      op.stripeConnectAccountId || "",
+      op.concessionNumber || "",
+      op.createdAt || "",
+    ]);
+  }
+  const csv = rows
+    .map((cols) =>
+      cols
+        .map((cell) => {
+          const s = String(cell ?? "");
+          if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+          return s;
+        })
+        .join(",")
+    )
+    .join("\n");
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="luckys-mandanten-${new Date().toISOString().slice(0, 10)}.csv"`
+  );
+  res.send(`\uFEFF${csv}\n`);
+});
+
 app.delete("/api/fleet/operators/:slug", requireAdmin, (req, res) => {
   try {
     const slug = String(req.params.slug || "").trim().toLowerCase();
@@ -1932,6 +2406,9 @@ app.delete("/api/fleet/operators/:slug", requireAdmin, (req, res) => {
     const docs = existing.documents || {};
     for (const meta of Object.values(docs)) {
       if (meta) deleteDocumentFile(dataDir, meta);
+    }
+    if (existing.logoDocument) {
+      deleteDocumentFile(dataDir, existing.logoDocument);
     }
 
     const keptDrivers = [];
@@ -2427,6 +2904,7 @@ app.get("/api/drivers", requireAdmin, (req, res) => {
     return {
       ...rest,
       ...driverCompliancePublic(d),
+      locationFresh: driverHasFreshLocation(d),
     };
   });
   res.json({ drivers: list });
@@ -2771,6 +3249,7 @@ app.post("/api/bookings", (req, res) => {
     paymentStatus: isCardPaymentMethod(req.body.paymentMethod) ? "awaiting_fare" : null,
     paymentIntentId: null,
     paymentAccessToken: null,
+    mediationChannel: normalizeMediationChannel(req.body.mediationChannel || req.body.source || req.body.channel),
     nightSurchargeApplies,
     status: "confirmed",
     assignedDriverId: null,
@@ -3238,6 +3717,7 @@ app.post("/api/driver/location", requireDriverApp, (req, res) => {
   if (bookingId) {
     driver.activeBookingId = bookingId;
   }
+  saveDriversConfig();
 
   realtimeHub.publishDriverLocation(driver, bookingId || null);
   syncCoreLocation(driver, latitude, longitude, bookingId || null);
@@ -3281,6 +3761,7 @@ app.post("/api/drivers/:id/location", (req, res) => {
   if (driver.status === "offline") {
     driver.status = "busy";
   }
+  saveDriversConfig();
 
   realtimeHub.publishDriverLocation(driver, bookingId || null);
   syncCoreLocation(driver, latitude, longitude, bookingId || null);
@@ -3597,6 +4078,8 @@ httpServer.listen(port, host, () => {
 // redeploy: admin stay logged in localStorage 2026-09-05T21:03:00Z
 
 // redeploy: new admin dashboard 2026-09-08T20:07:40Z
+
+// redeploy: admin logo csv copy-links gate 2026-09-21T19:56:00Z
 
 // redeploy: legal pages agb-betriebe 2026-09-08T20:19:00Z
 

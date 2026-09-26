@@ -287,7 +287,7 @@
 			);
 			mainGroup = A40000000000000000000001;
 			packageReferences = (
-				B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios" */,
+				B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
 			);
 			productRefGroup = A40000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -451,9 +451,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios" */ = {
+		B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/stripe/stripe-ios";
+			repositoryURL = "https://github.com/stripe/stripe-ios-spm";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 24.0.0;
@@ -464,7 +464,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		B20000000000000000000001 /* StripePaymentSheet */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios" */;
+			package = B10000000000000000000001 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
 			productName = StripePaymentSheet;
 		};
 /* End XCSwiftPackageProductDependency section */

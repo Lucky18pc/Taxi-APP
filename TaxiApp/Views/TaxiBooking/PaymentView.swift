@@ -713,16 +713,17 @@ struct TaxiConfirmationView: View {
                     .padding(.bottom, 6)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+        }
+        .bookingFlowBackground()
+        .navigationBarBackButtonHidden(true)
+        .safeAreaPadding(.top, 8)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             BookingBottomBar(
                 forwardTitle: "Zur Kasse",
                 onBack: { dismiss() },
                 onForward: { showCheckout = true }
             )
         }
-        .bookingFlowBackground()
-        .navigationBarBackButtonHidden(true)
-        .safeAreaPadding(.top, 8)
         .onAppear {
             refreshPickupSchedule()
         }

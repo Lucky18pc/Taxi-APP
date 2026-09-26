@@ -35,3 +35,4 @@ backend/data/receipts-pdf/
 # Cursor / IDE
 .cursor/*
 !.cursor/environment.json
+__pycache__/

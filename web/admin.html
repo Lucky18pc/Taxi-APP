@@ -101,7 +101,13 @@
       padding: 0.7rem 1rem;
       transition: transform 0.12s ease, filter 0.12s ease;
     }
-    .btn:hover { filter: brightness(1.03); }
+    .btn:disabled,
+    .btn[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: none;
+      box-shadow: none;
+    }
     .btn:active { transform: translateY(1px); }
     .btn-yellow {
       background: var(--yellow);
@@ -269,6 +275,39 @@
     }
     .compliance .warn { color: var(--warn); font-weight: 800; margin-top: 0.35rem; }
     .compliance .ok { color: var(--ok); font-weight: 800; margin-top: 0.35rem; }
+    .brand-box {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.7rem 0.75rem;
+      font-size: 0.8rem;
+    }
+    .brand-box .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .brand-box .logo-preview {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 2px solid var(--navy);
+      background: #fff;
+    }
+    .brand-box .logo-placeholder {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      border: 2px dashed var(--navy);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: #fff;
+    }
     .driver-panel {
       margin-top: 0.55rem;
       padding: 0.65rem;
@@ -313,19 +352,54 @@
       <img src="luckys-taxi-admin-logo.svg" width="96" height="96" alt="Luckys Taxi Admin">
       <h1>Luckys Admin</h1>
       <p class="sub">Neues Dashboard. Freischaltung &amp; Nachweise</p>
-      <p class="meta" style="margin-bottom:1rem">ADMIN_PIN von Render. Mit „Angemeldet bleiben“ bleibst du auf diesem Gerät eingeloggt.</p>
+      <p class="meta" style="margin-bottom:1rem">ADMIN_PIN von Render. Mit MFA (Authenticator) zusätzlich abgesichert.</p>
+
       <form id="admin-login-form">
-        <div class="field">
+        <div class="field" id="pin-field">
           <label for="admin-pin">PIN</label>
-          <input id="admin-pin" type="password" required autocomplete="current-password">
+          <input id="admin-pin" type="password" autocomplete="current-password">
         </div>
-        <label class="check-row">
+        <div class="field hidden" id="totp-field">
+          <label for="admin-totp">Authenticator-Code</label>
+          <input id="admin-totp" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="6-stelliger Code">
+        </div>
+        <label class="check-row" id="remember-row">
           <input id="admin-remember" type="checkbox" checked>
           Angemeldet bleiben
         </label>
-        <button type="submit" class="btn btn-yellow">★ Anmelden ★</button>
+        <button type="submit" class="btn btn-yellow" id="admin-login-submit">★ Anmelden ★</button>
         <p id="admin-login-error" class="login-error hidden"></p>
       </form>
+
+      <div id="admin-mfa-setup" class="hidden" style="margin-top:1.25rem;text-align:left">
+        <h2 style="margin:0 0 0.5rem;font-size:1.05rem">MFA einrichten</h2>
+        <p class="meta" style="margin-bottom:0.75rem">
+          Authenticator-App (z. B. Google Authenticator) öffnen, QR scannen, Code bestätigen.
+          Einmalig — danach bei jedem Login PIN + Code.
+        </p>
+        <div style="text-align:center;margin:0.75rem 0">
+          <canvas id="mfa-qr" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff"></canvas>
+        </div>
+        <p class="meta" style="word-break:break-all;font-size:0.75rem">
+          Geheimnis (manuell): <strong id="mfa-secret"></strong>
+        </p>
+        <div class="field">
+          <label for="mfa-confirm-pin">ADMIN_PIN (nochmal)</label>
+          <input id="mfa-confirm-pin" type="password" autocomplete="current-password" placeholder="Dein Render ADMIN_PIN">
+        </div>
+        <div class="field">
+          <label for="mfa-confirm-code">Code aus der App</label>
+          <input id="mfa-confirm-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 Ziffern" name="totp-mfa-confirm">
+        </div>
+        <p class="meta" style="margin:0 0 0.75rem;font-size:0.75rem">
+          Nur den Code aus dem <strong>gerade neu erzeugten</strong> Eintrag tippen.
+          Alte „Luckys“-Einträge in der App vorher löschen. Nicht den PIN hier eintragen.
+        </p>
+        <button type="button" class="btn btn-navy" id="mfa-confirm-btn" style="width:100%">MFA aktivieren</button>
+        <button type="button" class="btn btn-ghost" id="mfa-reset-btn" style="width:100%;margin-top:0.5rem">Neuen QR erzeugen</button>
+        <button type="button" class="btn btn-ghost" id="mfa-skip-btn" style="width:100%;margin-top:0.5rem">Später einrichten — weiter zum Admin</button>
+        <p id="mfa-setup-error" class="login-error hidden"></p>
+      </div>
     </div>
   </div>
 
@@ -343,6 +417,7 @@
       <button type="button" class="nav-btn" data-panel="create">Neu anlegen</button>
       <button type="button" class="nav-btn" data-panel="analytics">Analytics</button>
       <div class="side-foot">
+        <button type="button" class="btn btn-ghost btn-sm" id="admin-setup-mfa" style="width:100%;color:#fff;border-color:rgba(255,255,255,0.35);margin-bottom:0.5rem">MFA einrichten</button>
         <button type="button" class="btn btn-ghost btn-sm" id="admin-logout" style="width:100%;color:#fff;border-color:rgba(255,255,255,0.35)">Abmelden</button>
       </div>
     </aside>
@@ -351,9 +426,12 @@
       <div class="topbar">
         <div>
           <h1 id="panel-title">Mandanten</h1>
-          <p id="panel-sub">Betriebe prüfen, Nachweise öffnen, freischalten und Links kopieren.</p>
+          <p id="panel-sub">Betriebe prüfen, Logo speichern, Nachweise öffnen, freischalten und Links kopieren.</p>
         </div>
-        <button type="button" class="btn btn-navy btn-sm" id="refresh-all">Aktualisieren</button>
+        <div class="actions" style="flex-wrap:nowrap">
+          <button type="button" class="btn btn-ghost btn-sm" id="export-tenants-csv">CSV</button>
+          <button type="button" class="btn btn-navy btn-sm" id="refresh-all">Aktualisieren</button>
+        </div>
       </div>
 
       <section id="panel-tenants" class="panel active">
@@ -395,7 +473,11 @@
               <div class="field"><label for="new-city">Stadt *</label><input id="new-city" name="city" required></div>
               <div class="field"><label for="new-postalPrefixes">PLZ-Präfixe *</label><input id="new-postalPrefixes" name="postalPrefixes" required placeholder="68"></div>
               <div class="field"><label for="new-planId">Tarif</label>
-                <select id="new-planId" name="planId"><option value="starter">Starter (5 Fahrer)</option><option value="business">Business</option></select>
+                <select id="new-planId" name="planId">
+                  <option value="fleet" selected>Pro Fahrzeug (ab 9,90 €)</option>
+                  <option value="starter">Starter alt (5 Fahrer)</option>
+                  <option value="business">Business alt</option>
+                </select>
               </div>
               <div class="field"><label for="new-billingEmail">Rechnungs-E-Mail</label><input id="new-billingEmail" name="billingEmail" type="email"></div>
               <div class="field"><label for="new-dispatchPin">Leitstellen-PIN</label><input id="new-dispatchPin" name="dispatchPin" inputmode="numeric"></div>
@@ -429,6 +511,6 @@
     </main>
   </div>
 
-  <script src="admin.js"></script>
+  <script src="admin.js?v=20260924-mfa10"></script>
 </body>
 </html>

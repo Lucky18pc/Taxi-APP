@@ -87,7 +87,13 @@ const DE_CITIES = [
   ["Saarbrücken", "Hauptbahnhof, Altstadt, Deutsch-Französische Grenze"],
   ["Mülheim an der Ruhr", "Hauptbahnhof, Innenstadt, Ruhr"],
   ["Potsdam", "Hauptbahnhof, Sanssouci, Altstadt"],
-  ["Ludwigshafen", "Bahnhof, Innenstadt, Rheinübergang nach Mannheim"],
+  ["Ludwigshafen", "Rheinland-Pfalz, Rhein-Neckar, Bahnhof, Rheinübergang Mannheim"],
+  ["Altrip", "Rhein, Fähre, Ludwigshafen-Umland"],
+  ["Waldsee", "Rheinauen, Bahnhof, Speyer-Umland"],
+  ["Schifferstadt", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
+  ["Mutterstadt", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
+  ["Maxdorf", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
+  ["Limburgerhof", "Bahnhof, BASF-Umland, Rhein-Pfalz-Kreis"],
   ["Oldenburg", "Hauptbahnhof, Innenstadt, Schloss"],
   ["Osnabrück", "Hauptbahnhof, Altstadt, Universität"],
   ["Leverkusen", "Hauptbahnhof, BayArena, Rheinufer"],
@@ -381,12 +387,12 @@ const FOREIGN_CITIES = [
 const SPECIAL = {
   speyer: {
     guest:
-      "Ob vom Hauptbahnhof zur Maximilianstraße, vom Dom zum Technik-Museum oder spät vom Rheinufer nach Hause: Mit Luckys Taxi App gibst du die Abholadresse in Speyer ein und buchst online. Der Fahrpreis steht auf dem Taxameter — du zahlst bar beim Fahrer, ohne Reservierungsgebühr in der App.",
+      "Aktuell ist in Speyer noch kein Partner-Taxi an die Plattform angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, kannst du hier online bestellen — Dom, Bahnhof, Altstadt. Wo bereits ein Partner aktiv ist, geht die Buchung unter luckystaxiapp.de/book.html.",
     operator:
       "Code & Grow (Firmensitz Speyer, Asternweg 21) betreibt die Plattform Luckys Taxi App. Für lokale Betriebe bedeutet das: Fahrgäste bestellen unter Ihrem Namen, Sie sehen Buchungen in der Browser-Leitstelle und verteilen sie an Ihre Fahrer — parallel zur städtischen Zentrale, nicht als Ersatz.",
     faqExtra: {
-      q: "Sitzt Code & Grow in Speyer?",
-      a: "Ja — Firmensitz Asternweg 21, 67346 Speyer. Code & Grow ist der Software-Anbieter hinter Luckys Taxi App, kein Taxi-Betrieb. Details im Impressum.",
+      q: "Kann ich in Speyer schon ein Taxi online bestellen?",
+      a: "Noch nicht flächendeckend: In Speyer ist aktuell kein Partner-Taxi angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, ist die Online-Buchung unter dessen Namen möglich.",
     },
     orgAddress: true,
   },
@@ -395,6 +401,12 @@ const SPECIAL = {
       "Abend in den Quadraten, Anschluss am Hauptbahnhof oder Fahrt nach Käfertal und Feudenheim: In der Buchung trägst du die Mannheimer Adresse ein und wählst Sofort oder Termin. Der Preis kommt vom Taxameter — bar beim Fahrer, ohne App-Gebühr für die Reservierung.",
     operator:
       "In Mannheim kennt man die große Taxizentrale — und trotzdem fehlt vielen Betrieben ein eigener digitaler Kanal. Luckys Taxi App bringt Online-Buchung, Leitstellen-Ansicht und QR-Code unter Ihrem Firmennamen. Zusatzaufträge von Stammkunden und Hotels, ohne die Zentrale abzuschalten.",
+  },
+  ludwigshafen: {
+    guest:
+      "In Ludwigshafen (Rheinland-Pfalz, Metropolregion Rhein-Neckar) und dem Umland — Altrip, Schifferstadt, Mutterstadt, Limburgerhof, Maxdorf, Waldsee — buchst du online, sobald ein Partner-Betrieb angebunden ist. Abholadresse und Zeit angeben; der Preis kommt vom Taxameter.",
+    operator:
+      "Ludwigshafen liegt in Rheinland-Pfalz, mitten in der Metropolregion Rhein-Neckar. Viele Taxibetriebe in der Stadt und im Rhein-Pfalz-Kreis (Altrip, Schifferstadt, Mutterstadt, Limburgerhof, Maxdorf, Waldsee) holen sich mit Luckys Taxi App Online-Buchung, Leitstelle und QR unter ihrem Namen — parallel zur Zentrale. Ab 9,90 €/Monat pro Fahrzeug.",
   },
 };
 
@@ -474,9 +486,9 @@ function guestText(loc) {
 function operatorText(loc) {
   if (SPECIAL[loc.slug]?.operator) return SPECIAL[loc.slug].operator;
   if (loc.type === "country") {
-    return `Taxi-Betriebe in ${loc.name} holen sich mit Luckys Taxi App einen eigenen digitalen Kanal: Online-Buchung, Browser-Leitstelle und QR-Code unter Ihrem Firmennamen — ab 49 €/Monat, monatlich kündbar. Ideal für Stammkunden, Hotels und Firmenfahrten neben Funk und Telefon.`;
+    return `Taxi-Betriebe in ${loc.name} holen sich mit Luckys Taxi App einen eigenen digitalen Kanal: Online-Buchung, Browser-Leitstelle und QR-Code unter Ihrem Firmennamen — ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar. Ideal für Stammkunden, Hotels und Firmenfahrten neben Funk und Telefon.`;
   }
-  return `Für Taxi-Betriebe in ${loc.name}: Fahrgäste bestellen unter Ihrem Namen. Sie sehen Anfragen in der Leitstelle und weisen Ihre Fahrer zu — parallel zur klassischen Zentrale. Starter ab 49 €/Monat, Business 99 €/Monat, monatlich kündbar.`;
+  return `Für Taxi-Betriebe in ${loc.name}: Fahrgäste bestellen unter Ihrem Namen. Sie sehen Anfragen in der Leitstelle und weisen Ihre Fahrer zu — parallel zur klassischen Zentrale. Ab 9,90 €/Monat pro Fahrzeug (2 Autos 18,90 €), monatlich kündbar.`;
 }
 
 function heroSub(loc) {
@@ -486,21 +498,139 @@ function heroSub(loc) {
   return `Online bestellen rund um ${loc.landmarks} — oder als Betrieb Ihre eigene digitale Leitstelle nutzen.`;
 }
 
+/** Regionale Nachbarn zuerst (Klickpfade Rhein-Neckar / Firmensitz Speyer). */
+const NEARBY = {
+  speyer: [
+    "ludwigshafen",
+    "altrip",
+    "waldsee",
+    "schifferstadt",
+    "mutterstadt",
+    "limburgerhof",
+    "maxdorf",
+    "mannheim",
+    "heidelberg",
+  ],
+  mannheim: [
+    "ludwigshafen",
+    "speyer",
+    "heidelberg",
+    "altrip",
+    "schifferstadt",
+    "limburgerhof",
+    "frankfurt-am-main",
+  ],
+  ludwigshafen: [
+    "altrip",
+    "schifferstadt",
+    "mutterstadt",
+    "limburgerhof",
+    "maxdorf",
+    "waldsee",
+    "speyer",
+    "mannheim",
+  ],
+  altrip: [
+    "ludwigshafen",
+    "mannheim",
+    "speyer",
+    "schifferstadt",
+    "mutterstadt",
+    "limburgerhof",
+    "waldsee",
+    "maxdorf",
+  ],
+  waldsee: [
+    "speyer",
+    "ludwigshafen",
+    "schifferstadt",
+    "altrip",
+    "mutterstadt",
+    "limburgerhof",
+    "maxdorf",
+    "mannheim",
+  ],
+  schifferstadt: [
+    "ludwigshafen",
+    "mutterstadt",
+    "speyer",
+    "waldsee",
+    "limburgerhof",
+    "altrip",
+    "maxdorf",
+    "mannheim",
+  ],
+  mutterstadt: [
+    "ludwigshafen",
+    "schifferstadt",
+    "limburgerhof",
+    "maxdorf",
+    "altrip",
+    "waldsee",
+    "speyer",
+    "mannheim",
+  ],
+  maxdorf: [
+    "ludwigshafen",
+    "mutterstadt",
+    "limburgerhof",
+    "schifferstadt",
+    "altrip",
+    "waldsee",
+    "speyer",
+    "mannheim",
+  ],
+  limburgerhof: [
+    "ludwigshafen",
+    "mutterstadt",
+    "schifferstadt",
+    "maxdorf",
+    "altrip",
+    "waldsee",
+    "speyer",
+    "mannheim",
+  ],
+  heidelberg: [
+    "speyer",
+    "mannheim",
+    "ludwigshafen",
+    "karlsruhe",
+    "frankfurt-am-main",
+  ],
+  karlsruhe: ["speyer", "mannheim", "heidelberg", "ludwigshafen", "baden-baden"],
+  "neustadt-an-der-weinstrasse": [
+    "speyer",
+    "ludwigshafen",
+    "schifferstadt",
+    "mannheim",
+    "kaiserslautern",
+  ],
+  kaiserslautern: ["speyer", "ludwigshafen", "neustadt-an-der-weinstrasse", "mainz"],
+  mainz: ["speyer", "frankfurt-am-main", "ludwigshafen", "mannheim"],
+  "frankfurt-am-main": ["speyer", "mannheim", "heidelberg", "mainz"],
+};
+
 function relatedLinks(loc, all) {
+  const bySlug = new Map(all.map((x) => [x.slug, x]));
   const sameCountry = all.filter(
     (x) => x.country === loc.country && x.slug !== loc.slug
   );
   const countries = all.filter((x) => x.type === "country" && x.slug !== loc.slug);
   const picks = [];
-  for (const x of sameCountry) {
-    if (picks.length >= 8) break;
+  const seen = new Set();
+
+  function add(slugOrLoc) {
+    if (picks.length >= 8) return;
+    const x = typeof slugOrLoc === "string" ? bySlug.get(slugOrLoc) : slugOrLoc;
+    if (!x || x.slug === loc.slug || seen.has(x.slug)) return;
+    seen.add(x.slug);
     picks.push(x);
   }
+
+  for (const slug of NEARBY[loc.slug] || []) add(slug);
+  for (const x of sameCountry) add(x);
   if (picks.length < 6) {
-    for (const x of countries) {
-      if (picks.length >= 8) break;
-      if (!picks.find((p) => p.slug === x.slug)) picks.push(x);
-    }
+    for (const x of countries) add(x);
   }
   return picks;
 }
@@ -513,8 +643,8 @@ function renderPage(loc, all) {
       : `Taxi bestellen in ${loc.name} | Luckys Taxi App`;
   const desc =
     loc.type === "country"
-      ? `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Für Taxi-Betriebe: Leitstelle und Fahrgast-App ab 49 €/Monat.`
-      : `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Bar bzw. nach lokalem Tarif. Taxi-Betriebe: eigene Leitstelle ab 49 €/Monat.`;
+      ? `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Für Taxi-Betriebe: Leitstelle und Fahrgast-App ab 9,90 €/Monat pro Fahrzeug.`
+      : `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Bar bzw. nach lokalem Tarif. Taxi-Betriebe: eigene Leitstelle ab 9,90 €/Monat pro Fahrzeug.`;
 
   const areaType = loc.type === "country" ? "Country" : "City";
   const orgBlock = SPECIAL[loc.slug]?.orgAddress
@@ -536,7 +666,7 @@ function renderPage(loc, all) {
     },
     {
       q: `Was kostet Luckys Taxi App für Betriebe in ${loc.name}?`,
-      a: "Starter 49 €/Monat oder Business 99 €/Monat, monatlich kündbar — inkl. Online-Buchung, Leitstelle und QR-Code.",
+      a: "ab 9,90 €/Monat pro Fahrzeug (2 Autos 18,90 €), monatlich kündbar — inkl. Online-Buchung, Leitstelle und QR-Code.",
     },
   ];
   if (faqExtra) faqs.splice(1, 0, faqExtra);
@@ -641,6 +771,25 @@ function renderPage(loc, all) {
   </header>
 
   <main class="wrap city-main">
+    <section class="city-faq" id="produkte" aria-labelledby="cg-products-title">
+      <h2 id="cg-products-title">Fertige Produkte von Code &amp; Grow</h2>
+      <p>Schon fertig und live — von hier aus erreichbar. Code &amp; Grow (Speyer) bietet Software zum Mieten:</p>
+      <article>
+        <h3>Luckys Taxi App</h3>
+        <p><strong>Fertig &amp; live.</strong> Digitale Leitstelle und Online-Buchung für Taxi-Betriebe.
+          <a href="../onboard.html">Plattform mieten</a> · <a href="../index.html#produkte">Alle Produkte</a></p>
+      </article>
+      <article>
+        <h3>Collection Shop</h3>
+        <p><strong>Fertig &amp; live.</strong> Onlineshop und App zum Mieten unter dem eigenen Namen.
+          <a href="https://code-und-grow.de/" rel="noopener" target="_blank">Zur Collection Shop Seite</a></p>
+      </article>
+      <article>
+        <h3>Mitarbeiter-App</h3>
+        <p><strong>Demnächst.</strong> App für Teams und Betriebe — in Vorbereitung.</p>
+      </article>
+    </section>
+
     <div class="city-split">
       <section class="city-block">
         <h2>Für Fahrgäste in ${esc(loc.name)}</h2>
@@ -650,7 +799,7 @@ function renderPage(loc, all) {
       <section class="city-block">
         <h2>Für Taxi-Betriebe in ${esc(loc.name)}</h2>
         <p>${esc(operatorText(loc))}</p>
-        <p><a class="btn secondary" href="../onboard.html">Partner werden ab 49 €</a></p>
+        <p><a class="btn secondary" href="../onboard.html">Partner werden ab 9,90 €</a></p>
       </section>
     </div>
 
@@ -803,20 +952,42 @@ ${urls.join("\n")}
 
 function main() {
   const all = buildLocations();
+  const onlyNew = process.env.ONLY_NEW === "1";
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  // Remove old generated HTML (keep nothing stale)
-  for (const f of fs.readdirSync(OUT_DIR)) {
-    if (f.endsWith(".html")) fs.unlinkSync(path.join(OUT_DIR, f));
+  if (!onlyNew) {
+    for (const f of fs.readdirSync(OUT_DIR)) {
+      if (f.endsWith(".html")) fs.unlinkSync(path.join(OUT_DIR, f));
+    }
   }
 
+  let written = 0;
   for (const loc of all) {
-    fs.writeFileSync(path.join(OUT_DIR, `${loc.slug}.html`), renderPage(loc, all), "utf8");
+    const out = path.join(OUT_DIR, `${loc.slug}.html`);
+    if (onlyNew && fs.existsSync(out)) continue;
+    fs.writeFileSync(out, renderPage(loc, all), "utf8");
+    written += 1;
   }
-  fs.writeFileSync(path.join(OUT_DIR, "index.html"), renderHub(all), "utf8");
-  fs.writeFileSync(SITEMAP, writeSitemap(all), "utf8");
+  if (!onlyNew) {
+    fs.writeFileSync(path.join(OUT_DIR, "index.html"), renderHub(all), "utf8");
+    fs.writeFileSync(SITEMAP, writeSitemap(all), "utf8");
+  } else {
+    // Sitemap: ensure new DE cities are listed
+    let sm = fs.readFileSync(SITEMAP, "utf8");
+    for (const loc of all) {
+      const locUrl = `${BASE}/staedte/${loc.slug}.html`;
+      if (sm.includes(locUrl)) continue;
+      const entry = `  <url>
+    <loc>${locUrl}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+`;
+      sm = sm.replace("</urlset>", `${entry}</urlset>`);
+    }
+    fs.writeFileSync(SITEMAP, sm, "utf8");
+  }
 
-  // Manifest for transparency
   fs.writeFileSync(
     path.join(OUT_DIR, "locations.generated.json"),
     JSON.stringify(
@@ -827,7 +998,11 @@ function main() {
     "utf8"
   );
 
-  console.log(`Generated ${all.length} location pages + hub + sitemap.`);
+  console.log(
+    onlyNew
+      ? `ONLY_NEW: wrote ${written} new pages; hub untouched; sitemap merged.`
+      : `Generated ${all.length} location pages + hub + sitemap.`
+  );
 }
 
 main();

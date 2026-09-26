@@ -24,9 +24,9 @@ Fahrgast track.html (Socket + HTTP-Fallback) / FahrgastApp
 | Fahrer GPS (Web) | `web/driver-track.html` (GPS_MIN_MS = 2500) |
 | Fahrer GPS (iOS) | `FahrerApp/HomeView.swift` (~2,5 s) |
 | Fahrer-PIN | `web/settings.html` → Fahrer |
-| Leitstelle-Link | `web/dispatch.html` → „GPS starten“ |
+| Leitstelle-Link | `web/dispatch.html` → „GPS starten“ + **Live-Karte** (Fahrer-Punkte) |
 | Fahrgast-Karte Web | `web/track.html` (Google Maps wenn Key, sonst Leaflet) |
-| Fahrgast-Karte App | `FahrgastApp` → `LiveTrackingScreen.swift` (extern) |
+| Fahrgast-Karte App | `FahrgastApp` → `LiveTrackingScreen.swift` |
 | Architektur | `docs/PHASE-1-ARCHITEKTUR.md` |
 
 ## API

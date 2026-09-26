@@ -6,56 +6,125 @@
   <title>TaxiApp Zentrale. Leitstelle</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
-    .dispatch-wrap { max-width: 960px; margin: 2rem auto 3rem; padding: 0 1.25rem; }
-    .dispatch-panel {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 1rem 1.25rem;
-      margin-bottom: 1rem;
-      box-shadow: var(--shadow);
+    html, body { height: 100%; }
+    body.dispatch-map-page {
+      margin: 0;
+      background: #0c1c34;
+      overflow: hidden;
     }
-    .dispatch-panel h2 { margin: 0 0 0.5rem; font-size: 1.05rem; }
-    .dispatch-panel p { margin: 0.25rem 0; font-size: 0.9rem; color: #0c1c34; }
-    .central-phone { font-size: 1.35rem; font-weight: 700; margin: 0.5rem 0; }
-    .central-phone a { color: #0c1c34; text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 3px; }
-    .workflow ol { margin: 0.5rem 0 0 1.1rem; padding: 0; font-size: 0.88rem; color: #0c1c34; }
-    .workflow li { margin: 0.35rem 0; }
-    .section-title { font-size: 0.95rem; font-weight: 700; margin: 1.5rem 0 0.75rem; color: #0c1c34; }
-    .driver-grid {
+    .map-banner {
+      background: #ffe08a;
+      color: #0c1c34;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 0.4rem 0.85rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #0c1c34;
+    }
+    .map-banner a { color: #0c1c34; font-weight: 800; }
+    .map-layout {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 0.65rem;
+      grid-template-columns: minmax(300px, 380px) 1fr;
+      height: calc(100vh - 2.1rem);
+    }
+    @media (max-width: 900px) {
+      body.dispatch-map-page { overflow: auto; }
+      .map-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 42vh auto;
+        height: auto;
+        min-height: calc(100vh - 2.1rem);
+      }
+      #dispatch-map { min-height: 42vh; }
+    }
+    .map-sidebar {
+      background: #fffdf5;
+      border-right: 3px solid #0c1c34;
+      overflow: auto;
+      padding: 0.85rem 0.9rem 1.5rem;
+    }
+    .map-sidebar h1 {
+      margin: 0 0 0.15rem;
+      font-size: 1.15rem;
+      color: #0c1c34;
+    }
+    .map-sidebar .sub {
+      margin: 0 0 0.75rem;
+      font-size: 0.82rem;
+      color: #1c304f;
+    }
+    .central-phone { font-size: 1.15rem; font-weight: 800; margin: 0.35rem 0; }
+    .central-phone a { color: #0c1c34; }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.4rem;
+      margin: 0.75rem 0;
+    }
+    .stat {
+      background: #ffe08a;
+      border: 2px solid #0c1c34;
+      border-radius: 10px;
+      padding: 0.4rem;
+      text-align: center;
+    }
+    .stat b { display: block; font-size: 1.15rem; }
+    .stat span { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0.9rem 0 0.45rem;
+      color: #0c1c34;
+    }
+    .driver-chip, .booking-card, .call-card {
+      background: #fff;
+      border: 2px solid #0c1c34;
+      border-radius: 12px;
+      padding: 0.65rem 0.75rem;
+      margin-bottom: 0.5rem;
+      box-shadow: none;
     }
     .driver-chip {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 0.75rem 1rem;
-      box-shadow: var(--shadow);
-      font-size: 0.88rem;
+      display: flex;
+      gap: 0.55rem;
+      align-items: flex-start;
+      cursor: pointer;
     }
-    .driver-chip strong { display: block; margin-bottom: 0.2rem; }
-    .driver-meta { color: #1c304f; font-size: 0.82rem; opacity: 0.85; }
+    .driver-chip:hover { background: #fff8cc; }
+    .driver-chip .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      margin-top: 0.35rem;
+      border: 2px solid #0c1c34;
+      flex-shrink: 0;
+    }
+    .dot.available, .dot.free { background: #34d399; }
+    .dot.busy { background: #fbbf24; }
+    .dot.offline, .dot.off, .dot.stale { background: #9ca3af; }
+    .driver-chip strong { display: block; font-size: 0.9rem; }
+    .driver-meta { font-size: 0.78rem; color: #1c304f; }
     .driver-status-available { color: #065f46; font-weight: 700; }
     .driver-status-busy { color: #92400e; font-weight: 700; }
     .driver-status-offline { color: #6b7280; font-weight: 700; }
-    .booking-card.call-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 1rem 1.25rem;
-      margin-bottom: 0.75rem;
-      box-shadow: var(--shadow);
-    }
-    .booking-card h3.call-card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
-    .booking-meta { font-size: 0.85rem; color: #1c304f; margin: 0.2rem 0; opacity: 0.9; }
+    .booking-card h3, .call-card h3 { margin: 0 0 0.25rem; font-size: 0.92rem; }
+    .booking-meta { font-size: 0.8rem; color: #1c304f; margin: 0.15rem 0; }
     .night-badge { color: #5b21b6; font-weight: 600; }
     .status-badge {
       display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.15rem 0.4rem;
       border-radius: 6px;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.3rem;
     }
     .status-confirmed { background: #fef3c7; color: #92400e; }
     .status-accepted { background: #dbeafe; color: #1e40af; }
@@ -64,148 +133,169 @@
     .status-cancelled { background: #fee2e2; color: #991b1b; }
     .status-ringing { background: #fee2e2; color: #991b1b; }
     .assign-row {
-      margin-top: 0.75rem;
+      margin-top: 0.55rem;
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.4rem;
       align-items: center;
     }
-    .assign-row label { font-size: 0.85rem; font-weight: 600; }
+    .assign-row label { font-size: 0.8rem; font-weight: 700; }
     .assign-row select {
       flex: 1;
-      min-width: 160px;
-      padding: 0.45rem 0.5rem;
+      min-width: 140px;
+      padding: 0.35rem 0.45rem;
       border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 0.88rem;
+      border: 2px solid #0c1c34;
+      font-size: 0.82rem;
     }
     .assigned-driver {
-      margin-top: 0.5rem;
-      padding: 0.5rem 0.65rem;
+      margin-top: 0.4rem;
+      padding: 0.45rem 0.55rem;
       background: #ffe08a;
       border: 2px solid #0c1c34;
       border-radius: 8px;
-      font-size: 0.88rem;
+      font-size: 0.8rem;
     }
-    .booking-map {
-      margin-top: 0.75rem;
-      width: 100%;
-      max-width: 100%;
-      height: auto;
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-    }
-    .booking-actions.call-actions {
-      margin-top: 0.75rem;
+    .booking-actions, .call-actions {
+      margin-top: 0.5rem;
       display: flex;
-      gap: 0.5rem;
+      gap: 0.35rem;
       flex-wrap: wrap;
     }
-    .booking-actions button.call-actions button.booking-actions a {
-      font-size: 0.85rem;
-      font-weight: 600;
+    .booking-actions button, .booking-actions a,
+    .call-actions button, .call-actions a {
+      font-size: 0.75rem;
+      font-weight: 700;
       text-decoration: none;
-      padding: 0.45rem 0.75rem;
+      padding: 0.35rem 0.55rem;
       border-radius: 8px;
       background: #ffe08a;
       border: 2px solid #0c1c34;
       cursor: pointer;
       color: #0c1c34;
     }
-    .empty { color: #0c1c34; padding: 1.5rem; text-align: center; font-size: 0.9rem; font-weight: 600; }
+    .empty { color: #0c1c34; padding: 0.75rem; text-align: center; font-size: 0.85rem; font-weight: 600; }
     .driver-setup-banner {
       display: none;
       background: #ffe08a;
-      border: 2.5px solid #0c1c34;
-      border-radius: var(--radius);
-      padding: 1rem 1.25rem;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
-      color: #0c1c34;
+      border: 2px solid #0c1c34;
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      margin-bottom: 0.65rem;
+      font-size: 0.82rem;
     }
     .driver-setup-banner.is-visible { display: block; }
-    .driver-setup-banner strong { display: block; margin-bottom: 0.35rem; font-size: 1rem; }
-    .driver-setup-banner a { color: #0c1c34; font-weight: 800; text-decoration: underline; text-decoration-thickness: 3px; }
+    .driver-setup-banner a { font-weight: 800; color: #0c1c34; }
     .driver-setup-empty {
-      grid-column: 1 / -1;
       background: #fff8cc;
-      border: 2.5px dashed #0c1c34;
-      border-radius: var(--radius);
-      padding: 1.25rem;
+      border: 2px dashed #0c1c34;
+      border-radius: 10px;
+      padding: 0.85rem;
       text-align: center;
-      font-size: 0.9rem;
-      color: #0c1c34;
+      font-size: 0.85rem;
     }
-    .driver-setup-empty a { font-weight: 800; color: #0c1c34; text-decoration: underline; text-decoration-thickness: 3px; }
     .assign-hint {
-      margin-top: 0.75rem;
-      padding: 0.65rem 0.75rem;
+      margin-top: 0.45rem;
+      padding: 0.5rem 0.6rem;
       background: #ffe08a;
       border: 2px solid #0c1c34;
       border-radius: 8px;
-      font-size: 0.85rem;
-      color: #0c1c34;
-      line-height: 1.45;
+      font-size: 0.78rem;
+      line-height: 1.4;
     }
-    .assign-hint a { font-weight: 800; color: #0c1c34; }
-    .assign-row select:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
+    .assign-row select:disabled { opacity: 0.65; cursor: not-allowed; }
+    .workflow { font-size: 0.78rem; margin: 0.5rem 0; }
+    .workflow ol { margin: 0.35rem 0 0 1rem; padding: 0; }
+    .workflow li { margin: 0.25rem 0; }
+    #dispatch-map { height: 100%; width: 100%; background: #dbe3ef; }
+    .taxi-pin {
+      background: #f5c518;
+      border: 2.5px solid #0c1c34;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.62rem;
+      font-weight: 900;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
+    .taxi-pin.busy { background: #fb923c; }
+    .taxi-pin.stale { background: #d1d5db; color: #4b5563; }
+    .pickup-pin {
+      background: #fff;
+      border: 2.5px solid #dc2626;
+      color: #dc2626;
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 0.62rem;
+      font-weight: 900;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      white-space: nowrap;
+    }
+    .map-note {
+      font-size: 0.72rem;
+      color: #1c304f;
+      margin: 0.5rem 0 0;
+      line-height: 1.35;
     }
   </style>
 </head>
-<body>
-  <header class="hero" style="padding-bottom: 2.5rem">
-    <h1 id="company-title">Zentrale / Leitstelle</h1>
-    <p id="company-subtitle">App-Buchungen. Fahrer zuweisen</p>
-  </header>
+<body class="dispatch-map-page">
+  <div class="map-banner">
+    <span>Karten-Leitstelle · Live-GPS der Fahrer</span>
+    <span>
+      <a id="settings-nav-link" href="settings.html">Einstellungen</a>
+      ·
+      <a href="index.html">Start</a>
+    </span>
+  </div>
 
-  <main class="dispatch-wrap">
-    <section class="dispatch-panel" id="config-panel">
-      <h2>Leitstellen-Nummer (Fahrgast ruft an)</h2>
+  <div class="map-layout">
+    <aside class="map-sidebar">
+      <h1 id="company-title">Zentrale / Leitstelle</h1>
+      <p class="sub" id="company-subtitle">App-Buchungen · Fahrer live auf der Karte</p>
+
       <p class="central-phone"><a id="central-phone-link" href="#">…</a></p>
       <p id="dispatch-hours" class="booking-meta"></p>
       <p id="dispatch-note" class="booking-meta"></p>
+
+      <div class="stats">
+        <div class="stat"><b id="n-free">0</b><span>Frei</span></div>
+        <div class="stat"><b id="n-busy">0</b><span>Besetzt</span></div>
+        <div class="stat"><b id="n-jobs">0</b><span>Offen</span></div>
+      </div>
+
       <div class="workflow">
-        <strong>Ablauf Leitstelle:</strong>
+        <strong>Ablauf:</strong>
         <ol>
-          <li>Neue App-Buchung erscheint unten (oder Anruf oben).</li>
-          <li><strong>Angenommen</strong> → Fahrer wählen → <strong>Fahrer anrufen</strong>.</li>
-          <li>Status <strong>Fahrer unterwegs</strong> / <strong>Erledigt</strong> setzen.</li>
+          <li>Neue Buchung → annehmen → Fahrer zuweisen.</li>
+          <li>Fahrer: GPS starten (App oder Link).</li>
+          <li>Gelber Punkt = Taxi live auf der Karte.</li>
         </ol>
       </div>
-    </section>
 
-    <div id="no-drivers-banner" class="driver-setup-banner" role="status">
-      <strong>Noch keine Fahrer angelegt</strong>
-      Unter <a id="settings-link" href="settings.html">Einstellungen → Fahrer</a> Name, Handy und Kennzeichen eintragen.
-      danach können Sie hier bei jeder Buchung einen Fahrer zuweisen.
-    </div>
+      <div id="no-drivers-banner" class="driver-setup-banner" role="status">
+        <strong>Noch keine Fahrer angelegt</strong>
+        Unter <a id="settings-link" href="settings.html">Einstellungen → Fahrer</a> anlegen.
+      </div>
 
-    <h2 class="section-title">Fahrer</h2>
-    <div id="drivers" class="driver-grid"></div>
+      <h2 class="section-title">Fahrer</h2>
+      <div id="drivers"></div>
 
-    <p class="nav-top" style="text-align:center;margin-bottom:1rem">
-      <a id="settings-nav-link" href="settings.html" style="font-weight:600">Einstellungen (Nummer & Fahrer)</a>
-    </p>
+      <h2 class="section-title">App-Buchungen</h2>
+      <div id="bookings"></div>
 
-    <p class="note">Aktualisiert alle 5 Sekunden. Backend: <code>cd backend && npm start</code></p>
+      <h2 class="section-title">Telefon-Anrufe</h2>
+      <div id="calls"></div>
 
-    <h2 class="section-title">Telefon-Anrufe</h2>
-    <div id="calls"></div>
+      <p class="map-note">Aktualisiert alle 5 Sekunden. Standort gilt als frisch für 2 Minuten.</p>
+    </aside>
+    <div id="dispatch-map" role="application" aria-label="Leitstellen-Karte"></div>
+  </div>
 
-    <h2 class="section-title">App-Buchungen</h2>
-    <div id="bookings"></div>
-  </main>
-
-  <footer class="site-footer">
-    <nav>
-      <a href="index.html">Start</a>
-      <a href="dispatch.html">Zentrale</a>
-      <a href="settings.html">Einstellungen</a>
-    </nav>
-  </footer>
-
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="tenant-branding.js"></script>
   <script src="leitstelle-auth.js"></script>
   <script>
@@ -225,9 +315,17 @@
       offline: "offline",
     };
 
+    const LOCATION_FRESH_MS = 2 * 60 * 1000;
+    const DEFAULT_CENTER = [49.317, 8.431];
+
     let cachedDrivers = [];
+    let cachedBookings = [];
     let knownBookingIds = new Set();
     let bookingsSoundReady = false;
+    let map = null;
+    let mapFitted = false;
+    const driverMarkers = new Map();
+    const bookingMarkers = new Map();
 
     function playNewBookingSound() {
       try {
@@ -263,6 +361,8 @@
       ids.forEach((id) => knownBookingIds.add(id));
       if (fresh.length) playNewBookingSound();
     }
+
+    function hasAssignableDrivers() {
       return cachedDrivers.some((d) => d.status !== "offline");
     }
 
@@ -276,19 +376,14 @@
       return `
         <div class="driver-setup-empty">
           <p><strong>Noch keine Fahrer.</strong></p>
-          <p style="margin:0.5rem 0 0">Legen Sie Fahrer unter
-            <a href="settings.html">Einstellungen</a> an (Name, Handy, Kennzeichen).
-            Danach erscheinen sie hier und im Dropdown „Fahrer wählen“ bei jeder Buchung.</p>
+          <p style="margin:0.5rem 0 0">Unter
+            <a href="settings.html">Einstellungen</a> anlegen.</p>
         </div>
       `;
     }
 
     function mapsUrl(lat, lon) {
       return `https://maps.apple.com/?ll=${lat},${lon}&q=Abholung`;
-    }
-
-    function staticMapUrl(lat, lon) {
-      return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=15&size=520x200&markers=${lat},${lon},red`;
     }
 
     function telHref(phone) {
@@ -310,6 +405,143 @@
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
+    }
+
+    function hasCoords(lat, lng) {
+      return Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
+    }
+
+    function isLocationFresh(driver) {
+      if (typeof driver.locationFresh === "boolean") return driver.locationFresh;
+      if (!hasCoords(driver.lastLat, driver.lastLng) || !driver.lastLocationAt) return false;
+      return Date.now() - new Date(driver.lastLocationAt).getTime() <= LOCATION_FRESH_MS;
+    }
+
+    function initMap() {
+      if (map) return;
+      map = L.map("dispatch-map", { zoomControl: true }).setView(DEFAULT_CENTER, 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap",
+      }).addTo(map);
+      setTimeout(() => map.invalidateSize(), 80);
+    }
+
+    function taxiIcon(driver, stale) {
+      let cls = "taxi-pin";
+      if (stale) cls += " stale";
+      else if (driver.status === "busy") cls += " busy";
+      return L.divIcon({
+        className: "",
+        html: `<div class="${cls}">TX</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+    }
+
+    function pickupIcon() {
+      return L.divIcon({
+        className: "",
+        html: `<div class="pickup-pin">ABHOL</div>`,
+        iconSize: [52, 22],
+        iconAnchor: [26, 11],
+      });
+    }
+
+    function updateStats() {
+      const free = cachedDrivers.filter((d) => d.status === "available").length;
+      const busy = cachedDrivers.filter((d) => d.status === "busy").length;
+      const openJobs = cachedBookings.filter(
+        (b) => b.status !== "completed" && b.status !== "cancelled"
+      ).length;
+      document.getElementById("n-free").textContent = String(free);
+      document.getElementById("n-busy").textContent = String(busy);
+      document.getElementById("n-jobs").textContent = String(openJobs);
+    }
+
+    function syncMap() {
+      if (!map) return;
+      const bounds = [];
+      const seenDrivers = new Set();
+
+      for (const d of cachedDrivers) {
+        if (!hasCoords(d.lastLat, d.lastLng)) continue;
+        const fresh = isLocationFresh(d);
+        const latLng = [Number(d.lastLat), Number(d.lastLng)];
+        seenDrivers.add(d.driverId);
+        bounds.push(latLng);
+        const popup = `<strong>${escapeHtml(d.name)}</strong><br>${escapeHtml(d.vehicle || "")}<br>${
+          DRIVER_STATUS_LABELS[d.status] || d.status
+        }${fresh ? "" : "<br><em>Standort älter als 2 Min.</em>"}`;
+        if (driverMarkers.has(d.driverId)) {
+          const m = driverMarkers.get(d.driverId);
+          m.setLatLng(latLng);
+          m.setIcon(taxiIcon(d, !fresh));
+          m.setPopupContent(popup);
+        } else {
+          const m = L.marker(latLng, { icon: taxiIcon(d, !fresh) })
+            .addTo(map)
+            .bindPopup(popup);
+          driverMarkers.set(d.driverId, m);
+        }
+      }
+      for (const [id, m] of [...driverMarkers.entries()]) {
+        if (!seenDrivers.has(id)) {
+          map.removeLayer(m);
+          driverMarkers.delete(id);
+        }
+      }
+
+      const openBookings = cachedBookings.filter(
+        (b) =>
+          b.status !== "completed" &&
+          b.status !== "cancelled" &&
+          hasCoords(b.latitude, b.longitude)
+      );
+      const seenBookings = new Set();
+      for (const b of openBookings) {
+        const latLng = [Number(b.latitude), Number(b.longitude)];
+        seenBookings.add(b.bookingId);
+        bounds.push(latLng);
+        const popup = `<strong>${escapeHtml(b.addressLine || "Abholung")}</strong><br>${
+          STATUS_LABELS[b.status] || b.status || "neu"
+        }`;
+        if (bookingMarkers.has(b.bookingId)) {
+          const m = bookingMarkers.get(b.bookingId);
+          m.setLatLng(latLng);
+          m.setPopupContent(popup);
+        } else {
+          const m = L.marker(latLng, { icon: pickupIcon() })
+            .addTo(map)
+            .bindPopup(popup);
+          bookingMarkers.set(b.bookingId, m);
+        }
+      }
+      for (const [id, m] of [...bookingMarkers.entries()]) {
+        if (!seenBookings.has(id)) {
+          map.removeLayer(m);
+          bookingMarkers.delete(id);
+        }
+      }
+
+      if (!mapFitted && bounds.length) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+        mapFitted = true;
+      }
+    }
+
+    function focusDriver(driverId) {
+      const m = driverMarkers.get(driverId);
+      if (!m || !map) return;
+      map.flyTo(m.getLatLng(), 15, { duration: 0.5 });
+      m.openPopup();
+    }
+
+    function focusBooking(bookingId) {
+      const m = bookingMarkers.get(bookingId);
+      if (!m || !map) return;
+      map.flyTo(m.getLatLng(), 15, { duration: 0.5 });
+      m.openPopup();
     }
 
     async function loadConfig() {
@@ -347,19 +579,31 @@
     function renderDrivers(data) {
       cachedDrivers = data.drivers || [];
       updateNoDriversBanner();
+      updateStats();
       const root = document.getElementById("drivers");
       if (!cachedDrivers.length) {
         root.innerHTML = driverSetupEmptyHtml();
+        syncMap();
         return;
       }
-      root.innerHTML = cachedDrivers.map((d) => `
-        <article class="driver-chip">
-          <strong>${escapeHtml(d.name)}</strong>
-          <span class="driver-meta driver-status-${d.status}">${DRIVER_STATUS_LABELS[d.status] || d.status}</span>
-          <div class="driver-meta">${escapeHtml(d.vehicle || "")}</div>
-          <div class="driver-meta"><a href="${telHref(d.phone)}">${escapeHtml(d.phone)}</a></div>
-        </article>
-      `).join("");
+      root.innerHTML = cachedDrivers.map((d) => {
+        const fresh = isLocationFresh(d);
+        const locHint = hasCoords(d.lastLat, d.lastLng)
+          ? (fresh ? " · GPS live" : " · GPS alt")
+          : " · kein GPS";
+        const dotClass = !fresh && hasCoords(d.lastLat, d.lastLng) ? "stale" : (d.status || "offline");
+        return `
+        <article class="driver-chip" data-focus-driver="${escapeHtml(d.driverId)}">
+          <span class="dot ${dotClass}"></span>
+          <div>
+            <strong>${escapeHtml(d.name)}</strong>
+            <span class="driver-meta driver-status-${d.status}">${DRIVER_STATUS_LABELS[d.status] || d.status}${locHint}</span>
+            <div class="driver-meta">${escapeHtml(d.vehicle || "")}</div>
+            <div class="driver-meta"><a href="${telHref(d.phone)}">${escapeHtml(d.phone || "")}</a></div>
+          </div>
+        </article>`;
+      }).join("");
+      syncMap();
     }
 
     function renderCalls(data) {
@@ -401,8 +645,7 @@
         return `
           <div class="assign-hint">
             <strong>Fahrer zuweisen:</strong> Zuerst unter
-            <a href="settings.html">Einstellungen → Fahrer</a> mindestens einen Fahrer anlegen.
-            Dann hier im Dropdown wählen, wer zur Abholung fährt.
+            <a href="settings.html">Einstellungen → Fahrer</a> anlegen.
           </div>
         `;
       }
@@ -410,13 +653,13 @@
       const allOffline = !hasAssignableDrivers();
       const selectDisabled = allOffline ? " disabled" : "";
       const offlineHint = allOffline
-        ? `<p class="assign-hint" style="margin-top:0.5rem;margin-bottom:0">Alle Fahrer sind <strong>offline</strong>: in den Einstellungen Status auf „frei“ setzen.</p>`
+        ? `<p class="assign-hint" style="margin-top:0.5rem;margin-bottom:0">Alle Fahrer sind <strong>offline</strong>.</p>`
         : "";
 
       return `
         <div class="assign-row">
-          <label for="driver-${booking.bookingId}">Fahrer zuweisen:</label>
-          <select id="driver-${booking.bookingId}" data-assign-select="${booking.bookingId}"${selectDisabled} title="Welcher Fahrer soll diese Fahrt übernehmen?">
+          <label for="driver-${booking.bookingId}">Fahrer:</label>
+          <select id="driver-${booking.bookingId}" data-assign-select="${booking.bookingId}"${selectDisabled}>
             ${driverOptions(booking.assignedDriverId)}
           </select>
         </div>
@@ -439,19 +682,20 @@
 
     function formatBookingAmount(b) {
       const total = Number(b.totalAmount);
-      if (!total || total <= 0) {
-        return "Taxameter (nach Fahrt)";
-      }
+      if (!total || total <= 0) return "Taxameter (nach Fahrt)";
       return total.toFixed(2) + " €";
     }
 
     function renderBookings(data) {
       const root = document.getElementById("bookings");
       const list = data.bookings || [];
+      cachedBookings = list;
       notifyNewBookings(list);
+      updateStats();
       if (!list.length) {
         root.innerHTML =
-          '<p class="empty">Noch keine App-Buchungen. In der App bis „Taxi bestellen“ durchgehen.</p>';
+          '<p class="empty">Noch keine App-Buchungen.</p>';
+        syncMap();
         return;
       }
       updateNoDriversBanner();
@@ -460,20 +704,20 @@
           ${statusBadge(b.status || "confirmed")}
           <h3>${escapeHtml(b.addressLine)}</h3>
           ${b.destinationAddressLine ? `<p class="booking-meta"><strong>Ziel:</strong> ${escapeHtml(b.destinationAddressLine)}</p>` : ""}
-          ${b.nightSurchargeApplies ? `<p class="booking-meta night-badge">🌙 Nachtzuschlag-Zeitraum (22-6 Uhr). Hinweis für Fahrer</p>` : ""}
-          <p class="booking-meta">${new Date(b.pickupDate).toLocaleString("de-DE")} · ${escapeHtml(b.paymentMethod)} · ${formatBookingAmount(b)}${b.tipAmount > 0 ? ` · Trinkgeld-Wunsch ${Number(b.tipAmount).toFixed(2)} €` : ""}</p>
-          <p class="booking-meta">ID: ${b.bookingId.slice(0, 8)}…</p>
-          <img class="booking-map" src="${staticMapUrl(b.latitude, b.longitude)}" alt="Karte Abholpunkt" loading="lazy" width="520" height="200">
+          ${b.nightSurchargeApplies ? `<p class="booking-meta night-badge">Nachtzuschlag-Zeitraum (22–6 Uhr)</p>` : ""}
+          <p class="booking-meta">${new Date(b.pickupDate).toLocaleString("de-DE")} · ${escapeHtml(b.paymentMethod)} · ${formatBookingAmount(b)}${b.tipAmount > 0 ? ` · Trinkgeld ${Number(b.tipAmount).toFixed(2)} €` : ""}</p>
           ${assignedDriverBlock(b)}
           ${assignRowHtml(b)}
           <div class="booking-actions">
-            <a href="${mapsUrl(b.latitude, b.longitude)}" target="_blank" rel="noopener">In Karten öffnen</a>
+            <button type="button" data-focus-booking="${b.bookingId}">Auf Karte</button>
+            <a href="${mapsUrl(b.latitude, b.longitude)}" target="_blank" rel="noopener">Navigation</a>
             <button type="button" data-booking-id="${b.bookingId}" data-status="accepted">Angenommen</button>
             <button type="button" data-booking-id="${b.bookingId}" data-status="completed">Erledigt</button>
             <button type="button" data-booking-id="${b.bookingId}" data-status="cancelled">Storniert</button>
           </div>
         </article>
       `).join("");
+      syncMap();
     }
 
     async function refresh() {
@@ -490,12 +734,13 @@
           cachedDrivers = [];
           updateNoDriversBanner();
           document.getElementById("drivers").innerHTML = driverSetupEmptyHtml();
+          syncMap();
         }
         renderBookings(await bookingsRes.json());
         if (callsRes.ok) renderCalls(await callsRes.json());
       } catch {
         document.getElementById("bookings").innerHTML =
-          '<p class="empty">Backend nicht erreichbar. Bitte <code>npm start</code> im Ordner backend.</p>';
+          '<p class="empty">Backend nicht erreichbar.</p>';
       }
     }
 
@@ -517,11 +762,20 @@
     document.addEventListener("change", async (event) => {
       const select = event.target.closest("[data-assign-select]");
       if (!select) return;
-      const bookingId = select.getAttribute("data-assign-select");
-      await assignDriver(bookingId, select.value);
+      await assignDriver(select.getAttribute("data-assign-select"), select.value);
     });
 
     document.addEventListener("click", async (event) => {
+      const focusDriverEl = event.target.closest("[data-focus-driver]");
+      if (focusDriverEl) {
+        focusDriver(focusDriverEl.getAttribute("data-focus-driver"));
+        return;
+      }
+      const focusBookingEl = event.target.closest("[data-focus-booking]");
+      if (focusBookingEl) {
+        focusBooking(focusBookingEl.getAttribute("data-focus-booking"));
+        return;
+      }
       const bookingBtn = event.target.closest("[data-booking-id]");
       if (bookingBtn) {
         const id = bookingBtn.getAttribute("data-booking-id");
@@ -553,6 +807,7 @@
       const settingsNav = document.getElementById("settings-nav-link");
       if (settingsLink) settingsLink.href = settingsHref;
       if (settingsNav) settingsNav.href = settingsHref;
+      initMap();
       loadConfig();
       refresh();
       setInterval(refresh, 5000);

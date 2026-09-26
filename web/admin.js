@@ -1,10 +1,11 @@
 (function () {
-  const STORAGE_KEY = "taxiapp_platform_admin_pin";
+  const PIN_KEY = "taxiapp_platform_admin_pin";
+  const SESSION_KEY = "taxiapp_platform_admin_session";
 
   const PANEL_COPY = {
     tenants: {
       title: "Mandanten",
-      sub: "Betriebe prüfen, Nachweise öffnen, freischalten und Links kopieren.",
+      sub: "Betriebe prüfen, Logo speichern, Nachweise öffnen, freischalten und Links kopieren.",
     },
     inquiries: {
       title: "Anfragen",
@@ -20,47 +21,229 @@
     },
   };
 
+  let pendingPin = "";
+  let mfaStep = false;
+  let mfaPendingSecret = "";
+
+  function getSession() {
+    return localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY) || "";
+  }
+
   function getPin() {
-    return localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY) || "";
+    return localStorage.getItem(PIN_KEY) || sessionStorage.getItem(PIN_KEY) || "";
   }
 
-  function setPin(pin, remember) {
-    clearPin();
-    if (remember) localStorage.setItem(STORAGE_KEY, pin);
-    else sessionStorage.setItem(STORAGE_KEY, pin);
+  function setAuth({ sessionToken, pin, remember }) {
+    clearAuth();
+    const store = remember ? localStorage : sessionStorage;
+    if (sessionToken) store.setItem(SESSION_KEY, sessionToken);
+    if (pin) store.setItem(PIN_KEY, pin);
   }
 
-  function clearPin() {
-    localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_KEY);
+  function clearAuth() {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(PIN_KEY);
+    sessionStorage.removeItem(PIN_KEY);
   }
 
   function authHeaders() {
-    const pin = getPin();
-    return pin ? { Authorization: `Bearer ${pin}` } : {};
+    const session = getSession();
+    const pin = getPin() || pendingPin || "";
+    const headers = {};
+    if (session) {
+      headers.Authorization = `Bearer ${session}`;
+    } else if (pin) {
+      headers.Authorization = `Bearer ${pin}`;
+    }
+    // PIN zusätzlich mitsenden: nach Render-Deploy ist die Session oft tot,
+    // der PIN reicht für MFA-Setup/Confirm noch (solange MFA nicht aktiv ist).
+    if (pin) headers["X-Admin-Pin"] = pin;
+    return headers;
+  }
+
+  function dropStaleSession() {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
   }
 
   async function apiFetch(url, options = {}) {
-    const res = await fetch(url, {
-      ...options,
-      headers: { ...(options.headers || {}), ...authHeaders() },
-    });
-    if (res.status === 401) {
-      clearPin();
-      showLogin();
-      throw new Error("PIN ungültig oder ADMIN_PIN nicht gesetzt.");
+    // Explizite Header (z. B. PIN bei MFA) schlagen Session-Defaults.
+    const headers = { ...authHeaders(), ...(options.headers || {}) };
+    if (typeof FormData !== "undefined" && options.body instanceof FormData) {
+      delete headers["Content-Type"];
+      delete headers["content-type"];
     }
-    return res;
+    const controller = new AbortController();
+    const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 25000;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const resetOn401 = options.resetOn401 !== false;
+    try {
+      let res = await fetch(url, {
+        ...options,
+        headers,
+        signal: options.signal || controller.signal,
+      });
+      // Tote Session nach Deploy: einmal mit PIN allein erneut versuchen.
+      if (res.status === 401 && getSession() && (getPin() || pendingPin)) {
+        dropStaleSession();
+        const retryHeaders = { ...authHeaders(), ...(options.headers || {}) };
+        if (typeof FormData !== "undefined" && options.body instanceof FormData) {
+          delete retryHeaders["Content-Type"];
+          delete retryHeaders["content-type"];
+        }
+        res = await fetch(url, {
+          ...options,
+          headers: retryHeaders,
+          signal: options.signal || controller.signal,
+        });
+      }
+      if (res.status === 401 && resetOn401) {
+        const body = await res.clone().json().catch(() => ({}));
+        clearAuth();
+        if (body.mfaRequired) {
+          showMfaCodeStep();
+        } else {
+          showLogin();
+        }
+        throw new Error(body.error || "Anmeldung abgelaufen — bitte erneut anmelden.");
+      }
+      return res;
+    } catch (err) {
+      if (err && err.name === "AbortError") {
+        throw new Error("Server antwortet nicht (Timeout). Bitte erneut versuchen.");
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   function showLogin() {
+    mfaStep = false;
+    pendingPin = "";
     document.getElementById("admin-login").classList.remove("hidden");
     document.getElementById("admin-app").classList.add("hidden");
+    document.getElementById("admin-mfa-setup").classList.add("hidden");
+    document.getElementById("admin-login-form").classList.remove("hidden");
+    document.getElementById("pin-field").classList.remove("hidden");
+    document.getElementById("totp-field").classList.add("hidden");
+    document.getElementById("remember-row").classList.remove("hidden");
+    document.getElementById("admin-totp").value = "";
+    document.getElementById("admin-login-submit").textContent = "★ Anmelden ★";
+  }
+
+  function showMfaCodeStep() {
+    mfaStep = true;
+    document.getElementById("admin-login").classList.remove("hidden");
+    document.getElementById("admin-app").classList.add("hidden");
+    document.getElementById("admin-mfa-setup").classList.add("hidden");
+    document.getElementById("admin-login-form").classList.remove("hidden");
+    document.getElementById("pin-field").classList.add("hidden");
+    document.getElementById("totp-field").classList.remove("hidden");
+    document.getElementById("remember-row").classList.add("hidden");
+    document.getElementById("admin-login-submit").textContent = "Code bestätigen";
+    document.getElementById("admin-totp").focus();
   }
 
   function showApp() {
     document.getElementById("admin-login").classList.add("hidden");
     document.getElementById("admin-app").classList.remove("hidden");
+    document.getElementById("admin-mfa-setup").classList.add("hidden");
+  }
+
+  async function enterAppAfterAuth() {
+    showApp();
+    showPanel("tenants");
+    try {
+      const statusRes = await apiFetch("/api/auth/mfa/status");
+      const status = statusRes.ok ? await statusRes.json() : { enabled: false };
+      const mfaBtn = document.getElementById("admin-setup-mfa");
+      if (mfaBtn) mfaBtn.classList.toggle("hidden", Boolean(status.enabled));
+    } catch {
+      /* ignore */
+    }
+    await withRefreshBusy(refreshAll);
+    const params = new URLSearchParams(window.location.search);
+    const connect = params.get("connect");
+    const slug = params.get("o");
+    if (connect === "return" && slug) {
+      alert(`Stripe Connect für „${slug}”: Onboarding abgeschlossen oder fortgesetzt. Status prüfen.`);
+      history.replaceState({}, "", "admin.html");
+    } else if (connect === "refresh" && slug) {
+      alert(`Connect-Link abgelaufen. Bitte für „${slug}“ erneut „Stripe Connect“ klicken.`);
+      history.replaceState({}, "", "admin.html");
+    }
+  }
+
+  async function startMfaSetup(options = {}) {
+    const reset = Boolean(options.reset);
+    const setupEl = document.getElementById("admin-mfa-setup");
+    const formEl = document.getElementById("admin-login-form");
+    const errEl = document.getElementById("mfa-setup-error");
+    setupEl.classList.remove("hidden");
+    formEl.classList.add("hidden");
+    errEl.classList.add("hidden");
+    errEl.textContent = "";
+    document.getElementById("mfa-confirm-code").value = "";
+    const pinInput = document.getElementById("mfa-confirm-pin");
+    if (pinInput && !pinInput.value) {
+      pinInput.value = getPin() || pendingPin || "";
+    }
+
+    const pin = (pinInput?.value || getPin() || pendingPin || "").trim();
+    if (pin) pendingPin = pin;
+
+    try {
+      // MFA-Setup bewusst mit PIN auth (nicht tote Session nach Deploy).
+      const headers = { "Content-Type": "application/json" };
+      if (pin) {
+        headers.Authorization = `Bearer ${pin}`;
+        headers["X-Admin-Pin"] = pin;
+      } else {
+        Object.assign(headers, authHeaders());
+      }
+      const res = await apiFetch("/api/auth/mfa/setup", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(reset ? { reset: true, pin } : { pin }),
+        resetOn401: false,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "MFA-Setup fehlgeschlagen");
+
+      document.getElementById("mfa-secret").textContent = data.secret || "";
+      mfaPendingSecret = data.secret || "";
+
+      let host = document.getElementById("mfa-qr");
+      if (!host) {
+        host = document.createElement("div");
+        host.id = "mfa-qr";
+        setupEl.querySelector("div[style*='text-align:center']")?.appendChild(host);
+      }
+      const qrSrc =
+        data.qrDataUrl ||
+        `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.otpauthUrl || "")}`;
+      host.outerHTML = `<img id="mfa-qr" alt="QR-Code MFA" width="200" height="200" style="border:2px solid #0c1c34;border-radius:12px;background:#fff" src="${qrSrc}">`;
+      if (reset) {
+        errEl.textContent =
+          "Neuer QR erzeugt. Alten Eintrag in der Authenticator-App löschen, dann diesen QR scannen.";
+        errEl.classList.remove("hidden");
+        errEl.style.color = "#0c1c34";
+      } else {
+        errEl.style.color = "";
+      }
+    } catch (err) {
+      errEl.style.color = "";
+      errEl.textContent = err.message || "MFA-Setup fehlgeschlagen";
+      errEl.classList.remove("hidden");
+      if (String(err.message || "").includes("PIN")) {
+        errEl.textContent =
+          "Bitte ADMIN_PIN unten eintragen und „Neuen QR erzeugen“ tippen — Session nach Deploy oft abgelaufen.";
+        errEl.classList.remove("hidden");
+      }
+      throw err;
+    }
   }
 
   function showPanel(id) {
@@ -79,8 +262,27 @@
     return `<span class="badge ${cls}">${status}</span>`;
   }
 
-  function copyText(text) {
-    navigator.clipboard?.writeText(text).catch(() => {});
+  async function copyText(text) {
+    const value = String(text || "");
+    if (!value.trim()) throw new Error("Keine Links zum Kopieren");
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return;
+      }
+    } catch {
+      /* Fallback unten */
+    }
+    const ta = document.createElement("textarea");
+    ta.value = value;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    if (!ok) throw new Error("Kopieren nicht möglich — bitte Links manuell markieren.");
   }
 
   function formatDate(iso) {
@@ -99,8 +301,9 @@
   }
 
   function planLabel(planId) {
-    if (planId === "starter") return "Starter";
-    if (planId === "business") return "Business";
+    if (planId === "fleet") return "Pro Fahrzeug";
+    if (planId === "starter") return "Starter (alt)";
+    if (planId === "business") return "Business (alt)";
     return planId || "Allgemein";
   }
 
@@ -202,6 +405,57 @@
     `;
   }
 
+  function brandingBlock(op) {
+    const logo = String(op.logoUrl || "").trim();
+    const preview = logo
+      ? `<img class="logo-preview" src="${escapeHtml(logo)}" alt="Logo ${escapeHtml(op.companyName)}" onerror="this.style.display='none'">`
+      : `<div class="logo-placeholder">Logo</div>`;
+    return `
+      <div class="brand-box">
+        <strong>Betriebs-Logo</strong>
+        <div class="logo-row" style="margin-top:0.45rem">
+          ${preview}
+          <div style="flex:1;min-width:160px">
+            <input type="file" class="logo-file" accept="image/png,image/jpeg" style="font-size:0.78rem;width:100%">
+            <div class="chip-row" style="margin-top:0.35rem">
+              <button type="button" class="btn btn-navy btn-sm upload-logo">Logo speichern</button>
+            </div>
+            <div class="meta" style="margin-top:0.25rem">PNG/JPEG, max. 5&nbsp;MB. Erscheint in Buchung und Leitstelle.</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function wireLogoUpload(card, op) {
+    const btn = card.querySelector(".upload-logo");
+    const input = card.querySelector(".logo-file");
+    if (!btn || !input) return;
+    btn.addEventListener("click", async () => {
+      const file = input.files && input.files[0];
+      if (!file) {
+        alert("Bitte zuerst eine PNG- oder JPEG-Datei wählen.");
+        return;
+      }
+      const body = new FormData();
+      body.append("logo", file);
+      btn.disabled = true;
+      try {
+        const res = await apiFetch(`/api/fleet/operators/${encodeURIComponent(op.slug)}/logo`, {
+          method: "POST",
+          body,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Logo-Upload fehlgeschlagen");
+        await loadTenants();
+      } catch (err) {
+        alert(err.message || "Logo-Upload fehlgeschlagen");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
   async function loadInquiries() {
     const res = await apiFetch("/api/contact/inquiries");
     const data = await res.json();
@@ -277,6 +531,7 @@
           </div>
         </div>
         ${complianceBlock(op)}
+        ${brandingBlock(op)}
         <div class="link-row">
           <a href="${links.dispatch || "#"}" target="_blank" rel="noopener">Leitstelle</a>
           <a href="${links.settings || "#"}" target="_blank" rel="noopener">Settings</a>
@@ -285,7 +540,11 @@
           <a href="${links.driverOnboard || "#"}" target="_blank" rel="noopener">Fahrer-Reg.</a>
         </div>
         <div class="actions">
-          <button type="button" class="btn btn-ghost btn-sm copy-links">Links kopieren</button>
+          <button type="button" class="btn btn-ghost btn-sm copy-links"${
+            op.complianceComplete
+              ? ""
+              : ' disabled title="Erst Nachweise vollständig ausfüllen (Konzession usw.)"'
+          }>Links kopieren</button>
           ${
             op.status !== "active"
               ? `<button type="button" class="btn btn-ok btn-sm activate">Aktivieren</button>`
@@ -296,17 +555,30 @@
         </div>
       `;
 
-      card.querySelector(".copy-links")?.addEventListener("click", () => {
-        copyText(
-          [
-            `Leitstelle: ${links.dispatch}`,
-            `Einstellungen: ${links.settings}`,
-            `Buchung: ${links.book}`,
-            `QR: ${links.qr}`,
-            `Fahrer-Registrierung: ${links.driverOnboard || ""}`,
-          ].join("\n")
-        );
+      card.querySelector(".copy-links")?.addEventListener("click", async () => {
+        if (!op.complianceComplete) {
+          alert(
+            "Nachweise unvollständig. Bitte zuerst Konzession (Nummer + Dokument) hinterlegen, dann Links kopieren."
+          );
+          return;
+        }
+        try {
+          await copyText(
+            [
+              `Betrieb: ${op.companyName} (${op.slug})`,
+              `Leitstelle: ${links.dispatch || ""}`,
+              `Einstellungen: ${links.settings || ""}`,
+              `Buchung: ${links.book || ""}`,
+              `QR: ${links.qr || ""}`,
+              `Fahrer-Registrierung: ${links.driverOnboard || ""}`,
+            ].join("\n")
+          );
+          alert("Links in die Zwischenablage kopiert.");
+        } catch (err) {
+          alert(err.message || "Kopieren fehlgeschlagen");
+        }
       });
+      wireLogoUpload(card, op);
       card.querySelector(".activate")?.addEventListener("click", () => {
         if (op.complianceGaps?.length) {
           const ok = confirm(
@@ -434,7 +706,40 @@
   }
 
   async function refreshAll() {
-    await Promise.all([loadTenants(), loadInquiries()]);
+    const errors = [];
+    try {
+      await loadTenants();
+    } catch (err) {
+      errors.push(err.message || "Mandanten fehlgeschlagen");
+    }
+    try {
+      await loadInquiries();
+    } catch (err) {
+      errors.push(err.message || "Anfragen fehlgeschlagen");
+    }
+    if (errors.length) {
+      throw new Error(errors.join(" · "));
+    }
+  }
+
+  async function withRefreshBusy(run) {
+    const btn = document.getElementById("refresh-all");
+    const csvBtn = document.getElementById("export-tenants-csv");
+    const prev = btn ? btn.textContent : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Lädt…";
+    }
+    if (csvBtn) csvBtn.disabled = true;
+    try {
+      await run();
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prev || "Aktualisieren";
+      }
+      if (csvBtn) csvBtn.disabled = false;
+    }
   }
 
   document.querySelectorAll(".nav-btn").forEach((btn) => {
@@ -449,24 +754,199 @@
     e.preventDefault();
     const errEl = document.getElementById("admin-login-error");
     errEl.classList.add("hidden");
-    const pin = document.getElementById("admin-pin").value.trim();
     const remember = document.getElementById("admin-remember")?.checked !== false;
-    setPin(pin, remember);
+    const pin = mfaStep ? pendingPin : document.getElementById("admin-pin").value.trim();
+    const totp = document.getElementById("admin-totp").value.trim();
+
+    if (!mfaStep) {
+      pendingPin = pin;
+      if (!pin) {
+        errEl.textContent = "Bitte PIN eingeben.";
+        errEl.classList.remove("hidden");
+        return;
+      }
+    } else if (!totp) {
+      errEl.textContent = "Bitte Authenticator-Code eingeben.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+
     try {
-      const res = await apiFetch("/api/fleet/operators");
-      if (!res.ok) throw new Error("Zugriff verweigert");
-      showApp();
-      showPanel("tenants");
-      await refreshAll();
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pin,
+          totp: mfaStep || totp ? totp : undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data.mfaRequired) {
+          showMfaCodeStep();
+          errEl.textContent = data.error || "Bitte Authenticator-Code eingeben.";
+          errEl.classList.remove("hidden");
+          return;
+        }
+        throw new Error(data.error || "Anmeldung fehlgeschlagen");
+      }
+
+      setAuth({
+        sessionToken: data.sessionToken || "",
+        pin,
+        remember,
+      });
+
+      const submitBtn = document.getElementById("admin-login-submit");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Bitte warten…";
+
+      if (data.mfaSetupRequired) {
+        try {
+          await startMfaSetup();
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "★ Anmelden ★";
+        }
+        return;
+      }
+
+      await enterAppAfterAuth();
+      submitBtn.disabled = false;
+      submitBtn.textContent = "★ Anmelden ★";
     } catch (err) {
-      clearPin();
+      clearAuth();
+      document.getElementById("admin-login-form").classList.remove("hidden");
+      const submitBtn = document.getElementById("admin-login-submit");
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = mfaStep ? "Code bestätigen" : "★ Anmelden ★";
+      }
       errEl.textContent = err.message;
       errEl.classList.remove("hidden");
     }
   });
 
+  document.getElementById("mfa-confirm-btn").addEventListener("click", async () => {
+    const errEl = document.getElementById("mfa-setup-error");
+    errEl.style.color = "";
+    errEl.classList.add("hidden");
+    const pin = (
+      document.getElementById("mfa-confirm-pin")?.value ||
+      getPin() ||
+      pendingPin ||
+      ""
+    ).trim();
+    const code = document
+      .getElementById("mfa-confirm-code")
+      .value.replace(/\D/g, "")
+      .slice(0, 6);
+    document.getElementById("mfa-confirm-code").value = code;
+    const remember = document.getElementById("admin-remember")?.checked !== false;
+    const btn = document.getElementById("mfa-confirm-btn");
+    if (!pin) {
+      errEl.textContent = "Bitte ADMIN_PIN eintragen (Feld darüber).";
+      errEl.classList.remove("hidden");
+      document.getElementById("mfa-confirm-pin")?.focus();
+      return;
+    }
+    if (!/^\d{6}$/.test(code)) {
+      errEl.textContent = "Bitte genau 6 Ziffern aus der Authenticator-App eingeben.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+    pendingPin = pin;
+    dropStaleSession();
+    btn.disabled = true;
+    btn.textContent = "Prüfe…";
+    try {
+      const res = await fetch("/api/auth/mfa/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${pin}`,
+          "X-Admin-Pin": pin,
+        },
+        body: JSON.stringify({
+          totp: code,
+          pin,
+          secret: String(
+            mfaPendingSecret || document.getElementById("mfa-secret")?.textContent || ""
+          )
+            .toUpperCase()
+            .replace(/[^A-Z2-7]/g, ""),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Aktivierung fehlgeschlagen");
+      setAuth({
+        sessionToken: data.sessionToken || "",
+        pin,
+        remember,
+      });
+      await enterAppAfterAuth();
+    } catch (err) {
+      errEl.textContent =
+        err.message ||
+        "Code falsch. Aktuellen Code aus der App nehmen (wechselt alle 30 Sek.). Alten Authenticator-Eintrag löschen und denselben QR scannen — oder „Neuen QR erzeugen“.";
+      errEl.classList.remove("hidden");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "MFA aktivieren";
+    }
+  });
+
+  document.getElementById("mfa-reset-btn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("mfa-reset-btn");
+    const pin = (
+      document.getElementById("mfa-confirm-pin")?.value ||
+      getPin() ||
+      pendingPin ||
+      ""
+    ).trim();
+    if (!pin) {
+      const errEl = document.getElementById("mfa-setup-error");
+      errEl.style.color = "";
+      errEl.textContent = "Bitte zuerst ADMIN_PIN eintragen, dann „Neuen QR erzeugen“.";
+      errEl.classList.remove("hidden");
+      document.getElementById("mfa-confirm-pin")?.focus();
+      return;
+    }
+    pendingPin = pin;
+    dropStaleSession();
+    btn.disabled = true;
+    try {
+      await startMfaSetup({ reset: true });
+    } catch {
+      /* Fehler zeigt startMfaSetup */
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById("mfa-skip-btn")?.addEventListener("click", async () => {
+    try {
+      await enterAppAfterAuth();
+    } catch (err) {
+      const errEl = document.getElementById("mfa-setup-error");
+      errEl.textContent = err.message || "Weiter ohne MFA fehlgeschlagen — bitte neu anmelden.";
+      errEl.classList.remove("hidden");
+    }
+  });
+
+  document.getElementById("admin-setup-mfa")?.addEventListener("click", async () => {
+    document.getElementById("admin-app").classList.add("hidden");
+    document.getElementById("admin-login").classList.remove("hidden");
+    try {
+      await startMfaSetup({ reset: true });
+    } catch (err) {
+      alert(err.message || "MFA-Setup fehlgeschlagen");
+      showApp();
+    }
+  });
+
   document.getElementById("admin-logout").addEventListener("click", () => {
-    clearPin();
+    clearAuth();
     showLogin();
   });
 
@@ -480,9 +960,28 @@
 
   document.getElementById("refresh-all").addEventListener("click", async () => {
     try {
-      await refreshAll();
+      await withRefreshBusy(refreshAll);
     } catch (err) {
       alert(err.message || "Aktualisieren fehlgeschlagen.");
+    }
+  });
+
+  document.getElementById("export-tenants-csv")?.addEventListener("click", async () => {
+    try {
+      const res = await apiFetch("/api/fleet/operators.csv");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "CSV-Export fehlgeschlagen");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `luckys-mandanten-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message || "CSV-Export fehlgeschlagen");
     }
   });
 
@@ -504,16 +1003,20 @@
       await loadTenants();
       showPanel("tenants");
       if (data.links) {
-        copyText(
-          [
-            `Leitstelle: ${data.links.dispatch}`,
-            `Einstellungen: ${data.links.settings}`,
-            `Buchung: ${data.links.book}`,
-            `QR: ${data.links.qr}`,
-            `Fahrer-Registrierung: ${data.links.driverOnboard || ""}`,
-          ].join("\n")
-        );
-        alert(`Mandant „${data.operator.companyName}“ angelegt. Links in Zwischenablage kopiert.`);
+        try {
+          await copyText(
+            [
+              `Leitstelle: ${data.links.dispatch}`,
+              `Einstellungen: ${data.links.settings}`,
+              `Buchung: ${data.links.book}`,
+              `QR: ${data.links.qr}`,
+              `Fahrer-Registrierung: ${data.links.driverOnboard || ""}`,
+            ].join("\n")
+          );
+          alert(`Mandant „${data.operator.companyName}“ angelegt. Links in Zwischenablage kopiert.`);
+        } catch {
+          alert(`Mandant „${data.operator.companyName}“ angelegt. Links konnten nicht kopiert werden — bitte auf der Karte nutzen.`);
+        }
       }
     } catch (err) {
       errEl.textContent = err.message;
@@ -521,32 +1024,26 @@
     }
   });
 
-  if (getPin()) {
-    apiFetch("/api/fleet/operators")
-      .then((res) => {
-        if (res.ok) {
-          showApp();
-          showPanel("tenants");
-          return refreshAll().then(() => {
-            const params = new URLSearchParams(window.location.search);
-            const connect = params.get("connect");
-            const slug = params.get("o");
-            if (connect === "return" && slug) {
-              alert(
-                `Stripe Connect für „${slug}”: Onboarding abgeschlossen oder fortgesetzt. Status prüfen.`
-              );
-              history.replaceState({}, "", "admin.html");
-            } else if (connect === "refresh" && slug) {
-              alert(`Connect-Link abgelaufen. Bitte für „${slug}“ erneut „Stripe Connect“ klicken.`);
-              history.replaceState({}, "", "admin.html");
-            }
-          });
-        }
-        clearPin();
-        showLogin();
-      })
-      .catch(() => showLogin());
-  } else {
-    showLogin();
+  async function tryRestoreSession() {
+    if (!getSession() && !getPin()) {
+      showLogin();
+      return;
+    }
+    try {
+      const res = await apiFetch("/api/fleet/operators");
+      if (!res.ok) throw new Error("session");
+      // MFA ist optional — nicht mehr bei jedem Laden erzwingen.
+      await enterAppAfterAuth();
+      const statusRes = await apiFetch("/api/auth/mfa/status");
+      const status = statusRes.ok ? await statusRes.json() : { enabled: false };
+      const mfaBtn = document.getElementById("admin-setup-mfa");
+      if (mfaBtn) mfaBtn.classList.toggle("hidden", Boolean(status.enabled));
+    } catch (err) {
+      console.error(err);
+      clearAuth();
+      showLogin();
+    }
   }
+
+  tryRestoreSession();
 })();
