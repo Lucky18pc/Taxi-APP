@@ -68,12 +68,26 @@ enum CapriSymbolType: String, CaseIterable, Identifiable {
 }
 
 // ==========================================
-// 2. VIEWMODEL
+// 2. VIEWMODEL (+ lokales Spielgeld)
 // ==========================================
 @Observable
 final class CapriGameViewModel {
-    var balance: Decimal = 150
+    private static let balanceKey = "capri.playmoney.balance"
+    private static let vaultKey = "capri.playmoney.vault"
+    private static let defaultBalance: Decimal = 150
+
+    var balance: Decimal {
+        didSet { Self.save(balance, key: Self.balanceKey) }
+    }
+
+    /// Ausgezahltes Spielgeld „auf dem Konto“ (lokal, kein echtes Geld)
+    var vault: Decimal {
+        didSet { Self.save(vault, key: Self.vaultKey) }
+    }
+
     var stake: Decimal = 1
+    var showWallet = false
+    var walletMessage: String = "Nur Spielgeld — kein echtes Geld."
 
     enum State { case idle, spinning, won, riskLadder }
 
@@ -95,15 +109,63 @@ final class CapriGameViewModel {
     var isPromenadeBlinking: Bool = false
     private var blinkTimer: Timer?
 
-    /// Stop-Zeiten der drei Trommeln (links → rechts)
-    static let stopDelays: [Double] = [2.5, 3.3, 4.1]
+    /// Kürzere Drehung
+    static let stopDelays: [Double] = [1.4, 1.85, 2.3]
+
+    let depositPresets: [Decimal] = [10, 25, 50, 100]
+    let withdrawPresets: [Decimal] = [10, 25, 50]
+
+    init() {
+        balance = Self.load(Self.balanceKey) ?? Self.defaultBalance
+        vault = Self.load(Self.vaultKey) ?? 0
+    }
 
     deinit { blinkTimer?.invalidate() }
+
+    // MARK: Spielgeld Ein-/Auszahlen (nur lokal)
+
+    func depositPlayMoney(_ amount: Decimal) {
+        guard amount > 0 else { return }
+        balance += amount
+        walletMessage = "+\(amount.formatted(.currency(code: "EUR"))) Spielgeld eingezahlt"
+        activeMessage = "Guthaben aufgeladen (Spielgeld)"
+    }
+
+    func withdrawPlayMoney(_ amount: Decimal) {
+        guard amount > 0 else { return }
+        guard balance >= amount else {
+            walletMessage = "Nicht genug Spielgeld zum Auszahlen"
+            return
+        }
+        guard gameState == .idle || gameState == .won else {
+            walletMessage = "Bitte erst Spin/Risiko beenden"
+            return
+        }
+        balance -= amount
+        vault += amount
+        lastWin = 0
+        if gameState == .won { gameState = .idle }
+        walletMessage = "\(amount.formatted(.currency(code: "EUR"))) aufs Spielgeld-Konto ausgezahlt"
+        activeMessage = "Auszahlung verbucht (kein echtes Geld)"
+    }
+
+    func transferVaultToBalance(_ amount: Decimal) {
+        guard amount > 0, vault >= amount else {
+            walletMessage = "Zu wenig im Spielgeld-Konto"
+            return
+        }
+        vault -= amount
+        balance += amount
+        walletMessage = "Vom Konto zurück ins Spiel"
+    }
+
+    // MARK: Spiel
 
     func spin() {
         guard gameState != .spinning else { return }
         guard balance >= stake else {
-            activeMessage = "Nicht genügend Guthaben"
+            activeMessage = "Nicht genügend Guthaben — bitte Spielgeld einzahlen"
+            showWallet = true
             return
         }
 
@@ -205,6 +267,18 @@ final class CapriGameViewModel {
             }
         }
     }
+
+    // MARK: Persistenz
+
+    private static func save(_ value: Decimal, key: String) {
+        UserDefaults.standard.set(NSDecimalNumber(decimal: value).stringValue, forKey: key)
+    }
+
+    private static func load(_ key: String) -> Decimal? {
+        guard let raw = UserDefaults.standard.string(forKey: key),
+              let number = Decimal(string: raw) else { return nil }
+        return number
+    }
 }
 
 // ==========================================
@@ -223,7 +297,7 @@ private enum CapriTheme {
 // ==========================================
 // 4. 3D-WALZE
 // ==========================================
-private let capriCell: CGFloat = 84
+private let capriCell: CGFloat = 64
 private let capriRows = 3
 
 struct CapriReelView: View {
@@ -358,7 +432,7 @@ struct CapriMedallion: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(
                     LinearGradient(
                         colors: [symbol.tileTop, symbol.tileBottom],
@@ -366,20 +440,20 @@ struct CapriMedallion: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .padding(7)
+                .padding(5)
                 .shadow(color: .black.opacity(0.2), radius: 3, y: 2)
 
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(Color.white.opacity(0.45), lineWidth: 1)
-                .padding(7)
+                .padding(5)
 
             VStack(spacing: 2) {
                 Text(symbol.emoji)
-                    .font(.system(size: 32))
+                    .font(.system(size: 26))
                     .shadow(color: .black.opacity(0.15), radius: 1, y: 1)
 
                 Text(symbol.title)
-                    .font(.system(size: 8, weight: .bold, design: .rounded))
+                    .font(.system(size: 7, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.black.opacity(0.65))
             }
         }
@@ -473,11 +547,16 @@ struct CapriIslandSlotView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
 
+                Text("Nur Spielgeld · kein echtes Geld")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(CapriTheme.gold.opacity(0.85))
+                    .padding(.top, 4)
+
                 Text(vm.activeMessage)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(CapriTheme.ink.opacity(0.85))
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 8)
 
                 if vm.gameState == .riskLadder {
                     riskPanel
@@ -488,6 +567,9 @@ struct CapriIslandSlotView: View {
 
                 Spacer(minLength: 8)
             }
+        }
+        .sheet(isPresented: $vm.showWallet) {
+            CapriWalletSheet(vm: vm)
         }
     }
 
@@ -515,55 +597,60 @@ struct CapriIslandSlotView: View {
     }
 
     private var topBar: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("CAPRI ISLAND")
-                    .font(.system(size: 22, weight: .bold, design: .serif))
+                    .font(.system(size: 20, weight: .bold, design: .serif))
                     .foregroundStyle(CapriTheme.gold)
-                Text("SLOT")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .tracking(3)
+                Text("SLOT · SPIELGELD")
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .tracking(2)
                     .foregroundStyle(CapriTheme.ink.opacity(0.55))
             }
             Spacer()
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(vm.balance.formatted(.currency(code: "EUR")))
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(CapriTheme.ink)
-                Text("Einsatz \(vm.stake.formatted(.currency(code: "EUR")))")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(CapriTheme.ink.opacity(0.5))
+            Button {
+                vm.showWallet = true
+            } label: {
+                VStack(alignment: .trailing, spacing: 3) {
+                    Text(vm.balance.formatted(.currency(code: "EUR")))
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundStyle(CapriTheme.ink)
+                    Text("Kasse · Ein / Aus")
+                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                        .foregroundStyle(CapriTheme.gold.opacity(0.9))
+                }
             }
+            .buttonStyle(.plain)
         }
     }
 
     private var machine: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 14)
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.16, green: 0.14, blue: 0.12),
-                            Color(red: 0.08, green: 0.07, blue: 0.06)
+                            Color(red: 0.42, green: 0.28, blue: 0.16),
+                            Color(red: 0.28, green: 0.16, blue: 0.08)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 14)
                         .strokeBorder(
                             LinearGradient(
                                 colors: [CapriTheme.gold.opacity(0.7), CapriTheme.goldDark.opacity(0.4)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 1.5
+                            lineWidth: 1.2
                         )
                 )
-                .shadow(color: .black.opacity(0.5), radius: 18, y: 10)
+                .shadow(color: .black.opacity(0.4), radius: 10, y: 6)
 
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 ForEach(0..<3, id: \.self) { col in
                     CapriReelView(
                         finalSymbols: vm.grid[col],
@@ -573,10 +660,11 @@ struct CapriIslandSlotView: View {
                     )
                 }
             }
-            .padding(16)
+            .padding(6)
         }
-        .padding(.horizontal, 18)
-        .rotation3DEffect(.degrees(6), axis: (x: 1, y: 0, z: 0), perspective: 0.75)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.horizontal, 28)
+        .rotation3DEffect(.degrees(4), axis: (x: 1, y: 0, z: 0), perspective: 0.75)
     }
 
     private var controls: some View {
@@ -599,9 +687,14 @@ struct CapriIslandSlotView: View {
             .buttonStyle(CapriPrimaryButton())
             .disabled(vm.gameState == .spinning || vm.gameState == .won)
             .opacity(vm.gameState == .spinning || vm.gameState == .won ? 0.45 : 1)
+
+            Button("Spielgeld · Einzahlen / Auszahlen") {
+                vm.showWallet = true
+            }
+            .buttonStyle(CapriGhostButton())
         }
         .padding(.horizontal, 28)
-        .padding(.top, 18)
+        .padding(.top, 14)
     }
 
     private var riskPanel: some View {
@@ -644,6 +737,103 @@ struct CapriIslandSlotView: View {
             .padding(.horizontal, 28)
         }
         .padding(.top, 8)
+    }
+}
+
+// ==========================================
+// 7. SPIELGELD-KASSE (lokal, kein echtes Geld)
+// ==========================================
+struct CapriWalletSheet: View {
+    @Bindable var vm: CapriGameViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("Nur Spielgeld — keine echten Zahlungen, kein Bankkonto, kein Stripe.")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 4)
+
+                    groupBox(title: "Im Spiel") {
+                        Text(vm.balance.formatted(.currency(code: "EUR")))
+                            .font(.title2.bold())
+                    }
+
+                    groupBox(title: "Spielgeld-Konto (ausgezahlt)") {
+                        Text(vm.vault.formatted(.currency(code: "EUR")))
+                            .font(.title2.bold())
+                    }
+
+                    Text(vm.walletMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
+                    Text("Einzahlen (Spielgeld erzeugen)")
+                        .font(.headline)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 10) {
+                        ForEach(vm.depositPresets, id: \.self) { amount in
+                            Button("+\(amount.formatted(.number))") {
+                                vm.depositPlayMoney(amount)
+                            }
+                            .buttonStyle(CapriSecondaryButton(tone: Color(red: 0.15, green: 0.45, blue: 0.35)))
+                        }
+                    }
+
+                    Text("Auszahlen (ins Spielgeld-Konto)")
+                        .font(.headline)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 10) {
+                        ForEach(vm.withdrawPresets, id: \.self) { amount in
+                            Button("−\(amount.formatted(.number))") {
+                                vm.withdrawPlayMoney(amount)
+                            }
+                            .buttonStyle(CapriGhostButton())
+                        }
+                    }
+
+                    if vm.vault > 0 {
+                        Text("Zurück ins Spiel")
+                            .font(.headline)
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 10) {
+                            ForEach(vm.withdrawPresets.filter { $0 <= vm.vault }, id: \.self) { amount in
+                                Button("↩ \(amount.formatted(.number))") {
+                                    vm.transferVaultToBalance(amount)
+                                }
+                                .buttonStyle(CapriSecondaryButton())
+                            }
+                            Button("Alles zurück") {
+                                vm.transferVaultToBalance(vm.vault)
+                            }
+                            .buttonStyle(CapriPrimaryButton())
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .background(Color(red: 0.07, green: 0.12, blue: 0.18))
+            .navigationTitle("Spielgeld-Kasse")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Fertig") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func groupBox(title: String, @ViewBuilder content: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            content()
+                .foregroundStyle(CapriTheme.ink)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.06)))
     }
 }
 
