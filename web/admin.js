@@ -131,6 +131,7 @@
     document.getElementById("remember-row").classList.remove("hidden");
     document.getElementById("admin-totp").value = "";
     document.getElementById("admin-login-submit").textContent = "★ Anmelden ★";
+    document.getElementById("mfa-recover-btn")?.classList.add("hidden");
   }
 
   function showMfaCodeStep() {
@@ -144,6 +145,7 @@
     document.getElementById("remember-row").classList.add("hidden");
     document.getElementById("admin-login-submit").textContent = "Code bestätigen";
     document.getElementById("admin-totp").focus();
+    document.getElementById("mfa-recover-btn")?.classList.remove("hidden");
   }
 
   function showApp() {
@@ -829,6 +831,48 @@
         submitBtn.textContent = mfaStep ? "Code bestätigen" : "★ Anmelden ★";
       }
       errEl.textContent = err.message;
+      errEl.classList.remove("hidden");
+    }
+  });
+
+  document.getElementById("mfa-recover-btn")?.addEventListener("click", async () => {
+    const errEl = document.getElementById("admin-login-error");
+    errEl.classList.add("hidden");
+    const pin = (
+      pendingPin ||
+      document.getElementById("admin-pin")?.value ||
+      ""
+    ).trim();
+    if (!pin) {
+      showLogin();
+      errEl.textContent = "Bitte zuerst ADMIN_PIN eintragen, dann MFA zurücksetzen.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+    if (
+      !confirm(
+        "MFA wirklich zurücksetzen? Danach reicht wieder nur der ADMIN_PIN — bitte MFA danach neu einrichten."
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/auth/mfa/recover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Zurücksetzen fehlgeschlagen");
+      clearAuth();
+      showLogin();
+      errEl.style.color = "#0c1c34";
+      errEl.textContent =
+        "MFA ist aus. Mit ADMIN_PIN anmelden, dann unter „MFA einrichten“ neu scannen.";
+      errEl.classList.remove("hidden");
+    } catch (err) {
+      errEl.style.color = "";
+      errEl.textContent = err.message || "Zurücksetzen fehlgeschlagen";
       errEl.classList.remove("hidden");
     }
   });
