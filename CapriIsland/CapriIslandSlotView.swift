@@ -85,8 +85,8 @@ final class CapriGameViewModel {
         reelSpinning = [true, true, true]
         spinGeneration += 1
 
-        // Gestaffeltes Stoppen: links → Mitte → rechts (wie echte Automaten)
-        let stopDelays: [Double] = [1.35, 1.85, 2.35]
+        // Gestaffeltes Stoppen — bewusst langsamer (Collection-Shop-Feeling)
+        let stopDelays: [Double] = [2.4, 3.15, 3.9]
         for col in 0..<3 {
             DispatchQueue.main.asyncAfter(deadline: .now() + stopDelays[col]) { [weak self] in
                 guard let self, self.gameState == .spinning else { return }
@@ -180,14 +180,14 @@ final class CapriGameViewModel {
 }
 
 // ==========================================
-// 3. ECHTE WALZE (vertikaler Band-Scroll)
+// 3. 3D-WALZE (Trommel-Look wie Collection Shop)
 // ==========================================
-private let capriCell: CGFloat = 88
+private let capriCell: CGFloat = 86
 private let capriVisibleRows = 3
 
-/// Eine Walze: langes Symbolband, das nach oben durchläuft und ausläuft.
+/// 3D-Trommel-Walze: Zylinder-Schatten, Perspektiv-Kanten, langsameres Auslaufen.
 struct CapriReelView: View {
-    let finalSymbols: [CapriSymbolType] // 3 sichtbare Symbole (oben→unten)
+    let finalSymbols: [CapriSymbolType]
     let isSpinning: Bool
     let spinGeneration: Int
     let stopDelay: Double
@@ -195,76 +195,129 @@ struct CapriReelView: View {
     @State private var offsetY: CGFloat = 0
     @State private var strip: [CapriSymbolType] = CapriSymbolType.allCases
     @State private var blurAmount: CGFloat = 0
+    @State private var drumAngle: Double = 0
 
     private var windowHeight: CGFloat { capriCell * CGFloat(capriVisibleRows) }
 
     var body: some View {
         ZStack {
-            // Gehäuse
-            RoundedRectangle(cornerRadius: 10)
+            // Tiefe: hintere Trommelwand
+            RoundedRectangle(cornerRadius: 12)
                 .fill(
                     LinearGradient(
-                        colors: [Color(white: 0.12), Color(white: 0.22), Color(white: 0.12)],
+                        colors: [
+                            Color(red: 0.08, green: 0.08, blue: 0.1),
+                            Color(red: 0.18, green: 0.16, blue: 0.14),
+                            Color(red: 0.08, green: 0.08, blue: 0.1)
+                        ],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
 
-            // Symbolband
+            // Symbolband auf der Trommel
             VStack(spacing: 0) {
-                ForEach(Array(strip.enumerated()), id: \.offset) { _, symbol in
-                    CapriSymbolCell(symbol: symbol)
-                        .frame(width: capriCell, height: capriCell)
+                ForEach(Array(strip.enumerated()), id: \.offset) { index, symbol in
+                    CapriSymbolCell(symbol: symbol, rowHint: index)
+                        .frame(width: capriCell - 4, height: capriCell)
                 }
             }
             .offset(y: offsetY)
             .blur(radius: blurAmount)
+            .rotation3DEffect(
+                .degrees(isSpinning ? drumAngle * 0.02 : 0),
+                axis: (x: 1, y: 0, z: 0),
+                anchor: .center,
+                perspective: 0.55
+            )
 
-            // Glas / Rahmen oben+unten abdunkeln (Fenster-Look)
-            VStack(spacing: 0) {
-                LinearGradient(colors: [.black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 18)
-                Spacer()
-                LinearGradient(colors: [.clear, .black.opacity(0.55)], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 18)
+            // Zylinder-Shading (Mitte hell, Ränder dunkel = 3D-Rundung)
+            HStack(spacing: 0) {
+                LinearGradient(
+                    colors: [.black.opacity(0.55), .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 14)
+                Spacer(minLength: 0)
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.55)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 14)
             }
             .allowsHitTesting(false)
 
-            RoundedRectangle(cornerRadius: 10)
+            // Spekular-Glanz in der Mitte (Chrom-Trommel)
+            LinearGradient(
+                colors: [
+                    .clear,
+                    .white.opacity(0.12),
+                    .clear
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .allowsHitTesting(false)
+
+            // Obere/untere Trommel-Krümmung
+            VStack(spacing: 0) {
+                LinearGradient(
+                    colors: [.black.opacity(0.65), .black.opacity(0.15), .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 28)
+                Spacer()
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.15), .black.opacity(0.65)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 28)
+            }
+            .allowsHitTesting(false)
+
+            // Chrom-Rahmen
+            RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [.yellow.opacity(0.7), .orange.opacity(0.4), .yellow.opacity(0.7)],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        colors: [
+                            Color(white: 0.95),
+                            Color(white: 0.55),
+                            Color(white: 0.85),
+                            Color(white: 0.45)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     ),
-                    lineWidth: 2
+                    lineWidth: 2.5
                 )
         }
-        .frame(width: capriCell + 8, height: windowHeight)
-        .clipped()
+        .frame(width: capriCell + 10, height: windowHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        // Gesamte Walze leicht in 3D kippen
+        .rotation3DEffect(.degrees(-6), axis: (x: 0, y: 1, z: 0), perspective: 0.65)
+        .shadow(color: .black.opacity(0.5), radius: 8, x: 4, y: 6)
         .onAppear { snapToFinal() }
         .onChange(of: spinGeneration) { _, _ in
             guard isSpinning else { return }
             startMechanicalSpin()
         }
         .onChange(of: isSpinning) { _, spinning in
-            if !spinning {
-                settleOnFinal()
-            }
+            if !spinning { settleOnFinal() }
         }
     }
 
-    /// Band bauen: viele Zufallssymbole + am Ende die Zielsymbole
     private func buildStrip() -> [CapriSymbolType] {
         let all = CapriSymbolType.allCases
         var band: [CapriSymbolType] = []
-        // Start: aktuelle Finals (nahtlos)
         band.append(contentsOf: finalSymbols)
-        // Langer Spin-Bereich
-        for _ in 0..<28 {
+        // Weniger Zellen + längere Dauer = sichtbar langsameres Drehen
+        for _ in 0..<22 {
             band.append(all.randomElement()!)
         }
-        // Ziel am Ende
         band.append(contentsOf: finalSymbols)
         return band
     }
@@ -273,65 +326,90 @@ struct CapriReelView: View {
         strip = finalSymbols
         offsetY = 0
         blurAmount = 0
+        drumAngle = 0
     }
 
     private func startMechanicalSpin() {
         strip = buildStrip()
         offsetY = 0
-        blurAmount = 2.5
+        blurAmount = 1.2
+        drumAngle = 0
 
-        let cellTravel = capriCell
-        // Bis kurz vor dem Ziel scrollen (die letzten 3 Zellen = finalSymbols)
         let targetIndex = strip.count - capriVisibleRows
-        let targetOffset = -CGFloat(targetIndex) * cellTravel
+        let targetOffset = -CGFloat(targetIndex) * capriCell
 
-        // Phase 1: schnell anlaufen + durchdrehen (linear)
-        withAnimation(.linear(duration: max(0.8, stopDelay - 0.35))) {
-            offsetY = targetOffset * 0.92
+        // Phase 1: gleichmäßig durchdrehen (langsamer als zuvor)
+        withAnimation(.linear(duration: max(1.6, stopDelay - 0.7))) {
+            offsetY = targetOffset * 0.90
+            drumAngle = 360
         }
 
-        // Phase 2: auslaufen / einschnappen
-        DispatchQueue.main.asyncAfter(deadline: .now() + max(0.75, stopDelay - 0.4)) {
-            withAnimation(.timingCurve(0.15, 0.85, 0.25, 1.0, duration: 0.55)) {
+        // Phase 2: auslaufen / einrasten
+        DispatchQueue.main.asyncAfter(deadline: .now() + max(1.5, stopDelay - 0.75)) {
+            withAnimation(.timingCurve(0.12, 0.9, 0.2, 1.0, duration: 0.75)) {
                 offsetY = targetOffset
                 blurAmount = 0
+                drumAngle = 380
             }
         }
     }
 
     private func settleOnFinal() {
-        // Nach Stopp: Band auf die 3 Finals kürzen, Offset 0 (kein Sprung sichtbar)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
             strip = finalSymbols
             offsetY = 0
             blurAmount = 0
+            drumAngle = 0
         }
     }
 }
 
 struct CapriSymbolCell: View {
     let symbol: CapriSymbolType
+    var rowHint: Int = 0
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 8)
+            // Kachel mit leichter Wölbung (oben heller)
+            RoundedRectangle(cornerRadius: 10)
                 .fill(
-                    symbol == .gianluca
-                    ? Color.yellow.opacity(0.92)
-                    : (symbol == .beachJoker ? Color.orange.opacity(0.85) : Color.white.opacity(0.95))
+                    LinearGradient(
+                        colors: tileColors,
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
-                .padding(4)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 3)
+                .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
 
-            VStack(spacing: 1) {
+            VStack(spacing: 2) {
                 Text(symbol.rawValue)
-                    .font(.system(size: 36))
+                    .font(.system(size: 34))
+                    .shadow(color: .black.opacity(0.25), radius: 1, y: 1)
                 Text(symbol.shortName)
                     .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(symbol == .gianluca ? .black : .gray)
+                    .foregroundStyle(symbol == .gianluca ? .black.opacity(0.8) : .black.opacity(0.45))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(white: 0.15))
+        .background(
+            LinearGradient(
+                colors: [Color(white: 0.2), Color(white: 0.12)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+
+    private var tileColors: [Color] {
+        if symbol == .gianluca {
+            return [Color.yellow.opacity(0.98), Color.orange.opacity(0.85)]
+        }
+        if symbol == .beachJoker {
+            return [Color.orange.opacity(0.95), Color.red.opacity(0.7)]
+        }
+        return [Color.white, Color(white: 0.88)]
     }
 }
 
@@ -401,33 +479,68 @@ struct CapriIslandSlotView: View {
                 .frame(minHeight: 36)
                 .padding(.horizontal)
 
-            // Maschinen-Rahmen mit 3 echten Walzen
-            HStack(spacing: 8) {
-                ForEach(0..<3, id: \.self) { col in
-                    CapriReelView(
-                        finalSymbols: vm.grid[col],
-                        isSpinning: vm.reelSpinning[col],
-                        spinGeneration: vm.spinGeneration,
-                        stopDelay: [1.35, 1.85, 2.35][col]
-                    )
-                }
-            }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
+            // 3D-Maschinengehäuse mit drei Trommel-Walzen
+            ZStack {
+                // Gehäuse-Korpus
+                RoundedRectangle(cornerRadius: 22)
                     .fill(
                         LinearGradient(
-                            colors: [Color.brown.opacity(0.95), Color(red: 0.35, green: 0.18, blue: 0.08)],
+                            colors: [
+                                Color(red: 0.45, green: 0.22, blue: 0.08),
+                                Color(red: 0.28, green: 0.12, blue: 0.04),
+                                Color(red: 0.18, green: 0.08, blue: 0.03)
+                            ],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
-                    .shadow(color: .black.opacity(0.45), radius: 12, y: 6)
-            )
+                    .shadow(color: .black.opacity(0.55), radius: 16, y: 10)
+
+                // Obere Fase / 3D-Kante
+                VStack {
+                    RoundedRectangle(cornerRadius: 22)
+                        .fill(
+                            LinearGradient(
+                                colors: [.white.opacity(0.18), .clear],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(height: 40)
+                    Spacer()
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 22))
+
+                HStack(spacing: 10) {
+                    ForEach(0..<3, id: \.self) { col in
+                        CapriReelView(
+                            finalSymbols: vm.grid[col],
+                            isSpinning: vm.reelSpinning[col],
+                            spinGeneration: vm.spinGeneration,
+                            stopDelay: [2.4, 3.15, 3.9][col]
+                        )
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 18)
+            }
             .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .strokeBorder(Color.yellow.opacity(0.35), lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 22)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.yellow.opacity(0.7),
+                                Color.orange.opacity(0.35),
+                                Color.yellow.opacity(0.55)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2
+                    )
             )
+            .rotation3DEffect(.degrees(8), axis: (x: 1, y: 0, z: 0), perspective: 0.7)
+            .padding(.horizontal, 8)
 
             Spacer(minLength: 6)
 
