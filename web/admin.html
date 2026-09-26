@@ -361,7 +361,7 @@
         </div>
         <div class="field hidden" id="totp-field">
           <label for="admin-totp">Authenticator-Code</label>
-          <input id="admin-totp" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="6-stelliger Code">
+          <input id="admin-totp" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="one-time-code" placeholder="6-stelliger Code" style="letter-spacing:0.12em;font-size:1.15rem">
         </div>
         <label class="check-row" id="remember-row">
           <input id="admin-remember" type="checkbox" checked>
@@ -399,7 +399,10 @@
         </div>
         <div class="field">
           <label for="mfa-confirm-code">Code aus der App</label>
-          <input id="mfa-confirm-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 Ziffern" name="totp-mfa-confirm">
+          <input id="mfa-confirm-code" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="one-time-code" placeholder="6 Ziffern" name="totp-mfa-confirm" style="letter-spacing:0.12em;font-size:1.15rem">
+          <button type="button" class="btn btn-ghost" id="mfa-use-server-code" style="margin-top:0.35rem;padding:0.35rem 0.6rem;font-size:0.75rem">
+            Server-Code einfügen (6 Ziffern)
+          </button>
         </div>
         <p class="meta" style="margin:0 0 0.75rem;font-size:0.75rem">
           Nur den Code aus dem <strong>gerade neu erzeugten</strong> Eintrag tippen.

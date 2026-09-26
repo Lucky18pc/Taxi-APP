@@ -758,6 +758,37 @@
     btn.addEventListener("click", () => showPanel(btn.getAttribute("data-panel-jump")));
   });
 
+  function onlyDigits6(el) {
+    if (!el) return;
+    const digits = String(el.value || "").replace(/\D/g, "").slice(0, 6);
+    if (el.value !== digits) el.value = digits;
+  }
+
+  document.getElementById("admin-totp")?.addEventListener("input", (e) => {
+    onlyDigits6(e.target);
+  });
+  document.getElementById("mfa-confirm-code")?.addEventListener("input", (e) => {
+    onlyDigits6(e.target);
+  });
+
+  document.getElementById("mfa-use-server-code")?.addEventListener("click", () => {
+    const expected = String(document.getElementById("mfa-expected-code")?.textContent || "")
+      .replace(/\D/g, "")
+      .slice(0, 6);
+    const errEl = document.getElementById("mfa-setup-error");
+    if (!/^\d{6}$/.test(expected)) {
+      errEl.textContent = "Kein Server-Code — bitte „Neuen QR erzeugen“ tippen.";
+      errEl.classList.remove("hidden");
+      return;
+    }
+    const input = document.getElementById("mfa-confirm-code");
+    if (input) input.value = expected;
+    errEl.style.color = "#0c1c34";
+    errEl.textContent =
+      "Server-Code eingefügt. Nur aktivieren, wenn die App dieselbe Zahl zeigt.";
+    errEl.classList.remove("hidden");
+  });
+
   document.getElementById("admin-login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const errEl = document.getElementById("admin-login-error");
