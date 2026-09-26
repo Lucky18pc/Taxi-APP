@@ -1,13 +1,17 @@
-# Capri Island — fertig für Xcode
+# Capri Island Slot — fertig für Xcode
 
-## Nur das hier machen
+## Dateien (alle drei übernehmen)
 
-1. In Xcode links **ContentView** anklicken (blaues S).
-2. Alles löschen (⌘A, Backspace).
-3. Inhalt von `ContentView.swift` aus diesem Ordner komplett einfügen (⌘V).
-4. Speichern (⌘S).
-5. ▶ Run.
+| Datei | Rolle |
+|-------|--------|
+| `Capri_IslandApp.swift` | App-Start mit `@main` → `CapriIslandSlotView()` |
+| `CapriIslandSlotView.swift` | Komplettes Spiel (Symbole, Logik, UI) |
+| `ContentView.swift` | Nur Weiterleitung auf `CapriIslandSlotView` |
 
-`Capri_IslandApp.swift` nur ändern, wenn dort nicht schon `ContentView()` steht.
+## In Xcode
 
-Gelbe XIB-Dateien (`CapriIslandSlotView` mit X-Icon) löschen.
+1. Alte kaputte Dateien löschen (gelbe XIBs, doppelte Slot-Dateien).
+2. Diese drei `.swift`-Dateien ins Projekt ziehen (Target **Capri Island** anhaken).
+3. **Product → Clean Build Folder** → ▶ Run.
+
+Deployment Target: **iOS 17+**.

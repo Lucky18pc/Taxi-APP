@@ -4,7 +4,7 @@ import SwiftUI
 struct Capri_IslandApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CapriIslandSlotView()
         }
     }
 }
