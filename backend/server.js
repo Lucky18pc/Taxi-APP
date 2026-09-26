@@ -1462,7 +1462,23 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
 });
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "..", "web")));
+app.use(
+  express.static(path.join(__dirname, "..", "web"), {
+    setHeaders(res, filePath) {
+      const base = path.basename(filePath);
+      // QR-/Scan-Einstieg: Edge-Cache (Cloudflare) kann gelbe Seite liefern,
+      // auch wenn Render gerade aufwacht — weniger „Render“-Zwischenseite.
+      if (base === "scan.html") {
+        // Länger am Edge cachen: gelbe Luckys-Seite auch wenn Origin kurz kalt ist
+        res.setHeader("Cache-Control", "public, max-age=300, s-maxage=86400");
+      } else if (base === "luckys-taxi-aufkleber-qr.png") {
+        res.setHeader("Cache-Control", "public, max-age=600, s-maxage=86400");
+      } else if (/\.(css|js|png|jpg|jpeg|webp|svg|ico)$/i.test(base)) {
+        res.setHeader("Cache-Control", "public, max-age=300, s-maxage=3600");
+      }
+    },
+  })
+);
 
 mountOtpRoutes(app);
 mountPlatformPhase1Routes(app, { intervalMs: LOCATION_STREAM_INTERVAL_MS });

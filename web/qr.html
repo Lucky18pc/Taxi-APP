@@ -130,7 +130,7 @@
     </div>
 
     <ul class="qr-hint">
-      <li><strong>Jetzt:</strong> QR öffnet die <a href="book.html">Online-Buchung</a> im Browser.</li>
+      <li><strong>Jetzt:</strong> QR öffnet zuerst <a href="scan.html">Luckys Taxi App</a> (gelbe Sofort-Seite), dann die Buchung — ohne Render-Zwischenseite-Feeling.</li>
       <li><strong>Später mit iPhone-App:</strong> Neuen QR mit App-Store-Link erstellen (siehe unten).</li>
       <li>Vor dem Druck: einmal selbst scannen und testen.</li>
     </ul>
@@ -181,8 +181,8 @@
     (function () {
       const pageParams = new URLSearchParams(window.location.search);
       const operatorSlug = String(pageParams.get("o") || pageParams.get("operator") || "").trim().toLowerCase();
-      const bookPath = operatorSlug ? `book.html?o=${encodeURIComponent(operatorSlug)}` : "book.html";
-      const bookUrl = new URL(bookPath, window.location.href).href;
+      const scanPath = operatorSlug ? `scan.html?o=${encodeURIComponent(operatorSlug)}` : "scan.html";
+      const scanUrl = new URL(scanPath, window.location.href).href;
       const linkEl = document.getElementById("qr-link");
       const imgEl = document.getElementById("qr-image");
       const downloadBtn = document.getElementById("qr-download");
@@ -195,12 +195,12 @@
           "x" +
           size +
           "&margin=2&format=png&data=" +
-          encodeURIComponent(bookUrl)
+          encodeURIComponent(scanUrl)
         );
       }
 
-      linkEl.href = bookUrl;
-      linkEl.textContent = bookUrl;
+      linkEl.href = scanUrl;
+      linkEl.textContent = scanUrl;
       imgEl.src = qrPngUrl(280);
 
       downloadBtn.addEventListener("click", function () {

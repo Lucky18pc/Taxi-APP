@@ -57,7 +57,8 @@ Check: https://luckystaxiapp.de/ und https://luckystaxiapp.de/health müssen die
 
 ## 2. Render Starter (kein Cold Start)
 
-Free-Plan schläft nach Inaktivität → Google und Erstbesucher sehen oft „Service waking up“. Das dämpft Indexierung und Vertrauen.
+Free-Plan schläft nach Inaktivität → Google und Erstbesucher sehen oft „Service waking up“. Das dämpft Indexierung und Vertrauen.  
+Kunden-QR deshalb auf `/scan.html` (gelbe Luckys-Seite) und Plan **Starter** oder Keep-alive — siehe [RENDER-GO-LIVE.md](RENDER-GO-LIVE.md).
 
 ### Im Render-Dashboard
 
