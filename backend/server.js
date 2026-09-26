@@ -1474,6 +1474,7 @@ app.use(
       } else if (
         base === "luckys-taxi-aufkleber-qr.png" ||
         base === "luckys-taxi-aufkleber-v2.png" ||
+        base === "luckys-taxi-aufkleber-rund.png" ||
         base === "luckys-taxi-qr-scan.png"
       ) {
         res.setHeader("Cache-Control", "public, max-age=600, s-maxage=86400");
