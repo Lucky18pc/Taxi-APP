@@ -111,33 +111,35 @@ def main() -> None:
     draw = ImageDraw.Draw(img)
     draw.rounded_rectangle((28, 28, size - 28, size - 28), radius=80, outline=NAVY, width=16)
 
-    # 5 goldene Sterne oben
-    star_y = 115
-    gap = 96
+    # 5 goldene Sterne oben (kompakter, alles etwas höher)
+    star_y = 100
+    gap = 90
     start_x = size / 2 - 2 * gap
     for i in range(5):
-        draw_star(draw, start_x + i * gap, star_y, 38, GOLD, outline=GOLD_EDGE, width=3)
+        draw_star(draw, start_x + i * gap, star_y, 34, GOLD, outline=GOLD_EDGE, width=3)
 
-    f_label = font(42)
-    f_lead = font(46)
-    f_scan = font(72)
-    f_en = font(40, bold=False)
-    f_url = font(36, bold=False)
+    f_label = font(40)
+    f_lead = font(48)
+    f_scan = font(68)
+    f_en = font(38, bold=False)
+    f_url = font(34, bold=False)
 
-    center_text(draw, "5 Sterne · Sehr gut", 175, f_label)
+    center_text(draw, "5 Sterne · Sehr gut", 155, f_label)
 
-    # Markenstern (Hero)
-    mark = brand_mark(340)
-    img.paste(mark, ((size - mark.width) // 2, 230), mark)
+    # Markenstern (etwas kleiner, höher)
+    mark = brand_mark(290)
+    img.paste(mark, ((size - mark.width) // 2, 205), mark)
 
-    center_text(draw, "Taxi online bestellen", 590, f_lead)
+    # Überschrift klar oberhalb des QR — nicht vom weißen QR-Rahmen bedeckt
+    center_text(draw, "Taxi online bestellen", 510, f_lead)
 
-    # Großer QR mit weißer Ruhezone
-    qr_side = 540
+    # QR darunter mit sichtbarem Abstand zur Überschrift
+    qr_side = 520
     qr_img = make_qr(qr_side)
     qx = (size - qr_side) // 2
-    qy = 655
-    pad = 30
+    qy = 620
+    pad = 28
+    # Oberkante Rahmen ≈ 592 → genug Luft unter der Zeile bei y=510
     draw.rounded_rectangle(
         (qx - pad, qy - pad, qx + qr_side + pad, qy + qr_side + pad),
         radius=28,
@@ -147,9 +149,9 @@ def main() -> None:
     )
     img.paste(qr_img, (qx, qy))
 
-    center_text(draw, "Bitte scannen", 1265, f_scan)
-    center_text(draw, "Please scan me", 1345, f_en)
-    center_text(draw, "luckystaxiapp.de/scan.html", 1415, f_url)
+    center_text(draw, "Bitte scannen", 1225, f_scan)
+    center_text(draw, "Please scan me", 1305, f_en)
+    center_text(draw, "luckystaxiapp.de/scan.html", 1375, f_url)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     img.save(OUT, "PNG", optimize=True)
