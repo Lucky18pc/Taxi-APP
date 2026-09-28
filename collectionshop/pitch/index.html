@@ -1,0 +1,2648 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Besonders gut geeignet für kleine Geschäfte: Shop-Plattform mieten. Collection Shop von Code & Grow — Shop, Admin, App, auch für Großunternehmen, ab 39 €." />
+  <title>Shop-Plattform mieten | Besonders für kleine Geschäfte</title>
+  <meta name="theme-color" content="#152238" />
+  <meta name="robots" content="index,follow" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/shop-logo-192.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Collection Shop" />
+  <meta property="og:title" content="Shop-Plattform mieten | Besonders für kleine Geschäfte" />
+  <meta property="og:description" content="Besonders gut geeignet für kleine Geschäfte — Collection Shop mieten. Shop, Admin, App, auch für Großunternehmen, ab 39 € im Monat." />
+  <meta property="og:image" content="https://code-und-grow.de/pitch/assets/pitch-og-share.png" />
+  <meta property="og:url" content="https://code-und-grow.de/pitch/" />
+  <link rel="canonical" href="https://code-und-grow.de/pitch/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Shop-Plattform mieten | Besonders für kleine Geschäfte" />
+  <meta name="twitter:description" content="Besonders gut geeignet für kleine Geschäfte — Collection Shop mieten, ab 39 € im Monat." />
+  <meta name="twitter:image" content="https://code-und-grow.de/pitch/assets/pitch-og-share.png" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://code-und-grow.de/#organization","name":"Code & Grow","url":"https://code-und-grow.de/","email":"kontakt@code-und-grow.de","telephone":"+49 1525 5177928","address":{"@type":"PostalAddress","streetAddress":"Asternweg 21","postalCode":"67346","addressLocality":"Speyer","addressCountry":"DE"}},{"@type":"WebSite","@id":"https://code-und-grow.de/pitch/#website","url":"https://code-und-grow.de/pitch/","name":"Collection Shop Plattform mieten","publisher":{"@id":"https://code-und-grow.de/#organization"}},{"@type":"SoftwareApplication","name":"Collection Shop","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS","description":"White-Label Shop-Plattform zum Mieten — besonders gut geeignet für kleine Geschäfte, auch für Großunternehmen. Shop, Admin, App, Demo inklusive.","url":"https://code-und-grow.de/pitch/","offers":{"@type":"Offer","url":"https://code-und-grow.de/pitch/#mieten","price":"39.00","priceCurrency":"EUR","availability":"https://schema.org/InStock","priceSpecification":{"@type":"UnitPriceSpecification","price":"39.00","priceCurrency":"EUR","unitText":"MONTH"}}},{"@type":"Service","name":"Shop-Plattform für kleine Geschäfte","serviceType":"White-Label E-Commerce","provider":{"@id":"https://code-und-grow.de/#organization"},"areaServed":{"@type":"Country","name":"Germany"},"offers":{"@type":"Offer","url":"https://code-und-grow.de/pitch/#mieten","price":"39.00","priceCurrency":"EUR"}}]}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --bg-elevated: #F3EBE3;
+      --surface: rgba(255,255,255,0.92);
+      --border: rgba(30,77,107,0.18);
+      --text: #3D3028;
+      --muted: #5C6574;
+      --marine: #1E4D6B;
+      --navy: #152238;
+      --navy-mid: #243652;
+      --navy-deep: #0C1220;
+      --azzurro: #4A7FA8;
+      --terracotta: #C0714F;
+      --gold: #B8864F;
+      --teal: #4A7FA8;
+      --accent: linear-gradient(135deg, #C0714F 0%, #1E4D6B 55%, #152238 100%);
+      --radius: 20px;
+      --shadow: 0 20px 50px rgba(21,34,56,0.14);
+      --font: 'Inter', system-ui, sans-serif;
+      --display: 'Playfair Display', Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+    .mesh {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 45% at 92% 18%, rgba(21,34,56,0.10), transparent 58%),
+        radial-gradient(ellipse 70% 50% at 15% 10%, rgba(192,113,79,0.10), transparent 55%),
+        radial-gradient(ellipse 60% 45% at 85% 20%, rgba(74,127,168,0.12), transparent 50%),
+        radial-gradient(ellipse 50% 40% at 50% 100%, rgba(30,77,107,0.08), transparent 55%),
+        linear-gradient(180deg, #FAF7F2 0%, #F0E8DE 100%);
+    }
+    .container { width: min(1140px, 92vw); margin: 0 auto; }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 5.1rem; z-index: 200;
+      backdrop-filter: blur(16px) saturate(1.2);
+      background: linear-gradient(180deg, rgba(250,247,242,0.92) 0%, rgba(243,235,227,0.88) 100%);
+      border-bottom: 1px solid rgba(21,34,56,0.12);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; padding: 0.9rem 0;
+    }
+    .logo {
+      display: inline-flex; align-items: center;
+      text-decoration: none;
+    }
+    .logo__mark {
+      height: 46px; width: auto; border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(30,77,107,0.12), 0 0 0 1px rgba(30,77,107,0.10);
+    }
+    .logo em {
+      font-style: normal;
+      background: var(--accent);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .nav-links { display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap; }
+    .nav-links a {
+      color: var(--muted); font-size: 0.88rem; text-decoration: none; transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-shop {
+      padding: 0.45rem 0.95rem; border-radius: 999px;
+      background: linear-gradient(135deg, #C0714F 0%, #1E4D6B 100%);
+      color: #FAF7F2 !important; font-weight: 600;
+    }
+    .nav-shop:hover { opacity: 0.92; color: #FAF7F2 !important; }
+    .lang-toggle { display: flex; flex-wrap: wrap; gap: 4px; max-width: 11rem; justify-content: flex-end; }
+    .lang-btn {
+      border: 1px solid var(--border); background: transparent; color: var(--muted);
+      padding: 0.3rem 0.55rem; border-radius: 8px; cursor: pointer; font-size: 0.72rem;
+    }
+    .lang-btn.active { border-color: var(--gold); color: var(--gold); }
+    .menu-btn {
+      display: none; background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); padding: 0.45rem 0.7rem; border-radius: 10px; cursor: pointer;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.85rem 1.5rem; border-radius: 999px; font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; text-decoration: none; transition: transform .2s, box-shadow .2s;
+    }
+    .btn:hover { transform: translateY(-2px); text-decoration: none; }
+    .btn-primary {
+      background: var(--accent); color: #FAF7F2;
+      box-shadow: 0 8px 24px rgba(192,113,79,0.22);
+    }
+    #luckySpinBtn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.75); color: var(--marine);
+      border: 1px solid var(--border);
+    }
+    .btn-lg { padding: 1rem 2rem; font-size: 1.05rem; }
+
+    .pitch-shop-banner {
+      position: sticky; top: 0; z-index: 300;
+      background:
+        radial-gradient(ellipse 80% 120% at 12% 0%, rgba(192,113,79,0.12), transparent 55%),
+        radial-gradient(ellipse 60% 80% at 100% 0%, rgba(21,34,56,0.08), transparent 50%),
+        linear-gradient(180deg, #FAF7F2 0%, #E8EEF3 100%);
+      color: var(--text);
+      border-bottom: 1px solid rgba(21,34,56,0.14);
+      font-size: 0.875rem;
+      box-shadow: 0 8px 24px rgba(21,34,56,0.08);
+    }
+    .pitch-shop-banner-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap; padding: 0.75rem 0;
+    }
+    .pitch-shop-banner-brand {
+      display: flex; align-items: center; flex-shrink: 0;
+    }
+    .pitch-shop-banner-logo {
+      height: 62px; width: auto; border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(30,77,107,0.12), 0 0 0 1px rgba(30,77,107,0.10);
+    }
+    .pitch-shop-banner-main {
+      display: flex; align-items: center; gap: 1rem; flex: 1; flex-wrap: wrap;
+      justify-content: space-between; min-width: min(100%, 20rem);
+    }
+    .pitch-shop-banner-where { display: flex; flex-direction: column; gap: 0.15rem; min-width: min(100%, 20rem); }
+    .pitch-shop-banner-label {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .pitch-shop-banner-title { font-size: 1rem; color: var(--text); font-weight: 600; }
+    .pitch-shop-banner-note { font-size: 0.8rem; color: var(--muted); max-width: 36rem; }
+    .pitch-shop-banner-cta {
+      display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0.1rem;
+      padding: 0.6rem 1.05rem; border-radius: 12px;
+      background: linear-gradient(135deg, #C0714F 0%, #8F4528 100%);
+      color: #FAF7F2 !important;
+      text-decoration: none !important; font-weight: 700; font-size: 0.9rem; white-space: nowrap;
+      box-shadow: 0 4px 18px rgba(212,185,120,0.28);
+    }
+    .pitch-shop-banner-cta small { font-size: 0.68rem; font-weight: 600; opacity: 0.88; color: rgba(250,247,242,0.92); }
+    .pitch-shop-banner-cta:hover {
+      background: linear-gradient(135deg, #D4896A 0%, #1E4D6B 100%);
+      color: #FAF7F2 !important; text-decoration: none !important;
+      transform: translateY(-1px);
+    }
+
+    .pitch-context {
+      margin-bottom: 1.25rem; padding: 1rem 1.15rem; border-radius: 14px;
+      border: 1px solid rgba(21,34,56,0.14);
+      border-left: 3px solid var(--navy);
+      background: linear-gradient(135deg, rgba(255,255,255,0.82) 0%, rgba(232,238,243,0.55) 100%);
+      max-width: 34rem;
+    }
+    .pitch-context strong {
+      display: block; color: var(--gold); font-size: 0.85rem; letter-spacing: 0.04em;
+      text-transform: uppercase; margin-bottom: 0.35rem;
+    }
+    .pitch-context p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
+
+    /* Hero */
+    .hero { padding: 5rem 0 4rem; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 3rem; align-items: center;
+    }
+    .badge {
+      display: inline-block; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid rgba(30,77,107,0.18);
+      padding: 0.4rem 0.85rem; border-radius: 999px; margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-family: var(--display); font-size: clamp(2.2rem, 4.5vw, 3.6rem);
+      line-height: 1.12; margin-bottom: 1.25rem; letter-spacing: -0.02em;
+    }
+    .hero .lead { color: var(--muted); font-size: 1.08rem; max-width: 34rem; }
+    .hero-cta { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+    .hero-pitch-hint { margin-top: 1rem; font-size: 0.875rem; color: var(--muted); max-width: 34rem; }
+    .btn-shop {
+      background: rgba(30, 77, 107, 0.10); color: var(--marine);
+      border: 1px solid rgba(30, 77, 107, 0.28);
+    }
+    .btn-shop:hover { background: rgba(21, 34, 56, 0.12); border-color: rgba(21, 34, 56, 0.28); }
+    .hero-visual {
+      position: relative; width: 100%;
+      min-height: 380px; aspect-ratio: 4 / 5; max-height: 480px;
+      border-radius: var(--radius); overflow: hidden;
+      border: 1px solid rgba(21,34,56,0.16);
+      box-shadow: 0 24px 60px rgba(21,34,56,0.16), 0 0 0 1px rgba(30,77,107,0.08);
+      background: var(--navy);
+      isolation: isolate;
+    }
+    .hero-visual__photo {
+      position: absolute; inset: 0; z-index: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      display: block;
+    }
+    .hero-visual__overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(
+        180deg,
+        rgba(21,34,56,0.18) 0%,
+        transparent 42%,
+        rgba(21,34,56,0.35) 100%
+      );
+      pointer-events: none;
+    }
+    .hero-visual__content {
+      position: absolute; inset: 0; z-index: 2;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 0 0 2.75rem;
+    }
+    .hero-visual__logo {
+      width: min(52%, 200px); height: auto; border-radius: 18px;
+      margin: 0 auto;
+      box-shadow: 0 18px 40px rgba(12,18,32,0.32), 0 0 0 1px rgba(255,255,255,0.42);
+    }
+    .hero-visual__tagline {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      margin: 0; font-size: 0.78rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #FAF7F2; font-weight: 600; text-align: center;
+      padding: 0.55rem 0.85rem; border-radius: 0 0 calc(var(--radius) - 4px) calc(var(--radius) - 4px);
+      background: linear-gradient(180deg, rgba(21,34,56,0.55) 0%, rgba(21,34,56,0.78) 100%);
+      text-shadow: 0 1px 3px rgba(12,18,32,0.45);
+    }
+
+    /* Lucky Luck Slot */
+    .lucky-slot-wrap {
+      max-width: 680px; margin: 0 auto 2rem;
+      padding: 2rem 1.5rem 1.75rem;
+      text-align: center;
+    }
+    .lucky-slot-badge {
+      display: inline-block; font-size: 0.72rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--gold);
+      border: 1px solid rgba(30,77,107,0.18);
+      padding: 0.35rem 0.75rem; border-radius: 999px; margin-bottom: 1rem;
+    }
+    .lucky-slot-machine {
+      display: flex; justify-content: center; flex-wrap: nowrap;
+      gap: 0.45rem; margin: 1.5rem 0 1.25rem;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      padding: 0 0.25rem;
+    }
+    .lucky-reel {
+      width: 72px; height: 96px; border-radius: 12px; flex-shrink: 0;
+      --lucky-item-h: 88px;
+      --lucky-reel-h: 96px;
+      background: #F3EBE3;
+      border: 2px solid rgba(212,185,120,0.28);
+      box-shadow: inset 0 0 24px rgba(30,77,107,0.08), 0 8px 24px rgba(30,77,107,0.10);
+      overflow: hidden; position: relative;
+    }
+    .lucky-reel__inner {
+      display: flex; flex-direction: column; align-items: center;
+      will-change: transform;
+    }
+    .lucky-reel img {
+      width: 64px; height: 64px; margin: 12px 4px;
+      border-radius: 10px; object-fit: cover; object-position: center; flex-shrink: 0;
+    }
+    .lucky-reel img.is-contain {
+      object-fit: contain; background: #F3EBE3;
+    }
+    .lucky-slot-result {
+      min-height: 1.5rem; font-size: 0.95rem; color: var(--gold);
+      margin-bottom: 1rem; font-weight: 600;
+    }
+    .lucky-slot-result.is-muted { color: var(--muted); font-weight: 500; }
+    .lucky-slot-result.is-win { color: var(--gold); font-weight: 700; }
+    .lucky-slot-cta { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 0.5rem; }
+    .lucky-slot-prize {
+      font-size: 0.9rem; color: var(--gold); font-weight: 600;
+      margin: 0.25rem 0 0.75rem; letter-spacing: 0.02em;
+    }
+    .lucky-slot-disclaimer {
+      margin-top: 1rem; font-size: 0.75rem; color: var(--muted); line-height: 1.45;
+    }
+    .lucky-slot-daily {
+      margin-top: 0.75rem; font-size: 0.8rem; color: var(--muted); line-height: 1.45;
+    }
+
+    /* Sections */
+    section { padding: 4.5rem 0; }
+    section.alt { background: linear-gradient(180deg, rgba(232,238,243,0.55) 0%, rgba(243,235,227,0.72) 100%); border-y: 1px solid var(--border); }
+    .section-title {
+      font-family: var(--display); font-size: clamp(1.8rem, 3vw, 2.4rem);
+      text-align: center; margin-bottom: 0.75rem;
+    }
+    .section-sub { text-align: center; color: var(--muted); max-width: 38rem; margin: 0 auto 2.5rem; }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s, transform .7s; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    .glass {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.75rem; backdrop-filter: blur(12px);
+      transition: border-color .25s, transform .25s;
+    }
+    .glass:hover { border-color: rgba(30,77,107,0.22); transform: translateY(-3px); box-shadow: var(--shadow); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .pain { border-color: rgba(255,100,100,0.2); }
+    .solution { border-color: rgba(62,232,211,0.25); }
+    .two-col h3 { margin-bottom: 1rem; font-size: 1.1rem; }
+    .two-col ul { padding-left: 1.2rem; color: var(--muted); }
+    .two-col li { margin-bottom: 0.5rem; }
+
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .showcase-card .thumb {
+      border-radius: 14px; overflow: hidden; border: 1px solid var(--border);
+      margin-bottom: 1rem; aspect-ratio: 4/3; background: var(--bg-elevated);
+    }
+    .showcase-card .thumb img {
+      display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center;
+    }
+    .showcase-card h3 { margin-bottom: 0.5rem; }
+    .showcase-card p { color: var(--muted); font-size: 0.9rem; }
+
+    .feature-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;
+    }
+    .feature-grid h3 { color: var(--gold); font-size: 0.95rem; margin-bottom: 0.4rem; }
+    .feature-grid p { color: var(--muted); font-size: 0.88rem; }
+
+    .strategy-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;
+    }
+    .strategy-item {
+      padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+      border-left: 3px solid var(--teal); background: var(--surface); border-radius: 0 14px 14px 0;
+    }
+    .strategy-item h3 { font-size: 1rem; margin-bottom: 0.35rem; }
+    .strategy-item p { color: var(--muted); font-size: 0.88rem; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .metric-val {
+      font-size: 2.2rem; font-weight: 700;
+      background: var(--accent); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .metric-label { font-weight: 600; margin-top: 0.35rem; }
+    .metric-note { font-size: 0.8rem; color: var(--muted); }
+
+    .testimonial { max-width: 720px; margin: 0 auto; text-align: center; }
+    .testimonial q { display: block; font-size: 1.15rem; font-style: italic; line-height: 1.6; }
+    .testimonial cite { display: block; margin-top: 1rem; color: var(--muted); font-style: normal; }
+    .live-badge {
+      display: inline-block; margin-top: 1rem; font-size: 0.75rem; color: var(--teal);
+      border: 1px solid rgba(62,232,211,0.35); padding: 0.3rem 0.75rem; border-radius: 999px;
+      text-decoration: none; cursor: pointer;
+    }
+    .live-badge:hover { background: rgba(62,232,211,0.12); }
+
+    /* Plan cards */
+    .plan-cards {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;
+    }
+    .plan-card {
+      text-align: center; padding: 1.5rem 1rem; position: relative;
+    }
+    .plan-card.featured { border-color: rgba(212,185,120,0.45); }
+    .plan-card.featured::before {
+      content: 'Beliebt'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #FAF7F2; font-size: 0.65rem; font-weight: 700;
+      padding: 0.2rem 0.65rem; border-radius: 999px; letter-spacing: 0.04em;
+    }
+    .plan-name { font-weight: 700; font-size: 1.1rem; }
+    .plan-price { font-size: 2rem; font-weight: 700; color: var(--gold); margin: 0.5rem 0; }
+    .plan-price small { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
+
+    .plan-toggle { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .plan-toggle button {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+      padding: 0.5rem 1.2rem; border-radius: 999px; cursor: pointer;
+    }
+    .plan-toggle button.active { border-color: var(--gold); color: var(--gold); }
+
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th, td { padding: 0.7rem 0.85rem; border-bottom: 1px solid var(--border); text-align: center; }
+    th:first-child, td:first-child { text-align: left; min-width: 160px; }
+    thead th { background: rgba(243,235,227,0.9); }
+    td.yes { color: var(--teal); font-weight: 600; }
+    td.no { color: var(--muted); }
+    .plan-head-price { color: var(--gold); font-size: 0.85rem; }
+
+    /* Demo */
+    .demo-tabs { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .demo-tabs button {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+      padding: 0.55rem 1.3rem; border-radius: 999px; cursor: pointer;
+    }
+    .demo-tabs button.active { border-color: var(--teal); color: var(--teal); }
+    .demo-frame-wrap {
+      border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+      background: #fff; min-height: 420px;
+    }
+    .demo-frame-wrap iframe { width: 100%; height: min(70vh, 640px); border: 0; display: block; }
+    .demo-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin: 1rem 0; }
+    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .demo-grid .demo-frame-wrap iframe { height: 320px; }
+    .demo-guide { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .demo-guide code {
+      background: rgba(30,77,107,0.08); padding: 0.15rem 0.45rem; border-radius: 6px; font-size: 0.9rem;
+    }
+    .demo-steps { padding-left: 1.2rem; color: var(--muted); }
+    .demo-steps li { margin-bottom: 0.65rem; }
+    .offline-note {
+      text-align: center; font-size: 0.82rem; color: var(--gold); margin-bottom: 1rem;
+      padding: 0.65rem 1rem; background: rgba(212,185,120,0.08); border-radius: 10px;
+    }
+
+    .arch-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 2rem; align-items: center; }
+    .arch-grid svg { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
+
+    #mieten { scroll-margin-top: 10rem; }
+    .cta-section {
+      text-align: center; padding: 5rem 0;
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 100%, rgba(74,127,168,0.14), transparent),
+        radial-gradient(ellipse 40% 50% at 100% 20%, rgba(21,34,56,0.08), transparent);
+    }
+    .cta-section h2 { font-family: var(--display); font-size: 2rem; margin-bottom: 0.75rem; }
+    .cta-section p { color: var(--muted); margin-bottom: 1.5rem; }
+    .rent-mode-tabs {
+      display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0 0 1.25rem;
+    }
+    .rent-mode-tabs button {
+      border: 1px solid rgba(21,34,56,0.18); background: #fff; color: var(--marine);
+      padding: 0.55rem 1rem; border-radius: 999px; cursor: pointer; font-weight: 600;
+    }
+    .rent-mode-tabs button.active {
+      border-color: var(--teal); color: var(--teal); box-shadow: 0 0 0 2px rgba(30,77,107,0.08);
+    }
+    .rent-mode-note { text-align: center; color: var(--muted); margin: 0 0 1rem; font-size: 0.95rem; }
+    .inquiry-section { padding: 4rem 0; }
+    .rent-form {
+      max-width: 36rem; margin: 0 auto; text-align: left;
+    }
+    .rent-form label {
+      display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text);
+    }
+    .rent-form input, .rent-form select, .rent-form textarea {
+      display: block; width: 100%; margin-top: 0.35rem; box-sizing: border-box;
+      padding: 0.7rem 0.9rem; border-radius: 12px; font: inherit;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    }
+    .rent-form textarea { min-height: 4.5rem; resize: vertical; }
+    .rent-form .actions { margin-top: 0.4rem; text-align: center; }
+    .rent-form .rent-msg { margin-top: 0.85rem; font-size: 0.92rem; text-align: center; }
+    .rent-form .rent-msg.is-ok { color: var(--marine); }
+    .rent-form .rent-msg.is-err { color: #b42318; }
+    .rent-note { margin: 1rem auto 0; max-width: 36rem; font-size: 0.92rem; line-height: 1.45; text-align: center; opacity: 0.88; }
+    .rent-hp { position: absolute; left: -9999px; height: 0; overflow: hidden; }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 2.5rem 0;
+    }
+    .footer-grid { display: flex; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+    .footer-grid nav { display: flex; flex-direction: column; gap: 0.35rem; }
+    .footer-social { margin-top: 0.85rem; }
+    .footer-social__title {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+    }
+    .footer-social__row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .footer-social__link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.35rem;
+      height: 2.35rem;
+      border-radius: 999px;
+      border: 1px solid rgba(30,77,107,0.22);
+      background: rgba(255,255,255,0.72);
+      color: var(--marine);
+      text-decoration: none;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+    .footer-social__link:hover {
+      border-color: var(--terracotta);
+      color: var(--terracotta);
+      background: rgba(255,255,255,0.95);
+    }
+    .footer-social__link svg { width: 1.1rem; height: 1.1rem; fill: currentColor; }
+
+    /* Modal fullscreen demo */
+    .modal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.85); flex-direction: column;
+    }
+    .modal.open { display: flex; }
+    .modal-bar {
+      display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+      padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .modal-fallback {
+      padding: 0.65rem 1.25rem; text-align: center;
+      border-top: 1px solid var(--border); background: rgba(243,235,227,0.85);
+    }
+    .modal-fallback a { color: var(--teal); font-weight: 600; }
+    .modal iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+
+    .ios-prototype-note { text-align: center; color: var(--marine); font-size: 0.85rem; max-width: 40rem; margin: -1rem auto 2rem; }
+    #ios-prototype { position: relative; overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    #ios-prototype::before {
+      content: ''; position: absolute; inset: 0; z-index: 0;
+      background: url('assets/shop-hero-pinterest.jpg') center/cover no-repeat;
+    }
+    #ios-prototype::after {
+      content: ''; position: absolute; inset: 0; z-index: 0;
+      background: linear-gradient(180deg, rgba(21,34,56,0.22) 0%, rgba(250,247,242,0.58) 38%, rgba(232,238,243,0.82) 100%);
+    }
+    .ios-prototype-shimmer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+    .ios-prototype-shimmer::before {
+      content: ''; position: absolute; top: -40%; left: -80%; width: 55%; height: 180%;
+      background: linear-gradient(125deg, transparent, rgba(74,127,168,0.12) 36%, rgba(192,113,79,0.18) 50%, rgba(74,127,168,0.12) 64%, transparent);
+      animation: ios-shimmer-sweep 1.75s ease-in-out infinite; mix-blend-mode: soft-light; opacity: 0.35;
+    }
+    @keyframes ios-shimmer-sweep { 0% { transform: translateX(0) rotate(8deg); } 100% { transform: translateX(calc(100vw + 120%)) rotate(8deg); } }
+    @media (prefers-reduced-motion: reduce) { .ios-prototype-shimmer::before { animation: none; opacity: 0.2; } }
+    #ios-prototype .container { position: relative; z-index: 1; }
+    .ios-view-mode {
+      display: flex; gap: 0; margin: 0 auto 0.75rem; padding: 4px; border-radius: 14px;
+      background: rgba(255,255,255,0.88); border: 1px solid rgba(30,77,107,0.14); max-width: 340px;
+    }
+    .ios-view-mode-btn {
+      flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 10px; background: transparent;
+      color: var(--muted); cursor: pointer; font: inherit; font-size: 0.85rem; font-weight: 600;
+    }
+    .ios-view-mode-btn.active { background: rgba(30,77,107,0.12); color: var(--marine); }
+    .ios-prototype-live-note { text-align: center; color: var(--muted); font-size: 0.8rem; max-width: 28rem; margin: 0 auto 1.25rem; }
+    .ios-prototype-stage { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; max-width: 360px; margin: 0 auto; }
+    .ios-device-frame {
+      position: relative; width: min(100%, 320px); aspect-ratio: 390 / 844; border-radius: 42px; padding: 12px;
+      background: linear-gradient(145deg, #2a2a32, #0a0a0f); border: 2px solid rgba(255,255,255,0.12);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.55); display: flex; flex-direction: column;
+    }
+    .ios-device-notch {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      width: 38%; height: 24px; background: #1a1a1f; border-radius: 999px; z-index: 2;
+    }
+    .ios-device-screen-wrap { flex: 1; min-height: 0; width: 100%; border-radius: 32px; overflow: hidden; background: #E8DDD0; position: relative; }
+    .ios-device-iframe-loading {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      color: var(--marine); font-size: 0.75rem; pointer-events: none; z-index: 1;
+      background: linear-gradient(180deg, rgba(232,221,208,0.85), rgba(250,247,242,0.65));
+    }
+    .ios-device-screen-wrap.is-loaded .ios-device-iframe-loading { opacity: 0; transition: opacity 0.35s ease; }
+    .ios-device-screen { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 32px; background: #E8DDD0; display: block; }
+    .ios-device-iframe { width: 100%; height: 100%; border: 0; border-radius: 32px; background: #fff; display: block; }
+    .ios-device-screen[hidden], .ios-device-iframe[hidden] { display: none !important; }
+    .ios-tab-bar {
+      display: flex; width: min(100%, 340px); gap: 0; padding: 8px 12px; border-radius: 24px;
+      background: rgba(255,255,255,0.88); border: 1px solid rgba(30,77,107,0.14);
+      backdrop-filter: blur(12px); box-shadow: 0 12px 28px rgba(30,77,107,0.12);
+    }
+    .ios-tab-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+      padding: 0.35rem 0.15rem; border: none; background: transparent; color: var(--muted);
+      cursor: pointer; font: inherit; min-height: 44px;
+    }
+    .ios-tab-btn.active { color: var(--marine); }
+    .ios-tab-icon { font-size: 1rem; line-height: 1; }
+    .ios-tab-label { font-size: 0.62rem; line-height: 1.1; text-align: center; }
+    .showcase-ios-link { display: block; text-decoration: none !important; }
+    .showcase-ios-link img { width: 100%; border-radius: 12px; margin-bottom: 1rem; border: 1px solid var(--border); }
+
+    .compare-cards {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 2rem 0 1.5rem;
+    }
+    .compare-card--us { border-color: rgba(184,134,79,0.45); box-shadow: 0 12px 32px rgba(21,34,56,0.1); }
+    .compare-card h3 { color: var(--gold); font-size: 1rem; margin-bottom: 0.35rem; }
+    .compare-card .compare-price { font-size: 1.45rem; font-weight: 700; color: var(--marine); margin: 0.35rem 0; }
+    .compare-card .compare-note { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.65rem; }
+    .compare-card ul { padding-left: 1.1rem; color: var(--muted); font-size: 0.88rem; }
+    .compare-card li { margin-bottom: 0.3rem; }
+    .compare-table-wrap {
+      overflow-x: auto; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    .compare-table th, .compare-table td {
+      padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top;
+    }
+    .compare-table th { background: rgba(30,77,107,0.06); color: var(--marine); }
+    .compare-table th.compare-col-us, .compare-table td.compare-col-us {
+      background: rgba(192,113,79,0.08); font-weight: 600;
+    }
+    .compare-pitch {
+      margin-top: 1.5rem; padding: 1.1rem 1.25rem; border-left: 4px solid var(--gold);
+      background: rgba(255,255,255,0.85); border-radius: 0 14px 14px 0; color: var(--muted); font-size: 0.92rem;
+    }
+    .compare-pitch strong { color: var(--marine); }
+    .compare-foot { margin-top: 0.75rem; font-size: 0.78rem; color: var(--muted); text-align: center; }
+
+    @media (max-width: 900px) {
+      .hero-grid, .two-col, .three-col, .metrics, .plan-cards, .arch-grid,
+      .compare-cards,
+      .demo-grid, .demo-guide { grid-template-columns: 1fr; }
+      .hero-visual { min-height: 340px; max-height: none; }
+      .nav-links { display: none; }
+      .nav-links.open {
+        display: flex; flex-direction: column; position: absolute;
+        top: 100%; left: 0; right: 0; background: rgba(250,247,242,0.98);
+        padding: 1rem; border-bottom: 1px solid var(--border);
+      }
+      .menu-btn { display: block; }
+      .lucky-reel { width: 62px; height: 88px; }
+      .lucky-reel img { width: 54px; height: 54px; margin: 10px 4px; }
+      .lucky-slot-machine { gap: 0.35rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mesh" aria-hidden="true"></div>
+
+  <div class="pitch-shop-banner" role="region" aria-label="Collection Shop">
+    <div class="container pitch-shop-banner-inner">
+      <div class="pitch-shop-banner-brand">
+        <img class="pitch-shop-banner-logo" src="assets/shop-logo-192.png" alt="CS Collection Shop — Online Shop" decoding="async" />
+      </div>
+      <div class="pitch-shop-banner-main">
+        <div class="pitch-shop-banner-where">
+          <span class="pitch-shop-banner-label" data-i18n="pitchBanner.whereLabel"></span>
+          <strong class="pitch-shop-banner-title">collectionshop.eu</strong>
+          <span class="pitch-shop-banner-note" data-i18n="pitchBanner.whereNote"></span>
+        </div>
+        <a class="pitch-shop-banner-cta" href="https://collectionshop.eu/" target="_blank" rel="noopener noreferrer">
+          <span data-i18n="pitchBanner.link"></span>
+          <small>collectionshop.eu</small>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="logo" href="#" aria-label="CS Collection Shop">
+        <img class="logo__mark" src="assets/shop-logo-192.png" alt="CS Collection Shop" decoding="async" />
+      </a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#plans" data-i18n="nav.plans"></a>
+        <a href="#demo" data-i18n="nav.demo"></a>
+        <a href="#anfrage" data-i18n="nav.inquiry"></a>
+        <a href="#mieten" class="nav-offer" data-i18n="nav.offer"></a>
+        <a href="#features" data-i18n="nav.features"></a>
+        <a href="https://collectionshop.eu/" target="_blank" rel="noopener noreferrer" class="nav-shop" data-i18n="nav.shop"></a>
+      </nav>
+      <div style="display:flex;gap:0.75rem;align-items:center">
+        <div class="lang-toggle">
+          <button type="button" class="lang-btn active" data-lang="de">DE</button>
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="es">ES</button>
+          <button type="button" class="lang-btn" data-lang="fr">FR</button>
+          <button type="button" class="lang-btn" data-lang="it">IT</button>
+        </div>
+        <button type="button" class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <aside class="pitch-context" aria-label="Pitch vs Shop">
+            <strong data-i18n="hero.contextTitle"></strong>
+            <p data-i18n="hero.contextBody"></p>
+          </aside>
+          <span class="badge" data-i18n="hero.badge"></span>
+          <h1 data-i18n="hero.title"></h1>
+          <p class="lead" data-i18n="hero.subtitle"></p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#mieten" data-i18n="hero.ctaOffer"></a>
+            <a class="btn btn-shop" href="#anfrage" data-i18n="hero.ctaInquiry"></a>
+            <a class="btn btn-ghost" href="#demo" data-i18n="hero.ctaBookDemo"></a>
+          </div>
+          <p class="hero-pitch-hint"><span data-i18n="hero.pitchHint"></span> · <a href="https://collectionshop.eu/" target="_blank" rel="noopener noreferrer" data-i18n="hero.ctaShop"></a></p>
+        </div>
+        <div class="hero-visual">
+          <picture>
+            <source srcset="assets/shop-hero-pinterest.webp" type="image/webp" />
+            <img class="hero-visual__photo" src="assets/shop-hero-pinterest.jpg" alt="" decoding="async" fetchpriority="high" loading="eager" />
+          </picture>
+          <div class="hero-visual__overlay" aria-hidden="true"></div>
+          <div class="hero-visual__content">
+            <img class="hero-visual__logo" src="assets/shop-logo-512.png" alt="CS Collection Shop" decoding="async" loading="eager" />
+            <p class="hero-visual__tagline">Online Shop · Mode &amp; Deko</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="alt">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="problem.title"></h2>
+        <div class="two-col" style="margin-top:2rem">
+          <div class="glass pain">
+            <h3 data-i18n="problem.painTitle"></h3>
+            <ul id="painList"></ul>
+          </div>
+          <div class="glass solution">
+            <h3 data-i18n="problem.solutionTitle"></h3>
+            <ul id="solutionList"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="vergleich">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="compare.title"></h2>
+        <p class="section-sub" data-i18n="compare.subtitle"></p>
+        <div class="compare-cards" id="compareCards"></div>
+        <div class="compare-table-wrap">
+          <table class="compare-table" id="compareTable">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="compare-pitch" id="comparePitch"></p>
+        <p class="compare-foot" data-i18n="compare.disclaimer"></p>
+      </div>
+    </section>
+
+    <section id="showcase">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="showcase.title"></h2>
+        <div class="three-col" style="margin-top:2rem">
+          <article class="showcase-card glass">
+            <div class="thumb"><img src="assets/screenshots/shop-showcase.png" alt="Collection Shop — Endkunden-Shop" width="400" height="280" loading="lazy" /></div>
+            <h3 data-i18n="showcase.shop.title"></h3>
+            <p data-i18n="showcase.shop.desc"></p>
+          </article>
+          <article class="showcase-card glass">
+            <div class="thumb"><img src="assets/screenshots/admin-showcase.png" alt="Collection Shop — Admin-Dashboard" width="400" height="280" loading="lazy" /></div>
+            <h3 data-i18n="showcase.admin.title"></h3>
+            <p data-i18n="showcase.admin.desc"></p>
+          </article>
+          <article class="showcase-card glass">
+            <a href="#ios-prototype" class="showcase-ios-link">
+              <img src="assets/screenshots/ios/tab-shop.png" alt="" />
+            </a>
+            <h3 data-i18n="showcase.ios.title"></h3>
+            <p data-i18n="showcase.ios.desc"></p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="ios-prototype" class="alt">
+      <div class="ios-prototype-shimmer" aria-hidden="true"></div>
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="iosPrototype.title"></h2>
+        <p class="section-sub" data-i18n="iosPrototype.subtitle"></p>
+        <p class="ios-prototype-note" data-i18n="iosPrototype.prototypeNote"></p>
+        <div class="ios-view-mode" role="tablist" aria-label="Ansicht">
+          <button type="button" class="ios-view-mode-btn active" id="iosModeLive" data-ios-view="live" data-i18n="iosPrototype.modeLive"></button>
+          <button type="button" class="ios-view-mode-btn" id="iosModeScreenshots" data-ios-view="screenshots" data-i18n="iosPrototype.modeScreenshots"></button>
+        </div>
+        <p class="ios-prototype-live-note" id="iosLiveNote" data-i18n="iosPrototype.liveNote"></p>
+        <div class="ios-prototype-stage">
+          <div class="ios-device-frame">
+            <div class="ios-device-notch" aria-hidden="true"></div>
+            <div class="ios-device-screen-wrap" id="iosScreenWrap">
+              <div class="ios-device-iframe-loading" id="iosIframeLoading" aria-hidden="true">Shop lädt…</div>
+              <iframe class="ios-device-iframe" id="iosPrototypeIframe" title="Shop" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
+              <img class="ios-device-screen" id="iosPrototypeScreen" src="assets/screenshots/ios/tab-shop.png" alt="Shop" hidden />
+            </div>
+          </div>
+          <div class="ios-tab-bar" role="tablist">
+            <button type="button" class="ios-tab-btn" data-ios-tab="profile" data-ios-live-tab="profile" data-ios-src="assets/screenshots/ios/tab-profile.png">
+              <span class="ios-tab-icon" aria-hidden="true">👤</span>
+              <span class="ios-tab-label" data-i18n="iosPrototype.tabs.profile"></span>
+            </button>
+            <button type="button" class="ios-tab-btn" data-ios-tab="notice" data-ios-live-tab="notes" data-ios-src="assets/screenshots/ios/tab-notice.png">
+              <span class="ios-tab-icon" aria-hidden="true">📝</span>
+              <span class="ios-tab-label" data-i18n="iosPrototype.tabs.notice"></span>
+            </button>
+            <button type="button" class="ios-tab-btn active" data-ios-tab="shop" data-ios-live-tab="shop" data-ios-src="assets/screenshots/ios/tab-shop.png">
+              <span class="ios-tab-icon" aria-hidden="true">🛍</span>
+              <span class="ios-tab-label" data-i18n="iosPrototype.tabs.shop"></span>
+            </button>
+            <button type="button" class="ios-tab-btn" data-ios-tab="cart" data-ios-live-tab="cart" data-ios-src="assets/screenshots/ios/tab-cart.png">
+              <span class="ios-tab-icon" aria-hidden="true">🛒</span>
+              <span class="ios-tab-label" data-i18n="iosPrototype.tabs.cart"></span>
+            </button>
+            <button type="button" class="ios-tab-btn" data-ios-tab="delivery" data-ios-live-tab="returns" data-ios-src="assets/screenshots/ios/tab-delivery.png">
+              <span class="ios-tab-icon" aria-hidden="true">📦</span>
+              <span class="ios-tab-label" data-i18n="iosPrototype.tabs.delivery"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo" class="alt">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="demoTeaser.title"></h2>
+        <p class="section-sub" data-i18n="demoTeaser.subtitle"></p>
+        <p class="offline-note" data-i18n="demo.offlineNote"></p>
+        <div class="demo-tabs" role="tablist">
+          <button type="button" class="active" data-demo-tab="shop" data-i18n="demo.tabShop"></button>
+          <button type="button" data-demo-tab="admin" data-i18n="demo.tabAdmin"></button>
+          <button type="button" data-demo-tab="guide" data-i18n="demo.tabGuide"></button>
+        </div>
+        <div class="demo-actions">
+          <a class="btn btn-ghost" id="openShopTab" href="#" target="_blank" rel="noopener" data-i18n="demo.openShop"></a>
+          <a class="btn btn-ghost" id="openAdminTab" href="#" target="_blank" rel="noopener" data-i18n="demo.openAdmin"></a>
+          <button type="button" class="btn btn-primary" id="fullscreenDemo" data-i18n="demoTeaser.openFull"></button>
+        </div>
+        <div id="demoPanelShop" class="demo-frame-wrap">
+          <iframe id="iframeShop" title="Demo Shop" loading="lazy" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
+        </div>
+        <div id="demoPanelAdmin" class="demo-frame-wrap" hidden>
+          <iframe id="iframeAdmin" title="Demo Admin" loading="lazy" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
+        </div>
+        <div id="demoPanelGuide" class="demo-guide" hidden>
+          <div class="glass">
+            <h3 data-i18n="demo.credentialsTitle"></h3>
+            <p class="section-sub" style="text-align:left;margin:0.5rem 0 1rem" data-i18n="demo.credentialsNote"></p>
+            <p><strong data-i18n="demo.email"></strong>: <code>demo@collectionshop.app</code></p>
+            <p style="margin-top:0.5rem"><strong data-i18n="demo.password"></strong>: <code>Demo2026!</code></p>
+            <p style="margin-top:1rem;color:var(--gold);font-size:0.85rem" data-i18n="demo.stripeNote"></p>
+          </div>
+          <div class="glass">
+            <h3 data-i18n="demo.tabGuide"></h3>
+            <ol class="demo-steps" id="demoSteps"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="features.title"></h2>
+        <div class="feature-grid" style="margin-top:2rem" id="featureGrid"></div>
+      </div>
+    </section>
+
+    <section id="lucky-look-slot" class="alt">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="slot.title"></h2>
+        <p class="section-sub" data-i18n="slot.subtitle"></p>
+        <div class="lucky-slot-wrap glass">
+          <span class="lucky-slot-badge" data-i18n="slot.badge"></span>
+          <div class="lucky-slot-machine" aria-label="Lucky Luck Slot, 5 Walzen">
+            <div class="lucky-reel" id="luckyReel0"><div class="lucky-reel__inner" id="luckyReelInner0"></div></div>
+            <div class="lucky-reel" id="luckyReel1"><div class="lucky-reel__inner" id="luckyReelInner1"></div></div>
+            <div class="lucky-reel" id="luckyReel2"><div class="lucky-reel__inner" id="luckyReelInner2"></div></div>
+            <div class="lucky-reel" id="luckyReel3"><div class="lucky-reel__inner" id="luckyReelInner3"></div></div>
+            <div class="lucky-reel" id="luckyReel4"><div class="lucky-reel__inner" id="luckyReelInner4"></div></div>
+          </div>
+          <p class="lucky-slot-prize" data-i18n="slot.prize"></p>
+          <p class="lucky-slot-result is-muted" id="luckySlotResult"></p>
+          <button type="button" class="btn btn-primary" id="luckySpinBtn" data-i18n="slot.spin"></button>
+          <p class="lucky-slot-daily" id="luckySlotDaily" data-i18n="slot.dailyChances"></p>
+          <div class="lucky-slot-cta">
+            <a class="btn btn-shop hero-cta-shop" href="https://collectionshop.eu/" target="_blank" rel="noopener noreferrer" data-i18n="hero.ctaShop"></a>
+            <a class="btn btn-ghost" href="#mieten" data-i18n="hero.ctaOffer"></a>
+          </div>
+          <p class="lucky-slot-disclaimer" data-i18n="slot.disclaimer"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="plans" class="alt">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="plans.title"></h2>
+        <p class="section-sub" data-i18n="plans.subtitle"></p>
+        <div class="plan-toggle">
+          <button type="button" class="active" data-interval="month" data-i18n="plans.monthly"></button>
+          <button type="button" data-interval="year" data-i18n="plans.yearly"></button>
+        </div>
+        <div class="plan-cards" id="planCards"></div>
+        <div class="table-wrap"><table id="planTable"><thead></thead><tbody></tbody></table></div>
+        <p style="text-align:center;margin-top:1.5rem;color:var(--muted)">
+          <strong data-i18n="plans.enterprise"></strong> — <span data-i18n="plans.enterpriseNote"></span>
+          · <a href="#anfrage" data-i18n="plans.contactOffer"></a>
+          · <a href="#mieten" data-i18n="plans.contactPay"></a>
+          · <a href="#demo" data-i18n="plans.contactDemo"></a>
+        </p>
+      </div>
+    </section>
+
+    <section id="anfrage" class="inquiry-section alt">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="inquiry.title"></h2>
+        <p class="section-sub" data-i18n="inquiry.lead"></p>
+        <form class="rent-form glass" id="inquiryForm" novalidate>
+          <label class="rent-hp" aria-hidden="true">Website
+            <input type="text" name="website" tabindex="-1" autocomplete="off" />
+          </label>
+          <label><span data-i18n="rent.name"></span>
+            <input type="text" name="name" data-i18n-placeholder="rent.placeholderName" autocomplete="name" />
+          </label>
+          <label><span data-i18n="rent.email"></span>
+            <input type="email" name="email" required data-i18n-placeholder="rent.placeholderEmail" autocomplete="email" />
+          </label>
+          <label><span data-i18n="rent.plan"></span>
+            <select name="plan">
+              <option value="simply">Simply — 39 €/Monat</option>
+              <option value="small">Small — 79 €/Monat</option>
+              <option value="medium">Medium — 149 €/Monat</option>
+              <option value="high">High — 279 €/Monat</option>
+              <option value="enterprise">Enterprise — 499 €/Monat</option>
+              <option value="unsure">Noch unsicher</option>
+            </select>
+          </label>
+          <label><span data-i18n="rent.shop"></span>
+            <input type="text" name="shopName" data-i18n-placeholder="rent.placeholderShop" />
+          </label>
+          <label><span data-i18n="rent.note"></span>
+            <textarea name="note" data-i18n-placeholder="inquiry.placeholderNote"></textarea>
+          </label>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary btn-lg" id="inquirySubmit" data-i18n="inquiry.submit"></button>
+          </div>
+          <p class="rent-msg" id="inquiryMsg" hidden></p>
+        </form>
+        <p class="rent-note" data-i18n="inquiry.after"></p>
+        <p style="text-align:center;margin-top:1.25rem"><a href="#mieten" data-i18n="inquiry.gotoPay"></a></p>
+      </div>
+    </section>
+
+    <section id="mieten" class="cta-section">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="rent.title"></h2>
+        <p class="section-sub" data-i18n="rent.lead"></p>
+        <p class="rent-mode-note" data-i18n="rent.softHint"></p>
+        <form class="rent-form glass" id="rentForm" novalidate>
+          <input type="hidden" name="intent" value="checkout" />
+          <label class="rent-hp" aria-hidden="true">Website
+            <input type="text" name="website" tabindex="-1" autocomplete="off" />
+          </label>
+          <label><span data-i18n="rent.name"></span>
+            <input type="text" name="name" data-i18n-placeholder="rent.placeholderName" autocomplete="name" />
+          </label>
+          <label><span data-i18n="rent.email"></span>
+            <input type="email" name="email" required data-i18n-placeholder="rent.placeholderEmail" autocomplete="email" />
+          </label>
+          <label><span data-i18n="rent.plan"></span>
+            <select name="plan">
+              <option value="simply">Simply — 39 €/Monat</option>
+              <option value="small">Small — 79 €/Monat</option>
+              <option value="medium">Medium — 149 €/Monat</option>
+              <option value="high">High — 279 €/Monat</option>
+              <option value="enterprise">Enterprise — 499 €/Monat</option>
+            </select>
+          </label>
+          <label><span data-i18n="rent.shop"></span>
+            <input type="text" name="shopName" data-i18n-placeholder="rent.placeholderShop" />
+          </label>
+          <label><span data-i18n="rent.note"></span>
+            <textarea name="note" data-i18n-placeholder="rent.placeholderNote"></textarea>
+          </label>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary btn-lg" id="rentSubmit" data-i18n="rent.submit"></button>
+          </div>
+          <p class="rent-msg" id="rentMsg" hidden></p>
+        </form>
+        <p class="rent-note" data-i18n="rent.after"></p>
+        <p style="text-align:center;margin-top:1.25rem"><a href="#anfrage" data-i18n="rent.gotoInquiry"></a> · <a href="#plans" data-i18n="pricingCta.viewPlans"></a></p>
+      </div>
+    </section>
+
+
+    <section id="strategy">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="strategy.title"></h2>
+        <div class="strategy-grid" style="margin-top:2rem" id="strategyGrid"></div>
+      </div>
+    </section>
+
+    <section id="architecture" class="alt">
+      <div class="container arch-grid reveal">
+        <div>
+          <h2 class="section-title" style="text-align:left" data-i18n="architecture.title"></h2>
+          <p class="section-sub" style="text-align:left;margin:1rem 0 0" data-i18n="architecture.desc"></p>
+        </div>
+        <svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="900" height="500" fill="#F3EBE3"/>
+          <text id="archSvgTitle" x="450" y="40" text-anchor="middle" fill="#d4b978" font-size="18" font-weight="700">White-Label Architektur</text>
+          <rect x="40" y="80" width="200" height="120" rx="12" fill="#16161f" stroke="#3ee8d3"/>
+          <text id="archSvgPlatform" x="140" y="145" text-anchor="middle" fill="#9aa3b5" font-size="12">Plattform · Billing</text>
+          <rect x="320" y="60" width="260" height="160" rx="12" fill="#16161f" stroke="#d4b978"/>
+          <text id="archSvgTenantA" x="450" y="130" text-anchor="middle" fill="#f8f8fc" font-size="14">Mandant A</text>
+          <rect x="660" y="60" width="200" height="160" rx="12" fill="#16161f" stroke="#d4b978"/>
+          <text id="archSvgTenantB" x="760" y="130" text-anchor="middle" fill="#f8f8fc" font-size="14">Mandant B</text>
+        </svg>
+      </div>
+    </section>
+
+    <section id="investor">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="investor.title"></h2>
+        <div class="metrics" style="margin-top:2rem" id="metricsGrid"></div>
+      </div>
+    </section>
+
+    <section id="social" class="alt">
+      <div class="container reveal">
+        <h2 class="section-title" data-i18n="social.title"></h2>
+        <blockquote class="glass testimonial" style="margin-top:2rem">
+          <q data-i18n="social.quote"></q>
+          <cite data-i18n="social.author"></cite>
+          <a class="live-badge" href="https://collectionshop.eu/" target="_blank" rel="noopener noreferrer" data-i18n="social.liveBadge"></a>
+        </blockquote>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <strong data-i18n="footer.tagline"></strong>
+        <p style="margin-top:0.5rem"><a href="mailto:kontakt@code-und-grow.de">kontakt@code-und-grow.de</a></p>
+        <div class="footer-social">
+          <span class="footer-social__title" data-i18n="footer.social"></span>
+          <div class="footer-social__row">
+            <a class="footer-social__link" href="https://www.instagram.com/pececarmine/" rel="noreferrer me" data-i18n-aria="footer.socialInstagram" title="Instagram">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4A5.8 5.8 0 0 1 16.2 22H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m0 2A3.8 3.8 0 0 0 4 7.8v8.4A3.8 3.8 0 0 0 7.8 20h8.4a3.8 3.8 0 0 0 3.8-3.8V7.8A3.8 3.8 0 0 0 16.2 4H7.8m8.65 1.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/></svg>
+            </a>
+            <a class="footer-social__link" href="https://www.tiktok.com/@pececarmine" rel="noreferrer me" data-i18n-aria="footer.socialTiktok" title="TikTok">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16.6 5.82s.51.5 0 0A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.85 4.85 0 0 1-4.25-1.48Z"/></svg>
+            </a>
+            <a class="footer-social__link" href="https://m.facebook.com/pece.carmine/" rel="noreferrer me" data-i18n-aria="footer.socialFacebook" title="Facebook">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-3h2.5V9.5c0-2.46 1.47-3.82 3.72-3.82 1.08 0 2.21.19 2.21.19v2.43h-1.24c-1.22 0-1.6.76-1.6 1.54V12H18l-.5 3h-2.8v7A10 10 0 0 0 22 12Z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div>
+        <strong data-i18n="footer.legal"></strong>
+        <nav>
+          <a href="https://code-und-grow.de/impressum/" target="_blank" rel="noopener" data-i18n="footer.impressum"></a>
+          <a href="https://code-und-grow.de/datenschutz/" target="_blank" rel="noopener" data-i18n="footer.privacy"></a>
+          <a href="https://code-und-grow.de/agb-shop/" target="_blank" rel="noopener" data-i18n="footer.terms"></a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal" id="demoModal" role="dialog" aria-modal="true">
+    <div class="modal-bar">
+      <strong data-i18n="demoTeaser.title"></strong>
+      <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+        <a class="btn btn-primary" id="modalOpenShop" href="https://collectionshop.eu/" target="_blank" rel="noopener noreferrer" data-i18n="modal.openShopTab"></a>
+        <button type="button" class="btn btn-ghost" id="closeModal" data-i18n="modal.close"></button>
+      </div>
+    </div>
+    <iframe id="modalFrame" title="Fullscreen Demo"></iframe>
+    <div class="modal-fallback">
+      <a id="modalFallbackShop" href="https://collectionshop.eu/" target="_blank" rel="noopener noreferrer" data-i18n="modal.fallbackShop"></a>
+    </div>
+  </div>
+
+  <script>
+    const PITCH_SITE = {
+      shop: 'https://collectionshop.eu/',
+      shopFullscreen: 'https://collectionshop.eu/?layout=fullscreen',
+      admin: 'https://collectionshop.eu/admin/',
+    };
+    const DEMO_SHOP = PITCH_SITE.shopFullscreen;
+    const DEMO_ADMIN = PITCH_SITE.admin;
+
+    const PLAN_MATRIX = {"plans":[{"id":"simply","label":"Simply"},{"id":"small","label":"Small"},{"id":"medium","label":"Medium"},{"id":"high","label":"High"},{"id":"enterprise","label":"Enterprise"}],"prices":{"simply":{"monthly":39,"yearly":390},"small":{"monthly":79,"yearly":790},"medium":{"monthly":149,"yearly":1490},"high":{"monthly":279,"yearly":2790},"enterprise":{"monthly":499,"yearly":4990}},"rows":[{"key":"maxProducts","labelDe":"Max. Produkte","labelEn":"Max products","values":{"simply":50,"small":null,"medium":null,"high":null,"enterprise":null},"labelEs":"Máx. productos","labelFr":"Produits max.","labelIt":"Max prodotti"},{"key":"maxAdmins","labelDe":"Max. Admins","labelEn":"Max admins","values":{"simply":1,"small":2,"medium":5,"high":null,"enterprise":null},"labelEs":"Máx. administradores","labelFr":"Admins max.","labelIt":"Max admin"},{"key":"influencerCoupons","labelDe":"Influencer-Codes","labelEn":"Influencer codes","values":{"simply":true,"small":true,"medium":true,"high":true,"enterprise":true},"labelEs":"Códigos de influencers","labelFr":"Codes influenceurs","labelIt":"Codici influencer"},{"key":"guestCheckout","labelDe":"Gast-Checkout","labelEn":"Guest checkout","values":{"simply":true,"small":true,"medium":true,"high":true,"enterprise":true},"labelEs":"Checkout como invitado","labelFr":"Checkout invité","labelIt":"Checkout ospite"},{"key":"legalEditor","labelDe":"Legal-Editor","labelEn":"Legal editor","values":{"simply":false,"small":true,"medium":true,"high":true,"enterprise":true},"labelEs":"Editor legal","labelFr":"Éditeur juridique","labelIt":"Editor legale"},{"key":"customerRegistration","labelDe":"Kundenregistrierung","labelEn":"Customer registration","values":{"simply":false,"small":true,"medium":true,"high":true,"enterprise":true},"labelEs":"Registro de clientes","labelFr":"Inscription clients","labelIt":"Registrazione clienti"},{"key":"vatFoodCategories","labelDe":"MwSt Lebensmittel","labelEn":"Food VAT rates","values":{"simply":false,"small":true,"medium":true,"high":true,"enterprise":true},"labelEs":"IVA alimentación","labelFr":"TVA alimentaire","labelIt":"IVA alimentari"},{"key":"vatMultiRegion","labelDe":"MwSt Multi-Region","labelEn":"Multi-region VAT","values":{"simply":false,"small":false,"medium":true,"high":true,"enterprise":true},"labelEs":"IVA multi-región","labelFr":"TVA multi-région","labelIt":"IVA multi-regione"},{"key":"productReviews","labelDe":"Produktbewertungen","labelEn":"Product reviews","values":{"simply":false,"small":false,"medium":true,"high":true,"enterprise":true},"labelEs":"Reseñas de productos","labelFr":"Avis produits","labelIt":"Recensioni prodotti"},{"key":"shippingZones","labelDe":"Versandzonen","labelEn":"Shipping zones","values":{"simply":false,"small":false,"medium":true,"high":true,"enterprise":true},"labelEs":"Zonas de envío","labelFr":"Zones de livraison","labelIt":"Zone di spedizione"},{"key":"returns","labelDe":"Retouren","labelEn":"Returns","values":{"simply":false,"small":false,"medium":true,"high":true,"enterprise":true},"labelEs":"Devoluciones","labelFr":"Retours","labelIt":"Resi"},{"key":"newsletterIntegration","labelDe":"Newsletter","labelEn":"Newsletter","values":{"simply":false,"small":true,"medium":true,"high":true,"enterprise":true},"labelEs":"Newsletter","labelFr":"Newsletter","labelIt":"Newsletter"},{"key":"instagramShop","labelDe":"Instagram Shop","labelEn":"Instagram shop","values":{"simply":false,"small":false,"medium":true,"high":true,"enterprise":true},"labelEs":"Tienda Instagram","labelFr":"Boutique Instagram","labelIt":"Shop Instagram"},{"key":"sourcingApi","labelDe":"Beschaffungs-API","labelEn":"Sourcing API","values":{"simply":false,"small":false,"medium":true,"high":true,"enterprise":true},"labelEs":"API de abastecimiento","labelFr":"API sourcing","labelIt":"API sourcing"},{"key":"iosApp","labelDe":"Branded iOS-App","labelEn":"Branded iOS app","values":{"simply":false,"small":false,"medium":false,"high":true,"enterprise":true},"labelEs":"App iOS con su marca","labelFr":"App iOS à votre marque","labelIt":"App iOS brandizzata"},{"key":"steuerberater","labelDe":"Steuerberater-Export","labelEn":"Accountant export","values":{"simply":false,"small":false,"medium":false,"high":true,"enterprise":true},"labelEs":"Exportación contable","labelFr":"Export comptable","labelIt":"Export contabile"}]};
+
+    const I18N = {
+      de: {
+        'nav.features': 'Features', 'nav.plans': 'Tarife', 'nav.demo': 'Demo', 'nav.slot': 'Lucky Luck', 'nav.inquiry': 'Anfragen', 'nav.shop': 'Demo-Shop', 'nav.offer': 'Jetzt mieten', 'nav.compare': 'Vergleich',
+        'pitchBanner.whereLabel': 'Collection Shop', 'pitchBanner.whereTitle': 'collectionshop.eu',
+        'pitchBanner.whereNote': 'Im Browser: collectionshop.eu — der Online-Shop. Code & Grow ist die Firma.',
+        'pitchBanner.link': 'Zum Shop', 'pitchBanner.linkHint': 'collectionshop.eu',
+        'hero.badge': 'Shop-Plattform als Abo · ab 39 €/Monat',
+        'hero.title': 'CollectionShop mieten — für kleine Geschäfte.',
+        'hero.subtitle': 'Eigener Online-Shop mit Admin und App. Einfach starten, später mitwachsen — auch für größere Betriebe.',
+        'hero.ctaOffer': 'Tarif wählen & mieten', 'hero.ctaInquiry': 'Unverbindlich anfragen', 'hero.ctaBookDemo': 'Demo ansehen', 'hero.ctaShop': 'Live-Shop öffnen',
+        'hero.ctaDemo': 'Demo auf dieser Seite', 'hero.ctaPricing': 'Tarife & Abo',
+        'hero.pitchHint': 'Antwort meist in 24 h · keine Verpflichtung bei Anfrage',
+        'hero.contextTitle': 'Plattform mieten',
+        'hero.contextBody': 'Hier mieten Sie CollectionShop als Abo. Die Live-Demo liegt unter collectionshop.eu.',
+        'problem.title': 'Vom Chaos zum skalierbaren Umsatz',
+        'problem.painTitle': 'Ohne CollectionShop', 'problem.solutionTitle': 'Mit CollectionShop',
+        'compare.title': 'Warum Collection Shop — und nicht Shopify oder Strato?',
+        'compare.subtitle': 'Deine Plattform zum Mieten: Shop, Admin und optional App — EU-ready, ohne Plugin-Dschungel.',
+        'compare.colFeature': 'Merkmal',
+        'compare.colUs': 'Collection Shop',
+        'compare.colShopify': 'Shopify',
+        'compare.colStrato': 'Strato',
+        'compare.pitchHtml': '<strong>Dein Pitch-Satz:</strong> Shopify wird schnell teuer (Apps, Legal, Steuerberater). Strato ist günstig, aber nur ein Web-Baukasten. <strong>Collection Shop</strong> ist deine Miet-Plattform — alles aus einer Hand, ab 39&nbsp;€ netto.',
+        'compare.disclaimer': 'Preise der Mitbewerber: Richtwerte · Collection Shop netto zzgl. 19&nbsp;% MwSt. · Stand August 2026',
+        'showcase.title': 'Drei Oberflächen, ein Ökosystem',
+        'showcase.shop.title': 'Endkunden-Shop', 'showcase.shop.desc': 'PWA-fähig, Gast-Checkout, Warenkorb-Sync, Newsletter, Bewertungen.',
+        'showcase.admin.title': 'Admin-Dashboard', 'showcase.admin.desc': 'Produkte, Bestellungen, Analytics, Team, Gutscheine, CSV-Import.',
+        'showcase.ios.title': 'Branded iOS-App', 'showcase.ios.desc': 'Native Hülle — App Store ready, StoreKit-Abo.',
+        'iosPrototype.title': 'Native iOS-Prototyp (Xcode)',
+        'iosPrototype.subtitle': 'Fertig programmierte SwiftUI-App — dieselbe Tab-Navigation wie auf dem iPhone: Profil, Notiz, Shop, Warenkorb, Rücksendung.',
+        'iosPrototype.prototypeNote': 'Xcode-Prototyp für Investoren — kein App-Store-Release. Im High-Tarif als branded iOS-App lieferbar.',
+        'iosPrototype.viewModeLabel': 'Ansicht',
+        'iosPrototype.modeLive': 'Live',
+        'iosPrototype.modeScreenshots': 'Screenshots',
+        'iosPrototype.liveNote': 'Live-Ansicht: echter Web-Shop mit Markt-Hintergrund und Schimmer — Internet erforderlich.',
+        'iosPrototype.tabs.profile': 'Profil', 'iosPrototype.tabs.notice': 'Notiz', 'iosPrototype.tabs.shop': 'Shop',
+        'iosPrototype.tabs.cart': 'Warenkorb', 'iosPrototype.tabs.delivery': 'Rücksendung',
+        'demoTeaser.title': 'Erleben Sie es live', 'demoTeaser.subtitle': 'Echter Shop und Admin mit Mock-Daten — Checkout im Stripe-Testmodus.',
+        'demoTeaser.openFull': 'Vollbild-Demo',
+        'modal.openShopTab': 'Shop öffnen', 'modal.close': 'Schließen ✕',
+        'modal.fallbackShop': 'Shop in neuem Tab öffnen (falls Vorschau leer bleibt)',
+        'demo.offlineNote': 'Tipp: Für eingebettete Demos Internet nötig. Alternativ «Shop/Admin öffnen» — funktioniert auch offline gespeichert.',
+        'demo.tabShop': 'Shop', 'demo.tabAdmin': 'Admin', 'demo.tabGuide': 'Anleitung',
+        'demo.openShop': 'Shop in neuem Tab', 'demo.openAdmin': 'Admin in neuem Tab',
+        'demo.credentialsTitle': 'Admin-Zugang', 'demo.credentialsNote': 'Nur Demo — keine echten Kundendaten.',
+        'demo.email': 'E-Mail', 'demo.password': 'Passwort',
+        'demo.stripeNote': 'Testkarte: 4242 4242 4242 4242',
+        'features.title': 'Enterprise-Features ab Tag 1',
+        'slot.title': 'Lucky Luck — 5 Walzen',
+        'slot.subtitle': 'Dreh 5 Walzen — 5× Lucky Luck = 5 € Rabatt auf dein erstes Abo.',
+        'slot.badge': '5 € Gutschein · 5× Lucky Luck',
+        'slot.prize': 'Preis: 5 € Gutschein',
+        'slot.spin': 'Drehen',
+        'slot.hint': 'Drehen und auf 5× Lucky Luck hoffen!',
+        'slot.winMessage': 'Glückwunsch! 5× Lucky Luck — dein 5-€-Gutschein auf das erste Abo ist freigeschaltet. Schreib uns für den Code.',
+        'slot.nearLuke': '4× Lucky Luck — knapp daneben! Morgen erneut versuchen.',
+        'slot.nearLuke3': '3× Lucky Luck — knapp daneben! Morgen erneut versuchen.',
+        'slot.nearMiss': '2× Lucky Luck — knapp daneben! Morgen erneut versuchen.',
+        'slot.nearMiss1': '1× Lucky Luck — knapp daneben! Morgen erneut versuchen.',
+        'slot.tryAgain': 'Leider kein Treffer — morgen hast du wieder eine Chance.',
+        'slot.dailyChances': 'Einmal am Tag hast du beim Lucky-Luck-Spiel die Chance auf den 5-€-Gutschein.',
+        'slot.noSpinsLeft': 'Deine tägliche Chance ist verbraucht — morgen kannst du wieder drehen.',
+        'slot.disclaimer': 'Gutschein für Neukunden · gilt bei 5× Lucky Luck auf allen 5 Walzen · ein Dreh pro Tag.',
+        'plans.title': 'Transparente Tarife', 'plans.subtitle': 'Besonders für kleine Geschäfte gemacht. Auch für Großunternehmen. Netto zzgl. 19 % MwSt.',
+        'plans.monthly': 'Monat', 'plans.yearly': 'Jahr',
+        'plans.enterprise': 'Enterprise', 'plans.enterpriseNote': 'Multi-Store, SLA, Custom',
+        'plans.contactOffer': 'Unverbindlich anfragen', 'plans.contactPay': 'Jetzt mieten', 'plans.contactDemo': 'Demo ansehen',
+        'plans.tableFeature': 'Merkmal',
+        'architecture.title': 'White-Label-Architektur',
+        'architecture.desc': 'Jeder Mandant = isoliertes Firebase-Projekt. Plattform verwaltet Billing zentral.',
+        'architecture.svg.title': 'White-Label-Architektur',
+        'architecture.svg.platform': 'Plattform · Billing',
+        'architecture.svg.tenantA': 'Mandant A',
+        'architecture.svg.tenantB': 'Mandant B',
+        'strategy.title': 'Go-to-Market für Ihre Kunden',
+        'investor.title': 'Skalierung & Economics',
+        'social.title': 'Vertrauen durch Transparenz',
+        'social.quote': 'CollectionShop reduziert Time-to-Market von Monaten auf Tage — Shop, Admin und Influencer-Tracking aus einer Hand.',
+        'social.author': '— Pilot-Kunde, Fashion & Lifestyle',
+        'social.liveBadge': 'Live-Demo verfügbar',
+        'pricingCta.title': 'Ihr Shop — in Tagen live',
+        'pricingCta.subtitle': 'Besonders für kleine Geschäfte · Simply ab 39 €/Monat · auch für Großunternehmen',
+        'pricingCta.requestOffer': 'Angebot anfragen', 'pricingCta.bookDemo': 'Demo buchen',
+        'pricingCta.viewPlans': 'Alle Tarife ansehen',
+        'rent.title': 'Jetzt mieten & zahlen',
+        'rent.lead': 'Tarif wählen und Abo per Stripe starten. Nach der Zahlung richten wir Ihren Shop ein und schicken den Zugang per E-Mail.',
+        'rent.softHint': 'Noch unsicher? Nutzen Sie zuerst die unverbindliche Anfrage weiter oben.',
+        'rent.gotoInquiry': 'Lieber zuerst anfragen',
+        'rent.name': 'Name',
+        'rent.email': 'E-Mail',
+        'rent.plan': 'Tarif',
+        'rent.shop': 'Gewünschter Shop-Name',
+        'rent.note': 'Nachricht',
+        'rent.submit': 'Zahlungspflichtig mieten',
+        'rent.ok': 'Zahlung angekommen. Dein Shop wird jetzt eingerichtet — den Link schicken wir per E-Mail.',
+        'rent.error': 'Senden fehlgeschlagen. Bitte E-Mail prüfen oder später erneut versuchen.',
+        'rent.canceled': 'Zahlung abgebrochen. Du kannst es erneut versuchen.',
+        'rent.after': 'Nach der Zahlung ist das Abo aktiv. Shop-Link und Admin-Zugang kommen per E-Mail.',
+        'rent.placeholderName': 'Vorname Nachname',
+        'rent.placeholderEmail': 'kunde@example.de',
+        'rent.placeholderShop': 'z. B. ACME Shop',
+        'rent.placeholderNote': 'optional',
+        'inquiry.title': 'Unverbindlich anfragen',
+        'inquiry.lead': 'Kurze Nachricht reicht — wir melden uns mit Tarif-Empfehlung und Demo. Keine Zahlung nötig.',
+        'inquiry.submit': 'Anfrage senden',
+        'inquiry.ok': 'Danke — Anfrage ist raus. Wir melden uns in der Regel innerhalb von 24 Stunden.',
+        'inquiry.error': 'Senden fehlgeschlagen. Bitte E-Mail prüfen oder kontakt@code-und-grow.de schreiben.',
+        'inquiry.after': 'Ideal, wenn Sie erst Fragen klären wollen — ohne Stripe-Checkout.',
+        'inquiry.gotoPay': 'Bereits entschieden? Direkt mieten',
+        'inquiry.placeholderNote': 'Worum geht es? z. B. Anzahl Produkte, Branche',
+        'footer.tagline': 'CollectionShop — Premium White-Label Commerce',
+        'footer.legal': 'Rechtliches', 'footer.impressum': 'Impressum', 'footer.privacy': 'Datenschutz', 'footer.terms': 'AGB',
+        'footer.social': 'Social Media', 'footer.socialInstagram': 'Instagram', 'footer.socialTiktok': 'TikTok', 'footer.socialFacebook': 'Facebook',
+        pains: ['Shopify + Plugins = hohe Fixkosten', 'Influencer-Codes in Excel', 'Kein EU-Legal-Workflow', 'iOS und Web getrennt'],
+        solutions: ['1 Mandant = 1 Firebase-Projekt', 'Influencer-Codes ∞ ab Simply', 'Legal, Versandzonen, Steuerberater', 'iOS-App im High-Tarif'],
+        features: [
+          ['Influencer-Codes ∞', 'Affiliate-Tracking pro Creator.'],
+          ['MwSt-Engine', 'Brutto/Netto, Lebensmittel, Multi-Region.'],
+          ['Legal-Editor', 'Impressum, AGB, Datenschutz im Admin.'],
+          ['Versandzonen', 'EU, UK, Express im Checkout.'],
+          ['Produktbewertungen', 'Social Proof im Shop.'],
+          ['Beschaffungs-API', 'Dropshipping-Import.'],
+          ['Steuerberater-Export', 'DATEV-ready im High-Tarif.'],
+          ['White-Label', 'Eigene Domain, Farben, Logo.'],
+        ],
+        strategy: [
+          ['Influencer-Affiliate', 'Creator-Codes mit Tracking.'],
+          ['SEO & Backlinks', 'Bild-SEO ab Small.'],
+          ['Social Shop', 'Instagram & TikTok ab Medium.'],
+          ['Newsletter', 'Opt-in beim Checkout.'],
+          ['Gast-Checkout', 'Konto optional.'],
+          ['Retouren-Tracking', 'Order-ID + PLZ für Gäste.'],
+        ],
+        metrics: [['€2,1 Mrd.', 'TAM DACH', 'Creator Commerce'], ['€149/Mo', 'ARPU Medium', 'netto'], ['~85 %', 'Gross Margin', 'Firebase + Stripe'], ['< 24 h', 'Time-to-Shop', 'Provisionierung']],
+        demoSteps: ['Produkte als Gast stöbern', 'Im Profil registrieren', 'Warenkorb → Checkout', 'Karte 4242…', 'Admin: Bestellung prüfen', 'Optional: /signup Operator'],
+        compareCards: [
+          ['Collection Shop', 'ab 39 €/Mo', 'netto · Shop + Admin + optional App', ['White-Label & EU-Legal', 'Influencer-Codes ∞', 'Persönlicher Support (DE)'], true],
+          ['Shopify Basic', 'ca. 29–36 €/Mo', '+ Apps + 2&nbsp;% Transaktionsgebühr', ['Größtes App-Ökosystem', 'Global skalierbar', 'EU-Legal oft über Plugins'], false],
+          ['Strato Online-Shop', 'ca. 1–15 €/Mo', 'Aktion · ePages · Hosting inkl.', ['Günstiger Einstieg', 'Domain & E-Mail dabei', 'Keine App, weniger Plattform'], false],
+        ],
+        compareRows: [
+          ['Einstiegspreis', '39 €/Mo netto', 'ca. 29–36 €/Mo', 'ca. 1–15 €/Mo'],
+          ['Admin-Dashboard', '✓ inklusive', '✓', '✓'],
+          ['Branded iOS-App', '✓ ab High', '✗ (eigene Entwicklung)', '✗'],
+          ['Influencer-/Affiliate-Codes', '✓ unbegrenzt ab Simply', 'Apps (kostenpflichtig)', 'Gutscheine only'],
+          ['EU Legal-Editor (DE)', '✓', 'Plugins / extern', 'Basis-Templates'],
+          ['Steuerberater-Export', '✓ High / Add-on', 'Apps / extern', '✗'],
+          ['Time-to-Shop', '< 24 h', 'Stunden–Tage', 'Stunden'],
+          ['Support', 'Persönlich, DE (Speyer)', '24/7 Chat (EN)', 'DE-Hotline'],
+        ],
+      },
+      en: {
+        'nav.features': 'Features', 'nav.plans': 'Plans', 'nav.demo': 'Demo', 'nav.slot': 'Lucky Luck', 'nav.inquiry': 'Inquire', 'nav.shop': 'Demo shop', 'nav.offer': 'Subscribe now', 'nav.compare': 'Compare',
+        'pitchBanner.whereLabel': 'Collection Shop', 'pitchBanner.whereTitle': 'collectionshop.eu',
+        'pitchBanner.whereNote': 'In the browser: collectionshop.eu — the shop. Code & Grow is the company.',
+        'pitchBanner.link': 'Open shop', 'pitchBanner.linkHint': 'collectionshop.eu',
+        'hero.badge': 'Shop platform subscription · from €39/mo',
+        'hero.title': 'Rent CollectionShop — built for small businesses.',
+        'hero.subtitle': 'Your online shop with admin and app. Start simple, grow later — also for larger teams.',
+        'hero.ctaOffer': 'Choose a plan & subscribe', 'hero.ctaInquiry': 'Ask without commitment', 'hero.ctaBookDemo': 'See the demo', 'hero.ctaShop': 'Open live shop',
+        'hero.ctaDemo': 'Demo on this page', 'hero.ctaPricing': 'Plans & billing',
+        'hero.pitchHint': 'We usually reply within 24 h · inquiry is free',
+        'hero.contextTitle': 'Rent the platform',
+        'hero.contextBody': 'Subscribe to CollectionShop here. The live demo is at collectionshop.eu.',
+        'problem.title': 'From chaos to scalable revenue',
+        'problem.painTitle': 'Without CollectionShop', 'problem.solutionTitle': 'With CollectionShop',
+        'compare.title': 'Why Collection Shop — not Shopify or Strato?',
+        'compare.subtitle': 'Your rental platform: shop, admin and optional app — EU-ready, no plugin maze.',
+        'compare.colFeature': 'Feature',
+        'compare.colUs': 'Collection Shop',
+        'compare.colShopify': 'Shopify',
+        'compare.colStrato': 'Strato',
+        'compare.pitchHtml': '<strong>Your pitch line:</strong> Shopify gets expensive fast (apps, legal, accountant). Strato is cheap but only a web builder. <strong>Collection Shop</strong> is your rental platform — all-in-one from €39 net.',
+        'compare.disclaimer': 'Competitor prices: indicative · Collection Shop net excl. 19% VAT · Aug 2026',
+        'showcase.title': 'Three surfaces, one ecosystem',
+        'showcase.shop.title': 'Customer shop', 'showcase.shop.desc': 'PWA, guest checkout, cart sync, reviews.',
+        'showcase.admin.title': 'Admin dashboard', 'showcase.admin.desc': 'Products, orders, analytics, coupons.',
+        'showcase.ios.title': 'Branded iOS app', 'showcase.ios.desc': 'App Store ready, StoreKit billing.',
+        'iosPrototype.title': 'Native iOS prototype (Xcode)',
+        'iosPrototype.subtitle': 'Production SwiftUI app — same tab navigation as on iPhone: profile, notes, shop, cart, returns.',
+        'iosPrototype.prototypeNote': 'Xcode prototype for investors — not an App Store release. Available as branded iOS app in the High tier.',
+        'iosPrototype.viewModeLabel': 'View',
+        'iosPrototype.modeLive': 'Live',
+        'iosPrototype.modeScreenshots': 'Screenshots',
+        'iosPrototype.liveNote': 'Live view: real web shop with market background and shimmer — internet required.',
+        'iosPrototype.tabs.profile': 'Profile', 'iosPrototype.tabs.notice': 'Notes', 'iosPrototype.tabs.shop': 'Shop',
+        'iosPrototype.tabs.cart': 'Cart', 'iosPrototype.tabs.delivery': 'Returns',
+        'demoTeaser.title': 'Experience it live', 'demoTeaser.subtitle': 'Real shop and admin with mock data — Stripe test mode.',
+        'demoTeaser.openFull': 'Full-screen demo',
+        'modal.openShopTab': 'Open shop', 'modal.close': 'Close ✕',
+        'modal.fallbackShop': 'Open shop in new tab (if preview stays blank)',
+        'demo.offlineNote': 'Tip: Embedded demos need internet. Use «Open shop/admin» — works when saved locally too.',
+        'demo.tabShop': 'Shop', 'demo.tabAdmin': 'Admin', 'demo.tabGuide': 'Guide',
+        'demo.openShop': 'Open shop', 'demo.openAdmin': 'Open admin',
+        'demo.credentialsTitle': 'Admin access', 'demo.credentialsNote': 'Demo only.',
+        'demo.email': 'Email', 'demo.password': 'Password',
+        'demo.stripeNote': 'Test card: 4242 4242 4242 4242',
+        'features.title': 'Enterprise features from day one',
+        'slot.title': 'Lucky Luck — 5 reels',
+        'slot.subtitle': 'Spin 5 reels — 5× Lucky Luck = €5 off your first subscription.',
+        'slot.badge': '€5 voucher · 5× Lucky Luck',
+        'slot.prize': 'Prize: €5 voucher',
+        'slot.spin': 'Spin',
+        'slot.hint': 'Spin and aim for 5× Lucky Luck!',
+        'slot.winMessage': 'Congratulations! 5× Lucky Luck — your €5 first-subscription voucher is unlocked. Contact us for the code.',
+        'slot.nearLuke': '4× Lucky Luck — so close! Try again tomorrow.',
+        'slot.nearLuke3': '3× Lucky Luck — so close! Try again tomorrow.',
+        'slot.nearMiss': '2× Lucky Luck — so close! Try again tomorrow.',
+        'slot.nearMiss1': '1× Lucky Luck — so close! Try again tomorrow.',
+        'slot.tryAgain': 'No win this time — come back tomorrow for another chance.',
+        'slot.dailyChances': 'Once a day, you get one chance to win the €5 voucher on the Lucky Luck game.',
+        'slot.noSpinsLeft': 'Your daily chance is used up — you can spin again tomorrow.',
+        'slot.disclaimer': 'New customers only · valid with 5× Lucky Luck on all 5 reels · one spin per day.',
+        'plans.title': 'Transparent pricing', 'plans.subtitle': 'Net excl. 19% VAT.',
+        'plans.monthly': 'Month', 'plans.yearly': 'Year',
+        'plans.enterprise': 'Enterprise', 'plans.enterpriseNote': 'Multi-store, SLA, custom',
+        'plans.contactOffer': 'Ask without commitment', 'plans.contactPay': 'Subscribe now', 'plans.contactDemo': 'See the demo',
+        'plans.tableFeature': 'Feature',
+        'architecture.title': 'White-label architecture',
+        'architecture.desc': 'Each tenant gets an isolated Firebase project.',
+        'architecture.svg.title': 'White-label architecture',
+        'architecture.svg.platform': 'Platform · Billing',
+        'architecture.svg.tenantA': 'Tenant A',
+        'architecture.svg.tenantB': 'Tenant B',
+        'strategy.title': 'Go-to-market for your customers',
+        'investor.title': 'Scale & unit economics',
+        'social.title': 'Trust through transparency',
+        'social.quote': 'CollectionShop cut time-to-market from months to days.',
+        'social.author': '— Pilot customer, fashion & lifestyle',
+        'social.liveBadge': 'Live demo available',
+        'pricingCta.title': 'Your shop — live in days',
+        'pricingCta.subtitle': 'Simply from €39/month · personal demo · custom quote',
+        'pricingCta.requestOffer': 'Request a quote', 'pricingCta.bookDemo': 'Book a demo',
+        'pricingCta.viewPlans': 'View all plans',
+        'rent.title': 'Subscribe & pay',
+        'rent.lead': 'Choose a plan and start the subscription via Stripe. After payment we set up your shop and email access.',
+        'rent.softHint': 'Not ready yet? Use the free inquiry form above first.',
+        'rent.gotoInquiry': 'Prefer to inquire first',
+        'rent.name': 'Name',
+        'rent.email': 'Email',
+        'rent.plan': 'Plan',
+        'rent.shop': 'Preferred shop name',
+        'rent.note': 'Message',
+        'rent.submit': 'Subscribe and pay',
+        'rent.ok': 'Payment received. We are setting up your shop and will email the link.',
+        'rent.error': 'Could not send. Check your email or try again later.',
+        'rent.canceled': 'Payment canceled. You can try again.',
+        'rent.after': 'After payment the subscription is active. Shop link and admin access arrive by email.',
+        'rent.placeholderName': 'First and last name',
+        'rent.placeholderEmail': 'you@example.com',
+        'rent.placeholderShop': 'e.g. ACME Shop',
+        'rent.placeholderNote': 'optional',
+        'inquiry.title': 'Ask without commitment',
+        'inquiry.lead': 'A short message is enough — we reply with a plan suggestion and demo. No payment required.',
+        'inquiry.submit': 'Send inquiry',
+        'inquiry.ok': 'Thanks — inquiry sent. We usually reply within 24 hours.',
+        'inquiry.error': 'Could not send. Check your email or write to kontakt@code-und-grow.de.',
+        'inquiry.after': 'Best if you want answers first — without Stripe checkout.',
+        'inquiry.gotoPay': 'Ready to subscribe? Pay now',
+        'inquiry.placeholderNote': 'What do you need? e.g. product count, industry',
+        'footer.tagline': 'CollectionShop — Premium white-label commerce',
+        'footer.legal': 'Legal', 'footer.impressum': 'Imprint', 'footer.privacy': 'Privacy', 'footer.terms': 'Terms',
+        'footer.social': 'Social media', 'footer.socialInstagram': 'Instagram', 'footer.socialTiktok': 'TikTok', 'footer.socialFacebook': 'Facebook',
+        pains: ['Shopify + plugins = high costs', 'Influencer codes in spreadsheets', 'No EU legal workflow', 'iOS and web separate'],
+        solutions: ['1 tenant = 1 Firebase project', 'Unlimited influencer codes', 'Legal, shipping, accountant export', 'iOS app in High tier'],
+        features: [
+          ['Influencer codes ∞', 'Affiliate tracking per creator.'],
+          ['VAT engine', 'Gross/net, food, multi-region.'],
+          ['Legal editor', 'Imprint, terms, privacy.'],
+          ['Shipping zones', 'EU, UK, express.'],
+          ['Product reviews', 'Social proof.'],
+          ['Sourcing API', 'Dropshipping import.'],
+          ['Accountant export', 'DATEV-ready in High.'],
+          ['White-label', 'Custom domain and branding.'],
+        ],
+        strategy: [
+          ['Influencer affiliate', 'Creator codes with tracking.'],
+          ['SEO & backlinks', 'Image SEO from Small.'],
+          ['Social shop', 'Instagram & TikTok from Medium.'],
+          ['Newsletter', 'Checkout opt-in.'],
+          ['Guest checkout', 'Account optional.'],
+          ['Returns tracking', 'Order ID + ZIP for guests.'],
+        ],
+        metrics: [['€2.1B', 'TAM DACH', 'Creator commerce'], ['€149/mo', 'ARPU Medium', 'net'], ['~85%', 'Gross margin', 'Firebase + Stripe'], ['< 24h', 'Time-to-shop', 'Provisioning']],
+        demoSteps: ['Browse as guest', 'Register in profile', 'Cart → checkout', 'Card 4242…', 'Admin: check order', 'Optional: operator signup'],
+        compareCards: [
+          ['Collection Shop', 'from €39/mo', 'net · shop + admin + optional app', ['White-label & EU legal', 'Unlimited influencer codes', 'Personal support (DE)'], true],
+          ['Shopify Basic', 'approx. €29–36/mo', '+ apps + 2% transaction fee', ['Largest app ecosystem', 'Global scale', 'EU legal often via plugins'], false],
+          ['Strato online shop', 'approx. €1–15/mo', 'promo · ePages · hosting incl.', ['Low entry price', 'Domain & email included', 'No app, less platform'], false],
+        ],
+        compareRows: [
+          ['Entry price', '€39/mo net', 'approx. €29–36/mo', 'approx. €1–15/mo'],
+          ['Admin dashboard', '✓ included', '✓', '✓'],
+          ['Branded iOS app', '✓ from High tier', '✗ (custom dev)', '✗'],
+          ['Influencer / affiliate codes', '✓ unlimited from Simply', 'Paid apps', 'Coupons only'],
+          ['EU legal editor (DE)', '✓', 'Plugins / external', 'Basic templates'],
+          ['Accountant export', '✓ High / add-on', 'Apps / external', '✗'],
+          ['Time-to-shop', '< 24 h', 'Hours–days', 'Hours'],
+          ['Support', 'Personal, DE (Speyer)', '24/7 chat (EN)', 'DE hotline'],
+        ],
+      },
+      es: {
+        'nav.features': "Funciones",
+        'nav.plans': "Planes",
+        'nav.demo': "Demo",
+        'nav.slot': "Lucky Luck",
+        'nav.shop': "collectionshop.eu",
+        'nav.offer': "Alquilar plataforma",
+        'nav.inquiry': "Consulta",
+        'nav.compare': "Comparar",
+        'pitchBanner.whereLabel': "Collection Shop",
+        'pitchBanner.whereTitle': "collectionshop.eu",
+        'pitchBanner.whereNote': "En el navegador: collectionshop.eu — la tienda. Code & Grow es la empresa.",
+        'pitchBanner.link': "Ir a la tienda",
+        'pitchBanner.linkHint': "collectionshop.eu",
+        'hero.badge': "Comercio white-label · Listo para la UE",
+        'hero.title': "Alquile la plataforma. Sobre todo para pequeños comercios.",
+        'hero.subtitle': "Especialmente adecuada para pequeños comercios: empezar fácil, crecer después. También para grandes empresas. Collection Shop de Code & Grow, desde 39 € al mes.",
+        'hero.ctaOffer': "Alquilar plataforma",
+        'hero.ctaBookDemo': "Reservar demo",
+        'hero.ctaShop': "Shop · collectionshop.eu",
+        'hero.ctaDemo': "Demo en esta página",
+        'hero.ctaPricing': "Planes y facturación",
+        'hero.pitchHint': "Respuesta habitual en 24 h · tienda demo siempre disponible",
+        'hero.contextTitle': "Pitch ≠ tienda",
+        'hero.contextBody': "Esta página explica la plataforma a los inversores. La tienda web demo es una página separada, clara, con productos, carrito y un banner de «modo demo».",
+        'problem.title': "Del caos a ingresos escalables",
+        'problem.painTitle': "Sin CollectionShop",
+        'problem.solutionTitle': "Con CollectionShop",
+        'compare.title': "¿Por qué Collection Shop — y no Shopify o Strato?",
+        'compare.subtitle': "Tu plataforma en alquiler: tienda, admin y app opcional — lista para la UE, sin laberinto de plugins.",
+        'compare.colFeature': "Característica",
+        'compare.colUs': "Collection Shop",
+        'compare.colShopify': "Shopify",
+        'compare.colStrato': "Strato",
+        'compare.pitchHtml': "<strong>Tu frase clave:</strong> Shopify se encarece (apps, legal, contabilidad). Strato es barato pero solo un constructor web. <strong>Collection Shop</strong> es tu plataforma en alquiler — todo en uno desde 39&nbsp;€ netos.",
+        'compare.disclaimer': "Precios competidores: orientativos · Collection Shop neto + 19&nbsp;% IVA · ago 2026",
+        'showcase.title': "Tres superficies, un ecosistema",
+        'showcase.shop.title': "Tienda para clientes",
+        'showcase.shop.desc': "PWA, checkout como invitado, sincronización del carrito, reseñas.",
+        'showcase.admin.title': "Panel de administración",
+        'showcase.admin.desc': "Productos, pedidos, analítica, cupones.",
+        'showcase.ios.title': "App iOS con su marca",
+        'showcase.ios.desc': "Lista para App Store, facturación StoreKit.",
+        'iosPrototype.title': "Prototipo iOS nativo (Xcode)",
+        'iosPrototype.subtitle': "App SwiftUI en producción — misma navegación por pestañas que en iPhone: perfil, notas, tienda, carrito, devoluciones.",
+        'iosPrototype.prototypeNote': "Prototipo Xcode para inversores — no es un lanzamiento en App Store. Disponible como app iOS con su marca en el plan High.",
+        'iosPrototype.viewModeLabel': "Vista",
+        'iosPrototype.modeLive': "En vivo",
+        'iosPrototype.modeScreenshots': "Capturas",
+        'iosPrototype.liveNote': "Vista en vivo: tienda web real con fondo de mercado y brillo — requiere internet.",
+        'iosPrototype.tabs.profile': "Perfil",
+        'iosPrototype.tabs.notice': "Notas",
+        'iosPrototype.tabs.shop': "Tienda",
+        'iosPrototype.tabs.cart': "Carrito",
+        'iosPrototype.tabs.delivery': "Devoluciones",
+        'demoTeaser.title': "Pruébelo en vivo",
+        'demoTeaser.subtitle': "Tienda y admin reales con datos de prueba — modo test de Stripe.",
+        'demoTeaser.openFull': "Demo a pantalla completa",
+        'modal.openShopTab': "Abrir tienda",
+        'modal.close': "Cerrar ✕",
+        'modal.fallbackShop': "Abrir tienda en nueva pestaña (si la vista previa queda en blanco)",
+        'demo.offlineNote': "Consejo: Las demos integradas requieren internet. Use «Abrir tienda/admin» — también funciona guardado localmente.",
+        'demo.tabShop': "Tienda",
+        'demo.tabAdmin': "Admin",
+        'demo.tabGuide': "Guía",
+        'demo.openShop': "Abrir tienda",
+        'demo.openAdmin': "Abrir admin",
+        'demo.credentialsTitle': "Acceso admin",
+        'demo.credentialsNote': "Solo demo.",
+        'demo.email': "Correo",
+        'demo.password': "Contraseña",
+        'demo.stripeNote': "Tarjeta de prueba: 4242 4242 4242 4242",
+        'features.title': "Funciones enterprise desde el día uno",
+        'slot.title': "Lucky Luck — 5 rodillos",
+        'slot.subtitle': "Gira 5 rodillos — 5× Lucky Luck = 5 € de descuento en tu primer abono.",
+        'slot.badge': "Cupón 5 € · 5× Lucky Luck",
+        'slot.prize': "Premio: cupón de 5 €",
+        'slot.spin': "Girar",
+        'slot.hint': "¡Gira y busca 5× Lucky Luck!",
+        'slot.winMessage': "¡Enhorabuena! 5× Lucky Luck — tu cupón de 5 € para el primer abono está desbloqueado. Escríbenos para el código.",
+        'slot.nearLuke': "4× Lucky Luck — ¡casi! Inténtalo mañana.",
+        'slot.nearLuke3': "3× Lucky Luck — ¡casi! Inténtalo mañana.",
+        'slot.nearMiss': "2× Lucky Luck — ¡casi! Inténtalo mañana.",
+        'slot.nearMiss1': "1× Lucky Luck — ¡casi! Inténtalo mañana.",
+        'slot.tryAgain': "Sin premio — mañana tendrás otra oportunidad.",
+        'slot.dailyChances': "Una vez al día tienes la oportunidad de ganar el cupón de 5 € en el juego Lucky Luck.",
+        'slot.noSpinsLeft': "Tu oportunidad diaria está agotada — vuelve mañana.",
+        'slot.disclaimer': "Solo nuevos clientes · válido con 5× Lucky Luck en los 5 rodillos · un giro al día.",
+        'plans.title': "Precios transparentes",
+        'plans.subtitle': "Neto sin IVA del 19 %.",
+        'plans.monthly': "Mes",
+        'plans.yearly': "Año",
+        'plans.enterprise': "Enterprise",
+        'plans.enterpriseNote': "Multi-tienda, SLA, personalizado",
+        'plans.contactOffer': "Solicitar oferta",
+        'plans.contactDemo': "Reservar demo",
+        'plans.tableFeature': "Función",
+        'strategy.title': "Go-to-market para sus clientes",
+        'architecture.title': "Arquitectura white-label",
+        'architecture.desc': "Cada inquilino obtiene un proyecto Firebase aislado.",
+        'architecture.svg.title': "Arquitectura white-label",
+        'architecture.svg.platform': "Plataforma · Facturación",
+        'architecture.svg.tenantA': "Inquilino A",
+        'architecture.svg.tenantB': "Inquilino B",
+        'investor.title': "Escala y unit economics",
+        'social.title': "Confianza mediante transparencia",
+        'social.quote': "CollectionShop redujo el time-to-market de meses a días.",
+        'social.author': "— Cliente piloto, moda y lifestyle",
+        'social.liveBadge': "Demo en vivo disponible",
+        'pricingCta.title': "Su tienda — en vivo en días",
+        'pricingCta.subtitle': "Simply desde 39 €/mes · demo personal · oferta individual",
+        'pricingCta.requestOffer': "Solicitar oferta",
+        'pricingCta.bookDemo': "Reservar demo",
+        'pricingCta.viewPlans': "Ver todos los planes",
+        'rent.title': "Alquiler de tienda",
+        'rent.lead': "Elige tarifa y paga. El abono empieza con el pago. Tu tienda no queda en vivo en ese mismo momento.",
+        'rent.name': "Nombre",
+        'rent.email': "Correo",
+        'rent.plan': "Tarifa",
+        'rent.shop': "Nombre de tienda",
+        'rent.note': "Mensaje",
+        'rent.submit': "Alquilar y pagar",
+        'rent.ok': "Pago recibido, abono activo. Tu tienda aún no está en vivo — la preparamos y enviamos el enlace.",
+        'rent.error': "No se pudo enviar. Revisa el correo o inténtalo más tarde.",
+        'rent.canceled': "Pago cancelado. Puedes intentarlo de nuevo.",
+        'rent.after': "No es una tienda instantánea: tras el pago el abono está activo. El acceso te llega por correo cuando la hayamos creado.",
+        'rent.placeholderName': "Nombre y apellidos",
+        'rent.placeholderEmail': "tu@example.com",
+        'rent.placeholderShop': "p. ej. ACME Shop",
+        'rent.placeholderNote': "opcional",
+        'footer.tagline': "CollectionShop — Comercio white-label premium",
+        'footer.legal': "Legal",
+        'footer.impressum': "Aviso legal",
+        'footer.privacy': "Privacidad",
+        'footer.terms': "Términos",
+        'footer.social': "Redes sociales",
+        'footer.socialInstagram': "Instagram",
+        'footer.socialTiktok': "TikTok",
+        'footer.socialFacebook': "Facebook",
+        pains: ["Shopify + plugins = costes elevados", "Códigos de influencers en hojas de cálculo", "Sin flujo legal para la UE", "iOS y web por separado"],
+        solutions: ["1 inquilino = 1 proyecto Firebase", "Códigos de influencers ilimitados", "Legal, envíos, exportación contable", "App iOS en plan High"],
+        features: [
+          ["Códigos de influencers ∞", "Seguimiento de afiliados por creador."],
+          ["Motor de IVA", "Bruto/neto, alimentación, multi-región."],
+          ["Editor legal", "Aviso legal, términos, privacidad."],
+          ["Zonas de envío", "UE, Reino Unido, express."],
+          ["Reseñas de productos", "Prueba social."],
+          ["API de abastecimiento", "Importación dropshipping."],
+          ["Exportación contable", "Compatible DATEV en High."],
+          ["White-label", "Dominio y branding propios."],
+        ],
+        strategy: [
+          ["Afiliados influencers", "Códigos de creadores con seguimiento."],
+          ["SEO y backlinks", "SEO de imágenes desde Small."],
+          ["Tienda social", "Instagram y TikTok desde Medium."],
+          ["Newsletter", "Opt-in en el checkout."],
+          ["Checkout como invitado", "Cuenta opcional."],
+          ["Seguimiento de devoluciones", "ID de pedido + código postal para invitados."],
+        ],
+        metrics: [["2,1 mil M€", "TAM DACH", "Creator commerce"], ["149 €/mes", "ARPU Medium", "neto"], ["~85 %", "Margen bruto", "Firebase + Stripe"], ["< 24 h", "Time-to-shop", "Aprovisionamiento"]],
+        demoSteps: ["Explorar como invitado", "Registrarse en el perfil", "Carrito → checkout", "Tarjeta 4242…", "Admin: revisar pedido", "Opcional: registro de operador"],
+        compareCards: [
+          ["Collection Shop", "desde 39 €/mes", "neto · tienda + admin + app opcional", ["White-label y legal UE", "Códigos influencer ∞", "Soporte personal (DE)"], true],
+          ["Shopify Basic", "aprox. 29–36 €/mes", "+ apps + 2&nbsp;% comisión", ["Mayor ecosistema de apps", "Escala global", "Legal UE vía plugins"], false],
+          ["Strato tienda online", "aprox. 1–15 €/mes", "promo · ePages · hosting incl.", ["Entrada económica", "Dominio y email incl.", "Sin app, menos plataforma"], false],
+        ],
+        compareRows: [
+          ["Precio de entrada", "39 €/mes neto", "aprox. 29–36 €/mes", "aprox. 1–15 €/mes"],
+          ["Panel admin", "✓ incluido", "✓", "✓"],
+          ["App iOS con marca", "✓ desde High", "✗ (desarrollo propio)", "✗"],
+          ["Códigos influencer/afiliados", "✓ ilimitados desde Simply", "Apps de pago", "Solo cupones"],
+          ["Editor legal UE (DE)", "✓", "Plugins / externo", "Plantillas básicas"],
+          ["Exportación contable", "✓ High / add-on", "Apps / externo", "✗"],
+          ["Time-to-shop", "< 24 h", "Horas–días", "Horas"],
+          ["Soporte", "Personal, DE (Speyer)", "Chat 24/7 (EN)", "Hotline DE"],
+        ],
+      },
+      fr: {
+        'nav.features': "Fonctionnalités",
+        'nav.plans': "Offres",
+        'nav.demo': "Démo",
+        'nav.slot': "Lucky Luck",
+        'nav.shop': "collectionshop.eu",
+        'nav.offer': "Location de plateforme",
+        'nav.inquiry': "Demande",
+        'nav.compare': "Comparer",
+        'pitchBanner.whereLabel': "Collection Shop",
+        'pitchBanner.whereTitle': "collectionshop.eu",
+        'pitchBanner.whereNote': "Dans le navigateur : collectionshop.eu — la boutique. Code & Grow est l’entreprise.",
+        'pitchBanner.link': "Aller à la boutique",
+        'pitchBanner.linkHint': "collectionshop.eu",
+        'hero.badge': "Commerce white-label · Prêt pour l’UE",
+        'hero.title': "Louez la plateforme. Surtout pour les petits commerces.",
+        'hero.subtitle': "Particulièrement adaptée aux petits commerces : démarrer simplement, grandir ensuite. Aussi pour les grandes entreprises. Collection Shop par Code & Grow, dès 39 € par mois.",
+        'hero.ctaOffer': "Louer la plateforme",
+        'hero.ctaBookDemo': "Réserver une démo",
+        'hero.ctaShop': "Shop · collectionshop.eu",
+        'hero.ctaDemo': "Démo sur cette page",
+        'hero.ctaPricing': "Offres et facturation",
+        'hero.pitchHint': "Réponse habituelle sous 24 h · boutique démo toujours disponible",
+        'hero.contextTitle': "Pitch ≠ boutique",
+        'hero.contextBody': "Cette page présente la plateforme aux investisseurs. La boutique web démo est une page séparée, claire, avec produits, panier et bannière « mode démo ».",
+        'problem.title': "Du chaos à des revenus scalables",
+        'problem.painTitle': "Sans CollectionShop",
+        'problem.solutionTitle': "Avec CollectionShop",
+        'compare.title': "Pourquoi Collection Shop — et pas Shopify ou Strato ?",
+        'compare.subtitle': "Votre plateforme en location : boutique, admin et app optionnelle — prête pour l’UE, sans jungle de plugins.",
+        'compare.colFeature': "Critère",
+        'compare.colUs': "Collection Shop",
+        'compare.colShopify': "Shopify",
+        'compare.colStrato': "Strato",
+        'compare.pitchHtml': "<strong>Votre accroche :</strong> Shopify devient vite cher (apps, juridique, comptable). Strato est bon marché mais reste un simple constructeur web. <strong>Collection Shop</strong> est votre plateforme en location — tout-en-un dès 39&nbsp;€ HT.",
+        'compare.disclaimer': "Prix concurrents : indicatifs · Collection Shop HT + 19&nbsp;% TVA · août 2026",
+        'showcase.title': "Trois interfaces, un écosystème",
+        'showcase.shop.title': "Boutique client",
+        'showcase.shop.desc': "PWA, checkout invité, sync panier, avis.",
+        'showcase.admin.title': "Tableau de bord admin",
+        'showcase.admin.desc': "Produits, commandes, analytics, coupons.",
+        'showcase.ios.title': "App iOS à votre marque",
+        'showcase.ios.desc': "Prête pour l’App Store, facturation StoreKit.",
+        'iosPrototype.title': "Prototype iOS natif (Xcode)",
+        'iosPrototype.subtitle': "App SwiftUI en production — même navigation par onglets que sur iPhone : profil, notes, boutique, panier, retours.",
+        'iosPrototype.prototypeNote': "Prototype Xcode pour investisseurs — pas de publication App Store. Disponible en app iOS à votre marque avec l’offre High.",
+        'iosPrototype.viewModeLabel': "Vue",
+        'iosPrototype.modeLive': "Live",
+        'iosPrototype.modeScreenshots': "Captures",
+        'iosPrototype.liveNote': "Vue live : vraie boutique web avec fond marché et effet shimmer — internet requis.",
+        'iosPrototype.tabs.profile': "Profil",
+        'iosPrototype.tabs.notice': "Notes",
+        'iosPrototype.tabs.shop': "Boutique",
+        'iosPrototype.tabs.cart': "Panier",
+        'iosPrototype.tabs.delivery': "Retours",
+        'demoTeaser.title': "Testez en direct",
+        'demoTeaser.subtitle': "Boutique et admin réels avec données fictives — mode test Stripe.",
+        'demoTeaser.openFull': "Démo plein écran",
+        'modal.openShopTab': "Ouvrir la boutique",
+        'modal.close': "Fermer ✕",
+        'modal.fallbackShop': "Ouvrir la boutique dans un nouvel onglet (si l’aperçu reste vide)",
+        'demo.offlineNote': "Astuce : les démos intégrées nécessitent internet. Utilisez « Ouvrir boutique/admin » — fonctionne aussi en local.",
+        'demo.tabShop': "Boutique",
+        'demo.tabAdmin': "Admin",
+        'demo.tabGuide': "Guide",
+        'demo.openShop': "Ouvrir la boutique",
+        'demo.openAdmin': "Ouvrir l’admin",
+        'demo.credentialsTitle': "Accès admin",
+        'demo.credentialsNote': "Démo uniquement.",
+        'demo.email': "E-mail",
+        'demo.password': "Mot de passe",
+        'demo.stripeNote': "Carte test : 4242 4242 4242 4242",
+        'features.title': "Fonctionnalités enterprise dès le jour 1",
+        'slot.title': "Lucky Luck — 5 rouleaux",
+        'slot.subtitle': "Tournez 5 rouleaux — 5× Lucky Luck = 5 € de réduction sur votre premier abonnement.",
+        'slot.badge': "Bon 5 € · 5× Lucky Luck",
+        'slot.prize': "Lot : bon de 5 €",
+        'slot.spin': "Tourner",
+        'slot.hint': "Tournez et visez 5× Lucky Luck !",
+        'slot.winMessage': "Félicitations ! 5× Lucky Luck — votre bon de 5 € sur le premier abonnement est débloqué. Contactez-nous pour le code.",
+        'slot.nearLuke': "4× Lucky Luck — presque ! Revenez demain.",
+        'slot.nearLuke3': "3× Lucky Luck — presque ! Revenez demain.",
+        'slot.nearMiss': "2× Lucky Luck — presque ! Revenez demain.",
+        'slot.nearMiss1': "1× Lucky Luck — presque ! Revenez demain.",
+        'slot.tryAgain': "Pas de gain — revenez demain pour une nouvelle chance.",
+        'slot.dailyChances': "Une fois par jour, vous avez une chance de gagner le bon de 5 € au jeu Lucky Luck.",
+        'slot.noSpinsLeft': "Votre chance quotidienne est épuisée — revenez demain.",
+        'slot.disclaimer': "Nouveaux clients · valable avec 5× Lucky Luck sur les 5 rouleaux · un tour par jour.",
+        'plans.title': "Tarifs transparents",
+        'plans.subtitle': "HT hors TVA 19 %.",
+        'plans.monthly': "Mois",
+        'plans.yearly': "An",
+        'plans.enterprise': "Enterprise",
+        'plans.enterpriseNote': "Multi-boutique, SLA, sur mesure",
+        'plans.contactOffer': "Demander un devis",
+        'plans.contactDemo': "Réserver une démo",
+        'plans.tableFeature': "Fonctionnalité",
+        'strategy.title': "Go-to-market pour vos clients",
+        'architecture.title': "Architecture white-label",
+        'architecture.desc': "Chaque locataire dispose d’un projet Firebase isolé.",
+        'architecture.svg.title': "Architecture white-label",
+        'architecture.svg.platform': "Plateforme · Facturation",
+        'architecture.svg.tenantA': "Locataire A",
+        'architecture.svg.tenantB': "Locataire B",
+        'investor.title': "Scale et unit economics",
+        'social.title': "La confiance par la transparence",
+        'social.quote': "CollectionShop a réduit le time-to-market de plusieurs mois à quelques jours.",
+        'social.author': "— Client pilote, mode et lifestyle",
+        'social.liveBadge': "Démo live disponible",
+        'pricingCta.title': "Votre boutique — en ligne en quelques jours",
+        'pricingCta.subtitle': "Simply à partir de 39 €/mois · démo personnelle · devis sur mesure",
+        'pricingCta.requestOffer': "Demander un devis",
+        'pricingCta.bookDemo': "Réserver une démo",
+        'pricingCta.viewPlans': "Voir toutes les offres",
+        'rent.title': "Location de boutique",
+        'rent.lead': "Choisissez l’offre et payez. L’abonnement commence avec le paiement. Votre boutique n’est pas en ligne au même instant.",
+        'rent.name': "Nom",
+        'rent.email': "E-mail",
+        'rent.plan': "Offre",
+        'rent.shop': "Nom de boutique",
+        'rent.note': "Message",
+        'rent.submit': "Louer et payer",
+        'rent.ok': "Paiement reçu, abonnement actif. Votre boutique n’est pas encore en ligne — nous la créons et envoyons le lien.",
+        'rent.error': "Échec de l’envoi. Vérifiez l’e-mail ou réessayez plus tard.",
+        'rent.canceled': "Paiement annulé. Vous pouvez réessayer.",
+        'rent.after': "Pas de boutique instantanée : après le paiement l’abonnement est actif. L’accès arrive par e-mail une fois la boutique créée.",
+        'rent.placeholderName': "Prénom Nom",
+        'rent.placeholderEmail': "vous@example.com",
+        'rent.placeholderShop': "ex. ACME Shop",
+        'rent.placeholderNote': "facultatif",
+        'footer.tagline': "CollectionShop — Commerce white-label premium",
+        'footer.legal': "Mentions légales",
+        'footer.impressum': "Mentions légales",
+        'footer.privacy': "Confidentialité",
+        'footer.terms': "CGV",
+        'footer.social': "Réseaux sociaux",
+        'footer.socialInstagram': "Instagram",
+        'footer.socialTiktok': "TikTok",
+        'footer.socialFacebook': "Facebook",
+        pains: ["Shopify + plugins = coûts élevés", "Codes influenceurs dans des tableurs", "Pas de workflow juridique UE", "iOS et web séparés"],
+        solutions: ["1 locataire = 1 projet Firebase", "Codes influenceurs illimités", "Juridique, livraison, export comptable", "App iOS avec l’offre High"],
+        features: [
+          ["Codes influenceurs ∞", "Suivi d’affiliation par créateur."],
+          ["Moteur TVA", "Brut/net, alimentaire, multi-région."],
+          ["Éditeur juridique", "Mentions légales, CGV, confidentialité."],
+          ["Zones de livraison", "UE, Royaume-Uni, express."],
+          ["Avis produits", "Preuve sociale."],
+          ["API sourcing", "Import dropshipping."],
+          ["Export comptable", "Compatible DATEV avec High."],
+          ["White-label", "Domaine et branding personnalisés."],
+        ],
+        strategy: [
+          ["Affiliation influenceurs", "Codes créateurs avec suivi."],
+          ["SEO et backlinks", "SEO image dès Small."],
+          ["Boutique sociale", "Instagram et TikTok dès Medium."],
+          ["Newsletter", "Opt-in au checkout."],
+          ["Checkout invité", "Compte optionnel."],
+          ["Suivi des retours", "N° de commande + code postal pour invités."],
+        ],
+        metrics: [["2,1 Md€", "TAM DACH", "Creator commerce"], ["149 €/mois", "ARPU Medium", "HT"], ["~85 %", "Marge brute", "Firebase + Stripe"], ["< 24 h", "Time-to-shop", "Provisionnement"]],
+        demoSteps: ["Parcourir en invité", "S’inscrire dans le profil", "Panier → checkout", "Carte 4242…", "Admin : vérifier la commande", "Optionnel : inscription opérateur"],
+        compareCards: [
+          ["Collection Shop", "dès 39 €/mois", "HT · boutique + admin + app optionnelle", ["White-label & juridique UE", "Codes influenceur ∞", "Support personnel (DE)"], true],
+          ["Shopify Basic", "env. 29–36 €/mois", "+ apps + 2&nbsp;% de frais", ["Plus grand écosystème d’apps", "Scale internationale", "Juridique UE via plugins"], false],
+          ["Strato boutique en ligne", "env. 1–15 €/mois", "promo · ePages · hébergement incl.", ["Entrée économique", "Domaine & e-mail inclus", "Pas d’app, moins de plateforme"], false],
+        ],
+        compareRows: [
+          ["Prix d’entrée", "39 €/mois HT", "env. 29–36 €/mois", "env. 1–15 €/mois"],
+          ["Tableau de bord admin", "✓ inclus", "✓", "✓"],
+          ["App iOS brandée", "✓ dès High", "✗ (développement sur mesure)", "✗"],
+          ["Codes influenceur/affiliés", "✓ illimités dès Simply", "Apps payantes", "Coupons seulement"],
+          ["Éditeur juridique UE (DE)", "✓", "Plugins / externe", "Modèles de base"],
+          ["Export comptable", "✓ High / add-on", "Apps / externe", "✗"],
+          ["Time-to-shop", "< 24 h", "Heures–jours", "Heures"],
+          ["Support", "Personnel, DE (Speyer)", "Chat 24/7 (EN)", "Hotline DE"],
+        ],
+      },
+      it: {
+        'nav.features': "Funzionalità",
+        'nav.plans': "Piani",
+        'nav.demo': "Demo",
+        'nav.slot': "Lucky Luck",
+        'nav.shop': "collectionshop.eu",
+        'nav.offer': "Noleggio piattaforma",
+        'nav.inquiry': "Richiesta",
+        'nav.compare': "Confronto",
+        'pitchBanner.whereLabel': "Collection Shop",
+        'pitchBanner.whereTitle': "collectionshop.eu",
+        'pitchBanner.whereNote': "Nel browser: collectionshop.eu — lo shop. Code & Grow è l’azienda.",
+        'pitchBanner.link': "Vai allo shop",
+        'pitchBanner.linkHint': "collectionshop.eu",
+        'hero.badge': "Commerce white-label · Pronto per l’UE",
+        'hero.title': "Noleggia la piattaforma. Soprattutto per i piccoli negozi.",
+        'hero.subtitle': "Particolarmente adatta ai piccoli negozi: partire in modo semplice, poi crescere. Anche per le grandi imprese. Collection Shop di Code & Grow, da 39 € al mese.",
+        'hero.ctaOffer': "Noleggia la piattaforma",
+        'hero.ctaBookDemo': "Prenota demo",
+        'hero.ctaShop': "Shop · collectionshop.eu",
+        'hero.ctaDemo': "Demo su questa pagina",
+        'hero.ctaPricing': "Piani e fatturazione",
+        'hero.pitchHint': "Risposta di solito entro 24 h · shop demo sempre disponibile",
+        'hero.contextTitle': "Pitch ≠ shop",
+        'hero.contextBody': "Questa pagina spiega la piattaforma agli investitori. Lo shop web demo è una pagina separata, chiara, con prodotti, carrello e banner «modalità demo».",
+        'problem.title': "Dal caos a ricavi scalabili",
+        'problem.painTitle': "Senza CollectionShop",
+        'problem.solutionTitle': "Con CollectionShop",
+        'compare.title': "Perché Collection Shop — e non Shopify o Strato?",
+        'compare.subtitle': "La tua piattaforma in affitto: shop, admin e app opzionale — pronta per l’UE, senza labirinto di plugin.",
+        'compare.colFeature': "Caratteristica",
+        'compare.colUs': "Collection Shop",
+        'compare.colShopify': "Shopify",
+        'compare.colStrato': "Strato",
+        'compare.pitchHtml': "<strong>La tua frase chiave:</strong> Shopify diventa costoso (app, legal, commercialista). Strato è economico ma solo un builder web. <strong>Collection Shop</strong> è la tua piattaforma in affitto — tutto-in-uno da 39&nbsp;€ netti.",
+        'compare.disclaimer': "Prezzi concorrenti: indicativi · Collection Shop netto + 19&nbsp;% IVA · ago 2026",
+        'showcase.title': "Tre interfacce, un ecosistema",
+        'showcase.shop.title': "Shop clienti",
+        'showcase.shop.desc': "PWA, checkout ospite, sync carrello, recensioni.",
+        'showcase.admin.title': "Dashboard admin",
+        'showcase.admin.desc': "Prodotti, ordini, analytics, coupon.",
+        'showcase.ios.title': "App iOS brandizzata",
+        'showcase.ios.desc': "Pronta per App Store, fatturazione StoreKit.",
+        'iosPrototype.title': "Prototipo iOS nativo (Xcode)",
+        'iosPrototype.subtitle': "App SwiftUI in produzione — stessa navigazione a tab come su iPhone: profilo, note, shop, carrello, resi.",
+        'iosPrototype.prototypeNote': "Prototipo Xcode per investitori — non è un rilascio su App Store. Disponibile come app iOS brandizzata nel piano High.",
+        'iosPrototype.viewModeLabel': "Vista",
+        'iosPrototype.modeLive': "Live",
+        'iosPrototype.modeScreenshots': "Screenshot",
+        'iosPrototype.liveNote': "Vista live: vero web shop con sfondo market e shimmer — richiede internet.",
+        'iosPrototype.tabs.profile': "Profilo",
+        'iosPrototype.tabs.notice': "Note",
+        'iosPrototype.tabs.shop': "Shop",
+        'iosPrototype.tabs.cart': "Carrello",
+        'iosPrototype.tabs.delivery': "Resi",
+        'demoTeaser.title': "Provalo dal vivo",
+        'demoTeaser.subtitle': "Shop e admin reali con dati mock — modalità test Stripe.",
+        'demoTeaser.openFull': "Demo a schermo intero",
+        'modal.openShopTab': "Apri shop",
+        'modal.close': "Chiudi ✕",
+        'modal.fallbackShop': "Apri shop in nuova scheda (se l’anteprima resta vuota)",
+        'demo.offlineNote': "Suggerimento: le demo incorporate richiedono internet. Usa «Apri shop/admin» — funziona anche salvato in locale.",
+        'demo.tabShop': "Shop",
+        'demo.tabAdmin': "Admin",
+        'demo.tabGuide': "Guida",
+        'demo.openShop': "Apri shop",
+        'demo.openAdmin': "Apri admin",
+        'demo.credentialsTitle': "Accesso admin",
+        'demo.credentialsNote': "Solo demo.",
+        'demo.email': "E-mail",
+        'demo.password': "Password",
+        'demo.stripeNote': "Carta test: 4242 4242 4242 4242",
+        'features.title': "Funzionalità enterprise dal giorno uno",
+        'slot.title': "Lucky Luck — 5 rulli",
+        'slot.subtitle': "Gira 5 rulli — 5× Lucky Luck = 5 € di sconto sul primo abbonamento.",
+        'slot.badge': "Buono 5 € · 5× Lucky Luck",
+        'slot.prize': "Premio: buono da 5 €",
+        'slot.spin': "Gira",
+        'slot.hint': "Gira e punta a 5× Lucky Luck!",
+        'slot.winMessage': "Complimenti! 5× Lucky Luck — il buono da 5 € sul primo abbonamento è sbloccato. Scrivici per il codice.",
+        'slot.nearLuke': "4× Lucky Luck — quasi! Riprova domani.",
+        'slot.nearLuke3': "3× Lucky Luck — quasi! Riprova domani.",
+        'slot.nearMiss': "2× Lucky Luck — quasi! Riprova domani.",
+        'slot.nearMiss1': "1× Lucky Luck — quasi! Riprova domani.",
+        'slot.tryAgain': "Nessuna vincita — domani avrai un'altra possibilità.",
+        'slot.dailyChances': "Una volta al giorno hai la possibilità di vincere il buono da 5 € al gioco Lucky Luck.",
+        'slot.noSpinsLeft': "La tua possibilità giornaliera è esaurita — torna domani.",
+        'slot.disclaimer': "Solo nuovi clienti · valido con 5× Lucky Luck sui 5 rulli · un giro al giorno.",
+        'plans.title': "Prezzi trasparenti",
+        'plans.subtitle': "Netto IVA 19% esclusa.",
+        'plans.monthly': "Mese",
+        'plans.yearly': "Anno",
+        'plans.enterprise': "Enterprise",
+        'plans.enterpriseNote': "Multi-store, SLA, personalizzato",
+        'plans.contactOffer': "Richiedi offerta",
+        'plans.contactDemo': "Prenota demo",
+        'plans.tableFeature': "Funzionalità",
+        'strategy.title': "Go-to-market per i tuoi clienti",
+        'architecture.title': "Architettura white-label",
+        'architecture.desc': "Ogni tenant ottiene un progetto Firebase isolato.",
+        'architecture.svg.title': "Architettura white-label",
+        'architecture.svg.platform': "Piattaforma · Fatturazione",
+        'architecture.svg.tenantA': "Tenant A",
+        'architecture.svg.tenantB': "Tenant B",
+        'investor.title': "Scala e unit economics",
+        'social.title': "Fiducia attraverso la trasparenza",
+        'social.quote': "CollectionShop ha ridotto il time-to-market da mesi a giorni.",
+        'social.author': "— Cliente pilota, fashion e lifestyle",
+        'social.liveBadge': "Demo live disponibile",
+        'pricingCta.title': "Il tuo shop — online in pochi giorni",
+        'pricingCta.subtitle': "Simply da 39 €/mese · demo personalizzata · offerta su misura",
+        'pricingCta.requestOffer': "Richiedi offerta",
+        'pricingCta.bookDemo': "Prenota demo",
+        'pricingCta.viewPlans': "Vedi tutti i piani",
+        'rent.title': "Noleggio shop",
+        'rent.lead': "Scegli il piano e paga. L’abbonamento parte con il pagamento. Il tuo shop non va online in quel momento.",
+        'rent.name': "Nome",
+        'rent.email': "E-mail",
+        'rent.plan': "Piano",
+        'rent.shop': "Nome dello shop",
+        'rent.note': "Messaggio",
+        'rent.submit': "Noleggia e paga",
+        'rent.ok': "Pagamento ricevuto, abbonamento attivo. Lo shop non è ancora online — lo prepariamo e inviamo il link.",
+        'rent.error': "Invio non riuscito. Controlla l’e-mail o riprova più tardi.",
+        'rent.canceled': "Pagamento annullato. Puoi riprovare.",
+        'rent.after': "Niente shop istantaneo: dopo il pagamento l’abbonamento è attivo. L’accesso arriva via e-mail quando lo abbiamo creato.",
+        'rent.placeholderName': "Nome e cognome",
+        'rent.placeholderEmail': "tu@example.com",
+        'rent.placeholderShop': "es. ACME Shop",
+        'rent.placeholderNote': "opzionale",
+        'footer.tagline': "CollectionShop — Commerce white-label premium",
+        'footer.legal': "Legale",
+        'footer.impressum': "Note legali",
+        'footer.privacy': "Privacy",
+        'footer.terms': "Termini",
+        'footer.social': "Social media",
+        'footer.socialInstagram': "Instagram",
+        'footer.socialTiktok': "TikTok",
+        'footer.socialFacebook': "Facebook",
+        pains: ["Shopify + plugin = costi elevati", "Codici influencer in fogli di calcolo", "Nessun workflow legale UE", "iOS e web separati"],
+        solutions: ["1 tenant = 1 progetto Firebase", "Codici influencer illimitati", "Legale, spedizioni, export contabile", "App iOS nel piano High"],
+        features: [
+          ["Codici influencer ∞", "Tracking affiliati per creator."],
+          ["Motore IVA", "Lordo/netto, alimentari, multi-regione."],
+          ["Editor legale", "Note legali, termini, privacy."],
+          ["Zone di spedizione", "UE, UK, express."],
+          ["Recensioni prodotti", "Social proof."],
+          ["API sourcing", "Import dropshipping."],
+          ["Export contabile", "DATEV-ready con High."],
+          ["White-label", "Dominio e branding personalizzati."],
+        ],
+        strategy: [
+          ["Affiliazione influencer", "Codici creator con tracking."],
+          ["SEO e backlink", "SEO immagini da Small."],
+          ["Social shop", "Instagram e TikTok da Medium."],
+          ["Newsletter", "Opt-in al checkout."],
+          ["Checkout ospite", "Account opzionale."],
+          ["Tracking resi", "ID ordine + CAP per ospiti."],
+        ],
+        metrics: [["2,1 Mld €", "TAM DACH", "Creator commerce"], ["149 €/mese", "ARPU Medium", "netto"], ["~85%", "Margine lordo", "Firebase + Stripe"], ["< 24 h", "Time-to-shop", "Provisioning"]],
+        demoSteps: ["Sfoglia come ospite", "Registrati nel profilo", "Carrello → checkout", "Carta 4242…", "Admin: controlla ordine", "Opzionale: signup operatore"],
+        compareCards: [
+          ["Collection Shop", "da 39 €/mese", "netto · shop + admin + app opzionale", ["White-label e legal UE", "Codici influencer ∞", "Supporto personale (DE)"], true],
+          ["Shopify Basic", "ca. 29–36 €/mese", "+ app + 2&nbsp;% commissione", ["Maggiore ecosistema app", "Scala globale", "Legal UE via plugin"], false],
+          ["Strato shop online", "ca. 1–15 €/mese", "promo · ePages · hosting incl.", ["Ingresso economico", "Dominio e email incl.", "Nessuna app, meno piattaforma"], false],
+        ],
+        compareRows: [
+          ["Prezzo di ingresso", "39 €/mese netto", "ca. 29–36 €/mese", "ca. 1–15 €/mese"],
+          ["Dashboard admin", "✓ incluso", "✓", "✓"],
+          ["App iOS brandizzata", "✓ da High", "✗ (sviluppo custom)", "✗"],
+          ["Codici influencer/affiliati", "✓ illimitati da Simply", "App a pagamento", "Solo coupon"],
+          ["Editor legale UE (DE)", "✓", "Plugin / esterno", "Template base"],
+          ["Export commercialista", "✓ High / add-on", "App / esterno", "✗"],
+          ["Time-to-shop", "< 24 h", "Ore–giorni", "Ore"],
+          ["Supporto", "Personale, DE (Speyer)", "Chat 24/7 (EN)", "Hotline DE"],
+        ],
+      },
+    };
+
+        const PITCH_LANGS = ['de', 'en', 'es', 'fr', 'it'];
+
+    function resolvePitchLang() {
+      try {
+        const stored = localStorage.getItem('cs-pitch-lang');
+        if (stored && PITCH_LANGS.includes(stored)) return stored;
+      } catch { /* ignore */ }
+      const code = (navigator.language || 'en').slice(0, 2).toLowerCase();
+      if (PITCH_LANGS.includes(code)) return code;
+      return 'en';
+    }
+
+    function i18nPack() {
+      return I18N[lang] || I18N.en || I18N.de;
+    }
+
+    let lang = resolvePitchLang();
+    let interval = 'month';
+
+    function t(key) {
+      const pack = i18nPack();
+      return (pack && pack[key]) || I18N.en[key] || I18N.de[key] || key;
+    }
+
+    function demoUrlForLang(baseUrl, locale) {
+      const u = new URL(baseUrl);
+      u.searchParams.set('locale', locale);
+      return u.toString();
+    }
+
+    function shopDemoUrl(tab) {
+      const u = new URL(demoUrlForLang(DEMO_SHOP, lang));
+      u.searchParams.set('embed', 'ios');
+      if (tab) u.searchParams.set('tab', tab);
+      return u.toString();
+    }
+
+    function syncDemoUrls() {
+      const shopUrl = demoUrlForLang(PITCH_SITE.shop, lang);
+      const shopFullscreen = demoUrlForLang(DEMO_SHOP, lang);
+      document.querySelectorAll('.pitch-shop-banner-cta, a.nav-shop, a.hero-cta-shop').forEach((a) => {
+        if (a instanceof HTMLAnchorElement) a.href = shopUrl;
+      });
+      const openShop = document.getElementById('openShopTab');
+      const iframeShop = document.getElementById('iframeShop');
+      const modalOpenShop = document.getElementById('modalOpenShop');
+      const modalFallbackShop = document.getElementById('modalFallbackShop');
+      if (openShop) openShop.href = shopFullscreen;
+      if (iframeShop) iframeShop.src = shopFullscreen;
+      if (modalOpenShop) modalOpenShop.href = shopUrl;
+      if (modalFallbackShop) modalFallbackShop.href = shopUrl;
+      const modal = document.getElementById('demoModal');
+      if (modal && modal.classList.contains('open')) {
+        const modalFrame = document.getElementById('modalFrame');
+        if (modalFrame) modalFrame.src = shopFullscreen;
+      }
+      const archTitle = document.getElementById('archSvgTitle');
+      const archPlatform = document.getElementById('archSvgPlatform');
+      const archTenantA = document.getElementById('archSvgTenantA');
+      const archTenantB = document.getElementById('archSvgTenantB');
+      if (archTitle) archTitle.textContent = t('architecture.svg.title');
+      if (archPlatform) archPlatform.textContent = t('architecture.svg.platform');
+      if (archTenantA) archTenantA.textContent = t('architecture.svg.tenantA');
+      if (archTenantB) archTenantB.textContent = t('architecture.svg.tenantB');
+      if (typeof iosViewMode !== 'undefined' && iosViewMode === 'live') {
+        const activeBtn = document.querySelector('.ios-tab-btn.active') || document.querySelector('.ios-tab-btn[data-ios-tab="shop"]');
+        if (activeBtn) updateIosPrototypeView('live', activeBtn);
+      }
+    }
+
+    function renderCompare() {
+      const cardsEl = document.getElementById('compareCards');
+      const table = document.getElementById('compareTable');
+      const pitchEl = document.getElementById('comparePitch');
+      if (!cardsEl || !table) return;
+      const pack = i18nPack();
+      const cards = pack.compareCards || I18N.de.compareCards || [];
+      const rows = pack.compareRows || I18N.de.compareRows || [];
+      cardsEl.innerHTML = cards.map(([name, price, note, bullets, highlight]) => {
+        const cls = highlight ? ' compare-card--us' : '';
+        const list = (bullets || []).map(b => `<li>${b}</li>`).join('');
+        return `<article class="glass compare-card${cls}"><h3>${name}</h3><div class="compare-price">${price}</div><p class="compare-note">${note}</p><ul>${list}</ul></article>`;
+      }).join('');
+      const thead = table.querySelector('thead');
+      const tbody = table.querySelector('tbody');
+      if (thead) {
+        thead.innerHTML = `<tr><th>${t('compare.colFeature')}</th><th class="compare-col-us">${t('compare.colUs')}</th><th>${t('compare.colShopify')}</th><th>${t('compare.colStrato')}</th></tr>`;
+      }
+      if (tbody) {
+        tbody.innerHTML = rows.map(([feature, us, shopify, strato]) =>
+          `<tr><td>${feature}</td><td class="compare-col-us">${us}</td><td>${shopify}</td><td>${strato}</td></tr>`).join('');
+      }
+      if (pitchEl) pitchEl.innerHTML = t('compare.pitchHtml');
+    }
+
+    function applyI18n() {
+      try {
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const k = el.getAttribute('data-i18n');
+          if (k) el.textContent = t(k);
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+          const k = el.getAttribute('data-i18n-placeholder');
+          if (k) el.setAttribute('placeholder', t(k));
+        });
+        document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+          const k = el.getAttribute('data-i18n-aria');
+          if (k) el.setAttribute('aria-label', t(k));
+        });
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+
+        const painList = document.getElementById('painList');
+        const solutionList = document.getElementById('solutionList');
+        const featureGrid = document.getElementById('featureGrid');
+        const strategyGrid = document.getElementById('strategyGrid');
+        const metricsGrid = document.getElementById('metricsGrid');
+        const demoSteps = document.getElementById('demoSteps');
+        if (painList) painList.innerHTML = (i18nPack().pains || I18N.en.pains).map(p => `<li>${p}</li>`).join('');
+        if (solutionList) solutionList.innerHTML = (i18nPack().solutions || I18N.en.solutions).map(s => `<li>${s}</li>`).join('');
+        if (featureGrid) featureGrid.innerHTML = (i18nPack().features || I18N.en.features).map(([title, desc]) =>
+          `<article class="glass"><h3>${title}</h3><p>${desc}</p></article>`).join('');
+        if (strategyGrid) strategyGrid.innerHTML = (i18nPack().strategy || I18N.en.strategy).map(([title, desc]) =>
+          `<article class="strategy-item"><h3>${title}</h3><p>${desc}</p></article>`).join('');
+        if (metricsGrid) metricsGrid.innerHTML = (i18nPack().metrics || I18N.en.metrics).map(([val, label, note]) =>
+          `<article class="glass"><div class="metric-val">${val}</div><div class="metric-label">${label}</div><div class="metric-note">${note}</div></article>`).join('');
+        if (demoSteps) demoSteps.innerHTML = (i18nPack().demoSteps || I18N.en.demoSteps).map(s => `<li>${s}</li>`).join('');
+        renderCompare();
+        renderPlans();
+        syncDemoUrls();
+        syncLuckySlotUi();
+      } catch (err) {
+        console.error('applyI18n failed', err);
+      }
+      revealAllSections();
+    }
+
+    function revealAllSections() {
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+    }
+
+    function fmtCell(v) {
+      if (v === true) return '✓';
+      if (v === false) return '—';
+      if (v === null) return '∞';
+      return String(v);
+    }
+
+    function renderPlans() {
+      const prices = PLAN_MATRIX.prices;
+      const cards = ['simply', 'small', 'medium', 'high'];
+      document.getElementById('planCards').innerHTML = cards.map((id, i) => {
+        const p = prices[id];
+        const amt = interval === 'year' ? p.yearly : p.monthly;
+        const featured = id === 'medium' ? ' featured' : '';
+        return `<article class="glass plan-card${featured}"><div class="plan-name">${PLAN_MATRIX.plans.find(x=>x.id===id).label}</div><div class="plan-price">€${amt}<small>/${interval === 'year' ? t('plans.yearly') : t('plans.monthly')}</small></div></article>`;
+      }).join('');
+
+      const thead = document.querySelector('#planTable thead');
+      const tbody = document.querySelector('#planTable tbody');
+      thead.innerHTML = '<tr><th>' + t('plans.tableFeature') + '</th>' + PLAN_MATRIX.plans.map(p => {
+        const pr = prices[p.id];
+        const amt = interval === 'year' ? pr.yearly : pr.monthly;
+        return `<th><div>${p.label}</div><div class="plan-head-price">€${amt}</div></th>`;
+      }).join('') + '</tr>';
+      tbody.innerHTML = PLAN_MATRIX.rows.map(row => {
+        const labelMap = { de: row.labelDe, en: row.labelEn, es: row.labelEs, fr: row.labelFr, it: row.labelIt };
+        const label = labelMap[lang] || row.labelEn || row.labelDe;
+        return '<tr><td>' + label + '</td>' + PLAN_MATRIX.plans.map(p => {
+          const v = row.values[p.id];
+          const cls = v === true || (typeof v === 'number') ? 'yes' : v === false ? 'no' : '';
+          return `<td class="${cls}">${fmtCell(v)}</td>`;
+        }).join('') + '</tr>';
+      }).join('');
+    }
+
+    function setDemoTab(tab) {
+      document.querySelectorAll('.demo-tabs button').forEach(b => b.classList.toggle('active', b.dataset.demoTab === tab));
+      document.getElementById('demoPanelShop').hidden = tab !== 'shop';
+      document.getElementById('demoPanelAdmin').hidden = tab !== 'admin';
+      document.getElementById('demoPanelGuide').hidden = tab !== 'guide';
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const next = btn.dataset.lang;
+        if (!PITCH_LANGS.includes(next)) return;
+        lang = next;
+        localStorage.setItem('cs-pitch-lang', lang);
+        applyI18n();
+      });
+    });
+
+    document.querySelectorAll('.plan-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        interval = btn.dataset.interval;
+        document.querySelectorAll('.plan-toggle button').forEach(b => b.classList.toggle('active', b === btn));
+        renderPlans();
+      });
+    });
+
+    document.querySelectorAll('.demo-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => setDemoTab(btn.dataset.demoTab));
+    });
+
+    document.getElementById('openAdminTab').href = DEMO_ADMIN;
+    document.getElementById('iframeAdmin').src = DEMO_ADMIN;
+
+    document.getElementById('fullscreenDemo').addEventListener('click', () => {
+      document.getElementById('modalFrame').src = demoUrlForLang(DEMO_SHOP, lang);
+      document.getElementById('demoModal').classList.add('open');
+    });
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('demoModal').classList.remove('open');
+      document.getElementById('modalFrame').src = 'about:blank';
+    });
+
+    document.querySelectorAll('.footer-social__link').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        if (!(a instanceof HTMLAnchorElement) || !a.href) return;
+        e.preventDefault();
+        window.location.assign(a.href);
+      });
+    });
+
+    const modalOpenShop = document.getElementById('modalOpenShop');
+    const modalFallbackShop = document.getElementById('modalFallbackShop');
+
+    let iosViewMode = 'live';
+    const iosIframe = document.getElementById('iosPrototypeIframe');
+    const iosScreen = document.getElementById('iosPrototypeScreen');
+    const iosLiveNote = document.getElementById('iosLiveNote');
+
+    function liveShopTabUrl(tab) {
+      return shopDemoUrl(tab);
+    }
+
+    function updateIosPrototypeView(mode, activeBtn) {
+      if (!activeBtn) return;
+      const label = activeBtn.querySelector('.ios-tab-label')?.textContent || '';
+      const liveTab = activeBtn.getAttribute('data-ios-live-tab') || 'shop';
+      const src = activeBtn.getAttribute('data-ios-src');
+      if (mode === 'live') {
+        if (iosScreen) iosScreen.hidden = true;
+        if (iosIframe) {
+          iosIframe.hidden = false;
+          iosIframe.title = label;
+          const next = liveShopTabUrl(liveTab);
+          iosIframe.src = next;
+        }
+      } else {
+        if (iosIframe) {
+          iosIframe.hidden = true;
+          iosIframe.src = 'about:blank';
+        }
+        if (iosScreen && src) {
+          iosScreen.hidden = false;
+          iosScreen.src = src;
+          iosScreen.alt = label;
+        }
+      }
+    }
+
+    function setIosViewMode(mode) {
+      iosViewMode = mode;
+      document.querySelectorAll('.ios-view-mode-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-ios-view') === mode);
+      });
+      if (iosLiveNote) iosLiveNote.hidden = mode !== 'live';
+      const activeBtn = document.querySelector('.ios-tab-btn.active') || document.querySelector('.ios-tab-btn[data-ios-tab="shop"]');
+      updateIosPrototypeView(mode, activeBtn);
+    }
+
+    document.querySelectorAll('.ios-view-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => setIosViewMode(btn.getAttribute('data-ios-view') || 'live'));
+    });
+
+    document.querySelectorAll('.ios-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ios-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateIosPrototypeView(iosViewMode, btn);
+      });
+    });
+
+    const iosScreenWrap = document.getElementById('iosScreenWrap');
+    const iosIframeLoading = document.getElementById('iosIframeLoading');
+    if (iosIframe) {
+      iosIframe.addEventListener('load', () => {
+        if (iosScreenWrap) iosScreenWrap.classList.add('is-loaded');
+        if (iosIframeLoading) iosIframeLoading.hidden = true;
+      });
+    }
+
+    setIosViewMode('live');
+
+    const LUCKY_SYMBOLS = {
+      luke: { src: 'assets/lucky-slot/symbol-luke.webp', alt: 'Lucky Luck' },
+      pferd: { src: 'assets/lucky-slot/symbol-pferd.webp', alt: 'Goldtopf' },
+      klee: { src: 'assets/lucky-slot/symbol-klee.webp', alt: 'Kleeblatt' },
+      kaktus: { src: 'assets/lucky-slot/symbol-kaktus.webp', alt: 'Goldmünze' },
+    };
+    const LUCKY_SYMBOL_KEYS = ['luke', 'pferd', 'klee', 'kaktus'];
+    const LUCKY_LUKE_WEIGHT = 0.18;
+    const LUCKY_WIN_KEY = 'luckyLukeSlotWin';
+    const LUCKY_SPINS_KEY = 'luckyLukeSlotSpins';
+    const LUCKY_LAST_RESULT_KEY = 'luckyLukeSlotLastResult';
+    const LUCKY_DAILY_SPIN_LIMIT = 1;
+    const LUCKY_REEL_COUNT = 5;
+    const LUCKY_ITEM_H = 88;
+    const LUCKY_REEL_VIEW_H = 96;
+    const LUCKY_STRIP_MIN = 20;
+    const LUCKY_REEL_STAGGER_MS = 200;
+
+    function pickLandingSymbol() {
+      if (Math.random() < LUCKY_LUKE_WEIGHT) return 'luke';
+      const others = ['pferd', 'klee', 'kaktus'];
+      return others[Math.floor(Math.random() * others.length)];
+    }
+
+    function randomSymbolKey() {
+      return LUCKY_SYMBOL_KEYS[Math.floor(Math.random() * LUCKY_SYMBOL_KEYS.length)];
+    }
+
+    function spinResult5() {
+      return Array.from({ length: LUCKY_REEL_COUNT }, () => pickLandingSymbol());
+    }
+
+    function isWin(result) {
+      return lukeCount(result) >= LUCKY_REEL_COUNT;
+    }
+
+    function lukeCount(result) {
+      return result.filter((k) => k === 'luke').length;
+    }
+
+    function storeLuckyWin() {
+      try {
+        localStorage.setItem(LUCKY_WIN_KEY, JSON.stringify({ date: todayKey() }));
+      } catch (_) { /* ignore */ }
+    }
+
+    function hasStoredLuckyWinToday() {
+      try {
+        const raw = localStorage.getItem(LUCKY_WIN_KEY);
+        if (!raw) return false;
+        const { date } = JSON.parse(raw);
+        return date === todayKey();
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function todayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function getDailySpinLimit() {
+      return LUCKY_DAILY_SPIN_LIMIT;
+    }
+
+    function getSpinsUsedToday() {
+      try {
+        const raw = localStorage.getItem(LUCKY_SPINS_KEY);
+        if (!raw) return 0;
+        const { date, count } = JSON.parse(raw);
+        return date === todayKey() ? count : 0;
+      } catch (_) {
+        return 0;
+      }
+    }
+
+    function incrementSpinsUsedToday() {
+      try {
+        localStorage.setItem(LUCKY_SPINS_KEY, JSON.stringify({
+          date: todayKey(),
+          count: getSpinsUsedToday() + 1,
+        }));
+      } catch (_) { /* ignore */ }
+    }
+
+    function spinsRemainingToday() {
+      return Math.max(0, getDailySpinLimit() - getSpinsUsedToday());
+    }
+
+    function canSpinToday() {
+      return spinsRemainingToday() > 0;
+    }
+
+    function getMessageKeyForResult(result) {
+      if (isWin(result)) return 'slot.winMessage';
+      const count = lukeCount(result);
+      if (count === 4) return 'slot.nearLuke';
+      if (count === 3) return 'slot.nearLuke3';
+      if (count === 2) return 'slot.nearMiss';
+      if (count === 1) return 'slot.nearMiss1';
+      return 'slot.tryAgain';
+    }
+
+    function storeLastResult(messageKey, won) {
+      try {
+        localStorage.setItem(LUCKY_LAST_RESULT_KEY, JSON.stringify({
+          date: todayKey(),
+          messageKey,
+          won,
+        }));
+      } catch (_) { /* ignore */ }
+    }
+
+    function getLastResultToday() {
+      try {
+        const raw = localStorage.getItem(LUCKY_LAST_RESULT_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        return data.date === todayKey() ? data : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function syncLuckySlotUi() {
+      const btn = document.getElementById('luckySpinBtn');
+      const resultEl = document.getElementById('luckySlotResult');
+      if (!btn || !resultEl) return;
+
+      const t = I18N[lang] || I18N.de;
+
+      if (hasStoredLuckyWinToday()) {
+        resultEl.textContent = t['slot.winMessage'];
+        resultEl.classList.remove('is-muted');
+        resultEl.classList.add('is-win');
+        btn.disabled = true;
+        return;
+      }
+
+      if (!canSpinToday()) {
+        const last = getLastResultToday();
+        resultEl.textContent = last && last.messageKey
+          ? (t[last.messageKey] || t['slot.noSpinsLeft'])
+          : t['slot.noSpinsLeft'];
+        resultEl.classList.toggle('is-muted', !last?.won);
+        resultEl.classList.toggle('is-win', !!last?.won);
+        btn.disabled = true;
+        return;
+      }
+
+      resultEl.textContent = t['slot.hint'];
+      resultEl.classList.add('is-muted');
+      resultEl.classList.remove('is-win');
+      btn.disabled = false;
+    }
+
+    function luckyReelHtml(key) {
+      const s = LUCKY_SYMBOLS[key] || LUCKY_SYMBOLS.luke;
+      return `<img src="${s.src}" alt="${s.alt}" width="64" height="64" loading="lazy" />`;
+    }
+
+    function translateForLandIndex(landIndex) {
+      return landIndex * LUCKY_ITEM_H - (LUCKY_REEL_VIEW_H - LUCKY_ITEM_H) / 2;
+    }
+
+    function buildReelStripKeys(landKey, reelIndex) {
+      const len = LUCKY_STRIP_MIN + reelIndex * 2 + Math.floor(Math.random() * 6);
+      const keys = [];
+      for (let i = 0; i < len; i++) keys.push(randomSymbolKey());
+      keys.push(landKey);
+      return keys;
+    }
+
+    function setReelStrip(inner, keys, offsetY, transition) {
+      inner.innerHTML = keys.map((key) => luckyReelHtml(key)).join('');
+      inner.style.transition = transition || 'none';
+      inner.style.transform = `translateY(-${offsetY}px)`;
+    }
+
+    function initReelIdle(inner, reelIndex) {
+      const key = LUCKY_SYMBOL_KEYS[reelIndex % LUCKY_SYMBOL_KEYS.length];
+      setReelStrip(inner, [key], translateForLandIndex(0), 'none');
+    }
+
+    function spinReelToLand(inner, landKey, reelIndex, delayMs) {
+      const keys = buildReelStripKeys(landKey, reelIndex);
+      const landIndex = keys.length - 1;
+      const targetY = translateForLandIndex(landIndex);
+      const durationSec = 0.75 + reelIndex * 0.12;
+
+      setReelStrip(inner, keys, 0, 'none');
+      void inner.offsetHeight;
+
+      return new Promise((resolve) => {
+        window.setTimeout(() => {
+          inner.style.transition = `transform ${durationSec}s cubic-bezier(0.15, 0.85, 0.25, 1)`;
+          inner.style.transform = `translateY(-${targetY}px)`;
+          window.setTimeout(resolve, durationSec * 1000 + 40);
+        }, delayMs);
+      });
+    }
+
+    function luckyResultMessage(result, t) {
+      return t[getMessageKeyForResult(result)] || t['slot.tryAgain'];
+    }
+
+    function initLuckyLookSlot() {
+      const btn = document.getElementById('luckySpinBtn');
+      const resultEl = document.getElementById('luckySlotResult');
+      if (!btn || !resultEl) return;
+
+      for (let i = 0; i < LUCKY_REEL_COUNT; i++) {
+        const inner = document.getElementById('luckyReelInner' + i);
+        if (inner) initReelIdle(inner, i);
+      }
+
+      syncLuckySlotUi();
+
+      let spinning = false;
+      btn.addEventListener('click', () => {
+        if (spinning || !canSpinToday()) return;
+        spinning = true;
+        btn.disabled = true;
+        const t = I18N[lang] || I18N.de;
+        resultEl.textContent = '…';
+        resultEl.classList.add('is-muted');
+        resultEl.classList.remove('is-win');
+
+        const result = spinResult5();
+        const landPromises = result.map((landKey, i) => {
+          const inner = document.getElementById('luckyReelInner' + i);
+          if (!inner) return Promise.resolve();
+          return spinReelToLand(inner, landKey, i, i * LUCKY_REEL_STAGGER_MS);
+        });
+
+        Promise.all(landPromises).then(() => {
+          incrementSpinsUsedToday();
+          const won = isWin(result);
+          const messageKey = getMessageKeyForResult(result);
+          if (won) storeLuckyWin();
+          storeLastResult(messageKey, won);
+          resultEl.textContent = t[messageKey] || t['slot.tryAgain'];
+          resultEl.classList.toggle('is-muted', !won);
+          resultEl.classList.toggle('is-win', won);
+          spinning = false;
+          syncLuckySlotUi();
+        });
+      });
+    }
+
+    initLuckyLookSlot();
+
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+
+    const RENT_API = 'https://us-central1-collectionshop-2854d.cloudfunctions.net/api/v1/platform-leads';
+    const RENT_CHECKOUT = 'https://us-central1-collectionshop-2854d.cloudfunctions.net/createCheckoutSession';
+
+    function t(key) {
+      const pack = I18N[lang] || I18N.de;
+      return pack[key] || I18N.de[key] || key;
+    }
+
+    function collectLeadPayload(form) {
+      const fd = new FormData(form);
+      return {
+        website: String(fd.get('website') || ''),
+        name: String(fd.get('name') || '').trim(),
+        email: String(fd.get('email') || '').trim(),
+        plan: String(fd.get('plan') || 'simply'),
+        shopName: String(fd.get('shopName') || '').trim(),
+        note: String(fd.get('note') || '').trim(),
+      };
+    }
+
+    const inquiryForm = document.getElementById('inquiryForm');
+    if (inquiryForm) {
+      inquiryForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgEl = document.getElementById('inquiryMsg');
+        const btn = document.getElementById('inquirySubmit');
+        const payload = collectLeadPayload(inquiryForm);
+        payload.intent = 'inquiry';
+        if (payload.note) payload.note = '[ANFRAGE] ' + payload.note;
+        else payload.note = '[ANFRAGE] Unverbindliche Tarif-Anfrage';
+        if (!payload.email.includes('@')) {
+          msgEl.hidden = false;
+          msgEl.className = 'rent-msg is-err';
+          msgEl.textContent = t('inquiry.error');
+          return;
+        }
+        btn.disabled = true;
+        msgEl.hidden = true;
+        try {
+          const leadRes = await fetch(RENT_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const lead = await leadRes.json().catch(() => ({}));
+          if (!leadRes.ok) throw new Error(lead.error || 'fail');
+          msgEl.hidden = false;
+          msgEl.className = 'rent-msg is-ok';
+          msgEl.textContent = t('inquiry.ok');
+          inquiryForm.reset();
+        } catch {
+          msgEl.hidden = false;
+          msgEl.className = 'rent-msg is-err';
+          msgEl.textContent = t('inquiry.error');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    const rentForm = document.getElementById('rentForm');
+    const rentPaid = new URLSearchParams(location.search).get('paid');
+    const rentCanceled = new URLSearchParams(location.search).get('canceled');
+    if (rentForm && (rentPaid === '1' || rentCanceled === '1')) {
+      const msgEl = document.getElementById('rentMsg');
+      const pack = I18N[lang] || I18N.de;
+      msgEl.hidden = false;
+      if (rentPaid === '1') {
+        msgEl.className = 'rent-msg is-ok';
+        msgEl.textContent = pack['rent.ok'];
+      } else {
+        msgEl.className = 'rent-msg is-err';
+        msgEl.textContent = pack['rent.canceled'] || pack['rent.error'];
+      }
+    }
+    if (rentForm) {
+      rentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgEl = document.getElementById('rentMsg');
+        const btn = document.getElementById('rentSubmit');
+        const pack = I18N[lang] || I18N.de;
+        const fd = new FormData(rentForm);
+        const payload = {
+          website: String(fd.get('website') || ''),
+          name: String(fd.get('name') || '').trim(),
+          email: String(fd.get('email') || '').trim(),
+          plan: String(fd.get('plan') || 'simply'),
+          shopName: String(fd.get('shopName') || '').trim(),
+          note: String(fd.get('note') || '').trim(),
+        };
+        if (!payload.email.includes('@')) {
+          msgEl.hidden = false;
+          msgEl.className = 'rent-msg is-err';
+          msgEl.textContent = pack['rent.error'];
+          return;
+        }
+        btn.disabled = true;
+        msgEl.hidden = true;
+        try {
+          const leadRes = await fetch(RENT_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const lead = await leadRes.json().catch(() => ({}));
+          if (!leadRes.ok) throw new Error(lead.error || 'fail');
+          if (!lead.slug) throw new Error('fail');
+          const payRes = await fetch(RENT_CHECKOUT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              planId: payload.plan,
+              ownerEmail: payload.email,
+              tenantSlug: lead.slug || '',
+              shopName: payload.shopName || payload.name,
+              successUrl: 'https://code-und-grow.de/pitch/?paid=1#mieten',
+              cancelUrl: 'https://code-und-grow.de/pitch/?canceled=1#mieten',
+            }),
+          });
+          const pay = await payRes.json().catch(() => ({}));
+          if (!payRes.ok || !pay.url) throw new Error(pay.error || 'fail');
+          window.location.href = pay.url;
+          return;
+        } catch {
+          msgEl.hidden = false;
+          msgEl.className = 'rent-msg is-err';
+          msgEl.textContent = pack['rent.error'];
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    applyI18n();
+    setTimeout(revealAllSections, 400);
+  </script>
+</body>
+</html>
