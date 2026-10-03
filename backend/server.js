@@ -4108,3 +4108,5 @@ httpServer.listen(port, host, () => {
 // redeploy: legal pages agb-betriebe 2026-09-08T20:19:00Z
 
 // redeploy: impressum insurance section 2026-09-08T20:30:00Z
+
+// redeploy: sharp HTML hero phone mockups 2026-10-03T23:50:00Z
