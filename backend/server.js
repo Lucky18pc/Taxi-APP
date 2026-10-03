@@ -4112,3 +4112,5 @@ httpServer.listen(port, host, () => {
 // redeploy: sharp HTML hero phone mockups 2026-10-03T23:50:00Z
 
 // redeploy: SOS button on hero pickup mockup 2026-10-03T23:53:00Z
+
+// redeploy: mobile hero phones + products layout 2026-10-03T23:58:00Z

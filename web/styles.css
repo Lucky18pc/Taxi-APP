@@ -293,6 +293,47 @@ a { color: var(--primary); }
   animation-delay: 0.32s;
 }
 
+/* Handy: Telefone nicht zusammendrücken — lesbar per Horizontal-Scroll */
+@media (max-width: 719px) {
+  .hero-inner {
+    gap: 1.25rem;
+    padding: 0;
+  }
+
+  .hero-phones {
+    display: flex;
+    grid-template-columns: none;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 1rem;
+    max-width: none;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 0.25rem max(1rem, calc((100vw - 220px) / 2)) 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .hero-phones::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hero-device {
+    flex: 0 0 220px;
+    width: 220px;
+    max-width: 220px;
+    scroll-snap-align: center;
+  }
+
+  .phone-label {
+    font-size: 0.78rem;
+  }
+}
+
 .phone-label {
   margin: 0;
   font-size: 0.8rem;
@@ -910,6 +951,10 @@ ul.checklist li::before {
   .sales-grid { grid-template-columns: 1fr 1fr; }
 }
 
+@media (min-width: 960px) {
+  #produkte .sales-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
+
 .sales-card {
   background: var(--card);
   border-radius: var(--radius);
@@ -924,6 +969,66 @@ ul.checklist li::before {
 }
 
 .sales-card p { margin: 0; font-size: 0.95rem; color: var(--secondary); }
+
+.sales-card p + p {
+  margin-top: 0.65rem;
+}
+
+/* Produkte auf dem Handy: eine klare Spalte, größere Karten, kein Quetschen */
+@media (max-width: 639px) {
+  #produkte.sales-pitch {
+    margin-top: 1.25rem;
+    padding: 1.25rem 1rem;
+  }
+
+  #produkte .lead {
+    font-size: 0.98rem !important;
+    line-height: 1.45;
+    margin-bottom: 0.25rem;
+  }
+
+  #produkte .sales-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    margin: 1rem 0 0.25rem;
+  }
+
+  #produkte .sales-card {
+    padding: 1.1rem 1rem;
+    border-left-width: 0;
+    border-radius: 16px;
+  }
+
+  #produkte .sales-card h3 {
+    font-size: 1.12rem;
+    margin-bottom: 0.4rem;
+  }
+
+  #produkte .sales-card p {
+    font-size: 0.92rem;
+    line-height: 1.45;
+    font-weight: 600 !important;
+  }
+
+  #produkte .sales-card a {
+    display: inline-block;
+    margin-top: 0.15rem;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  #produkte .sales-card .meta {
+    display: inline-block;
+    margin-top: 0.35rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(255, 204, 0, 0.18);
+    color: #ffcc00 !important;
+    font-weight: 800;
+    font-size: 0.78rem;
+  }
+}
 
 .sales-quote {
   margin: 0 0 1.25rem;
@@ -1886,6 +1991,36 @@ body.home-taxi .founder-card strong {
 body.home-taxi .wrap > section:not(.ops-rent) .sales-card a,
 body.home-taxi .app-access-card a {
   color: #ffcc00 !important;
+}
+
+body.home-taxi #produkte .sales-card .meta {
+  color: #ffcc00 !important;
+  font-weight: 800;
+}
+
+@media (max-width: 639px) {
+  body.home-taxi .wrap {
+    margin-top: -0.75rem;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  body.home-taxi .wrap > section:not(.ops-rent) {
+    border-width: 2.5px;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  }
+
+  body.home-taxi .wrap > section:not(.ops-rent) > h2 {
+    font-size: 1.35rem !important;
+    line-height: 1.2;
+  }
+
+  body.home-taxi #produkte .sales-card {
+    background: #0c1c34 !important;
+    border: 2px solid #0c1c34 !important;
+    box-shadow: 0 4px 0 #0a1628;
+  }
 }
 
 body.home-taxi .wrap > section:not(.ops-rent) .sales-card ul.checklist li,
