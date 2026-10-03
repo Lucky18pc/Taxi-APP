@@ -310,7 +310,7 @@ a { color: var(--primary); }
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    padding: 0.25rem max(1rem, calc((100vw - 220px) / 2)) 0.75rem;
+    padding: 0.25rem max(1rem, calc((100vw - min(260px, 72vw)) / 2)) 0.75rem;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
@@ -323,14 +323,18 @@ a { color: var(--primary); }
   }
 
   .hero-device {
-    flex: 0 0 220px;
-    width: 220px;
-    max-width: 220px;
+    flex: 0 0 min(260px, 72vw);
+    width: min(260px, 72vw);
+    max-width: min(260px, 72vw);
     scroll-snap-align: center;
   }
 
   .phone-label {
     font-size: 0.78rem;
+  }
+
+  .app-screen-shot {
+    object-position: center bottom;
   }
 }
 
@@ -352,7 +356,12 @@ a { color: var(--primary); }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  /* Unten verankern: Zentrale / Abbestellen / Bestellen bleiben sichtbar */
+  object-position: center bottom;
+}
+
+.iphone-screen-shot {
+  background: #0a0a0c;
 }
 
 .iphone-frame {
