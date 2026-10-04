@@ -27,7 +27,6 @@ struct TaxiPickupView: View {
                                     showBorder: true,
                                     faceZoom: 0.88
                                 )
-                                .circleRingShimmer(lineWidth: 3, intensity: 0.9)
 
                                 Text(
                                     profileStore.resolvedDisplayName.isEmpty
@@ -52,17 +51,18 @@ struct TaxiPickupView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Brand.card)
                                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                .lightShimmer(cornerRadius: 10, tone: .onLight, intensity: 0.85)
                         }
                         .buttonStyle(.plain)
                     }
-                    Spacer(minLength: 0)
+                    Spacer(minLength: 8)
+                    EmergencySOSButton()
+                        .padding(.top, 4)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Brand.primary.opacity(0.88))
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                // Kein lightShimmer auf dieser Karte: sonst läuft der weiße Streifen über das Profilbild.
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
 
@@ -94,7 +94,7 @@ struct TaxiPickupView: View {
                             .padding(.vertical, 16)
                             .background(Brand.card)
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            .lightShimmer(cornerRadius: 14, intensity: 1.25)
+                            .lightShimmer(cornerRadius: 14, intensity: 0.7)
                     }
                     .buttonStyle(.plain)
                 }
@@ -159,7 +159,6 @@ struct TaxiPickupView: View {
                         .stroke(Color.white.opacity(0.35), lineWidth: 1)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .lightShimmer(cornerRadius: 14, tone: .onDark, intensity: 1.15)
         }
         .buttonStyle(.plain)
     }

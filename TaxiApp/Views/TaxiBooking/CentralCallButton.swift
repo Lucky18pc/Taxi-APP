@@ -24,7 +24,6 @@ struct CentralCallButton: View {
                     .background(buttonBackground)
                     .overlay(outlineOverlay)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .lightShimmer(cornerRadius: 14, tone: .onDark, intensity: 1.15)
             }
             .buttonStyle(.plain)
 

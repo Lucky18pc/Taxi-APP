@@ -39,40 +39,26 @@ private struct LightShimmerModifier: ViewModifier {
             .overlay {
                 if active {
                     GeometryReader { geometry in
-                        TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+                        TimelineView(.animation(minimumInterval: 1 / 24)) { timeline in
                             let t = timeline.date.timeIntervalSinceReferenceDate
-                            let mainPeriod: Double = 2.2
-                            let flashPeriod: Double = 4.4
+                            let mainPeriod: Double = 3.2
                             let mainProgress = (t.truncatingRemainder(dividingBy: mainPeriod)) / mainPeriod
-                            let flashProgress = (t.truncatingRemainder(dividingBy: flashPeriod)) / flashPeriod
 
-                            let mainBand = geometry.size.width * 0.52
-                            let flashBand = geometry.size.width * 0.22
+                            let mainBand = geometry.size.width * 0.4
                             let mainTravel = geometry.size.width + mainBand
-                            let flashTravel = geometry.size.width + flashBand
                             let mainX = mainProgress * mainTravel - mainBand * 0.35
-                            let flashX = flashProgress * flashTravel - flashBand * 0.35
 
-                            let (soft, mid, peak, flashPeak) = gradientStops(for: tone, intensity: intensity)
+                            let (soft, mid, _, _) = gradientStops(for: tone, intensity: intensity)
 
-                            ZStack {
-                                LinearGradient(
-                                    colors: [.clear, soft, mid, soft, .clear],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                                .frame(width: mainBand, height: geometry.size.height)
-                                .offset(x: mainX)
-
-                                LinearGradient(
-                                    colors: [.clear, mid, flashPeak, mid, .clear],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                                .frame(width: flashBand, height: geometry.size.height)
-                                .offset(x: flashX)
-                                .blur(radius: 0.5)
-                            }
+                            LinearGradient(
+                                colors: [.clear, soft, mid, soft, .clear],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                            .frame(width: mainBand, height: geometry.size.height)
+                            .offset(x: mainX)
+                            .opacity(0.5)
+                            .allowsHitTesting(false)
                         }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
@@ -82,28 +68,28 @@ private struct LightShimmerModifier: ViewModifier {
     }
 
     private func gradientStops(for tone: ShimmerTone, intensity: CGFloat) -> (Color, Color, Color, Color) {
-        let i = min(1.4, max(0.2, intensity))
+        let i = min(0.85, max(0.2, intensity * 0.45))
         switch tone {
         case .onLight:
             return (
-                .white.opacity(0.35 * i),
-                .white.opacity(0.65 * i),
-                .white.opacity(0.85 * i),
-                .white.opacity(1.0 * i)
+                .white.opacity(0.12 * i),
+                .white.opacity(0.28 * i),
+                .white.opacity(0.4 * i),
+                .white.opacity(0.5 * i)
             )
         case .onDark:
             return (
-                .white.opacity(0.2 * i),
-                .white.opacity(0.45 * i),
-                .white.opacity(0.7 * i),
-                .white.opacity(0.95 * i)
+                .white.opacity(0.08 * i),
+                .white.opacity(0.18 * i),
+                .white.opacity(0.28 * i),
+                .white.opacity(0.35 * i)
             )
         case .onGlass:
             return (
-                .white.opacity(0.25 * i),
-                .white.opacity(0.5 * i),
-                .white.opacity(0.75 * i),
-                .white.opacity(0.9 * i)
+                .white.opacity(0.1 * i),
+                .white.opacity(0.22 * i),
+                .white.opacity(0.32 * i),
+                .white.opacity(0.4 * i)
             )
         }
     }
@@ -258,11 +244,11 @@ private struct CircularRingShimmerModifier: ViewModifier {
                             .stroke(
                                 AngularGradient(
                                     colors: [
-                                        .white.opacity(0.04 * intensity),
-                                        .white.opacity(0.22 * intensity),
-                                        .white.opacity(0.62 * intensity),
-                                        .white.opacity(0.22 * intensity),
-                                        .white.opacity(0.04 * intensity),
+                                        .white.opacity(0.02 * intensity),
+                                        .white.opacity(0.12 * intensity),
+                                        .white.opacity(0.28 * intensity),
+                                        .white.opacity(0.12 * intensity),
+                                        .white.opacity(0.02 * intensity),
                                     ],
                                     center: .center
                                 ),
@@ -438,7 +424,7 @@ struct DriverAvatarView: View {
     var faceZoom: CGFloat = 0.9
 
     var body: some View {
-        Group {
+        ZStack {
             if let profileImage {
                 Image(uiImage: profileImage)
                     .resizable()
@@ -451,11 +437,13 @@ struct DriverAvatarView: View {
             }
         }
         .frame(width: size, height: size)
+        .clipped()
         .clipShape(Circle())
+        .compositingGroup()
         .overlay {
             if showBorder {
                 Circle()
-                    .stroke(Color.white.opacity(0.85), lineWidth: 2)
+                    .strokeBorder(Color.white.opacity(0.9), lineWidth: 2)
             }
         }
     }

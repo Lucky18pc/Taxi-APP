@@ -16,7 +16,7 @@
     header p { margin: 0.35rem 0 0; opacity: 0.85; font-size: 0.9rem; font-weight: 600; }
     main { max-width: 720px; margin: 0 auto; padding: 1rem 1.25rem 2rem; }
     .card { background: #fff8cc; border-radius: 14px; padding: 1rem; border: 2.5px solid var(--navy); box-shadow: 0 4px 0 var(--navy); margin-bottom: 1rem; }
-    #map { height: 320px; border-radius: 12px; border: 2px solid var(--navy); }
+    #map { height: 320px; border-radius: 12px; border: 2px solid var(--navy); background: #dbe4f0; }
     .status { padding: 0.75rem; border-radius: 10px; font-weight: 600; }
     .status.ok { background: #d1fae5; color: #065f46; }
     .status.warn { background: #ffe08a; color: var(--navy); border: 2px solid var(--navy); }
@@ -26,12 +26,46 @@
     .btn-primary { background: var(--navy); color: var(--yellow); }
     .btn-secondary { background: #fff8cc; color: var(--navy); border: 2px solid var(--navy); }
     .hint { font-size: 0.85rem; color: var(--navy); margin: 0; font-weight: 600; }
+    #sos-btn {
+      position: fixed; right: 0.85rem; top: 4.6rem; z-index: 40;
+      width: 2.5rem; height: 2.5rem; padding: 0;
+      border: 2px solid #0c1c34; border-radius: 50%;
+      background: #dc2626; color: #fff;
+      font-weight: 800; font-size: 0.62rem; letter-spacing: 0.02em;
+      box-shadow: 0 2px 8px rgba(12, 28, 52, 0.25); cursor: pointer;
+      line-height: 1;
+    }
+    #sos-overlay {
+      display: none; position: fixed; inset: 0; z-index: 50;
+      background: rgba(12, 28, 52, 0.65); align-items: flex-end; justify-content: center;
+      padding: 1rem;
+    }
+    #sos-overlay.open { display: flex; }
+    #sos-card {
+      width: 100%; max-width: 420px; background: #fff; border-radius: 18px;
+      border: 2.5px solid var(--navy); padding: 1.15rem; margin-bottom: 0.5rem;
+    }
+    #sos-card h2 { margin: 0 0 0.35rem; font-size: 1.2rem; }
+    #sos-card p { margin: 0 0 0.85rem; font-size: 0.9rem; font-weight: 600; }
+    .sos-call {
+      display: block; width: 100%; text-align: left; border: none; border-radius: 14px;
+      padding: 0.9rem 1rem; margin-bottom: 0.55rem; color: #fff; font: inherit; cursor: pointer;
+    }
+    .sos-call.police { background: #dc2626; }
+    .sos-call.eu { background: #ea580c; }
+    .sos-call strong { display: block; font-size: 1.75rem; letter-spacing: -0.02em; }
+    .sos-meta { font-size: 0.78rem; color: #334155; font-weight: 600; margin-bottom: 0.75rem; }
+    .sos-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .sos-actions button {
+      border: 2px solid var(--navy); background: #fff8cc; border-radius: 10px;
+      padding: 0.45rem 0.75rem; font-weight: 700; cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Dein Taxi live</h1>
-    <p id="header-sub">Karte aktualisiert sich automatisch.</p>
+    <p id="header-sub">Karte wird geladen…</p>
   </header>
 
   <main>
@@ -39,7 +73,7 @@
       <div id="status" class="status warn">Buchung wird geladen…</div>
       <p id="pickup-line" class="hint" style="margin-top:0.75rem"></p>
       <p id="driver-line" class="hint"></p>
-      <div id="map"></div>
+      <div id="map" role="img" aria-label="Live-Karte der Fahrt"></div>
       <div class="actions">
         <a id="call-driver" class="btn btn-primary" href="#" hidden>Fahrer anrufen</a>
         <a id="call-central" class="btn btn-secondary" href="#">Zentrale anrufen</a>
@@ -47,6 +81,25 @@
       </div>
     </section>
   </main>
+
+  <button type="button" id="sos-btn" aria-label="Hilfe in Gefahr — Notruf">SOS</button>
+  <div id="sos-overlay" role="dialog" aria-modal="true" aria-labelledby="sos-title">
+    <div id="sos-card">
+      <h2 id="sos-title">Hilfe in Gefahr</h2>
+      <p>Bei Bedrohung oder Notfall — Polizei / EU-Notruf. Standort wird ermittelt.</p>
+      <div class="sos-meta" id="sos-gps">GPS wird ermittelt …</div>
+      <div class="sos-actions">
+        <button type="button" id="sos-copy">Standort kopieren</button>
+        <button type="button" id="sos-close">Schließen</button>
+      </div>
+      <button type="button" class="sos-call police" data-number="110" data-label="Polizei">
+        Polizei<strong>110</strong>
+      </button>
+      <button type="button" class="sos-call eu" data-number="112" data-label="EU-Notruf">
+        EU-Notruf<strong>112</strong>
+      </button>
+    </div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
@@ -106,29 +159,58 @@
         }
       }
       mapMode = "leaflet";
-      headerSub.textContent = "Karte (OSM) · Live via Socket.io (~2,5 s).";
+      headerSub.textContent = "Karte (OpenStreetMap) · Live-Verfolgung.";
     }
 
     function ensureMap(center) {
       const lat = center?.[0] ?? 51.1657;
       const lng = center?.[1] ?? 10.4515;
+      const el = document.getElementById("map");
+
       if (mapMode === "google") {
-        if (googleMap) return;
-        googleMap = new google.maps.Map(document.getElementById("map"), {
+        if (googleMap) {
+          if (typeof google !== "undefined" && google.maps?.event) {
+            google.maps.event.trigger(googleMap, "resize");
+          }
+          return;
+        }
+        googleMap = new google.maps.Map(el, {
           center: { lat, lng },
-          zoom: 14,
+          zoom: center ? 14 : 6,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
         });
+        // iPhone Safari: Karte oft erst nach Resize sichtbar
+        requestAnimationFrame(() => {
+          if (typeof google !== "undefined" && google.maps?.event) {
+            google.maps.event.trigger(googleMap, "resize");
+            googleMap.setCenter({ lat, lng });
+          }
+        });
+        setTimeout(() => {
+          if (googleMap && typeof google !== "undefined" && google.maps?.event) {
+            google.maps.event.trigger(googleMap, "resize");
+          }
+        }, 300);
         return;
       }
-      if (map) return;
-      map = L.map("map").setView([lat, lng], 6);
+
+      if (map) {
+        requestAnimationFrame(() => map.invalidateSize());
+        return;
+      }
+
+      map = L.map(el, { zoomControl: true }).setView([lat, lng], center ? 14 : 6);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
+
+      requestAnimationFrame(() => {
+        map.invalidateSize();
+        setTimeout(() => map.invalidateSize(), 200);
+      });
     }
 
     function fitMarkers(coords) {
@@ -144,6 +226,7 @@
         googleMap.fitBounds(bounds, 40);
         return;
       }
+      if (!map) return;
       if (coords.length === 1) {
         map.setView(coords[0], 15);
         return;
@@ -200,6 +283,7 @@
         taxiMarker = null;
       }
       fitMarkers(coords);
+      requestAnimationFrame(() => map && map.invalidateSize());
     }
 
     function updateUi(snapshot) {
@@ -239,8 +323,12 @@
 
     async function poll() {
       if (!bookingId) {
-        statusEl.className = "status err";
-        statusEl.textContent = "Keine Buchungs-ID in der URL (?bookingId=…).";
+        statusEl.className = "status warn";
+        statusEl.innerHTML =
+          "Noch keine Fahrt in der URL. Bitte zuerst <a href=\"book.html\">Taxi bestellen</a> — danach öffnet sich die Live-Karte mit Google Maps und GPS.";
+        pickupLine.textContent = "Echtzeit braucht: track.html?bookingId=… (kommt nach der Buchung)";
+        driverLine.textContent = "Die Karte unten zeigt schon Google Maps — Taxi-Position folgt mit Buchungs-ID.";
+        ensureMap();
         return;
       }
 
@@ -269,7 +357,6 @@
 
     function startFallbackPoll() {
       clearInterval(pollTimer);
-      // Fallback etwas langsamer als Stream — Socket liefert ~2,5 s
       pollTimer = setInterval(poll, Math.max(streamIntervalMs * 2, 5000));
     }
 
@@ -286,6 +373,9 @@
 
       await initMapProvider(platform);
 
+      // Karte immer sofort zeigen (auch ohne bookingId) — sonst bleibt der Kasten leer
+      ensureMap();
+
       fetch("/api/config?operator=mannheim")
         .then((r) => (r.ok ? r.json() : null))
         .then((cfg) => {
@@ -299,6 +389,78 @@
       window.addEventListener("pagehide", () => {
         clearInterval(pollTimer);
         if (socket) socket.disconnect();
+      });
+      window.addEventListener("resize", () => {
+        if (map) map.invalidateSize();
+        if (googleMap && typeof google !== "undefined" && google.maps?.event) {
+          google.maps.event.trigger(googleMap, "resize");
+        }
+      });
+    })();
+
+    // --- Notruf (110 / 112) + GPS ---
+    (function setupSOS() {
+      const btn = document.getElementById("sos-btn");
+      const overlay = document.getElementById("sos-overlay");
+      const gpsEl = document.getElementById("sos-gps");
+      const copyBtn = document.getElementById("sos-copy");
+      const closeBtn = document.getElementById("sos-close");
+      let coords = null;
+
+      function shareText(label, number) {
+        const lines = ["NOTFALL — Luckys Taxi App", `${label || "Notruf"}: ${number || ""}`];
+        if (coords) {
+          lines.push(`GPS: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
+          lines.push(`Karte: https://www.google.com/maps?q=${coords.lat},${coords.lng}`);
+        }
+        if (bookingId) lines.push(`Buchung: ${bookingId}`);
+        return lines.join("\n");
+      }
+
+      function watchGps() {
+        if (!navigator.geolocation) {
+          gpsEl.textContent = "GPS nicht verfügbar — Position mündlich nennen.";
+          return;
+        }
+        gpsEl.textContent = "Position wird ermittelt …";
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            gpsEl.textContent = `GPS: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)} (±${Math.round(pos.coords.accuracy)} m)`;
+          },
+          () => {
+            gpsEl.textContent = "Standort verweigert — bitte Adresse mündlich nennen.";
+          },
+          { enableHighAccuracy: true, timeout: 15000 }
+        );
+      }
+
+      btn.addEventListener("click", () => {
+        overlay.classList.add("open");
+        watchGps();
+      });
+      closeBtn.addEventListener("click", () => overlay.classList.remove("open"));
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) overlay.classList.remove("open");
+      });
+      copyBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(shareText("Notruf", ""));
+          copyBtn.textContent = "Kopiert";
+          setTimeout(() => { copyBtn.textContent = "Standort kopieren"; }, 1600);
+        } catch (_) {}
+      });
+      overlay.querySelectorAll(".sos-call").forEach((el) => {
+        el.addEventListener("click", async () => {
+          const number = el.getAttribute("data-number");
+          const label = el.getAttribute("data-label");
+          if (!confirm(`${label} ${number} jetzt anrufen?`)) return;
+          try {
+            await navigator.clipboard.writeText(shareText(label, number));
+          } catch (_) {}
+          overlay.classList.remove("open");
+          window.location.href = `tel:${number}`;
+        });
       });
     })();
   </script>

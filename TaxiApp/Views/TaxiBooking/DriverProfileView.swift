@@ -176,7 +176,6 @@ struct DriverProfileView: View {
                 showBorder: true,
                 faceZoom: 0.88
             )
-            .circleRingShimmer(lineWidth: 4, intensity: 0.95)
             .shadow(color: Brand.primary.opacity(0.35), radius: 10, y: 4)
             .padding(.top, 8)
 

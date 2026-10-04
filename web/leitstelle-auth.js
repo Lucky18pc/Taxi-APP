@@ -1,10 +1,39 @@
 /**
  * PIN-Schutz für Leitstelle & Einstellungen (ADMIN_PIN oder Betriebs-dispatchPin).
  * Multi-Mandant: ?o=mannheim oder ?operator=mannheim in der URL.
+ *
+ * API-Basis: bei file://, Surge, Netlify o. Ä. → Live-Backend auf Render,
+ * damit Login nicht mit „Load failed“ scheitert.
  */
 (function () {
   const STORAGE_KEY = "taxiapp_admin_pin";
   const OPERATOR_KEY = "taxiapp_operator_slug";
+  const LIVE_API = "https://taxiapp-api.onrender.com";
+
+  function resolveApiBase() {
+    const origin = String(window.location.origin || "");
+    const protocol = String(window.location.protocol || "");
+    if (protocol === "file:" || !origin || origin === "null") {
+      return LIVE_API;
+    }
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      return origin;
+    }
+    // Gleiche Origin, wenn die Seite vom Render-Backend kommt
+    if (origin.includes("taxiapp-api.onrender.com")) {
+      return origin;
+    }
+    // Statisches Hosting (Surge/Netlify/…) → Live-API
+    return LIVE_API;
+  }
+
+  const API_BASE = resolveApiBase();
+
+  function apiUrl(path) {
+    if (/^https?:\/\//i.test(path)) return path;
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    return `${API_BASE}${normalized}`;
+  }
 
   function operatorSlugFromPage() {
     const params = new URLSearchParams(window.location.search);
@@ -52,9 +81,21 @@
     return headers;
   }
 
+  function networkErrorMessage(err) {
+    const msg = String(err && err.message ? err.message : err || "");
+    if (/load failed|failed to fetch|networkerror|network request failed/i.test(msg)) {
+      return (
+        "Server nicht erreichbar. Bitte öffnen: " +
+        LIVE_API +
+        "/dispatch.html — oder Internet prüfen."
+      );
+    }
+    return msg || "Anmeldung fehlgeschlagen";
+  }
+
   async function authRequired() {
     try {
-      const res = await fetch(withOperatorQuery("/api/auth/required"));
+      const res = await fetch(withOperatorQuery(apiUrl("/api/auth/required")));
       if (!res.ok) {
         // Fail closed: bei Fehler Login verlangen (nicht offen lassen)
         return true;
@@ -68,11 +109,16 @@
 
   async function verifyPin(pin) {
     const slug = getOperatorSlug();
-    const res = await fetch("/api/auth/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin, operator: slug || undefined }),
-    });
+    let res;
+    try {
+      res = await fetch(apiUrl("/api/auth/verify"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, operator: slug || undefined }),
+      });
+    } catch (err) {
+      throw new Error(networkErrorMessage(err));
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || "PIN ungültig");
@@ -133,7 +179,7 @@
         overlay.classList.remove("visible");
         document.dispatchEvent(new CustomEvent("leitstelle-auth-ok"));
       } catch (err) {
-        errEl.textContent = err.message;
+        errEl.textContent = networkErrorMessage(err);
         errEl.hidden = false;
       }
     });
@@ -144,9 +190,17 @@
     const slug = getOperatorSlug();
     const hint = document.getElementById("leitstelle-login-hint");
     if (hint) {
-      hint.textContent = slug
-        ? `PIN für Betrieb „${slug}“ eingeben.`
-        : "Bitte Leitstellen-PIN Ihres Betriebs eingeben.";
+      const offHost =
+        window.location.protocol === "file:" ||
+        !String(window.location.origin || "").includes("taxiapp-api.onrender.com");
+      if (slug) {
+        hint.textContent = `PIN für Betrieb „${slug}“ eingeben.`;
+      } else if (offHost) {
+        hint.textContent =
+          "Bitte ADMIN_PIN (Render) eingeben. Am zuverlässigsten über die Live-URL öffnen.";
+      } else {
+        hint.textContent = "Bitte Leitstellen-PIN Ihres Betriebs eingeben.";
+      }
     }
     document.getElementById("leitstelle-login").classList.add("visible");
   }
@@ -186,7 +240,12 @@
       ...(options.headers || {}),
       ...authHeaders(),
     };
-    const res = await fetch(withOperatorQuery(url), { ...options, headers });
+    let res;
+    try {
+      res = await fetch(withOperatorQuery(apiUrl(url)), { ...options, headers });
+    } catch (err) {
+      throw new Error(networkErrorMessage(err));
+    }
     if (res.status === 401) {
       clearPin();
       showLogin();
@@ -211,5 +270,6 @@
     getOperatorSlug,
     operatorLink,
     withOperatorQuery,
+    apiBase: API_BASE,
   };
 })();

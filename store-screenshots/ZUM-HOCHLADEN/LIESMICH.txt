@@ -1,0 +1,10 @@
+Nur diese Ordner verwenden:
+
+1) 1-iPhone-6.9  -> in App Store Connect bei "iPhone 6,9 Display" hochladen
+2) 2-iPhone-6.5  -> bei "iPhone 6,5 Display" (falls noch rot)
+3) 3-iPad-13     -> Tab "iPad" -> 13" Display (Pflicht, weil App iPad kann)
+
+Tipp: Oben auf "Alle Größen in Medienverwaltung anzeigen" klicken,
+dann die richtigen Größen-Kästen sehen.
+
+Nur die .jpg Dateien 01.jpg 02.jpg 03.jpg nehmen.
