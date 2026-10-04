@@ -1720,6 +1720,102 @@ body.legal-taxi .legal-page > .note {
   font-size: 0.95rem;
 }
 
+.city-partners {
+  margin: 0 0 2.5rem;
+  padding: 1.35rem 1.4rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.city-partners h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.city-partners > p {
+  margin: 0 0 1rem;
+  color: var(--secondary);
+  font-size: 0.95rem;
+}
+
+.city-partners-empty {
+  margin: 0;
+}
+
+.city-partner-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 720px) {
+  .city-partner-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.city-partner-card {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid #e8eaef;
+  border-radius: calc(var(--radius) - 2px);
+  background: #fff;
+}
+
+.city-partner-logo,
+.city-partner-mark {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.city-partner-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary, #1c304f);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.city-partner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.city-partner-name {
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.city-partner-city,
+.city-partner-phone {
+  color: var(--secondary);
+  font-size: 0.9rem;
+}
+
+.city-partner-link {
+  margin-top: 0.35rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.city-partner-link:hover {
+  text-decoration: underline;
+}
+
 .city-nav {
   padding: 1.25rem 0 0.5rem;
   border-top: 1px solid #e8eaef;

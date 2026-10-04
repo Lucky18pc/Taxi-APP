@@ -756,8 +756,9 @@ function renderPage(loc, all) {
   }
   </script>
   <script src="../analytics.js" defer></script>
+  <script src="../city-partners.js" defer></script>
 </head>
-<body class="city-page">
+<body class="city-page" data-city="${esc(loc.name)}" data-city-slug="${esc(loc.slug)}" data-country="${esc(loc.country)}" data-loc-type="${esc(loc.type)}">
   <header class="city-hero">
     <div class="city-hero-inner">
       <p class="city-brand"><a href="../index.html">Luckys Taxi App</a></p>
@@ -802,6 +803,8 @@ function renderPage(loc, all) {
         <p><a class="btn secondary" href="../onboard.html">Partner werden ab 9,90 €</a></p>
       </section>
     </div>
+
+    <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
 
     <section class="city-faq">
       <h2>Fragen zu ${esc(loc.name)}</h2>
@@ -882,8 +885,9 @@ function renderHub(all) {
   <link rel="icon" type="image/png" href="../icon-taxi-192.png">
   <link rel="stylesheet" href="../styles.css">
   <script src="../analytics.js" defer></script>
+  <script src="../city-partners.js" defer></script>
 </head>
-<body class="city-page cities-hub">
+<body class="city-page cities-hub" data-partners-mode="directory">
   <header class="city-hero">
     <div class="city-hero-inner">
       <p class="city-brand"><a href="../index.html">Luckys Taxi App</a></p>
@@ -897,6 +901,7 @@ function renderHub(all) {
   </header>
   <main class="wrap city-main">
     <p class="lead">Wähle deinen Ort. Jede Seite erklärt die Buchung für Fahrgäste und die Software für Betriebe.</p>
+    <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
     ${sections.join("\n    ")}
   </main>
   <footer class="site-footer">

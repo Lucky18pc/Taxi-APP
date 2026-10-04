@@ -1789,6 +1789,62 @@ app.get("/api/public/analytics", (_req, res) => {
   res.json({ gaMeasurementId: gaMeasurementId || null });
 });
 
+/** Öffentliche Plattform-Infos (Maps-Keys, Realtime) — ohne Secrets außer browser-fähigem Maps-Key. */
+app.get("/api/platform", (_req, res) => {
+  const googleMapsBrowserKey = String(process.env.GOOGLE_MAPS_BROWSER_KEY || "").trim();
+  const googleMapsEnabled = Boolean(googleMapsBrowserKey);
+  const locationIntervalMs = Math.max(
+    1000,
+    Number(process.env.LOCATION_INTERVAL_MS || 2500) || 2500
+  );
+  res.json({
+    phase: 1,
+    label: "Architektur, Tech Stack & Infrastruktur",
+    mobileApps: {
+      passengerIos: {
+        stack: "Swift / SwiftUI",
+        language: "Swift 6",
+        concurrency: "async/await",
+        maps: "MapKit",
+        path: "TaxiApp/",
+      },
+      driverIos: {
+        stack: "Swift / SwiftUI",
+        language: "Swift 6 (Target)",
+        concurrency: "async/await",
+        auth: "Firebase Auth + Firestore role=driver",
+        path: "FahrerApp/",
+      },
+      passengerAndroidPwa: {
+        stack: "PWA (book.html / track.html)",
+        backend: "shared Node/Express API",
+        maps: googleMapsEnabled ? "Google Maps (+ Leaflet/OSM Fallback)" : "Leaflet/OSM (Fallback)",
+        googleMapsEnabled,
+      },
+    },
+    backend: {
+      chosen: "Node.js + Express",
+      host: "Render.com",
+    },
+    realtime: {
+      transport: "Socket.io (+ HTTP polling fallback)",
+      locationIntervalMs,
+    },
+    thirdParty: {
+      googleMaps: {
+        enabled: googleMapsEnabled,
+        browserKeyConfigured: googleMapsEnabled,
+        browserKey: googleMapsEnabled ? googleMapsBrowserKey : null,
+        services: ["Maps JavaScript API", "Places (planned)", "Directions (planned)"],
+      },
+      mapbox: {
+        enabled: false,
+        tokenConfigured: false,
+      },
+    },
+  });
+});
+
 app.get("/api/auth/required", (req, res) => {
   res.json({ required: authRequiredForRequest(req) });
 });
@@ -2241,11 +2297,42 @@ app.get("/api/operators/resolve", (req, res) => {
   });
 });
 
-app.get("/api/operators", (_req, res) => {
+app.get("/api/operators", (req, res) => {
   if (!fleet.enabled()) {
     return res.json({ operators: [] });
   }
-  res.json({ operators: fleet.list().map((op) => fleet.toPublicSummary(op)) });
+  let operators = fleet.list().map((op) => fleet.toPublicSummary(op));
+  const city = String(req.query.city || "").trim().toLowerCase();
+  const slug = String(req.query.slug || "").trim().toLowerCase();
+  const country = String(req.query.country || "").trim().toUpperCase();
+  if (slug) {
+    operators = operators.filter((op) => String(op.slug || "").toLowerCase() === slug);
+  }
+  if (country) {
+    operators = operators.filter((op) => String(op.country || "").toUpperCase() === country);
+  }
+  if (city) {
+    const needle = city
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/ä/g, "ae")
+      .replace(/ö/g, "oe")
+      .replace(/ü/g, "ue")
+      .replace(/ß/g, "ss");
+    operators = operators.filter((op) => {
+      const hay = String(op.legalCity || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/ä/g, "ae")
+        .replace(/ö/g, "oe")
+        .replace(/ü/g, "ue")
+        .replace(/ß/g, "ss");
+      const opSlug = String(op.slug || "").toLowerCase();
+      return hay.includes(needle) || opSlug === needle || opSlug.includes(needle);
+    });
+  }
+  res.json({ operators });
 });
 
 app.get("/api/fleet/operators", requireAdmin, (req, res) => {
@@ -4108,13 +4195,3 @@ httpServer.listen(port, host, () => {
 // redeploy: legal pages agb-betriebe 2026-09-08T20:19:00Z
 
 // redeploy: impressum insurance section 2026-09-08T20:30:00Z
-
-// redeploy: sharp HTML hero phone mockups 2026-10-03T23:50:00Z
-
-// redeploy: SOS button on hero pickup mockup 2026-10-03T23:53:00Z
-
-// redeploy: mobile hero phones + products layout 2026-10-03T23:58:00Z
-
-// redeploy: restore app screenshots + show bottom buttons 2026-10-04T00:05:00Z
-
-// redeploy: rename Markus to Lucky on hero screenshot 2026-10-04T00:08:00Z

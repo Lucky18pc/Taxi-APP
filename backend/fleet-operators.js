@@ -362,6 +362,8 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       slug: operator.slug,
       companyName: operator.companyName,
       centralPhoneDisplay: operator.centralPhoneDisplay || operator.centralPhone,
+      legalCity: operator.legalCity || "",
+      logoUrl: operator.logoUrl || "",
       country: operator.country,
       status: operator.status,
     };

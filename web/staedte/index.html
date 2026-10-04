@@ -16,8 +16,9 @@
   <link rel="icon" type="image/png" href="../icon-taxi-192.png">
   <link rel="stylesheet" href="../styles.css">
   <script src="../analytics.js" defer></script>
+  <script src="../city-partners.js" defer></script>
 </head>
-<body class="city-page cities-hub">
+<body class="city-page cities-hub" data-partners-mode="directory">
   <header class="city-hero">
     <div class="city-hero-inner">
       <p class="city-brand"><a href="../index.html">Luckys Taxi App</a></p>
@@ -52,6 +53,7 @@
 
 
     <p class="lead">Wähle deinen Ort. Jede Seite erklärt die Buchung für Fahrgäste und die Software für Betriebe.</p>
+    <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
     <section class="city-block" style="margin-bottom:1.25rem">
       <h2>Deutschland</h2>
       <ul class="cities-seo-list">
