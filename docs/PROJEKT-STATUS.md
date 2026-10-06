@@ -68,7 +68,7 @@ Stand: September 2026. **Pilot-fertig** vs. **später** — damit du weißt, was
 
 | Feature | Status | Hinweis |
 |---------|--------|---------|
-| GA4 Web | 🟡 | `GA_MEASUREMENT_ID` auf Render; Event `generate_lead` bei Tarif-Anfrage |
+| GA4 Web | 🟡 | `GA_MEASUREMENT_ID` auf Render; Events `generate_lead` + `qr_scan` |
 | Domain Sichtbarkeit | 🟡 | Strato DNS + Search Console — `docs/STRATO-SICHTBARKEIT.md` |
 | B2B-KPI | ✅ | Primär Admin → Anfragen; Outreach: `docs/BETRIEBE-AKQUISE.md` |
 | Firebase Analytics App | ⏳ | In Plist deaktiviert |

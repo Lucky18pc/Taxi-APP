@@ -6,9 +6,14 @@
   <meta name="theme-color" content="#ffcc00">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Luckys Taxi App">
-  <title>Luckys Taxi App — Bitte scannen</title>
+  <title>Luckys Taxi App — QR-Scan: Taxi bestellen</title>
+  <meta name="description" content="QR-Aufkleber von Luckys Taxi App: Taxi online bestellen — ohne App-Store. Sichere Buchungsseite.">
+  <link rel="canonical" href="https://luckystaxiapp.de/scan.html">
+  <meta name="robots" content="index,follow">
   <link rel="icon" type="image/png" href="icon-taxi-192.png">
   <!-- Kein externes CSS: erste Farbe sofort gelb — kein leerer/Render-artiger Start -->
+  <!-- Analytics deferred: Consent-Banner erst nach gelbem First Paint -->
+  <script src="analytics.js" defer></script>
   <style>
     html, body {
       margin: 0;
@@ -70,6 +75,25 @@
       max-width: 22rem;
       opacity: 0.8;
     }
+    /* Consent (ohne styles.css — gelber First Paint bleibt) */
+    #luckys-consent-banner {
+      position: fixed; z-index: 9999; left: 0; right: 0; bottom: 0;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 0.75rem 1.25rem; padding: 1rem 1.25rem;
+      background: #0c1c34; color: #fff; box-shadow: 0 -4px 24px rgba(0,0,0,0.25);
+      font-size: 0.92rem; line-height: 1.45; text-align: left;
+    }
+    #luckys-consent-banner p { margin: 0; flex: 1 1 16rem; max-width: 40rem; font-weight: 600; }
+    #luckys-consent-banner a { color: #ffcc00; }
+    .luckys-consent-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .luckys-consent-accept, .luckys-consent-decline {
+      border: none; border-radius: 8px; padding: 0.55rem 1rem;
+      font-weight: 700; cursor: pointer; font-size: 0.9rem;
+    }
+    .luckys-consent-accept { background: #ffcc00; color: #0c1c34; }
+    .luckys-consent-decline {
+      background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.45);
+    }
   </style>
 </head>
 <body>
@@ -95,6 +119,28 @@
       var status = document.getElementById("status");
       cta.href = book;
 
+      function trackQr(extra) {
+        if (typeof window.luckysTrack !== "function") return false;
+        var payload = { lead_source: "qr_scan", page_path: "/scan.html" };
+        if (slug) payload.operator_slug = slug;
+        if (extra) {
+          for (var k in extra) {
+            if (Object.prototype.hasOwnProperty.call(extra, k)) payload[k] = extra[k];
+          }
+        }
+        window.luckysTrack("qr_scan", payload);
+        return true;
+      }
+      // Einmal landen melden — wartet kurz auf Consent/gtag (analytics.js async)
+      (function waitLanded(attempt) {
+        if (trackQr({ scan_phase: "landed" })) return;
+        if (attempt < 20) setTimeout(function () { waitLanded(attempt + 1); }, 250);
+      })(0);
+
+      cta.addEventListener("click", function () {
+        trackQr({ scan_phase: "cta_click" });
+      });
+
       var tries = 0;
       var maxTries = 40; // ~40s
 
@@ -104,6 +150,7 @@
         // Auto-Weiterleitung nur wenn Server schon warm ist (schneller Scan-Flow)
         if (tries <= 2) {
           status.textContent = "Weiter zur Buchung…";
+          trackQr({ scan_phase: "auto_redirect" });
           setTimeout(function () { location.replace(book); }, 350);
         }
       }

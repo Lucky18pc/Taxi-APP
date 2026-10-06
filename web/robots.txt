@@ -3,6 +3,13 @@ Allow: /
 Disallow: /admin.html
 Disallow: /settings.html
 Disallow: /dispatch.html
+Disallow: /dispatch-karte-vorschau.html
+Disallow: /driver-track.html
+Disallow: /track.html
+Disallow: /pay.html
+Disallow: /betrieb.html
+Disallow: /driver-onboard.html
 Disallow: /api/
+Disallow: /googlef3db2aaf92f1c378.html
 
 Sitemap: https://luckystaxiapp.de/sitemap.xml
