@@ -847,6 +847,10 @@ function renderPage(loc, all) {
 
     <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
 
+    <figure class="city-flyer-promo">
+      <img src="luckys-taxi-flyer-promo.png" width="576" height="432" alt="Luckys Taxi App — Mobile App mit Fahrer-Login">
+    </figure>
+
     <section class="city-faq">
       <h2>Fragen zu ${esc(loc.name)}</h2>
       ${faqHtml}
@@ -943,6 +947,9 @@ function renderHub(all) {
   <main class="wrap city-main">
     <p class="lead">Wähle deinen Ort. Jede Seite erklärt die Buchung für Fahrgäste und die Software für Betriebe.</p>
     <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
+    <figure class="city-flyer-promo">
+      <img src="luckys-taxi-flyer-promo.png" width="576" height="432" alt="Luckys Taxi App — Mobile App mit Fahrer-Login">
+    </figure>
     ${sections.join("\n    ")}
   </main>
   <footer class="site-footer">

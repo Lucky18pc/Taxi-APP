@@ -1743,6 +1743,22 @@ body.legal-taxi .legal-page > .note {
   margin: 0;
 }
 
+/* Promo-Flyer: exakt 24 % der Seitenbreite (wie gespeicherte 576px-Variante) */
+.city-flyer-promo {
+  margin: 0 0 2.5rem;
+  text-align: center;
+}
+
+.city-flyer-promo img {
+  width: 24%;
+  max-width: 576px;
+  height: auto;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
 .city-partner-list {
   list-style: none;
   margin: 0;
