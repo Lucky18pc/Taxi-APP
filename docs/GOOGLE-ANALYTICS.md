@@ -9,8 +9,7 @@ Ohne Opt-in kein `gtag` — siehe [REVIEW-STATUS.md](REVIEW-STATUS.md) und [TOMS
 |------|----------|-----|
 | **1 (primär)** | **Tarif-Anfragen / Woche** | [admin.html](https://luckystaxiapp.de/admin.html) → **Anfragen** |
 | 2 | Event `generate_lead` | Google Analytics → Ereignisse |
-| 3 | Event `qr_scan` | Google Analytics → Ereignisse (Aufkleber) |
-| 4 | Seitenaufrufe / aktive Nutzer | Google Analytics (nur Kontext) |
+| 3 | Seitenaufrufe / aktive Nutzer | Google Analytics (nur Kontext) |
 
 **Nicht** als Erfolgsmaßstab: Aufrufe „Taxi bestellen“, Stadtseiten, internationale Besucher.
 
@@ -34,12 +33,8 @@ Website-Traffic ohne Anfragen bringt kaum Abo-Umsatz — Luckys gewinnt **Betrie
 Damit Google `luckystaxiapp.de` zuverlässig erkennt (nicht nur Analytics-Hits):
 
 1. https://search.google.com/search-console → Property `https://luckystaxiapp.de` oder Domain `luckystaxiapp.de`
-2. Inhaberschaft bestätigen:
-   - **HTML-Datei** liegt bereits live: `https://luckystaxiapp.de/googlef3db2aaf92f1c378.html`  
-     (in Search Console „HTML-Tag / Datei“ wählen, falls noch nicht bestätigt)
-   - oder **DNS-TXT** bei Strato (Domainverwaltung → DNS)
+2. Inhaberschaft per **DNS-TXT bei Strato** bestätigen (Domainverwaltung → DNS)
 3. **Sitemaps** → `https://luckystaxiapp.de/sitemap.xml` einreichen
-4. Optional URL-Prüfung: Startseite, `onboard.html`, `scan.html`
 
 Schritt-für-Schritt inkl. Strato-DNS und Render Starter: [STRATO-SICHTBARKEIT.md](STRATO-SICHTBARKEIT.md)
 
@@ -47,19 +42,6 @@ Schritt-für-Schritt inkl. Strato-DNS und Render Starter: [STRATO-SICHTBARKEIT.m
 bash ~/Projects/TaxiApp/scripts/strato-sichtbarkeit-check.sh
 ```
 
-Admin → **Analytics** zeigt denselben Live-Check (GA-Mess-ID, Sitemap, Verifikationsdatei).
-
-## 1c. Welche GA4-Ereignisse zählen
-
-| Ereignis | Wann | Bedeutung |
-|----------|------|-----------|
-| `generate_lead` | Tarif-Anfrage Startseite / Onboard | **B2B-Lead** (primär neben Admin-Anfragen) |
-| `qr_scan` | Aufruf / Klick auf `scan.html` | Aufkleber-Reichweite (Parameter `scan_phase`, optional `operator_slug`) |
-| `page_view` | nach Cookie-Opt-in | nur Kontext |
-
-**`(not set)` bei Stadt** in Demografie heißt: Geo aus IP nicht bestimmbar (VPN, Mobilfunk, Privacy) — kein versteckter Ortsname und kein Tracking-Fehler.
-
-Bot-Filter in GA4: Verwaltung → Dateneinstellungen → Datenerhebung → Google-Signale / unerwünschten Traffic filtern.
 ## 2. Mess-ID in Render eintragen
 
 1. https://dashboard.render.com → **taxiapp-api** → **Environment**  

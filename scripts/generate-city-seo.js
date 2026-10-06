@@ -920,27 +920,20 @@ function renderHub(all) {
 }
 
 function writeSitemap(all) {
-  // Nur indexierbare Marketing-/Recht-Seiten. noindex (betrieb, driver-onboard, …) bewusst weg.
   const staticUrls = [
     ["/", "weekly", "1.0"],
     ["/book.html", "weekly", "0.9"],
     ["/onboard.html", "monthly", "0.8"],
-    ["/scan.html", "monthly", "0.75"],
     ["/staedte/", "weekly", "0.85"],
-    ["/rechnungen.html", "monthly", "0.5"],
     ["/impressum.html", "yearly", "0.3"],
     ["/datenschutz.html", "yearly", "0.3"],
     ["/agb.html", "yearly", "0.3"],
-    ["/agb-betriebe.html", "yearly", "0.3"],
-    ["/widerruf.html", "yearly", "0.3"],
   ];
 
-  const today = new Date().toISOString().slice(0, 10);
   const urls = [
     ...staticUrls.map(
       ([loc, freq, prio]) => `  <url>
     <loc>${BASE}${loc}</loc>
-    <lastmod>${today}</lastmod>
     <changefreq>${freq}</changefreq>
     <priority>${prio}</priority>
   </url>`
@@ -949,7 +942,6 @@ function writeSitemap(all) {
       const prio = loc.type === "country" ? "0.75" : loc.country === "DE" ? "0.7" : "0.55";
       return `  <url>
     <loc>${BASE}/staedte/${loc.slug}.html</loc>
-    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>${prio}</priority>
   </url>`;

@@ -89,15 +89,15 @@ Details: [RENDER-GO-LIVE.md](RENDER-GO-LIVE.md), [GOOGLE-ANALYTICS.md](GOOGLE-AN
 
 1. https://search.google.com/search-console → Property **`https://luckystaxiapp.de`** (URL-Präfix) oder Domain-Property `luckystaxiapp.de`
 2. Inhaberschaft bestätigen:
-   - **HTML-Datei** bereits unter `https://luckystaxiapp.de/googlef3db2aaf92f1c378.html`, **oder**
-   - **DNS-TXT** bei Strato (Domainverwaltung → DNS → TXT-Eintrag von Google)
+   - **DNS-TXT** bei Strato (Domainverwaltung → DNS → TXT-Eintrag von Google einfügen), **oder**
+   - HTML-Tag / Datei — DNS-TXT ist bei Strato-Domain am saubersten
 3. Nach Verifizierung: **Sitemaps** → `https://luckystaxiapp.de/sitemap.xml` einreichen
-4. Optional: URL-Prüfung für Startseite, `onboard.html`, `scan.html`
+4. Optional: URL-Prüfung für Startseite + `onboard.html`
 
-Sitemap und `robots.txt` liegen unter `web/` und werden von Render ausgeliefert.  
-Die Sitemap enthält Startseite, Buchung, Onboard, QR-Scan, Städte-Hub, Rechtstexte und alle Stadtseiten (`scripts/generate-city-seo.js`).
+Sitemap und `robots.txt` liegen unter `web/` und werden von Render ausgeliefert.
 
 GA4 parallel: Stream-URL `https://luckystaxiapp.de` — [GOOGLE-ANALYTICS.md](GOOGLE-ANALYTICS.md)
+
 ---
 
 ## 4. Erfolgszahl: Betriebe, nicht Seitenaufrufe
@@ -108,8 +108,7 @@ Laut [BETRIEBE-AKQUISE.md](BETRIEBE-AKQUISE.md):
 |------|----------|-----|
 | **1** | Tarif-Anfragen / Woche | https://luckystaxiapp.de/admin.html → **Anfragen** |
 | 2 | Event `generate_lead` | Google Analytics → Ereignisse |
-| 3 | Event `qr_scan` | Google Analytics → Ereignisse (Aufkleber) |
-| 4 | Seitenaufrufe | GA4 (nur Kontext) |
+| 3 | Seitenaufrufe | GA4 (nur Kontext) |
 
 **Wochenziel:** 5 Gespräche mit Taxi-Betrieben — Link `https://luckystaxiapp.de/onboard.html` schicken.
 
@@ -123,8 +122,7 @@ Hosting- und DNS-Setup ersetzen keine Anrufe/Mails (Speyer, LU, Mannheim, …).
 - [ ] Render Plan = Starter (kein Sleep)
 - [ ] `PUBLIC_BASE_URL=https://luckystaxiapp.de`
 - [ ] `GA_MEASUREMENT_ID` gesetzt → Health `"analytics":true`
-- [ ] Search Console verifiziert (HTML-Datei oder DNS-TXT) + Sitemap eingereicht
-- [ ] Admin → Analytics: grüne Live-Checks
+- [ ] Search Console verifiziert + Sitemap eingereicht
 - [ ] Outreach-Liste in BETRIEBE-AKQUISE befüllen / 5 Gespräche/Woche
 
 ```bash

@@ -17,7 +17,7 @@
     },
     analytics: {
       title: "Analytics",
-      sub: "Primär: Tarif-Anfragen. Zusätzlich GA4, QR-Scans und Search-Console-Index.",
+      sub: "Primär: Tarif-Anfragen. Zusätzlich Website-Besucher in Google Analytics.",
     },
   };
 
@@ -254,95 +254,6 @@
     }
   }
 
-  async function loadAnalyticsStatus() {
-    const statusEl = document.getElementById("analytics-status");
-    const listEl = document.getElementById("analytics-checklist");
-    if (!statusEl || !listEl) return;
-
-    statusEl.textContent = "Status wird geladen…";
-    listEl.innerHTML = "";
-
-    const checks = [];
-    try {
-      const healthRes = await fetch("/health", { cache: "no-store" });
-      const health = healthRes.ok ? await healthRes.json() : null;
-      const gaOn = Boolean(health && health.analytics);
-      checks.push({
-        ok: gaOn,
-        text: gaOn
-          ? "GA_MEASUREMENT_ID aktiv (Health analytics:true)"
-          : "GA_MEASUREMENT_ID fehlt auf Render",
-      });
-    } catch {
-      checks.push({ ok: false, text: "Health-Check fehlgeschlagen — Backend erreichbar?" });
-    }
-
-    try {
-      const cfgRes = await fetch("/api/public/analytics", { cache: "no-store" });
-      const cfg = cfgRes.ok ? await cfgRes.json() : null;
-      const id = cfg && cfg.gaMeasurementId ? String(cfg.gaMeasurementId) : "";
-      checks.push({
-        ok: Boolean(id),
-        text: id ? `Mess-ID öffentlich: ${id}` : "Mess-ID nicht über /api/public/analytics",
-      });
-    } catch {
-      checks.push({ ok: false, text: "Analytics-Config API nicht erreichbar" });
-    }
-
-    async function headOk(path) {
-      try {
-        const res = await fetch(path, { method: "GET", cache: "no-store" });
-        return res.ok;
-      } catch {
-        return false;
-      }
-    }
-
-    const sitemapOk = await headOk("/sitemap.xml");
-    checks.push({
-      ok: sitemapOk,
-      text: sitemapOk ? "Sitemap erreichbar (/sitemap.xml)" : "Sitemap fehlt oder nicht erreichbar",
-    });
-
-    const robotsOk = await headOk("/robots.txt");
-    checks.push({
-      ok: robotsOk,
-      text: robotsOk ? "robots.txt erreichbar" : "robots.txt fehlt",
-    });
-
-    let scanInSitemap = false;
-    if (sitemapOk) {
-      try {
-        const sm = await (await fetch("/sitemap.xml", { cache: "no-store" })).text();
-        scanInSitemap = sm.includes("https://luckystaxiapp.de/scan.html");
-      } catch {
-        scanInSitemap = false;
-      }
-    }
-    checks.push({
-      ok: scanInSitemap,
-      text: scanInSitemap
-        ? "Sitemap enthält scan.html (QR-Aufkleber)"
-        : "Sitemap ohne scan.html — Generator/Deploy prüfen",
-    });
-
-    const verifyOk = await headOk("/googlef3db2aaf92f1c378.html");
-    checks.push({
-      ok: verifyOk,
-      text: verifyOk
-        ? "Search-Console-Verifikationsdatei erreichbar"
-        : "Verifikationsdatei fehlt",
-    });
-
-    const allOk = checks.every((c) => c.ok);
-    statusEl.textContent = allOk
-      ? "Automatische Checks OK — Search Console Sitemap manuell eingereicht lassen."
-      : "Einige Checks fehlgeschlagen — Details unten.";
-    listEl.innerHTML = checks
-      .map((c) => `<li>${c.ok ? "✓" : "✗"} ${c.text}</li>`)
-      .join("");
-  }
-
   function showPanel(id) {
     document.querySelectorAll(".panel").forEach((el) => el.classList.remove("active"));
     document.querySelectorAll(".nav-btn").forEach((el) => el.classList.remove("active"));
@@ -351,9 +262,6 @@
     const copy = PANEL_COPY[id] || PANEL_COPY.tenants;
     document.getElementById("panel-title").textContent = copy.title;
     document.getElementById("panel-sub").textContent = copy.sub;
-    if (id === "analytics") {
-      loadAnalyticsStatus().catch(() => {});
-    }
   }
 
   function statusBadge(status) {

@@ -66,7 +66,7 @@ fi
 
 echo ""
 echo "3) Öffentliche Seiten …"
-for path in "/" "/onboard.html" "/scan.html" "/robots.txt" "/sitemap.xml" "/googlef3db2aaf92f1c378.html"; do
+for path in "/" "/onboard.html" "/robots.txt" "/sitemap.xml"; do
   CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 60 "$BASE$path" || echo "000")
   if [[ "$CODE" == "200" ]]; then
     ok "$path (HTTP 200)"
@@ -81,36 +81,12 @@ if echo "$ROBOTS" | grep -q "Sitemap: https://luckystaxiapp.de/sitemap.xml"; the
 else
   warn "robots.txt Sitemap-Zeile prüfen"
 fi
-if echo "$ROBOTS" | grep -q "Disallow: /driver-track.html"; then
-  ok "robots.txt sperrt Leitstellen-/Tracking-Seiten"
-else
-  warn "robots.txt: private Pfade (driver-track, track, pay) prüfen"
-fi
 
 SITEMAP=$(curl -sS --max-time 30 "$BASE/sitemap.xml" || true)
 if echo "$SITEMAP" | grep -q "https://luckystaxiapp.de/onboard.html"; then
   ok "Sitemap enthält onboard.html (B2B)"
 else
   warn "Sitemap ohne onboard.html?"
-fi
-if echo "$SITEMAP" | grep -q "https://luckystaxiapp.de/scan.html"; then
-  ok "Sitemap enthält scan.html (QR)"
-else
-  warn "Sitemap ohne scan.html — generate-city-seo / Deploy prüfen"
-fi
-for must in widerruf.html agb-betriebe.html rechnungen.html; do
-  if echo "$SITEMAP" | grep -q "https://luckystaxiapp.de/$must"; then
-    ok "Sitemap enthält $must"
-  else
-    warn "Sitemap ohne $must"
-  fi
-done
-
-VERIFY=$(curl -sS --max-time 30 "$BASE/googlef3db2aaf92f1c378.html" || true)
-if echo "$VERIFY" | grep -qi "google-site-verification"; then
-  ok "Search-Console-Verifikationsdatei gültig"
-else
-  warn "Verifikationsdatei Inhalt prüfen"
 fi
 
 # Parkseiten / falscher Host
@@ -127,11 +103,10 @@ echo ""
 echo "=== Manuell (nicht automatisierbar) ==="
 echo "  • Render Plan = Starter (Always On) — Dashboard"
 echo "  • PUBLIC_BASE_URL=https://luckystaxiapp.de — Render Environment"
-echo "  • Google Search Console: Property verifizieren (Datei liegt schon) + Sitemap einreichen"
-echo "  • GA4: generate_lead + qr_scan als Ereignisse prüfen; Bot-Filter aktivieren"
+echo "  • Google Search Console: Property + DNS-TXT bei Strato + Sitemap einreichen"
 echo "  • KPI: admin.html → Anfragen / 5 Betriebs-Gespräche pro Woche"
 echo ""
-echo "Anleitung: docs/STRATO-SICHTBARKEIT.md · docs/GOOGLE-ANALYTICS.md"
+echo "Anleitung: docs/STRATO-SICHTBARKEIT.md"
 echo ""
 
 if [[ "$FAILED" -gt 0 ]]; then
