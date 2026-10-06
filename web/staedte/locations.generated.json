@@ -252,6 +252,12 @@
     "type": "city"
   },
   {
+    "slug": "frankenthal",
+    "name": "Frankenthal",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "frankfurt-am-main",
     "name": "Frankfurt am Main",
     "country": "DE",
@@ -498,6 +504,12 @@
     "type": "city"
   },
   {
+    "slug": "landau",
+    "name": "Landau",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "landshut",
     "name": "Landshut",
     "country": "DE",
@@ -566,6 +578,12 @@
   {
     "slug": "mannheim",
     "name": "Mannheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "marburg",
+    "name": "Marburg",
     "country": "DE",
     "type": "city"
   },
@@ -668,6 +686,12 @@
   {
     "slug": "oberhausen",
     "name": "Oberhausen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "offenbach-am-main",
+    "name": "Offenbach am Main",
     "country": "DE",
     "type": "city"
   },
@@ -932,6 +956,12 @@
   {
     "slug": "wolfsburg",
     "name": "Wolfsburg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "worms",
+    "name": "Worms",
     "country": "DE",
     "type": "city"
   },
