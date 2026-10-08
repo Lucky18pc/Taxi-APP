@@ -28,19 +28,31 @@ enum NavigationDeepLink {
         let lat = coordinate.latitude
         let lng = coordinate.longitude
         let encoded = label.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Ziel"
-        let url: URL?
+
+        let nativeURL: URL?
+        let webFallback: URL?
         switch app {
         case .appleMaps:
-            url = URL(string: "http://maps.apple.com/?daddr=\(lat),\(lng)&q=\(encoded)")
+            // http maps.apple.com öffnet die App oder die Website — kein Extra-Fallback nötig.
+            nativeURL = URL(string: "http://maps.apple.com/?daddr=\(lat),\(lng)&q=\(encoded)")
+            webFallback = nil
         case .googleMaps:
-            url = URL(string: "comgooglemaps://?daddr=\(lat),\(lng)&directionsmode=driving")
-                ?? URL(string: "https://www.google.com/maps/dir/?api=1&destination=\(lat),\(lng)")
+            nativeURL = URL(string: "comgooglemaps://?daddr=\(lat),\(lng)&directionsmode=driving")
+            webFallback = URL(string: "https://www.google.com/maps/dir/?api=1&destination=\(lat),\(lng)")
         case .waze:
-            url = URL(string: "waze://?ll=\(lat),\(lng)&navigate=yes")
-                ?? URL(string: "https://waze.com/ul?ll=\(lat),\(lng)&navigate=yes")
+            nativeURL = URL(string: "waze://?ll=\(lat),\(lng)&navigate=yes")
+            webFallback = URL(string: "https://waze.com/ul?ll=\(lat),\(lng)&navigate=yes")
         }
-        guard let url else { return }
-        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+
+        guard let nativeURL else { return }
+
+        // Native zuerst; scheitert open (App fehlt), HTTPS-Fallback.
+        // Nicht `URL(string:) ?? fallback` — Custom-Schemata parsen immer erfolgreich.
+        UIApplication.shared.open(nativeURL, options: [:]) { success in
+            if !success, let webFallback {
+                UIApplication.shared.open(webFallback, options: [:], completionHandler: nil)
+            }
+        }
     }
 
     static func openChooser(coordinate: CLLocationCoordinate2D, label: String) {

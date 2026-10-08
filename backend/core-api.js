@@ -135,7 +135,7 @@ function mountCoreModelRoutes(app, opts) {
     });
   });
 
-  app.get("/api/core/rides/:id", (req, res) => {
+  app.get("/api/core/rides/:id", requireAdmin, (req, res) => {
     const ride =
       store.findRide(req.params.id) || store.findRideByBookingId(req.params.id);
     if (!ride) return res.status(404).json({ error: "Ride not found" });
@@ -166,7 +166,7 @@ function mountCoreModelRoutes(app, opts) {
   });
 
   // —— Locations ——
-  app.get("/api/core/locations/latest/:driverId", (req, res) => {
+  app.get("/api/core/locations/latest/:driverId", requireAdmin, (req, res) => {
     const loc = store.getLatestLocation(req.params.driverId);
     if (!loc) return res.status(404).json({ error: "No location for driver" });
     res.json(publicLocation(loc));

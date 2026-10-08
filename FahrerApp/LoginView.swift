@@ -250,6 +250,19 @@ struct LoginView: View {
     }
 
     private func restoreSession() {
+        // SMS-OTP-Sitzung (kein Firebase Auth) — Token + otp:-UID aus UserDefaults.
+        if let savedUid = UserDefaults.standard.string(forKey: "fahrer.uid"),
+           savedUid.hasPrefix("otp:"),
+           let token = UserDefaults.standard.string(forKey: "fahrer.otpSession"),
+           !token.isEmpty,
+           let savedName = UserDefaults.standard.string(forKey: "fahrer.name"),
+           !savedName.isEmpty {
+            driverUid = savedUid
+            driverName = savedName
+            isLoggedIn = true
+            return
+        }
+
         guard let user = Auth.auth().currentUser else { return }
         if let savedUid = UserDefaults.standard.string(forKey: "fahrer.uid"),
            savedUid == user.uid,

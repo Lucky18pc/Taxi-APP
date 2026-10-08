@@ -1789,61 +1789,7 @@ app.get("/api/public/analytics", (_req, res) => {
   res.json({ gaMeasurementId: gaMeasurementId || null });
 });
 
-/** Öffentliche Plattform-Infos (Maps-Keys, Realtime) — ohne Secrets außer browser-fähigem Maps-Key. */
-app.get("/api/platform", (_req, res) => {
-  const googleMapsBrowserKey = String(process.env.GOOGLE_MAPS_BROWSER_KEY || "").trim();
-  const googleMapsEnabled = Boolean(googleMapsBrowserKey);
-  const locationIntervalMs = Math.max(
-    1000,
-    Number(process.env.LOCATION_INTERVAL_MS || 2500) || 2500
-  );
-  res.json({
-    phase: 1,
-    label: "Architektur, Tech Stack & Infrastruktur",
-    mobileApps: {
-      passengerIos: {
-        stack: "Swift / SwiftUI",
-        language: "Swift 6",
-        concurrency: "async/await",
-        maps: "MapKit",
-        path: "TaxiApp/",
-      },
-      driverIos: {
-        stack: "Swift / SwiftUI",
-        language: "Swift 6 (Target)",
-        concurrency: "async/await",
-        auth: "Firebase Auth + Firestore role=driver",
-        path: "FahrerApp/",
-      },
-      passengerAndroidPwa: {
-        stack: "PWA (book.html / track.html)",
-        backend: "shared Node/Express API",
-        maps: googleMapsEnabled ? "Google Maps (+ Leaflet/OSM Fallback)" : "Leaflet/OSM (Fallback)",
-        googleMapsEnabled,
-      },
-    },
-    backend: {
-      chosen: "Node.js + Express",
-      host: "Render.com",
-    },
-    realtime: {
-      transport: "Socket.io (+ HTTP polling fallback)",
-      locationIntervalMs,
-    },
-    thirdParty: {
-      googleMaps: {
-        enabled: googleMapsEnabled,
-        browserKeyConfigured: googleMapsEnabled,
-        browserKey: googleMapsEnabled ? googleMapsBrowserKey : null,
-        services: ["Maps JavaScript API", "Places (planned)", "Directions (planned)"],
-      },
-      mapbox: {
-        enabled: false,
-        tokenConfigured: false,
-      },
-    },
-  });
-});
+// GET /api/platform → mountPlatformPhase1Routes (nur GOOGLE_MAPS_BROWSER_KEY, kein API/SERVER-Key)
 
 app.get("/api/auth/required", (req, res) => {
   res.json({ required: authRequiredForRequest(req) });
@@ -3793,16 +3739,63 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res
   });
 });
 
-/** Fahrer-App sendet GPS (Auth: DRIVER_API_KEY + Firebase-UID). */
+/**
+ * Fahrer-App Online/Offline → Flotten-Status in drivers.json (Matching-Pool).
+ * Ohne diesen Schritt schreibt die App nur Firestore isOnline; Auto-Dispatch
+ * sieht den Fahrer nicht (braucht status=available + frisches GPS).
+ */
+app.post("/api/driver/presence", requireDriverApp, (req, res) => {
+  const driverUid = String(req.body.driverUid || "").trim();
+  const driverName = String(req.body.driverName || "").trim() || "Fahrer";
+  const online = Boolean(req.body.online);
+  if (!driverUid) {
+    return res.status(400).json({ error: "driverUid required" });
+  }
+
+  const driver = ensureAppDriverFromFirebase({
+    firebaseUid: driverUid,
+    name: driverName,
+    req,
+  });
+  if (!driver) {
+    return res.status(400).json({ error: "Could not ensure fleet driver" });
+  }
+
+  if (online) {
+    if (!driver.activeBookingId) {
+      driver.status = "available";
+    }
+  } else if (!driver.activeBookingId) {
+    driver.status = "offline";
+  }
+  saveDriversConfig();
+
+  res.json({
+    ok: true,
+    driverId: driver.driverId,
+    firebaseUid: driver.firebaseUid || null,
+    status: driver.status,
+    online,
+  });
+});
+
+/** Fahrer-App sendet GPS (Auth: DRIVER_API_KEY + Firebase-/OTP-UID). */
 app.post("/api/driver/location", requireDriverApp, (req, res) => {
   const driverUid = String(req.body.driverUid || "").trim();
   if (!driverUid) {
     return res.status(400).json({ error: "driverUid required" });
   }
 
-  const driver = findDriverByFirebaseUid(driverUid) || findDriver(driverUid);
+  let driver = findDriverByFirebaseUid(driverUid) || findDriver(driverUid);
   if (!driver) {
-    return res.status(404).json({ error: "Driver not found — accept a booking first" });
+    driver = ensureAppDriverFromFirebase({
+      firebaseUid: driverUid,
+      name: String(req.body.driverName || "").trim() || "Fahrer",
+      req,
+    });
+  }
+  if (!driver) {
+    return res.status(404).json({ error: "Driver not found" });
   }
 
   const latitude = Number(req.body.latitude);
@@ -3822,11 +3815,14 @@ app.post("/api/driver/location", requireDriverApp, (req, res) => {
   driver.lastLat = latitude;
   driver.lastLng = longitude;
   driver.lastLocationAt = new Date().toISOString();
-  if (driver.status === "offline") {
-    driver.status = "busy";
-  }
   if (bookingId) {
     driver.activeBookingId = bookingId;
+    if (driver.status === "offline" || driver.status === "available") {
+      driver.status = "busy";
+    }
+  } else if (!driver.activeBookingId && driver.status !== "busy") {
+    // Online + GPS ohne aktive Fahrt → Matching-Pool
+    driver.status = "available";
   }
   saveDriversConfig();
 

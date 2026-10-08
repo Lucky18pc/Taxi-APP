@@ -24,6 +24,8 @@ struct TaxiPickupLocationView: View {
     @State private var destinationAddress = ""
     @State private var destinationLatitude: Double?
     @State private var destinationLongitude: Double?
+    /// Adresse der letzten Places-Auswahl — onChange löscht Koordinaten nur bei manueller Änderung.
+    @State private var selectedDestinationAddress: String?
     @State private var showDestinationSearch = false
     @State private var addressEditedByUser = false
     @State private var isApplyingGeocodeFromMap = false
@@ -436,9 +438,13 @@ struct TaxiPickupLocationView: View {
                 .submitLabel(.done)
                 .focused($focusedField, equals: .destination)
                 .bookingFormTextField()
-                .onChange(of: destinationAddress) { _, _ in
-                    destinationLatitude = nil
-                    destinationLongitude = nil
+                .onChange(of: destinationAddress) { _, newValue in
+                    let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if trimmed != selectedDestinationAddress {
+                        destinationLatitude = nil
+                        destinationLongitude = nil
+                        selectedDestinationAddress = nil
+                    }
                 }
 
             Button {
@@ -459,9 +465,11 @@ struct TaxiPickupLocationView: View {
         .sheet(isPresented: $showDestinationSearch) {
             NavigationStack {
                 DestinationSearchView { place in
-                    destinationAddress = place.address
+                    let address = place.address.trimmingCharacters(in: .whitespacesAndNewlines)
+                    selectedDestinationAddress = address
                     destinationLatitude = place.coordinate.latitude
                     destinationLongitude = place.coordinate.longitude
+                    destinationAddress = address
                     showDestinationSearch = false
                 }
                 .navigationTitle("Ziel suchen")

@@ -32,7 +32,7 @@ struct DriverBooking: Identifiable, Decodable {
     }
 
     var isActiveOffer: Bool {
-        dispatch?.status == "offering" || offerExpiresAt != nil
+        dispatch?.status == "offering"
     }
 
     struct DispatchInfo: Decodable {

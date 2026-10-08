@@ -11,9 +11,11 @@ struct IncomingTripOfferModal: View {
     let booking: DriverBooking
     let onAccept: () -> Void
     let onDecline: () -> Void
+    var onExpire: () -> Void = {}
 
     @State private var secondsLeft: Int = 15
     @State private var ticker: Timer?
+    @State private var didExpire = false
 
     private var expiresAt: Date? {
         guard let raw = booking.offerExpiresAt else { return nil }
@@ -94,6 +96,9 @@ struct IncomingTripOfferModal: View {
         secondsLeft = max(0, Int(ceil(expiresAt.timeIntervalSinceNow)))
         if secondsLeft <= 0 {
             ticker?.invalidate()
+            guard !didExpire else { return }
+            didExpire = true
+            onExpire()
         }
     }
 }

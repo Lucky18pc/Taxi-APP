@@ -120,8 +120,40 @@ enum DriverAPI {
         return CompleteBookingResponse(payUrl: nil)
     }
 
+    /// Online/Offline in der Flotte (drivers.json) — Voraussetzung für Auto-Dispatch.
+    static func setPresence(
+        driverUid: String,
+        driverName: String,
+        online: Bool,
+        operatorSlug: String
+    ) async throws {
+        guard var components = URLComponents(string: "\(BackendConfig.baseURL)/api/driver/presence") else {
+            throw DriverAPIError.badURL
+        }
+        components.queryItems = [URLQueryItem(name: "operator", value: operatorSlug)]
+        guard let url = components?.url else { throw DriverAPIError.badURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.driverApiKey, forHTTPHeaderField: "X-Driver-Key")
+        request.setValue("Bearer \(BackendConfig.driverApiKey)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "driverUid": driverUid,
+            "driverName": driverName,
+            "online": online,
+        ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(code) else {
+            throw DriverAPIError.http(code, String(data: data, encoding: .utf8) ?? "")
+        }
+    }
+
     static func postLocation(
         driverUid: String,
+        driverName: String? = nil,
         latitude: Double,
         longitude: Double,
         bookingId: String?
@@ -139,6 +171,9 @@ enum DriverAPI {
             "latitude": latitude,
             "longitude": longitude,
         ]
+        if let driverName, !driverName.isEmpty {
+            body["driverName"] = driverName
+        }
         if let bookingId, !bookingId.isEmpty {
             body["bookingId"] = bookingId
         }

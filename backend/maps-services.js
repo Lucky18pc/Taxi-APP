@@ -9,6 +9,8 @@ const BASE_FARE_DAY = Number(process.env.FARE_BASE_DAY || 3.9);
 const PER_KM_DAY = Number(process.env.FARE_PER_KM_DAY || 2.3);
 const BASE_FARE_NIGHT = Number(process.env.FARE_BASE_NIGHT || 4.9);
 const PER_KM_NIGHT = Number(process.env.FARE_PER_KM_NIGHT || 2.6);
+/** Tarif-Fenster 22–6 Uhr Ortszeit (nicht UTC auf Render). */
+const FARE_TIMEZONE = String(process.env.FARE_TIMEZONE || "Europe/Berlin").trim() || "Europe/Berlin";
 
 function googleKey() {
   return String(
@@ -19,8 +21,24 @@ function googleKey() {
   ).trim();
 }
 
+/** Stunde 0–23 in der Tarif-Zeitzone (Standard: Europe/Berlin). */
+function hourInFareTimeZone(date = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: FARE_TIMEZONE,
+      hour: "numeric",
+      hourCycle: "h23",
+    }).formatToParts(date);
+    const hour = Number(parts.find((p) => p.type === "hour")?.value);
+    if (Number.isFinite(hour)) return hour;
+  } catch (_) {
+    /* invalid TZ → UTC fallback */
+  }
+  return date.getUTCHours();
+}
+
 function isNightHour(date = new Date()) {
-  const hour = date.getHours();
+  const hour = hourInFareTimeZone(date);
   return hour < 6 || hour >= 22;
 }
 
@@ -286,5 +304,7 @@ module.exports = {
   distanceMatrix,
   fareQuote,
   calculateFareFromKm,
+  isNightHour,
   googleKey,
+  FARE_TIMEZONE,
 };

@@ -8,8 +8,12 @@ const {
 } = require("./realtime");
 const { isTwilioConfigured, otpConfigured } = require("./otp-auth");
 
+/**
+ * Nur den domain-beschränkten Browser-Key — niemals SERVER/API-Key an Clients.
+ * Ohne GOOGLE_MAPS_BROWSER_KEY: null (PWA fällt auf Leaflet/OSM zurück).
+ */
 function googleMapsBrowserKey() {
-  return String(process.env.GOOGLE_MAPS_BROWSER_KEY || process.env.GOOGLE_MAPS_API_KEY || "").trim();
+  return String(process.env.GOOGLE_MAPS_BROWSER_KEY || "").trim();
 }
 
 function mapboxToken() {
@@ -19,6 +23,8 @@ function mapboxToken() {
 function buildPlatformPhase1(realtimeIntervalMs = LOCATION_STREAM_INTERVAL_MS) {
   const mapsKey = googleMapsBrowserKey();
   const mapbox = mapboxToken();
+  // Mapbox-Token ist oft secret — nur „configured“, nie den Rohwert ausliefern.
+  const mapboxPublic = Boolean(mapbox);
 
   return {
     phase: 1,
@@ -68,13 +74,13 @@ function buildPlatformPhase1(realtimeIntervalMs = LOCATION_STREAM_INTERVAL_MS) {
       googleMaps: {
         enabled: Boolean(mapsKey),
         browserKeyConfigured: Boolean(mapsKey),
-        // Browser-Keys sind domain-restricted — Auslieferung an Clients ist üblich.
+        // Nur GOOGLE_MAPS_BROWSER_KEY (domain-restricted). Kein Fallback auf API/SERVER-Key.
         browserKey: mapsKey || null,
         services: ["Maps JavaScript API", "Places (planned)", "Directions (planned)", "Distance Matrix (planned)"],
       },
       mapbox: {
-        enabled: Boolean(mapbox),
-        tokenConfigured: Boolean(mapbox),
+        enabled: mapboxPublic,
+        tokenConfigured: mapboxPublic,
       },
       smsOtp: {
         twilioConfigured: isTwilioConfigured(),

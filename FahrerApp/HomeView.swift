@@ -168,6 +168,9 @@ struct HomeView: View {
                             let offer = activeOffer
                             self.activeOffer = nil
                             Task { await decline(offer) }
+                        },
+                        onExpire: {
+                            self.activeOffer = nil
                         }
                     )
                 }
@@ -178,6 +181,7 @@ struct HomeView: View {
                     Button("Abmelden") {
                         UserDefaults.standard.removeObject(forKey: "fahrer.uid")
                         UserDefaults.standard.removeObject(forKey: "fahrer.name")
+                        UserDefaults.standard.removeObject(forKey: "fahrer.otpSession")
                         try? Auth.auth().signOut()
                     }
                 }
@@ -242,6 +246,15 @@ struct HomeView: View {
     }
 
     private func loadOnlineStatus() async {
+        // OTP-Fahrer: kein Firestore-Profil — Start immer offline (Toggle setzt Presence).
+        if driverUid.hasPrefix("otp:") {
+            await MainActor.run {
+                isOnline = false
+                statusText = "Du bist offline."
+            }
+            return
+        }
+
         do {
             let snap = try await Firestore.firestore()
                 .collection("user")
@@ -253,6 +266,13 @@ struct HomeView: View {
                 statusText = online ? "Du bist online." : "Du bist offline."
             }
             if online {
+                // Flotte mit Firestore-Status synchronisieren
+                try? await DriverAPI.setPresence(
+                    driverUid: driverUid,
+                    driverName: driverName,
+                    online: true,
+                    operatorSlug: operatorSlug
+                )
                 await loadBookings()
             }
         } catch {
@@ -268,18 +288,30 @@ struct HomeView: View {
         defer { isBusy = false }
 
         do {
-            try await Firestore.firestore()
-                .collection("user")
-                .document(driverUid)
-                .setData([
-                    "isOnline": online,
-                    "onlineUpdatedAt": FieldValue.serverTimestamp(),
-                ], merge: true)
+            // Flotten-Status für Auto-Dispatch (drivers.json + Matching-Pool)
+            try await DriverAPI.setPresence(
+                driverUid: driverUid,
+                driverName: driverName,
+                online: online,
+                operatorSlug: operatorSlug
+            )
+
+            // Firestore-Flag optional (OTP-UIDs haben oft kein user-Dokument)
+            if !driverUid.hasPrefix("otp:") {
+                try? await Firestore.firestore()
+                    .collection("user")
+                    .document(driverUid)
+                    .setData([
+                        "isOnline": online,
+                        "onlineUpdatedAt": FieldValue.serverTimestamp(),
+                    ], merge: true)
+            }
 
             await MainActor.run {
                 statusText = online ? "Du bist online — warte auf Fahrten." : "Du bist offline."
                 if !online {
                     bookings = []
+                    activeOffer = nil
                     acceptedBookingId = nil
                 }
             }
@@ -290,7 +322,7 @@ struct HomeView: View {
         } catch {
             await MainActor.run {
                 isOnline = !online
-                errorMessage = "Status speichern fehlgeschlagen: \(error.localizedDescription). Firestore-Regeln: write für eigenes user-Dokument erlauben."
+                errorMessage = "Status speichern fehlgeschlagen: \(error.localizedDescription)"
             }
         }
     }
@@ -305,9 +337,7 @@ struct HomeView: View {
             let list = try await DriverAPI.openBookings(operatorSlug: operatorSlug, driverUid: driverUid)
             await MainActor.run {
                 bookings = list
-                if let offer = list.first(where: { $0.isActiveOffer }) {
-                    activeOffer = offer
-                }
+                activeOffer = list.first(where: { $0.isActiveOffer })
                 statusText = list.isEmpty
                     ? "Online — keine offenen Fahrten."
                     : "Online — \(list.count) offene Fahrt(en)."
