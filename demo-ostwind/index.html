@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ostwind — Segelschule an der Ostsee</title>
+  <meta name="description" content="Ostwind Segelschule: lernen, segeln und den Horizont lesen — Kurse für Einsteiger und Fortgeschrittene an der Ostsee." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#inhalt">Zum Inhalt</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="wordmark" href="#top" aria-label="Ostwind Start">Ostwind</a>
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="#schule">Schule</a>
+        <a href="#kurse">Kurse</a>
+        <a href="#hafen">Hafen</a>
+        <a class="nav__cta" href="#anmelden">Platz sichern</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-label="Einstieg">
+      <div class="hero__media" aria-hidden="true">
+        <img
+          class="hero__photo"
+          src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=2400&q=80"
+          alt=""
+          width="2400"
+          height="1600"
+        />
+        <div class="hero__veil"></div>
+        <div class="hero__horizon"></div>
+        <svg class="hero__wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+          <path class="hero__wave-path hero__wave-path--a" d="M0,64 C240,120 480,8 720,56 C960,104 1200,24 1440,72 L1440,120 L0,120 Z" />
+          <path class="hero__wave-path hero__wave-path--b" d="M0,80 C220,20 460,100 720,68 C980,36 1220,90 1440,48 L1440,120 L0,120 Z" />
+        </svg>
+      </div>
+
+      <div class="hero__copy">
+        <p class="brand reveal" data-reveal>Ostwind</p>
+        <h1 class="hero__title reveal" data-reveal>
+          Segeln lernen,<br />wo der Wind frei steht.
+        </h1>
+        <p class="hero__lede reveal" data-reveal>
+          Kleine Gruppen. Echte Ostsee. Kurse vom ersten Hafenmanöver bis zur längeren Küstenfahrt.
+        </p>
+        <div class="hero__actions reveal" data-reveal>
+          <a class="btn btn--primary" href="#anmelden">Kursplatz anfragen</a>
+          <a class="btn btn--ghost" href="#schule">Die Schule kennenlernen</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="inhalt" class="school" aria-labelledby="schule-title">
+      <div class="school__grid">
+        <div class="school__text">
+          <p class="eyebrow reveal" data-reveal id="schule">Die Schule</p>
+          <h2 id="schule-title" class="section-title reveal" data-reveal>
+            Weniger Theorie im Saal.<br />Mehr Gefühl für Wind und Wasser.
+          </h2>
+          <p class="section-lede reveal" data-reveal>
+            Ostwind ist eine Segelschule für Menschen, die den Horizont lesen wollen — ruhig, präzise und ohne Show.
+            Wir trainieren an der Küste, mit Booten, die man wirklich versteht.
+          </p>
+        </div>
+        <figure class="school__figure reveal" data-reveal>
+          <img
+            src="https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1600&q=80"
+            alt="Segelboot auf ruhiger See unter weitem Himmel"
+            width="1600"
+            height="1067"
+          />
+        </figure>
+      </div>
+    </section>
+
+    <section id="kurse" class="courses" aria-labelledby="kurse-title">
+      <div class="courses__intro">
+        <p class="eyebrow reveal" data-reveal>Kurse</p>
+        <h2 id="kurse-title" class="section-title reveal" data-reveal>Drei Wege aufs Wasser</h2>
+        <p class="section-lede reveal" data-reveal>
+          Wähle den Einstieg, der zu deinem Tempo passt. Alle Kurse starten in kleinen Gruppen ab dem Hafenbecken.
+        </p>
+      </div>
+
+      <ul class="course-list">
+        <li class="course reveal" data-reveal>
+          <a class="course__link" href="#anmelden">
+            <span class="course__name">Grundkurs</span>
+            <span class="course__meta">4 Tage · Anfänger</span>
+            <span class="course__desc">Knoten, Manöver, Sicherheit — und das erste Mal allein am Ruder.</span>
+            <span class="course__go" aria-hidden="true">Anfragen</span>
+          </a>
+        </li>
+        <li class="course reveal" data-reveal>
+          <a class="course__link" href="#anmelden">
+            <span class="course__name">Küstenfahrt</span>
+            <span class="course__meta">6 Tage · Fortgeschritten</span>
+            <span class="course__desc">Navigation bei Wechselwetter, Nachtfahrt und ruhiges Führen der Crew.</span>
+            <span class="course__go" aria-hidden="true">Anfragen</span>
+          </a>
+        </li>
+        <li class="course reveal" data-reveal>
+          <a class="course__link" href="#anmelden">
+            <span class="course__name">Skipper intensiv</span>
+            <span class="course__meta">8 Tage · Verantwortung</span>
+            <span class="course__desc">Entscheidungen treffen, wenn der Wind dreht — Training für kommende Chartertörns.</span>
+            <span class="course__go" aria-hidden="true">Anfragen</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section id="hafen" class="harbor" aria-labelledby="hafen-title">
+      <div class="harbor__stage">
+        <img
+          class="harbor__photo"
+          src="https://images.unsplash.com/photo-1468581264429-2548ef9eb732?auto=format&fit=crop&w=2200&q=80"
+          alt="Weite Meeresfläche mit sanften Wellen und hellem Himmel"
+          width="2200"
+          height="1467"
+        />
+        <div class="harbor__veil"></div>
+        <div class="harbor__copy">
+          <p class="eyebrow eyebrow--light reveal" data-reveal>Hafen</p>
+          <h2 id="hafen-title" class="section-title section-title--light reveal" data-reveal>
+            Unser Ankerplatz liegt dort, wo die Ostsee anfängt zu atmen.
+          </h2>
+          <p class="section-lede section-lede--light reveal" data-reveal>
+            Morgens der Geruch nach Salzwasser, abends Licht über der Mole.
+            Hier startet jeder Kurs — und hier kommst du wieder an.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="anmelden" class="signup" aria-labelledby="anmelden-title">
+      <div class="signup__panel reveal" data-reveal>
+        <p class="eyebrow">Nächster Schritt</p>
+        <h2 id="anmelden-title" class="section-title">Sichere dir einen Platz auf dem Wasser</h2>
+        <p class="section-lede">
+          Schreib uns kurz, welchen Kurs du suchst und wann du Zeit hast.
+          Wir melden uns mit freien Terminen — ohne Warteschleife, ohne Formular-Marathon.
+        </p>
+        <form class="signup__form" action="#" method="post">
+          <label class="field">
+            <span>Name</span>
+            <input type="text" name="name" autocomplete="name" required placeholder="Dein Name" />
+          </label>
+          <label class="field">
+            <span>E-Mail</span>
+            <input type="email" name="email" autocomplete="email" required placeholder="name@beispiel.de" />
+          </label>
+          <label class="field field--full">
+            <span>Kurswunsch</span>
+            <select name="course" required>
+              <option value="" disabled selected>Bitte wählen</option>
+              <option>Grundkurs</option>
+              <option>Küstenfahrt</option>
+              <option>Skipper intensiv</option>
+            </select>
+          </label>
+          <button class="btn btn--primary btn--wide" type="submit">Anfrage senden</button>
+        </form>
+        <p class="signup__note" role="status" hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <p class="wordmark wordmark--footer">Ostwind</p>
+      <p class="site-footer__tag">Segelschule an der Ostsee</p>
+      <p class="site-footer__meta">Demo-Thema · unabhängig von Taxi-App und Collection-Shop</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
