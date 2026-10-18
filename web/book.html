@@ -574,6 +574,22 @@
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || tx("book.bookingFail"));
 
+        if (typeof window.luckysTrack === "function") {
+          let pageCity = "";
+          try {
+            pageCity = String(sessionStorage.getItem("luckys_page_city") || "").trim().toLowerCase();
+          } catch (_) {}
+          const postal = String(document.getElementById("postalCode").value || "").trim();
+          window.luckysTrack("sign_up", {
+            account_type: "private",
+            city: pageCity || undefined,
+            page_city: pageCity || undefined,
+            postal_code: postal || undefined,
+            lead_source: "book_submit",
+            method: "booking_form",
+          });
+        }
+
         document.getElementById("book-form").hidden = true;
         document.getElementById("book-success").hidden = false;
         document.getElementById("success-message").textContent =

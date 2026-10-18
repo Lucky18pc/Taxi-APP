@@ -74,6 +74,7 @@
           window.luckysTrack("generate_lead", {
             plan_id: planId,
             lead_source: "index_tarif_anfrage",
+            account_type: "business",
           });
         }
 
