@@ -70,6 +70,15 @@
     .login-card .sub { margin: 0 0 1.1rem; color: var(--muted); font-weight: 600; }
     .field { margin-bottom: 0.9rem; text-align: left; }
     .field label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .field-static {
+      padding: 0.7rem 0.75rem;
+      border: 2px solid color-mix(in srgb, var(--navy) 25%, transparent);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--navy) 6%, #fff);
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
     .field input.field select.field textarea {
       width: 100%;
       padding: 0.7rem 0.75rem;
@@ -461,8 +470,8 @@
       <section id="panel-inquiries" class="panel">
         <div class="stats" id="inquiry-stats">
           <div class="stat"><strong id="stat-total">0</strong><span>Gesamt</span></div>
-          <div class="stat"><strong id="stat-starter">0</strong><span>Starter</span></div>
-          <div class="stat"><strong id="stat-business">0</strong><span>Business</span></div>
+          <div class="stat"><strong id="stat-fleet">0</strong><span>Pro Fahrzeug</span></div>
+          <div class="stat"><strong id="stat-legacy">0</strong><span>Alt-Tarife</span></div>
           <div class="stat"><strong id="stat-week">0</strong><span>Letzte 7 Tage</span></div>
         </div>
         <div class="card">
@@ -486,11 +495,8 @@
               <div class="field"><label for="new-city">Stadt *</label><input id="new-city" name="city" required></div>
               <div class="field"><label for="new-postalPrefixes">PLZ-Präfixe *</label><input id="new-postalPrefixes" name="postalPrefixes" required placeholder="68"></div>
               <div class="field"><label for="new-planId">Tarif</label>
-                <select id="new-planId" name="planId">
-                  <option value="fleet" selected>Pro Fahrzeug (ab 9,90 €)</option>
-                  <option value="starter">Starter alt (5 Fahrer)</option>
-                  <option value="business">Business alt</option>
-                </select>
+                <input type="hidden" id="new-planId" name="planId" value="fleet">
+                <div class="field-static" aria-live="polite">Pro Fahrzeug (ab 9,90 €) — einziger Tarif</div>
               </div>
               <div class="field"><label for="new-billingEmail">Rechnungs-E-Mail</label><input id="new-billingEmail" name="billingEmail" type="email"></div>
               <div class="field"><label for="new-dispatchPin">Leitstellen-PIN</label><input id="new-dispatchPin" name="dispatchPin" inputmode="numeric"></div>

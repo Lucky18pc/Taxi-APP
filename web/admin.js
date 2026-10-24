@@ -326,11 +326,11 @@
   function updateInquiryStats(items) {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     document.getElementById("stat-total").textContent = String(items.length);
-    document.getElementById("stat-starter").textContent = String(
-      items.filter((i) => i.planId === "starter").length
+    document.getElementById("stat-fleet").textContent = String(
+      items.filter((i) => !i.planId || i.planId === "fleet").length
     );
-    document.getElementById("stat-business").textContent = String(
-      items.filter((i) => i.planId === "business").length
+    document.getElementById("stat-legacy").textContent = String(
+      items.filter((i) => i.planId === "starter" || i.planId === "business").length
     );
     document.getElementById("stat-week").textContent = String(
       items.filter((i) => new Date(i.createdAt).getTime() >= weekAgo).length
@@ -356,9 +356,7 @@
     form.companyName.value = inquiry.companyName || "";
     form.email.value = inquiry.email || "";
     form.billingEmail.value = inquiry.email || "";
-    if (inquiry.planId === "starter" || inquiry.planId === "business") {
-      form.planId.value = inquiry.planId;
-    }
+    form.planId.value = "fleet";
     form.notes.value = inquiry.message
       ? `Tarif-Anfrage vom ${formatDate(inquiry.createdAt)}:\n${inquiry.message}`
       : `Tarif-Anfrage vom ${formatDate(inquiry.createdAt)}`;
