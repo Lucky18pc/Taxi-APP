@@ -30,7 +30,7 @@
     }
     .app-hero .lead {
       margin: 0 auto 1.25rem;
-      max-width: 32rem;
+      max-width: 34rem;
       font-weight: 600;
       line-height: 1.45;
     }
@@ -48,12 +48,14 @@
       text-decoration: none;
       padding: 0.85rem 1.2rem;
       border-radius: 999px;
+      display: inline-block;
     }
     .app-hero .btn.secondary {
       background: #ffe08a;
       color: #0c1c34 !important;
       border: 2px solid #0c1c34;
     }
+    .app-hero .btn[hidden] { display: none !important; }
     .app-card {
       max-width: 36rem;
       margin: -1rem auto 2.5rem;
@@ -71,7 +73,7 @@
       margin: 0 0 0.65rem;
       font-size: 1.1rem;
     }
-    .app-card-inner ol {
+    .app-card-inner ol, .app-card-inner ul {
       margin: 0.5rem 0 0;
       padding-left: 1.2rem;
       font-weight: 600;
@@ -84,6 +86,19 @@
       padding: 0.05rem 0.3rem;
       font-weight: 700;
     }
+    .app-warn {
+      display: none;
+      margin: 0 auto 1rem;
+      max-width: 34rem;
+      padding: 0.85rem 1rem;
+      background: #0c1c34;
+      color: #ffcc00;
+      border-radius: 12px;
+      font-weight: 700;
+      line-height: 1.4;
+      text-align: left;
+    }
+    .app-warn.visible { display: block; }
     .app-page .site-footer {
       background: #0c1c34;
       border-top: 3px solid #ffcc00;
@@ -94,9 +109,14 @@
 <body class="app-page">
   <header class="app-hero">
     <h1>Luckys Taxi App für iPhone</h1>
-    <p class="lead">
-      Die App ist freigegeben. Der öffentliche App-Store-Link kann kurz noch
-      „Nicht gefunden“ zeigen — dann hilft die Suche im Store oder die Web-Buchung.
+    <p class="lead" id="app-lead">
+      Die native App läuft nur auf dem <strong>iPhone</strong> (nicht im Mac App Store).
+      Auf dem iPhone im App Store laden — oder Taxi sofort im Browser bestellen.
+    </p>
+    <p class="app-warn" id="app-mac-warn" role="status">
+      Du bist am <strong>Mac</strong>. Der Mac-App-Store meldet dann oft
+      „App nicht verfügbar“ — das ist normal, weil Luckys Taxi App eine
+      <strong>iPhone-App</strong> ist. Bitte auf dem iPhone öffnen oder hier im Browser buchen.
     </p>
     <div class="app-actions">
       <a
@@ -105,29 +125,31 @@
         href="https://apps.apple.com/de/app/id6818629320"
         rel="noopener"
         target="_blank"
-      >Im App Store öffnen</a>
+      >Im App Store öffnen (iPhone)</a>
       <a
         class="btn secondary"
+        id="app-search-btn"
         href="https://apps.apple.com/de/search?term=Luckys%20Taxi%20App"
         rel="noopener"
         target="_blank"
+        hidden
       >Im Store suchen</a>
-      <a class="btn secondary" href="book.html">Taxi im Browser bestellen</a>
+      <a class="btn" id="app-book-btn" href="book.html">Taxi im Browser bestellen</a>
     </div>
   </header>
 
   <main class="app-card">
     <div class="app-card-inner">
-      <h2>Wenn „Not Found“ kommt</h2>
-      <ol>
-        <li>iPhone → <strong>App Store</strong> öffnen (nicht Safari allein).</li>
-        <li>Suche: <code>Luckys Taxi App</code> oder <code>Lucky's Taxi</code>.</li>
+      <h2 id="app-help-title">So lädst du die App richtig</h2>
+      <ol id="app-help-list">
+        <li>Nimm dein <strong>iPhone</strong> (nicht den Mac-App-Store).</li>
+        <li>Öffne die blaue App <strong>App Store</strong>.</li>
+        <li>Suche: <code>Luckys Taxi App</code>.</li>
         <li>App von <strong>Code &amp; Grow / Pece Carmine</strong> laden.</li>
-        <li>Oder hier oben <strong>Taxi im Browser bestellen</strong> — funktioniert sofort auf jedem Handy.</li>
+        <li>Oder hier <strong>Taxi im Browser bestellen</strong> — geht sofort.</li>
       </ol>
       <p style="margin:1rem 0 0;font-weight:600">
-        Direkte Store-ID: <code>6818629320</code> ·
-        <a href="https://apps.apple.com/de/app/id6818629320" rel="noopener" target="_blank">apps.apple.com/…/id6818629320</a>
+        Store-ID: <code>6818629320</code>
       </p>
     </div>
   </main>
@@ -140,5 +162,55 @@
       <a href="staedte/">Städte</a>
     </nav>
   </footer>
+
+  <script>
+    (function () {
+      var ua = navigator.userAgent || "";
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var isMac = /Macintosh|Mac OS X/i.test(ua) && !isIOS;
+      var isAndroid = /Android/i.test(ua);
+
+      var warn = document.getElementById("app-mac-warn");
+      var storeBtn = document.getElementById("app-store-btn");
+      var searchBtn = document.getElementById("app-search-btn");
+      var bookBtn = document.getElementById("app-book-btn");
+      var lead = document.getElementById("app-lead");
+      var helpTitle = document.getElementById("app-help-title");
+
+      if (isMac) {
+        warn.classList.add("visible");
+        storeBtn.hidden = true;
+        searchBtn.hidden = true;
+        bookBtn.classList.remove("secondary");
+        bookBtn.className = "btn";
+        lead.innerHTML =
+          "Am <strong>Computer/Mac</strong> kannst du die iPhone-App nicht installieren. " +
+          "Bitte auf dem <strong>iPhone</strong> diese Seite öffnen — oder jetzt im Browser ein Taxi bestellen.";
+        helpTitle.textContent = "Warum meldet der Mac „nicht verfügbar“?";
+        document.getElementById("app-help-list").innerHTML =
+          "<li>Der Mac öffnet den <strong>Mac</strong>-App-Store.</li>" +
+          "<li>Luckys Taxi App ist nur für <strong>iPhone</strong>.</li>" +
+          "<li>Deshalb erscheint: App nicht verfügbar / Not Found.</li>" +
+          "<li>Lösung: Seite auf dem <strong>iPhone</strong> öffnen oder oben buchen.</li>";
+      } else if (isIOS) {
+        searchBtn.hidden = false;
+        bookBtn.className = "btn secondary";
+      } else if (isAndroid) {
+        storeBtn.hidden = true;
+        searchBtn.hidden = true;
+        lead.innerHTML =
+          "Auf <strong>Android</strong> gibt es die native App noch nicht im Play Store. " +
+          "Bitte <strong>Taxi im Browser bestellen</strong> — oder einem iPhone-Nutzer den App-Link schicken.";
+        helpTitle.textContent = "Android";
+        document.getElementById("app-help-list").innerHTML =
+          "<li>Play Store folgt später.</li>" +
+          "<li>Jetzt: <strong>Taxi im Browser bestellen</strong>.</li>" +
+          "<li>iPhone-Nutzer: App Store / Suche „Luckys Taxi App“.</li>";
+      } else {
+        searchBtn.hidden = true;
+        storeBtn.hidden = true;
+      }
+    })();
+  </script>
 </body>
 </html>
