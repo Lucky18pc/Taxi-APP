@@ -14,8 +14,8 @@ const ROOT = path.join(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "web", "staedte");
 const SITEMAP = path.join(ROOT, "web", "sitemap.xml");
 const BASE = "https://luckystaxiapp.de";
-const APP_STORE_URL =
-  "https://apps.apple.com/de/app/luckys-taxi-app/id6818629320";
+/** Website landing (never 404). Real App Store link lives on app.html until Apple indexes the listing. */
+const APP_STORE_URL = `${BASE}/app.html`;
 /** ISO date for sitemap lastmod (refresh signal for Google). */
 const LASTMOD = new Date().toISOString().slice(0, 10);
 /** Higher sitemap priority for Metropolregion Rhein-Neckar / Firmensitz. */
@@ -1072,6 +1072,7 @@ function writeSitemap(all) {
     ["/book.html", "weekly", "0.9"],
     ["/onboard.html", "monthly", "0.8"],
     ["/staedte/", "weekly", "0.85"],
+    ["/app.html", "weekly", "0.8"],
     ["/impressum.html", "yearly", "0.3"],
     ["/datenschutz.html", "yearly", "0.3"],
     ["/agb.html", "yearly", "0.3"],
