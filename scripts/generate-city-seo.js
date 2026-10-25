@@ -14,6 +14,26 @@ const ROOT = path.join(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "web", "staedte");
 const SITEMAP = path.join(ROOT, "web", "sitemap.xml");
 const BASE = "https://luckystaxiapp.de";
+const APP_STORE_URL =
+  "https://apps.apple.com/de/app/luckys-taxi-app/id6818629320";
+/** ISO date for sitemap lastmod (refresh signal for Google). */
+const LASTMOD = new Date().toISOString().slice(0, 10);
+/** Higher sitemap priority for Metropolregion Rhein-Neckar / Firmensitz. */
+const RN_SLUGS = new Set([
+  "speyer",
+  "ludwigshafen",
+  "mannheim",
+  "heidelberg",
+  "worms",
+  "frankenthal",
+  "landau",
+  "neustadt-an-der-weinstrasse",
+  "altrip",
+  "schifferstadt",
+  "mutterstadt",
+  "limburgerhof",
+  "waldsee",
+]);
 
 function slugify(name) {
   return name
@@ -392,26 +412,86 @@ const FOREIGN_CITIES = [
 const SPECIAL = {
   speyer: {
     guest:
-      "Aktuell ist in Speyer noch kein Partner-Taxi an die Plattform angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, kannst du hier online bestellen — Dom, Bahnhof, Altstadt. Wo bereits ein Partner aktiv ist, geht die Buchung unter luckystaxiapp.de/book.html.",
+      "Aktuell ist in Speyer noch kein Partner-Taxi an die Plattform angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, kannst du hier online bestellen — Dom, Bahnhof, Altstadt. Bis dahin: Web-Buchung unter luckystaxiapp.de/book.html; iPhone-Nutzer laden zusätzlich die Luckys Taxi App im App Store.",
     operator:
-      "Code & Grow (Firmensitz Speyer, Asternweg 21) betreibt die Plattform Luckys Taxi App. Für lokale Betriebe bedeutet das: Fahrgäste bestellen unter Ihrem Namen, Sie sehen Buchungen in der Browser-Leitstelle und verteilen sie an Ihre Fahrer — parallel zur städtischen Zentrale, nicht als Ersatz.",
+      "Code & Grow (Firmensitz Speyer, Asternweg 21) vermietet Luckys Taxi App an Betriebe in der Metropolregion Rhein-Neckar: Online-Buchung, Browser-Leitstelle und QR unter Ihrem Firmennamen — parallel zur städtischen Zentrale. Ab 9,90 €/Monat pro Fahrzeug, 14 Tage testen.",
     faqExtra: {
       q: "Kann ich in Speyer schon ein Taxi online bestellen?",
-      a: "Noch nicht flächendeckend: In Speyer ist aktuell kein Partner-Taxi angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, ist die Online-Buchung unter dessen Namen möglich.",
+      a: "Noch nicht flächendeckend: In Speyer ist aktuell kein Partner-Taxi angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, ist die Online-Buchung unter dessen Namen möglich. Die iPhone-App ist im App Store verfügbar; Android nutzt die Web-Buchung.",
     },
     orgAddress: true,
   },
   mannheim: {
     guest:
-      "Abend in den Quadraten, Anschluss am Hauptbahnhof oder Fahrt nach Käfertal und Feudenheim: In der Buchung trägst du die Mannheimer Adresse ein und wählst Sofort oder Termin. Der Preis kommt vom Taxameter — bar beim Fahrer, ohne App-Gebühr für die Reservierung.",
+      "Abend in den Quadraten, Anschluss am Hauptbahnhof oder Fahrt nach Käfertal und Feudenheim: In der Buchung trägst du die Mannheimer Adresse ein und wählst Sofort oder Termin. Der Preis kommt vom Taxameter — bar beim Fahrer. iPhone: Luckys Taxi App im App Store; sonst Browser unter luckystaxiapp.de/book.html.",
     operator:
-      "In Mannheim kennt man die große Taxizentrale — und trotzdem fehlt vielen Betrieben ein eigener digitaler Kanal. Luckys Taxi App bringt Online-Buchung, Leitstellen-Ansicht und QR-Code unter Ihrem Firmennamen. Zusatzaufträge von Stammkunden und Hotels, ohne die Zentrale abzuschalten.",
+      "In Mannheim kennt man die große Taxizentrale — vielen Betrieben fehlt trotzdem ein eigener digitaler Kanal. Luckys Taxi App liefert Online-Buchung, Leitstelle und QR unter Ihrem Firmennamen für Stammkunden und Hotels — ohne die Zentrale abzuschalten. Ab 9,90 €/Monat pro Fahrzeug.",
   },
   ludwigshafen: {
     guest:
-      "In Ludwigshafen (Rheinland-Pfalz, Metropolregion Rhein-Neckar) und dem Umland — Altrip, Schifferstadt, Mutterstadt, Limburgerhof, Maxdorf, Waldsee — buchst du online, sobald ein Partner-Betrieb angebunden ist. Abholadresse und Zeit angeben; der Preis kommt vom Taxameter.",
+      "In Ludwigshafen (Rheinland-Pfalz, Metropolregion Rhein-Neckar) und dem Umland — Altrip, Schifferstadt, Mutterstadt, Limburgerhof, Maxdorf, Waldsee — buchst du online, sobald ein Partner-Betrieb angebunden ist. Abholadresse und Zeit angeben; Preis nach Taxameter. iPhone-App im App Store, sonst Web-Buchung.",
     operator:
-      "Ludwigshafen liegt in Rheinland-Pfalz, mitten in der Metropolregion Rhein-Neckar. Viele Taxibetriebe in der Stadt und im Rhein-Pfalz-Kreis (Altrip, Schifferstadt, Mutterstadt, Limburgerhof, Maxdorf, Waldsee) holen sich mit Luckys Taxi App Online-Buchung, Leitstelle und QR unter ihrem Namen — parallel zur Zentrale. Ab 9,90 €/Monat pro Fahrzeug.",
+      "Ludwigshafen liegt mitten in der Metropolregion Rhein-Neckar. Betriebe in der Stadt und im Rhein-Pfalz-Kreis (Altrip, Schifferstadt, Mutterstadt, Limburgerhof, Maxdorf, Waldsee) mieten Online-Buchung, Leitstelle und QR unter ihrem Namen — parallel zur Zentrale. Ab 9,90 €/Monat pro Fahrzeug, Anfrage unter onboard.html.",
+  },
+  heidelberg: {
+    guest:
+      "Altstadt, Uni oder Hauptbahnhof in Heidelberg: Abholadresse online angeben und Sofort oder Termin wählen. Preis nach Taxameter. iPhone: Luckys Taxi App im App Store; Android und Desktop über die Web-Buchung.",
+    operator:
+      "Für Taxi-Betriebe in Heidelberg und der Rhein-Neckar-Region: eigene Online-Buchung und Leitstelle unter Ihrem Namen, QR für Hotels und Praxen — ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar.",
+  },
+  worms: {
+    guest:
+      "Dom, Nibelungenbrücke oder Bahnhof Worms: online bestellen, sobald ein Partner aktiv ist. Taxameter-Preis, bar beim Fahrer. iPhone-App im App Store oder Buchung im Browser.",
+    operator:
+      "Taxibetriebe in Worms und Umgebung holen sich mit Luckys Taxi App einen digitalen Zusatzkanal neben Funk und Telefon — Buchung, Leitstelle, QR. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  frankenthal: {
+    guest:
+      "In Frankenthal (Rhein-Pfalz) online bestellen, sobald ein Partner-Betrieb angebunden ist. Abholort und Zeit angeben; Preis nach Taxameter. App Store (iPhone) oder Web-Buchung.",
+    operator:
+      "Betriebe in Frankenthal und der Metropolregion Rhein-Neckar: Plattform mieten für Online-Buchung und Leitstelle unter Ihrem Firmennamen. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  landau: {
+    guest:
+      "Landau in der Pfalz — Rathaus, Zoo, Weinstraße: online buchen, wenn ein Partner aktiv ist. Taxameter-Preis. Luckys Taxi App im App Store (iPhone) oder im Browser.",
+    operator:
+      "Für Betriebe in Landau und der Südpfalz: digitale Leitstelle und Fahrgast-Buchung unter Ihrem Namen. Ab 9,90 €/Monat pro Fahrzeug, 14 Tage testen.",
+  },
+  "neustadt-an-der-weinstrasse": {
+    guest:
+      "Neustadt an der Weinstraße: Bahnhof, Altstadt, Weinstraße — online bestellen, sobald ein Partner angebunden ist. iPhone-App oder Web-Buchung; Preis nach Taxameter.",
+    operator:
+      "Taxi-Betriebe in Neustadt und an der Weinstraße: Online-Buchung, Leitstelle und QR unter Ihrem Namen — parallel zur Zentrale. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  altrip: {
+    guest:
+      "Altrip am Rhein (bei Ludwigshafen): online bestellen, wenn ein Partner-Betrieb aktiv ist. Web-Buchung oder iPhone-App; Preis nach Taxameter.",
+    operator:
+      "Betriebe im Rhein-Pfalz-Kreis um Altrip: Luckys Taxi App als gemietete Software — Buchung und Leitstelle unter Ihrem Namen. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  schifferstadt: {
+    guest:
+      "Schifferstadt in der Metropolregion Rhein-Neckar: online buchen, sobald ein Partner angebunden ist. App Store (iPhone) oder Browser.",
+    operator:
+      "Taxibetriebe in Schifferstadt: digitaler Buchungskanal und Leitstelle unter Ihrem Firmennamen. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  mutterstadt: {
+    guest:
+      "Mutterstadt bei Ludwigshafen: Abholung online anfragen, wenn ein Partner aktiv ist. Taxameter-Preis; iPhone-App oder Web.",
+    operator:
+      "Für Betriebe in Mutterstadt und Umgebung: Plattform mieten — Online-Buchung und QR für Stammkunden. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  limburgerhof: {
+    guest:
+      "Limburgerhof (Rhein-Pfalz): online bestellen, sobald ein Partner-Betrieb angebunden ist. Luckys Taxi App im App Store oder Web-Buchung.",
+    operator:
+      "Betriebe in Limburgerhof: eigene digitale Buchung und Leitstelle unter Ihrem Namen. Ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar.",
+  },
+  waldsee: {
+    guest:
+      "Waldsee bei Speyer / Rheinauen: online buchen, wenn ein Partner aktiv ist. Preis nach Taxameter; App oder Browser.",
+    operator:
+      "Taxibetriebe in Waldsee und Speyer-Umland: Luckys Taxi App mieten — Buchung, Leitstelle, QR. Firmensitz der Plattform: Speyer. Ab 9,90 €/Monat pro Fahrzeug.",
   },
 };
 
@@ -485,7 +565,7 @@ function guestText(loc) {
   if (loc.type === "country") {
     return `Luckys Taxi App verbindet Fahrgäste und Taxi-Betriebe in ${loc.name}. Ob ${loc.landmarks}: Du gibst die Abholadresse online ein und buchst über die Plattform. ${payPhrase(loc)} Wo noch kein Partner aktiv ist, wächst das Netz mit neuen Betrieben — Anfragen sind willkommen.`;
   }
-  return `In ${loc.name} (${loc.countryName}) buchst du online: ${loc.landmarks}. Abholadresse und Zeit angeben — optional Luckys Taxi App auf den Home-Bildschirm legen. ${payPhrase(loc)}`;
+  return `In ${loc.name} (${loc.countryName}) buchst du online: ${loc.landmarks}. Abholadresse und Zeit angeben. iPhone: Luckys Taxi App im App Store; sonst Browser oder Home-Bildschirm. ${payPhrase(loc)}`;
 }
 
 function operatorText(loc) {
@@ -703,11 +783,11 @@ function renderPage(loc, all) {
   const faqs = [
     {
       q: `Wie bestelle ich ein Taxi in ${loc.name}?`,
-      a: `Auf luckystaxiapp.de/book.html Abholadresse in ${loc.name} und Zeit angeben. ${payPhrase(loc)}`,
+      a: `Auf luckystaxiapp.de/book.html Abholadresse in ${loc.name} und Zeit angeben — oder auf dem iPhone die Luckys Taxi App aus dem App Store. ${payPhrase(loc)}`,
     },
     {
       q: `Was kostet Luckys Taxi App für Betriebe in ${loc.name}?`,
-      a: "ab 9,90 €/Monat pro Fahrzeug (2 Autos 18,90 €), monatlich kündbar — inkl. Online-Buchung, Leitstelle und QR-Code.",
+      a: "ab 9,90 €/Monat pro Fahrzeug (2 Autos 18,90 €), monatlich kündbar — inkl. Online-Buchung, Leitstelle und QR-Code. iPhone-App im App Store; Anfrage unter luckystaxiapp.de/onboard.html.",
     },
   ];
   if (faqExtra) faqs.splice(1, 0, faqExtra);
@@ -808,6 +888,7 @@ function renderPage(loc, all) {
       <div class="city-ctas">
         <a class="btn" href="../book.html">Taxi bestellen</a>
         <a class="btn secondary" href="../onboard.html">Für Betriebe</a>
+        <a class="btn secondary" href="${APP_STORE_URL}" rel="noopener" target="_blank">iPhone-App</a>
       </div>
     </div>
   </header>
@@ -819,6 +900,7 @@ function renderPage(loc, all) {
       <article>
         <h3>Luckys Taxi App</h3>
         <p><strong>Fertig &amp; live.</strong> Digitale Leitstelle und Online-Buchung für Taxi-Betriebe.
+          Fahrgast-App im <a href="${APP_STORE_URL}" rel="noopener" target="_blank">App Store</a>.
           <a href="../onboard.html">Plattform mieten</a> · <a href="../index.html#produkte">Alle Produkte</a></p>
       </article>
       <article>
@@ -836,7 +918,10 @@ function renderPage(loc, all) {
       <section class="city-block">
         <h2>Für Fahrgäste in ${esc(loc.name)}</h2>
         <p>${esc(guestText(loc))}</p>
-        <p><a class="btn" href="../book.html">Jetzt bestellen</a></p>
+        <p>
+          <a class="btn" href="../book.html">Jetzt bestellen</a>
+          <a class="btn secondary" href="${APP_STORE_URL}" rel="noopener" target="_blank">App Store (iPhone)</a>
+        </p>
       </section>
       <section class="city-block">
         <h2>Für Taxi-Betriebe in ${esc(loc.name)}</h2>
@@ -941,11 +1026,12 @@ function renderHub(all) {
       <div class="city-ctas">
         <a class="btn" href="../book.html">Taxi bestellen</a>
         <a class="btn secondary" href="../onboard.html">Plattform mieten</a>
+        <a class="btn secondary" href="${APP_STORE_URL}" rel="noopener" target="_blank">iPhone-App</a>
       </div>
     </div>
   </header>
   <main class="wrap city-main">
-    <p class="lead">Wähle deinen Ort. Jede Seite erklärt die Buchung für Fahrgäste und die Software für Betriebe.</p>
+    <p class="lead">Wähle deinen Ort. Jede Seite erklärt die Buchung für Fahrgäste und die Software für Betriebe. Fokus-Region: Metropolregion Rhein-Neckar (Firmensitz Speyer).</p>
     <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
     <figure class="city-flyer-promo">
       <img src="luckys-taxi-flyer-promo.png" width="576" height="432" alt="Luckys Taxi App — Mobile App mit Fahrer-Login">
@@ -982,15 +1068,21 @@ function writeSitemap(all) {
     ...staticUrls.map(
       ([loc, freq, prio]) => `  <url>
     <loc>${BASE}${loc}</loc>
+    <lastmod>${LASTMOD}</lastmod>
     <changefreq>${freq}</changefreq>
     <priority>${prio}</priority>
   </url>`
     ),
     ...all.map((loc) => {
-      const prio = loc.type === "country" ? "0.75" : loc.country === "DE" ? "0.7" : "0.55";
+      let prio = "0.55";
+      if (RN_SLUGS.has(loc.slug)) prio = "0.85";
+      else if (loc.type === "country") prio = "0.75";
+      else if (loc.country === "DE") prio = "0.7";
+      const freq = RN_SLUGS.has(loc.slug) ? "weekly" : "monthly";
       return `  <url>
     <loc>${BASE}/staedte/${loc.slug}.html</loc>
-    <changefreq>monthly</changefreq>
+    <lastmod>${LASTMOD}</lastmod>
+    <changefreq>${freq}</changefreq>
     <priority>${prio}</priority>
   </url>`;
     }),
