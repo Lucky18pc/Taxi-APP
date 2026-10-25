@@ -130,8 +130,8 @@
     </div>
 
     <ul class="qr-hint">
-      <li><strong>Jetzt:</strong> QR öffnet zuerst <a href="scan.html">Luckys Taxi App</a> (gelbe Sofort-Seite), dann die Buchung — ohne Render-Zwischenseite-Feeling.</li>
-      <li><strong>Später mit iPhone-App:</strong> Neuen QR mit App-Store-Link erstellen (siehe unten).</li>
+      <li><strong>Aufkleber / Visitenkarte:</strong> Dieser QR öffnet zuerst <a href="scan.html">Luckys Taxi App</a> (gelbe Sofort-Seite), dann die Buchung — funktioniert auf Android und iPhone.</li>
+      <li><strong>iPhone-App:</strong> Separater App-Store-QR unten (nur für Download im App Store).</li>
       <li>Vor dem Druck: einmal selbst scannen und testen.</li>
     </ul>
 
@@ -167,9 +167,27 @@
     </p>
 
     <section class="qr-appstore no-print">
-      <h2>App Store / TestFlight</h2>
-      <p class="field-hint">Wenn die iOS-App live ist, neuen QR mit App-Store-Link erzeugen (nicht die Browser-Buchung):</p>
-      <p><code>https://apps.apple.com/app/idXXXXXXXX</code> oder TestFlight-Einladungslink.</p>
+      <h2>App Store (iPhone)</h2>
+      <p class="field-hint">
+        Luckys Taxi App ist im App Store. Für Download-Aufkleber diesen QR nutzen
+        (nur iPhone). Für Buchung im Fahrzeug weiter den QR oben verwenden.
+      </p>
+      <p style="margin:1rem 0; text-align:center">
+        <img
+          id="qr-appstore-image"
+          width="200"
+          height="200"
+          alt="QR-Code App Store Luckys Taxi App"
+          style="width:200px;height:200px;border-radius:12px;background:#fff;border:2.5px solid #0c1c34"
+        >
+      </p>
+      <p>
+        Link:
+        <a id="qr-appstore-link" href="https://apps.apple.com/de/app/luckys-taxi-app/id6818629320" target="_blank" rel="noopener">
+          apps.apple.com/…/id6818629320
+        </a>
+      </p>
+      <p><code>https://apps.apple.com/de/app/luckys-taxi-app/id6818629320</code></p>
     </section>
   </main>
 
@@ -207,6 +225,14 @@
       linkEl.href = scanUrl;
       linkEl.textContent = scanUrl;
       imgEl.src = qrPngUrl(280);
+
+      const appStoreUrl = "https://apps.apple.com/de/app/luckys-taxi-app/id6818629320";
+      const appStoreImg = document.getElementById("qr-appstore-image");
+      if (appStoreImg) {
+        appStoreImg.src =
+          "https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=2&format=png&data=" +
+          encodeURIComponent(appStoreUrl);
+      }
 
       downloadBtn.addEventListener("click", function () {
         const hiRes = qrPngUrl(1200);

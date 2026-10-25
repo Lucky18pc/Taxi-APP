@@ -930,6 +930,48 @@ ul.checklist li::before {
   font-weight: 700;
 }
 
+.home-qr-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  align-items: flex-start;
+}
+
+.home-qr-card {
+  margin: 0;
+  padding: 1rem;
+  background: #fff8cc;
+  border: 2.5px solid #0c1c34;
+  border-radius: 16px;
+  box-shadow: 0 4px 0 #0c1c34;
+  text-align: center;
+  max-width: 12rem;
+}
+
+.home-qr-card img {
+  display: block;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto;
+  border-radius: 12px;
+  background: #fff;
+  border: 2px solid #0c1c34;
+}
+
+.home-qr-card figcaption {
+  margin-top: 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0c1c34;
+  line-height: 1.35;
+}
+
+.home-qr-card a {
+  font-weight: 800;
+  color: #0c1c34;
+}
+
 .price-tag {
   font-size: 1.6rem;
   font-weight: 800;

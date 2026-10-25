@@ -68,7 +68,7 @@ Standardmodell: **eine gemeinsame Fahrgast-App** mit Betriebsprofil (Apple Revie
 - [ ] Stripe **Live**-Keys auf Render (nicht nur Test)
 - [ ] Stripe Connect für zahlende Betriebe (`docs/STRIPE-CONNECT.md`)
 - [ ] Persistent Disk auf Render (Buchungen bleiben)
-- [ ] QR-Code mit echter App-Store-URL (nicht `idXXXXXXXX`)
+- [x] QR-Code mit echter App-Store-URL (`id6818629320` auf `qr.html` / Startseite)
 - [ ] Review Guidelines: Standort, Zahlung, keine irreführende „Taxi-Zentrale Speyer“-Darstellung — Anbieter ist **Code & Grow**
 
 ---
