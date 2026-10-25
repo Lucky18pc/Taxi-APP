@@ -932,8 +932,15 @@ function renderPage(loc, all) {
 
     <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
 
-    <figure class="city-flyer-promo">
-      <img src="luckys-taxi-flyer-promo.png" width="576" height="432" alt="Luckys Taxi App — Mobile App mit Fahrer-Login">
+    <figure class="city-flyer-promo city-flyer-promo--drei">
+      <img
+        src="startseite-drei-bilder.png"
+        width="1400"
+        height="900"
+        alt="Luckys Taxi App — drei App-Screens: Fahrgast mit Profilfoto, Fahrer-Login und Fahrer-Home"
+        loading="lazy"
+      >
+      <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Fahrer-Login und Fahrer-Home</figcaption>
     </figure>
 
     <section class="city-faq">
@@ -1033,8 +1040,15 @@ function renderHub(all) {
   <main class="wrap city-main">
     <p class="lead">Wähle deinen Ort. Jede Seite erklärt die Buchung für Fahrgäste und die Software für Betriebe. Fokus-Region: Metropolregion Rhein-Neckar (Firmensitz Speyer).</p>
     <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
-    <figure class="city-flyer-promo">
-      <img src="luckys-taxi-flyer-promo.png" width="576" height="432" alt="Luckys Taxi App — Mobile App mit Fahrer-Login">
+    <figure class="city-flyer-promo city-flyer-promo--drei">
+      <img
+        src="startseite-drei-bilder.png"
+        width="1400"
+        height="900"
+        alt="Luckys Taxi App — drei App-Screens: Fahrgast mit Profilfoto, Fahrer-Login und Fahrer-Home"
+        loading="lazy"
+      >
+      <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Fahrer-Login und Fahrer-Home</figcaption>
     </figure>
     ${sections.join("\n    ")}
   </main>
