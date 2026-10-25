@@ -1805,6 +1805,16 @@ body.legal-taxi .legal-page > .note {
   max-width: min(100%, 960px);
 }
 
+.city-flyer-promo--hero {
+  margin: 1.35rem auto 0;
+  max-width: 42rem;
+}
+
+.city-hero .city-flyer-caption {
+  color: inherit;
+  opacity: 0.95;
+}
+
 .city-flyer-caption {
   margin: 0.65rem 0 0;
   font-size: 0.9rem;

@@ -890,6 +890,16 @@ function renderPage(loc, all) {
         <a class="btn secondary" href="../onboard.html">Für Betriebe</a>
         <a class="btn secondary" href="${APP_STORE_URL}" rel="noopener" target="_blank">iPhone-App</a>
       </div>
+      <figure class="city-flyer-promo city-flyer-promo--drei city-flyer-promo--hero">
+        <img
+          src="startseite-drei-bilder.png"
+          width="1400"
+          height="900"
+          alt="Luckys Taxi App — drei App-Screens: Fahrgast mit Profilfoto, Fahrer-Login und Fahrer-Home"
+          loading="eager"
+        >
+        <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Fahrer-Login und Fahrer-Home</figcaption>
+      </figure>
     </div>
   </header>
 
@@ -931,17 +941,6 @@ function renderPage(loc, all) {
     </div>
 
     <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
-
-    <figure class="city-flyer-promo city-flyer-promo--drei">
-      <img
-        src="startseite-drei-bilder.png"
-        width="1400"
-        height="900"
-        alt="Luckys Taxi App — drei App-Screens: Fahrgast mit Profilfoto, Fahrer-Login und Fahrer-Home"
-        loading="lazy"
-      >
-      <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Fahrer-Login und Fahrer-Home</figcaption>
-    </figure>
 
     <section class="city-faq">
       <h2>Fragen zu ${esc(loc.name)}</h2>
@@ -1035,21 +1034,21 @@ function renderHub(all) {
         <a class="btn secondary" href="../onboard.html">Plattform mieten</a>
         <a class="btn secondary" href="${APP_STORE_URL}" rel="noopener" target="_blank">iPhone-App</a>
       </div>
+      <figure class="city-flyer-promo city-flyer-promo--drei city-flyer-promo--hero">
+        <img
+          src="startseite-drei-bilder.png"
+          width="1400"
+          height="900"
+          alt="Luckys Taxi App — drei App-Screens: Fahrgast mit Profilfoto, Fahrer-Login und Fahrer-Home"
+          loading="eager"
+        >
+        <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Fahrer-Login und Fahrer-Home</figcaption>
+      </figure>
     </div>
   </header>
   <main class="wrap city-main">
     <p class="lead">Wähle deinen Ort. Jede Seite erklärt die Buchung für Fahrgäste und die Software für Betriebe. Fokus-Region: Metropolregion Rhein-Neckar (Firmensitz Speyer).</p>
     <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
-    <figure class="city-flyer-promo city-flyer-promo--drei">
-      <img
-        src="startseite-drei-bilder.png"
-        width="1400"
-        height="900"
-        alt="Luckys Taxi App — drei App-Screens: Fahrgast mit Profilfoto, Fahrer-Login und Fahrer-Home"
-        loading="lazy"
-      >
-      <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Fahrer-Login und Fahrer-Home</figcaption>
-    </figure>
     ${sections.join("\n    ")}
   </main>
   <footer class="site-footer">
