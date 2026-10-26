@@ -9,7 +9,7 @@
     "generate-city-seo": "node ../scripts/generate-city-seo.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": "22.23.4"
   },
   "dependencies": {
     "cors": "^2.8.5",
