@@ -411,15 +411,31 @@ const FOREIGN_CITIES = [
 
 const SPECIAL = {
   speyer: {
+    title: "Taxi Speyer bestellen | Dom, Bahnhof, Altstadt | Luckys Taxi",
+    desc:
+      "Taxi in Speyer online bestellen: Dom, Hauptbahnhof, Altstadt, Technik-Museum. Sofort oder Termin — Preis nach Taxameter. Luckys Taxi App von Code & Grow Speyer.",
+    h1: "Taxi Speyer bestellen",
     guest:
-      "Aktuell ist in Speyer noch kein Partner-Taxi an die Plattform angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, kannst du hier online bestellen — Dom, Bahnhof, Altstadt. Bis dahin: Web-Buchung unter luckystaxiapp.de/book.html; iPhone-Nutzer laden zusätzlich die Luckys Taxi App im App Store.",
+      "Taxi in Speyer online bestellen: Abholadresse am Dom, Hauptbahnhof, in der Altstadt oder am Technik-Museum eintragen — Sofortfahrt oder Termin. Den Fahrpreis zeigt das Taxameter; Zahlung bar beim Fahrer. Auf dem iPhone die Luckys Taxi App, sonst die Web-Buchung unter luckystaxiapp.de/book.html. Firmensitz der Plattform: Speyer (Asternweg 21).",
     operator:
-      "Code & Grow (Firmensitz Speyer, Asternweg 21) vermietet Luckys Taxi App an Betriebe in der Metropolregion Rhein-Neckar: Online-Buchung, Browser-Leitstelle und QR unter Ihrem Firmennamen — parallel zur städtischen Zentrale. Ab 9,90 €/Monat pro Fahrzeug, 14 Tage testen.",
+      "Code & Grow (Firmensitz Speyer, Asternweg 21) vermietet Luckys Taxi App an Betriebe in Speyer und der Metropolregion Rhein-Neckar: Online-Buchung, Browser-Leitstelle und QR unter Ihrem Firmennamen — parallel zur städtischen Zentrale. Ab 9,90 €/Monat pro Fahrzeug, 14 Tage testen.",
     faqExtra: {
-      q: "Kann ich in Speyer schon ein Taxi online bestellen?",
-      a: "Noch nicht flächendeckend: In Speyer ist aktuell kein Partner-Taxi angebunden. Sobald ein lokaler Betrieb den Vertrag abschließt, ist die Online-Buchung unter dessen Namen möglich. Die iPhone-App ist im App Store verfügbar; Android nutzt die Web-Buchung.",
+      q: "Wie bestelle ich schnell ein Taxi in Speyer?",
+      a: "Buchung unter luckystaxiapp.de/book.html mit Abholadresse in Speyer — oder Luckys Taxi App im App Store (iPhone). Sofort oder Termin wählen; Preis nach Taxameter, bar beim Fahrer. Lokale Partner-Betriebe erscheinen unter ihrem Namen, sobald sie angebunden sind.",
     },
+    localHtml: `<section class="city-block" style="margin-bottom:1.25rem">
+      <h2>Typische Taxi-Ziele in Speyer</h2>
+      <ul>
+        <li><strong>Speyer Hauptbahnhof</strong> — Anschluss ICE/RE und Taxi zur Altstadt</li>
+        <li><strong>Kaiserdom Speyer</strong> — UNESCO-Welterbe, Touristen und Tagesgäste</li>
+        <li><strong>Technik-Museum Speyer</strong> — An-/Abreise zu Events und Ausstellungen</li>
+        <li><strong>Altstadt &amp; Maximilianstraße</strong> — Hotels, Gastronomie, Abendtermine</li>
+        <li><strong>Rheinauen / Waldsee</strong> — Umlandfahrten in der Region</li>
+      </ul>
+      <p>Online buchen: <a href="../book.html">luckystaxiapp.de/book.html</a> · Betriebe: <a href="../onboard.html">Partner werden</a></p>
+    </section>`,
     orgAddress: true,
+    geo: { lat: 49.3172, lng: 8.4311 },
   },
   mannheim: {
     guest:
@@ -758,17 +774,24 @@ function relatedLinks(loc, all) {
 
 function renderPage(loc, all) {
   const url = `${BASE}/staedte/${loc.slug}.html`;
+  const special = SPECIAL[loc.slug] || {};
+  const isRn = RN_SLUGS.has(loc.slug);
   const title =
-    loc.type === "country"
-      ? `Taxi bestellen in ${loc.name} | Luckys Taxi App`
-      : `Taxi bestellen in ${loc.name} | Luckys Taxi App`;
+    special.title ||
+    (isRn
+      ? `Taxi ${loc.name} bestellen | ${loc.landmarks.split(",")[0].trim()} | Luckys Taxi`
+      : `Taxi bestellen in ${loc.name} | Luckys Taxi App`);
   const desc =
-    loc.type === "country"
-      ? `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Für Taxi-Betriebe: Leitstelle und Fahrgast-App ab 9,90 €/Monat pro Fahrzeug.`
-      : `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Bar bzw. nach lokalem Tarif. Taxi-Betriebe: eigene Leitstelle ab 9,90 €/Monat pro Fahrzeug.`;
+    special.desc ||
+    (isRn
+      ? `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Sofort oder Termin, Preis nach Taxameter. Luckys Taxi App · Rhein-Neckar.`
+      : loc.type === "country"
+        ? `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Für Taxi-Betriebe: Leitstelle und Fahrgast-App ab 9,90 €/Monat pro Fahrzeug.`
+        : `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Bar bzw. nach lokalem Tarif. Taxi-Betriebe: eigene Leitstelle ab 9,90 €/Monat pro Fahrzeug.`);
+  const h1 = special.h1 || `Taxi in ${loc.name}`;
 
   const areaType = loc.type === "country" ? "Country" : "City";
-  const orgBlock = SPECIAL[loc.slug]?.orgAddress
+  const orgBlock = special.orgAddress
     ? `,
           "address": {
             "@type": "PostalAddress",
@@ -776,10 +799,74 @@ function renderPage(loc, all) {
             "addressLocality": "Speyer",
             "postalCode": "67346",
             "addressCountry": "DE"
+          }${
+            special.geo
+              ? `,
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": ${special.geo.lat},
+            "longitude": ${special.geo.lng}
+          }`
+              : ""
           }`
     : "";
 
-  const faqExtra = SPECIAL[loc.slug]?.faqExtra;
+  const localBusinessNode =
+    loc.slug === "speyer"
+      ? `,
+      {
+        "@type": "LocalBusiness",
+        "@id": "${BASE}/#localbusiness",
+        "name": "Code & Grow — Luckys Taxi App",
+        "url": "${BASE}/",
+        "image": "${BASE}/icon-taxi-512.png",
+        "telephone": "",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Asternweg 21",
+          "addressLocality": "Speyer",
+          "postalCode": "67346",
+          "addressCountry": "DE"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 49.3172,
+          "longitude": 8.4311
+        },
+        "areaServed": [
+          { "@type": "City", "name": "Speyer" },
+          { "@type": "AdministrativeArea", "name": "Metropolregion Rhein-Neckar" }
+        ],
+        "priceRange": "ab 9,90 €/Monat pro Fahrzeug"
+      }`
+      : "";
+
+  const breadcrumbNode = `,
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Start",
+            "item": "${BASE}/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Städte & Länder",
+            "item": "${BASE}/staedte/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": ${escJson(loc.name)},
+            "item": ${escJson(url)}
+          }
+        ]
+      }`;
+
+  const faqExtra = special.faqExtra;
   const faqs = [
     {
       q: `Wie bestelle ich ein Taxi in ${loc.name}?`,
@@ -851,9 +938,10 @@ function renderPage(loc, all) {
     "@graph": [
       {
         "@type": "WebPage",
-        "name": ${escJson(`Taxi bestellen in ${loc.name}`)},
+        "name": ${escJson(h1)},
         "url": ${escJson(url)},
-        "description": ${escJson(desc)}
+        "description": ${escJson(desc)},
+        "isPartOf": { "@type": "WebSite", "name": "Luckys Taxi App", "url": "${BASE}/" }
       },
       {
         "@type": "Service",
@@ -872,7 +960,7 @@ function renderPage(loc, all) {
         "mainEntity": [
           ${schemaFaqs}
         ]
-      }
+      }${breadcrumbNode}${localBusinessNode}
     ]
   }
   </script>
@@ -883,7 +971,7 @@ function renderPage(loc, all) {
   <header class="city-hero">
     <div class="city-hero-inner">
       <p class="city-brand"><a href="../index.html">Luckys Taxi App</a></p>
-      <h1>Taxi in ${esc(loc.name)}</h1>
+      <h1>${esc(h1)}</h1>
       <p class="city-sub">${esc(heroSub(loc))}</p>
       <div class="city-ctas">
         <a class="btn" href="../book.html">Taxi bestellen</a>
@@ -939,6 +1027,8 @@ function renderPage(loc, all) {
         <p><a class="btn secondary" href="../onboard.html">Partner werden ab 9,90 €</a></p>
       </section>
     </div>
+
+    ${special.localHtml || ""}
 
     <section id="city-partners" class="city-partners" aria-live="polite" hidden></section>
 
