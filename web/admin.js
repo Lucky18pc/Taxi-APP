@@ -15,6 +15,10 @@
       title: "Neu anlegen",
       sub: "Betrieb manuell anlegen und sofort aktivieren.",
     },
+    audit: {
+      title: "Login-Protokoll",
+      sub: "Wer sich wann angemeldet hat — Admin und Betriebs-PIN, mit IP und Erfolg/Fehlschlag.",
+    },
     analytics: {
       title: "Analytics",
       sub: "Primär: Tarif-Anfragen. Zusätzlich Website-Besucher in Google Analytics.",
@@ -78,9 +82,16 @@
     const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 25000;
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     const resetOn401 = options.resetOn401 !== false;
+    // Nur echte Fetch-Optionen weiterreichen (kein timeoutMs/resetOn401 an fetch()).
+    const {
+      timeoutMs: _timeoutMs,
+      resetOn401: _resetOn401,
+      headers: _headers,
+      ...fetchOpts
+    } = options;
     try {
       let res = await fetch(url, {
-        ...options,
+        ...fetchOpts,
         headers,
         signal: options.signal || controller.signal,
       });
@@ -93,7 +104,7 @@
           delete retryHeaders["content-type"];
         }
         res = await fetch(url, {
-          ...options,
+          ...fetchOpts,
           headers: retryHeaders,
           signal: options.signal || controller.signal,
         });
@@ -262,6 +273,89 @@
     const copy = PANEL_COPY[id] || PANEL_COPY.tenants;
     document.getElementById("panel-title").textContent = copy.title;
     document.getElementById("panel-sub").textContent = copy.sub;
+    // CSV nur bei Mandanten/Anfragen sinnvoll — nicht beim Login-Protokoll.
+    const csvBtn = document.getElementById("export-tenants-csv");
+    if (csvBtn) {
+      csvBtn.classList.toggle("hidden", id !== "tenants" && id !== "inquiries");
+    }
+    if (id === "audit") loadLoginAudit();
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function setAuditStatus(text, isError) {
+    const el = document.getElementById("audit-status");
+    if (!el) return;
+    el.textContent = text || "";
+    el.style.color = isError ? "#b91c1c" : "";
+  }
+
+  async function loadLoginAudit() {
+    const list = document.getElementById("audit-list");
+    const empty = document.getElementById("audit-empty");
+    const refreshBtn = document.getElementById("refresh-audit");
+    if (!list) return;
+    const prevRefresh = refreshBtn ? refreshBtn.textContent : "";
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = "Lädt…";
+    }
+    list.innerHTML = "<p class=\"meta\">Lade…</p>";
+    empty?.classList.add("hidden");
+    setAuditStatus("Verbinde…");
+    try {
+      // Kein Login-Overlay bei Fehler — sonst wirkt der Button wie „blockiert“.
+      const res = await apiFetch("/api/auth/login-audit?limit=100", { resetOn401: false });
+      if (res.status === 401) throw new Error("Nicht angemeldet — bitte neu anmelden.");
+      if (!res.ok) throw new Error("Protokoll nicht ladbar");
+      const data = await res.json();
+      const entries = Array.isArray(data.entries) ? data.entries : [];
+      const stamp = new Date().toLocaleTimeString("de-DE", { timeZone: "Europe/Berlin" });
+      if (!entries.length) {
+        list.innerHTML = "";
+        empty?.classList.remove("hidden");
+        setAuditStatus(`Aktualisiert ${stamp} · 0 Einträge`);
+        return;
+      }
+      list.innerHTML = entries
+        .map((e) => {
+          const when = e.at
+            ? new Date(e.at).toLocaleString("de-DE", { timeZone: "Europe/Berlin" })
+            : "—";
+          const okLabel = e.ok
+            ? '<span class="badge badge-active">OK</span>'
+            : '<span class="badge badge-suspended">Fehlschlag</span>';
+          const role = escapeHtml(e.role || "—");
+          const ip = escapeHtml(e.ip || "—");
+          const source = escapeHtml(e.source || "—");
+          const reason = e.reason ? escapeHtml(e.reason) : "—";
+          const slug = e.operatorSlug ? escapeHtml(e.operatorSlug) : "—";
+          return `<article class="inquiry-card">
+            <div class="card-head" style="margin-bottom:0.35rem">
+              <strong>${when}</strong>
+              ${okLabel}
+            </div>
+            <p class="meta" style="margin:0">Rolle: <strong>${role}</strong> · IP: ${ip} · Quelle: ${source}</p>
+            <p class="meta" style="margin:0.2rem 0 0">Betrieb: ${slug} · Grund: ${reason}</p>
+          </article>`;
+        })
+        .join("");
+      setAuditStatus(`Aktualisiert ${stamp} · ${entries.length} Einträge`);
+    } catch (err) {
+      list.innerHTML = `<p class="login-error">${escapeHtml(err.message || "Fehler")}</p>`;
+      setAuditStatus(err.message || "Fehler", true);
+    } finally {
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = prevRefresh || "Aktualisieren";
+      }
+    }
   }
 
   function statusBadge(status) {
@@ -313,14 +407,6 @@
     if (planId === "starter") return "Starter (alt)";
     if (planId === "business") return "Business (alt)";
     return planId || "Allgemein";
-  }
-
-  function escapeHtml(value) {
-    return String(value || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
   }
 
   function updateInquiryStats(items) {
@@ -711,7 +797,18 @@
     await loadTenants();
   }
 
+  function activePanelId() {
+    const active = document.querySelector(".panel.active");
+    if (!active?.id) return "";
+    return active.id.replace(/^panel-/, "");
+  }
+
   async function refreshAll() {
+    const panel = activePanelId();
+    if (panel === "audit") {
+      await loadLoginAudit();
+      return;
+    }
     const errors = [];
     try {
       await loadTenants();
@@ -754,6 +851,37 @@
 
   document.querySelectorAll("[data-panel-jump]").forEach((btn) => {
     btn.addEventListener("click", () => showPanel(btn.getAttribute("data-panel-jump")));
+  });
+
+  document.getElementById("refresh-audit")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    loadLoginAudit();
+  });
+
+  document.getElementById("clear-audit")?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (!window.confirm("Gesamtes Login-Protokoll löschen?")) return;
+    const btn = e.currentTarget;
+    const prev = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Lösche…";
+    setAuditStatus("Lösche Protokoll…");
+    try {
+      const res = await apiFetch("/api/auth/login-audit", {
+        method: "DELETE",
+        resetOn401: false,
+      });
+      if (res.status === 401) throw new Error("Nicht angemeldet — bitte neu anmelden.");
+      if (!res.ok) throw new Error("Löschen fehlgeschlagen");
+      await loadLoginAudit();
+      setAuditStatus("Protokoll gelöscht");
+    } catch (err) {
+      setAuditStatus(err.message || "Löschen fehlgeschlagen", true);
+      alert(err.message || "Löschen fehlgeschlagen");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = prev || "Löschen";
+    }
   });
 
   function onlyDigits6(el) {
@@ -815,6 +943,7 @@
         body: JSON.stringify({
           pin,
           totp: mfaStep || totp ? totp : undefined,
+          source: "admin.html",
         }),
       });
       const data = await res.json().catch(() => ({}));

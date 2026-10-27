@@ -8,6 +8,7 @@ const CONFIG_KEYS = [
   "centralPhoneDisplay",
   "dispatchHours",
   "dispatchNote",
+  "dispatchMode",
   "country",
   "timeZone",
   "currency",
@@ -574,6 +575,10 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
       centralPhoneDisplay: String(input.centralPhoneDisplay || centralPhone).trim(),
       dispatchHours: String(input.dispatchHours || "24/7").trim(),
       dispatchNote: String(input.dispatchNote || "App-Buchungen über Luckys Taxi App.").trim(),
+      // auto = Standard bis ein Disponent eingewiesen ist; manual = Zentrale bedient
+      dispatchMode: ["auto", "manual"].includes(String(input.dispatchMode || "").trim().toLowerCase())
+        ? String(input.dispatchMode).trim().toLowerCase()
+        : "auto",
       country: String(input.country || "DE").trim().toUpperCase(),
       timeZone: String(input.timeZone || "Europe/Berlin").trim(),
       currency: String(input.currency || "eur").trim().toLowerCase(),

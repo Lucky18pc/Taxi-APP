@@ -16,6 +16,8 @@ const { mountCoreModelRoutes } = require("./core-api");
 const { RIDE_STATUSES, VEHICLE_STATUSES, DRIVER_TO_VEHICLE_STATUS } = require("./core-models");
 const { rankAvailableDrivers, DEFAULT_RADIUS_KM, DEFAULT_PRECISION } = require("./matching");
 const { createAutoDispatch, OFFER_TIMEOUT_MS } = require("./auto-dispatch");
+const dispatchPresence = require("./dispatch-presence");
+const { createAdminLoginAudit } = require("./admin-login-audit");
 const { mountMapsServiceRoutes, calculateFareFromKm } = require("./maps-services");
 const { createReceiptStore, mountReceiptRoutes } = require("./gobd-receipts");
 const {
@@ -350,6 +352,7 @@ const fleet = createFleetOperatorsStore({
   dataDir,
   seedFilePath: path.join(__dirname, "fleet-operators.json"),
 });
+const loginAudit = createAdminLoginAudit(dataDir);
 
 function isValidTimeZone(timeZone) {
   try {
@@ -1674,6 +1677,9 @@ app.use(
         base === "luckys-taxi-qr-scan.png"
       ) {
         res.setHeader("Cache-Control", "public, max-age=600, s-maxage=86400");
+      } else if (base === "admin.js" || base === "admin.html") {
+        // Admin-UI ändert sich oft (Login-Protokoll etc.) — kein Sticky-Cache.
+        res.setHeader("Cache-Control", "no-cache");
       } else if (/\.(css|js|png|jpg|jpeg|webp|svg|ico)$/i.test(base)) {
         res.setHeader("Cache-Control", "public, max-age=300, s-maxage=3600");
       }
@@ -1820,25 +1826,48 @@ function consumeAuthAttempt(ip) {
 
 app.post("/api/auth/verify", (req, res) => {
   const ip = clientIp(req);
+  const userAgent = String(req.headers["user-agent"] || "");
+  const source = String(req.body.source || req.headers["x-login-source"] || "api").slice(0, 64);
+  const operatorSlug = operatorSlugFromRequest(req) || null;
+
+  function audit(partial) {
+    try {
+      loginAudit.record({
+        ip,
+        userAgent,
+        source,
+        operatorSlug,
+        ...partial,
+      });
+    } catch (err) {
+      console.warn("login-audit:", err.message || err);
+    }
+  }
+
   if (!consumeAuthAttempt(ip)) {
+    audit({ ok: false, role: "unknown", reason: "rate_limited" });
     return res.status(429).json({
       error: "Zu viele Anmeldeversuche — bitte später erneut versuchen.",
     });
   }
   if (!authRequiredForRequest(req)) {
+    audit({ ok: true, role: "anonymous", reason: "auth_not_required" });
     return res.json({ ok: true, mfaEnabled: false, sessionToken: null });
   }
   const pin = String(req.body.pin || "").trim();
   const totp = String(req.body.totp || req.body.code || "").trim();
   if (pin.length < 4) {
+    audit({ ok: false, role: "unknown", reason: "pin_too_short" });
     return res.status(401).json({ error: "PIN ungültig" });
   }
   if (!verifyRequestPin(req, pin)) {
+    audit({ ok: false, role: "unknown", reason: "pin_invalid" });
     return res.status(401).json({ error: "PIN ungültig" });
   }
 
   // Betriebs-PIN (Leitstelle): kein MFA, kein Session-Token.
   if (!isPlatformAdminPin(pin)) {
+    audit({ ok: true, role: "operator", reason: "operator_pin" });
     return res.json({ ok: true, mfaEnabled: false, sessionToken: null, role: "operator" });
   }
 
@@ -1847,6 +1876,7 @@ app.post("/api/auth/verify", (req, res) => {
   if (adminMfa.enabled) {
     const code = String(totp || "").replace(/\D/g, "").slice(0, 6);
     if (!code) {
+      audit({ ok: false, role: "admin", reason: "mfa_code_missing" });
       return res.status(401).json({
         error: "Authenticator-Code erforderlich",
         mfaRequired: true,
@@ -1855,6 +1885,7 @@ app.post("/api/auth/verify", (req, res) => {
     }
     // Gleicher Toleranz-Fenster wie MFA-Confirm (±2 Min.).
     if (!verifyTotp(adminMfa.secret, code, 4)) {
+      audit({ ok: false, role: "admin", reason: "mfa_code_invalid" });
       return res.status(401).json({
         error:
           "Authenticator-Code ungültig. Nur den Luckys-Eintrag von der erfolgreichen Einrichtung nutzen; alte Einträge löschen. Handy-Uhr auf automatisch.",
@@ -1863,6 +1894,7 @@ app.post("/api/auth/verify", (req, res) => {
       });
     }
     const sessionToken = createAdminSession();
+    audit({ ok: true, role: "admin", reason: "admin_pin_mfa" });
     return res.json({
       ok: true,
       mfaEnabled: true,
@@ -1873,6 +1905,7 @@ app.post("/api/auth/verify", (req, res) => {
 
   // MFA noch nicht aktiv: Admin mit PIN nutzen; Setup optional (nicht blockierend).
   const sessionToken = createAdminSession();
+  audit({ ok: true, role: "admin", reason: "admin_pin" });
   return res.json({
     ok: true,
     mfaEnabled: false,
@@ -1881,6 +1914,17 @@ app.post("/api/auth/verify", (req, res) => {
     sessionToken,
     role: "admin",
   });
+});
+
+/** Login-Protokoll (nur Plattform-Admin). */
+app.get("/api/auth/login-audit", requireAdmin, (req, res) => {
+  const limit = Number(req.query.limit) || 100;
+  res.json({ entries: loginAudit.list(limit) });
+});
+
+app.delete("/api/auth/login-audit", requireAdmin, (_req, res) => {
+  loginAudit.clear();
+  res.json({ ok: true });
 });
 
 app.get("/api/auth/mfa/status", requireAdmin, (_req, res) => {
@@ -2782,7 +2826,83 @@ app.get("/api/config", (req, res) => {
       error: "operator query required (z. B. ?operator=mannheim)",
     });
   }
-  res.json(config);
+  const operator = resolveFleetOperatorFromRequest(req);
+  const presenceKey = operator?.operatorId || operator?.slug || "default";
+  const presence = dispatchPresence.status(presenceKey);
+  const dispatchMode =
+    String(config.dispatchMode || tenantConfig.dispatchMode || "auto").toLowerCase() === "manual"
+      ? "manual"
+      : "auto";
+  res.json({
+    ...config,
+    dispatchMode,
+    dispatchOnline: presence.online,
+    dispatchPresence: presence,
+    // Standard: Automatik an Fahrer, bis ein Disponent eingewiesen ist
+    fallbackDialWhenOffline: true,
+  });
+});
+
+/** Leitstelle meldet sich als besetzt (Heartbeat aus dispatch.html). */
+app.post("/api/dispatch/presence", requireAdmin, (req, res) => {
+  const operator = resolveFleetOperatorFromRequest(req) || defaultFleetOperator();
+  const key = operator?.operatorId || operator?.slug || "default";
+  const presence = dispatchPresence.touch(key, "dispatch.html");
+  res.json({ ok: true, ...presence, companyName: operator?.companyName || tenantConfig.companyName || null });
+});
+
+app.get("/api/dispatch/presence", (req, res) => {
+  const operator = resolveFleetOperatorFromRequest(req) || defaultFleetOperator();
+  const key = operator?.operatorId || operator?.slug || "default";
+  res.json(dispatchPresence.status(key));
+});
+
+/**
+ * Anrufziel für Fahrgast-App:
+ * Zentrale besetzt → Zentrale-Nummer
+ * Zentrale leer → nächster freier Fahrer (Telefon)
+ */
+app.get("/api/dispatch/dial-target", (req, res) => {
+  const lat = Number(req.query.lat || req.query.latitude);
+  const lng = Number(req.query.lng || req.query.longitude);
+  const postalCode = String(req.query.postalCode || "").trim();
+  const hintSlug = operatorSlugFromRequest(req);
+
+  let operator = resolveFleetOperatorFromRequest(req);
+  if (!operator && fleet.enabled() && Number.isFinite(lat) && Number.isFinite(lng)) {
+    operator = fleet.resolveForBooking(lat, lng, hintSlug, postalCode);
+  }
+  if (!operator && !fleet.enabled()) {
+    operator = null;
+  }
+
+  const config = operator
+    ? fleet.toPublicConfig(operator)
+    : withPlatformFields(tenantConfig);
+
+  const dispatchMode =
+    String(config.dispatchMode || tenantConfig.dispatchMode || "auto").toLowerCase() === "manual"
+      ? "manual"
+      : "auto";
+  const target = dispatchPresence.resolveDialTarget({
+    operatorId: operator?.operatorId || null,
+    operatorSlug: operator?.slug || hintSlug || null,
+    centralPhone: config.centralPhone || tenantConfig.centralPhone,
+    centralPhoneDisplay: config.centralPhoneDisplay || tenantConfig.centralPhoneDisplay,
+    companyName: config.companyName || tenantConfig.companyName,
+    latitude: lat,
+    longitude: lng,
+    drivers,
+    radiusKm: DEFAULT_RADIUS_KM,
+    dispatchMode,
+  });
+
+  res.json({
+    ...target,
+    operatorId: operator?.operatorId || null,
+    operatorSlug: operator?.slug || null,
+    companyName: config.companyName || null,
+  });
 });
 
 mountPwaBrandRoutes(app, { configForRequest });
@@ -2803,6 +2923,7 @@ app.patch("/api/config", requireAdmin, (req, res) => {
       "centralPhoneDisplay",
       "dispatchHours",
       "dispatchNote",
+      "dispatchMode",
       "legalStreet",
       "legalCity",
       "legalOwner",
@@ -2883,6 +3004,7 @@ app.patch("/api/config", requireAdmin, (req, res) => {
     "centralPhoneDisplay",
     "dispatchHours",
     "dispatchNote",
+    "dispatchMode",
     "legalStreet",
     "legalCity",
     "legalOwner",
@@ -3320,12 +3442,25 @@ app.post("/api/bookings", (req, res) => {
   });
 
   let dispatchResult = null;
+  const presenceKey = fleetOperator?.operatorId || fleetOperator?.slug || "default";
+  const zentraleOnline = dispatchPresence.status(presenceKey).online;
+  const opConfig = fleetOperator ? fleet.toPublicConfig(fleetOperator) : tenantConfig;
+  const dispatchMode =
+    String(opConfig?.dispatchMode || tenantConfig.dispatchMode || "auto").toLowerCase() === "manual"
+      ? "manual"
+      : "auto";
+  // Standard "auto": immer an Fahrer — bis jemand die Zentrale manuell bedient (dispatchMode=manual)
   const wantAuto =
+    dispatchMode === "auto" ||
     Boolean(req.body.autoDispatch) ||
+    !zentraleOnline ||
     String(process.env.MATCH_AUTO_START || "").trim() === "1";
   if (wantAuto) {
     try {
       dispatchResult = autoDispatch.startDispatch(booking.bookingId);
+      console.log(
+        `Auto-Dispatch (${dispatchMode}${zentraleOnline ? "" : ", Zentrale offline"}): ${booking.bookingId} → offer ${dispatchResult?.dispatch?.offerDriverId || "—"}`
+      );
     } catch (error) {
       console.warn("auto-dispatch on create:", error.message || error);
     }

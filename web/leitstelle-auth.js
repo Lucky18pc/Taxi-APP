@@ -111,10 +111,18 @@
     const slug = getOperatorSlug();
     let res;
     try {
+      const page =
+        (typeof location !== "undefined" && location.pathname
+          ? location.pathname.split("/").pop()
+          : "") || "leitstelle";
       res = await fetch(apiUrl("/api/auth/verify"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin, operator: slug || undefined }),
+        body: JSON.stringify({
+          pin,
+          operator: slug || undefined,
+          source: page || "leitstelle",
+        }),
       });
     } catch (err) {
       throw new Error(networkErrorMessage(err));

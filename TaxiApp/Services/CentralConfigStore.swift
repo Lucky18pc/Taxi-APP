@@ -12,6 +12,19 @@ struct TenantConfigResponse: Decodable {
     let nightSurchargeEnabled: Bool?
     let nightSurchargeFromHour: Int?
     let nightSurchargeToHour: Int?
+    let dispatchOnline: Bool?
+    let fallbackDialWhenOffline: Bool?
+}
+
+struct DialTargetResponse: Decodable {
+    let mode: String
+    let phone: String
+    let displayName: String?
+    let label: String?
+    let dispatchOnline: Bool?
+    let note: String?
+    let driverId: String?
+    let distanceKm: Double?
 }
 
 @MainActor
@@ -19,11 +32,31 @@ final class CentralConfigStore: ObservableObject {
     @Published private(set) var remoteConfig: TenantConfigResponse?
     @Published private(set) var isLoading = false
     @Published private(set) var localPhoneOverride: String
+    /// Letztes Anrufziel (Zentrale oder Fahrer), steuert Button-Text.
+    @Published private(set) var lastDialTarget: DialTargetResponse?
 
     private static let localPhoneKey = "central_phone_local_override"
 
     init() {
         localPhoneOverride = UserDefaults.standard.string(forKey: Self.localPhoneKey) ?? ""
+    }
+
+    /// Button-Titel: „Zentrale Anrufen“ oder „Fahrer in der Nähe anrufen“.
+    var callButtonTitle: String {
+        if let label = lastDialTarget?.label, !label.isEmpty { return label }
+        if remoteConfig?.dispatchOnline == false { return "Fahrer in der Nähe anrufen" }
+        return "Zentrale Anrufen"
+    }
+
+    var callCaptionText: String {
+        if let name = lastDialTarget?.displayName, !name.isEmpty,
+           let phone = lastDialTarget?.phone, !phone.isEmpty {
+            return "\(name): \(Self.formatForDisplay(phone))"
+        }
+        if remoteConfig?.dispatchOnline == false {
+            return "Zentrale gerade nicht besetzt — Weiterleitung an Fahrer"
+        }
+        return "Zentrale: \(formattedDisplayPhone)"
     }
 
     /// Nummer für tel:-Links (Ziffern, optional führendes +).
@@ -113,9 +146,43 @@ final class CentralConfigStore: ObservableObject {
         !localPhoneOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    /// Startet Anruf zur Zentrale.
-    func callCentral() async -> Bool {
-        await PhoneDialer.call(rawPhone: resolvedPhone, regionCountryCode: regionCountryCode)
+    /// Startet Anruf: Zentrale wenn besetzt, sonst nächster freier Fahrer.
+    func callCentral(latitude: Double? = nil, longitude: Double? = nil) async -> Bool {
+        if let target = await fetchDialTarget(latitude: latitude, longitude: longitude),
+           !target.phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            lastDialTarget = target
+            return await PhoneDialer.call(
+                rawPhone: target.phone,
+                regionCountryCode: regionCountryCode
+            )
+        }
+        return await PhoneDialer.call(rawPhone: resolvedPhone, regionCountryCode: regionCountryCode)
+    }
+
+    func fetchDialTarget(latitude: Double? = nil, longitude: Double? = nil) async -> DialTargetResponse? {
+        var components = URLComponents(string: "\(TaxiConfig.stripeBackendURL)/api/dispatch/dial-target")
+        var items: [URLQueryItem] = []
+        if let latitude, let longitude {
+            items.append(URLQueryItem(name: "lat", value: String(latitude)))
+            items.append(URLQueryItem(name: "lng", value: String(longitude)))
+        }
+        if !TaxiConfig.defaultOperatorSlug.isEmpty {
+            items.append(URLQueryItem(name: "operator", value: TaxiConfig.defaultOperatorSlug))
+        }
+        components?.queryItems = items.isEmpty ? nil : items
+        guard let url = components?.url else { return nil }
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+                return nil
+            }
+            let target = try JSONDecoder().decode(DialTargetResponse.self, from: data)
+            lastDialTarget = target
+            return target
+        } catch {
+            print("Dial-target fetch failed: \(error)")
+            return nil
+        }
     }
 
     func updateLocalPhone(_ phone: String) {

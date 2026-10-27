@@ -196,7 +196,13 @@ struct HomeView: View {
             }
             .alert("Taxameter-Betrag", isPresented: Binding(
                 get: { completeTarget != nil && !showPayMethodDialog },
-                set: { if !$0 { completeTarget = nil } }
+                set: { newValue in
+                    // Beim Wechsel zur Zahlungsart darf completeTarget nicht gelöscht werden.
+                    if !newValue && !showPayMethodDialog {
+                        completeTarget = nil
+                        pendingAmount = nil
+                    }
+                }
             )) {
                 TextField("Betrag in € (z.B. 18.50)", text: $meterAmountText)
                     .keyboardType(.decimalPad)
@@ -215,6 +221,7 @@ struct HomeView: View {
                 }
                 Button("Abbrechen", role: .cancel) {
                     completeTarget = nil
+                    pendingAmount = nil
                 }
             } message: {
                 Text("Betrag laut Taxameter eingeben, danach Zahlungsart wählen.")

@@ -61,6 +61,16 @@
     }
     .central-phone { font-size: 1.15rem; font-weight: 800; margin: 0.35rem 0; }
     .central-phone a { color: #0c1c34; }
+    .presence-badge {
+      display: inline-block;
+      margin: 0.35rem 0 0.15rem;
+      padding: 0.28rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .presence-badge.on { background: #dcfce7; color: #166534; }
+    .presence-badge.off { background: #fee2e2; color: #991b1b; }
     .stats {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -256,6 +266,8 @@
     <aside class="map-sidebar">
       <h1 id="company-title">Zentrale / Leitstelle</h1>
       <p class="sub" id="company-subtitle">App-Buchungen · Fahrer live auf der Karte</p>
+      <p id="presence-badge" class="presence-badge on">Automatik an Fahrer aktiv</p>
+      <p class="booking-meta" style="margin-top:0">Standard: Buchungen &amp; Anrufe gehen an freie Fahrer. Wenn du jemanden für die Zentrale hast: in den Einstellungen auf „Manuell“ umstellen.</p>
 
       <p class="central-phone"><a id="central-phone-link" href="#">…</a></p>
       <p id="dispatch-hours" class="booking-meta"></p>
@@ -720,8 +732,30 @@
       syncMap();
     }
 
+    async function pingPresence() {
+      try {
+        const res = await LeitstelleAuth.apiFetch("/api/dispatch/presence", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        const badge = document.getElementById("presence-badge");
+        if (!badge) return;
+        if (res.ok) {
+          badge.textContent = "Zentrale besetzt — Anrufe hier";
+          badge.className = "presence-badge on";
+        } else {
+          badge.textContent = "Präsenz nicht gemeldet";
+          badge.className = "presence-badge off";
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
     async function refresh() {
       try {
+        pingPresence();
         const [bookingsRes, callsRes, driversRes] = await Promise.all([
           LeitstelleAuth.apiFetch("/api/bookings"),
           LeitstelleAuth.apiFetch("/api/calls"),

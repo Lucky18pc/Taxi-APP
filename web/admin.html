@@ -437,6 +437,7 @@
       <button type="button" class="nav-btn active" data-panel="tenants">Mandanten</button>
       <button type="button" class="nav-btn" data-panel="inquiries">Anfragen</button>
       <button type="button" class="nav-btn" data-panel="create">Neu anlegen</button>
+      <button type="button" class="nav-btn" data-panel="audit">Login-Protokoll</button>
       <button type="button" class="nav-btn" data-panel="analytics">Analytics</button>
       <div class="side-foot">
         <button type="button" class="btn btn-ghost btn-sm" id="admin-setup-mfa" style="width:100%;color:#fff;border-color:rgba(255,255,255,0.35);margin-bottom:0.5rem">MFA einrichten</button>
@@ -511,6 +512,24 @@
         </div>
       </section>
 
+      <section id="panel-audit" class="panel">
+        <div class="card">
+          <div class="card-head">
+            <h2>Login-Protokoll</h2>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+              <button type="button" class="btn btn-ghost btn-sm" id="refresh-audit">Aktualisieren</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="clear-audit" style="color:#b91c1c;border-color:#fca5a5">Löschen</button>
+            </div>
+          </div>
+          <p class="meta" style="margin:0 0 0.35rem;max-width:40rem">
+            Wer sich wann angemeldet hat (Admin oder Betriebs-PIN). Speichert Zeit, IP, Rolle und Erfolg/Fehlschlag — <strong>kein PIN</strong>.
+          </p>
+          <p id="audit-status" class="meta" style="margin:0 0 0.85rem"></p>
+          <div id="audit-list" class="inquiry-list"></div>
+          <p id="audit-empty" class="empty-hint hidden">Noch keine Einträge. Nach dem nächsten Login erscheinen sie hier.</p>
+        </div>
+      </section>
+
       <section id="panel-analytics" class="panel">
         <div class="card">
           <div class="card-head"><h2>Erfolgszahlen</h2></div>
@@ -530,6 +549,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=20260924-mfa10"></script>
+  <script src="admin.js?v=20261027-audit4"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # Leitstelle / Zentrale — Systemüberblick
 
-## Ablauf (Stufe 1–4)
+## Ablauf (Stufe 1–4) + Fallback unbesetzte Zentrale
 
 ```mermaid
 flowchart TB
@@ -13,24 +13,42 @@ flowchart TB
         Nummer[Leitstellen-Nummer]
         Annehmen[Disponent nimmt an]
         Weiter[Fahrt an Fahrer]
+        FahrerTel[Fahrer-Handy]
     end
 
     subgraph digital [Digital — TaxiApp Backend]
         API["/api/config"]
+        Dial["/api/dispatch/dial-target"]
         BookAPI["/api/bookings"]
+        Presence[dispatch presence heartbeat]
         Dispatch[dispatch.html]
+        Auto[auto-dispatch Matching]
     end
 
-    CallBtn -->|tel:| Nummer
+    CallBtn --> Dial
+    Dial -->|Zentrale online| Nummer
+    Dial -->|Zentrale offline| FahrerTel
     Nummer --> Annehmen
     Annehmen --> Weiter
     Weiter --> FahrerHandy[Fahrer-Handy]
 
     BookFlow --> BookAPI
+    BookAPI -->|Zentrale offline oder autoDispatch| Auto
     BookAPI --> Dispatch
+    Presence --> Dispatch
     API --> CallBtn
     Dispatch --> Annehmen
 ```
+
+### Standard: Automatik (kein Disponent nötig)
+
+`dispatchMode: "auto"` (Default in Einstellungen) — solange niemand die Zentrale bedient:
+
+1. **App-Buchung** → immer Auto-Dispatch an freie Fahrer (15 s → nächster).
+2. **Anruf-Button** → Nummer eines freien Fahrers in der Nähe (`/api/dispatch/dial-target`).
+3. Zentrale-Nummer nur noch **Fallback**, wenn kein Fahrer erreichbar ist.
+
+Wenn du jemanden eingewiesen hast: in **settings.html** auf **`manual`** stellen — dann bedient die Leitstelle Anrufe/Zuweisung; ohne Heartbeat wieder Fallback an Fahrer.
 
 ## Stufen
 

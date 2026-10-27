@@ -290,9 +290,17 @@
           <input id="companyName" name="companyName" required placeholder="z. B. Taxi Mannheim">
         </div>
         <div class="field">
+          <label for="dispatchMode">Vermittlung</label>
+          <select id="dispatchMode" name="dispatchMode">
+            <option value="auto" selected>Automatisch an Fahrer (empfohlen, bis Disponent da ist)</option>
+            <option value="manual">Manuell über Zentrale / Leitstelle</option>
+          </select>
+          <p class="field-hint">Solange niemand die Zentrale bedient: <strong>Automatisch</strong>. Später, wenn du jemanden eingewiesen hast: auf <strong>Manuell</strong> stellen.</p>
+        </div>
+        <div class="field">
           <label for="centralPhone">Zentrale Telefonnummer (für Anruf)</label>
           <input id="centralPhone" name="centralPhone" required placeholder="+496211234567">
-          <p class="field-hint">Format mit Ländervorwahl, die App wählt diese Nummer bei „Zentrale anrufen“.</p>
+          <p class="field-hint">Bei Automatik nur Fallback, wenn kein Fahrer erreichbar ist. Bei Manuell: Nummer für „Zentrale anrufen“.</p>
         </div>
         <div class="field">
           <label for="centralPhoneDisplay">Anzeige in App (optional)</label>
@@ -695,7 +703,7 @@
       if (!res.ok) throw new Error("Backend nicht erreichbar");
       const cfg = await res.json();
       for (const key of [
-        "companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote",
+        "companyName", "centralPhone", "centralPhoneDisplay", "dispatchHours", "dispatchNote", "dispatchMode",
         "country", "timeZone", "currency",
         "platformCompanyName", "platformStreet", "platformCity", "platformOwner", "platformEmail", "platformPhone", "platformVatId",
         "legalStreet", "legalCity", "legalOwner", "legalEmail", "vatId",
