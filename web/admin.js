@@ -852,7 +852,16 @@
     if (adminMap || typeof L === "undefined") return;
     const el = document.getElementById("admin-map");
     if (!el) return;
-    adminMap = L.map(el, { zoomControl: true }).setView([51.1657, 10.4515], 6);
+    adminMap = L.map(el, {
+      zoomControl: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      dragging: true,
+      inertia: true,
+    }).setView([51.1657, 10.4515], 6);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -882,7 +891,7 @@
 
   function focusMarker(marker) {
     if (!marker || !adminMap) return;
-    adminMap.flyTo(marker.getLatLng(), 15, { duration: 0.45 });
+    adminMap.panTo(marker.getLatLng(), { animate: true, duration: 0.45 });
     marker.openPopup();
   }
 

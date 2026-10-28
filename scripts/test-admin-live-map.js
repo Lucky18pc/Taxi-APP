@@ -259,6 +259,13 @@ async function api(pathname, options = {}) {
     live.close();
     stranger.close();
 
+    const script = await fetch(`${base}/admin.js?v=20261028-karte3`);
+    const source = await script.text();
+    if (!source.includes("scrollWheelZoom: false") || !source.includes("dragging: true")) {
+      fail("Karte lässt sich noch zoomen statt nur verschieben");
+    }
+    if (source.includes("zoomControl: true")) fail("Zoom-Buttons sind noch an");
+
     console.log("OK admin live-map: alle Betriebe, Filter, 403 für Betriebs-PIN, Live-Verbindung");
     child.kill("SIGTERM");
     process.exit(0);

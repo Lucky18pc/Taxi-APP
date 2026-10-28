@@ -217,7 +217,7 @@
     .workflow { font-size: 0.78rem; margin: 0.5rem 0; }
     .workflow ol { margin: 0.35rem 0 0 1rem; padding: 0; }
     .workflow li { margin: 0.25rem 0; }
-    #dispatch-map { height: 100%; width: 100%; background: #dbe3ef; }
+    #dispatch-map { height: 100%; width: 100%; background: #dbe3ef; touch-action: none; cursor: grab; }
     .taxi-pin {
       background: #f5c518;
       border: 2.5px solid #0c1c34;
@@ -431,7 +431,16 @@
 
     function initMap() {
       if (map) return;
-      map = L.map("dispatch-map", { zoomControl: true }).setView(DEFAULT_CENTER, 13);
+      map = L.map("dispatch-map", {
+        zoomControl: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        touchZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        dragging: true,
+        inertia: true,
+      }).setView(DEFAULT_CENTER, 13);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap",
@@ -545,14 +554,14 @@
     function focusDriver(driverId) {
       const m = driverMarkers.get(driverId);
       if (!m || !map) return;
-      map.flyTo(m.getLatLng(), 15, { duration: 0.5 });
+      map.panTo(m.getLatLng(), { animate: true, duration: 0.5 });
       m.openPopup();
     }
 
     function focusBooking(bookingId) {
       const m = bookingMarkers.get(bookingId);
       if (!m || !map) return;
-      map.flyTo(m.getLatLng(), 15, { duration: 0.5 });
+      map.panTo(m.getLatLng(), { animate: true, duration: 0.5 });
       m.openPopup();
     }
 

@@ -241,6 +241,8 @@
       background: #dbe3ef;
       isolation: isolate;
       z-index: 0;
+      touch-action: none;
+      cursor: grab;
     }
     .taxi-pin {
       background: #f5c518;
@@ -567,6 +569,7 @@
             <div id="map-bookings" class="map-list"></div>
             <p class="meta" style="margin:0">
               Gelb = frei, orange = unterwegs, grau = Standort älter als 2 Minuten. Rotes Label = Abholung.
+              Mit dem Finger verschieben: links, rechts, hoch, runter. Zoomen ist aus.
               Die Karte verbindet sich live mit dem Standort, den die Fahrer-App schickt.
               © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
             </p>
@@ -658,6 +661,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261028-karte2"></script>
+  <script src="admin.js?v=20261028-karte3"></script>
 </body>
 </html>
