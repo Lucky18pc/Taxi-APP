@@ -6,6 +6,7 @@
   <title>Luckys Admin. Dashboard</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="luckys-taxi-admin-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
@@ -140,7 +141,7 @@
     .app-shell { min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
     @media (max-width: 900px) {
       .app-shell { grid-template-columns: 1fr; }
-      .side-nav { position: sticky; top: 0; z-index: 20; }
+      .side-nav { position: sticky; top: 0; z-index: 30; }
     }
     .side-nav {
       background: var(--navy);
@@ -196,6 +197,77 @@
 
     .panel { display: none; }
     .panel.active { display: block; animation: rise 0.28s ease; }
+
+    .map-board {
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .map-board { grid-template-columns: 1fr; }
+    }
+    .map-side { margin-bottom: 0; max-height: min(72vh, 720px); overflow: auto; }
+    #map-operator {
+      width: 100%;
+      padding: 0.7rem 0.75rem;
+      border: 2px solid var(--navy);
+      border-radius: 12px;
+      font: inherit;
+      background: #fff;
+      color: var(--navy);
+    }
+    .map-list { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 0.85rem; }
+    .map-item {
+      text-align: left;
+      width: 100%;
+      background: #fff;
+      border: 2px solid var(--navy);
+      border-radius: 12px;
+      padding: 0.55rem 0.7rem;
+      font: inherit;
+      font-weight: 700;
+      color: var(--navy);
+      cursor: pointer;
+    }
+    .map-item:hover { background: var(--cream); }
+    .map-item .meta { font-weight: 600; }
+    #admin-map {
+      width: 100%;
+      height: min(72vh, 720px);
+      min-height: 360px;
+      border: 3px solid var(--navy);
+      border-radius: 16px;
+      background: #dbe3ef;
+      isolation: isolate;
+      z-index: 0;
+    }
+    .taxi-pin {
+      background: #f5c518;
+      border: 2.5px solid #0c1c34;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.62rem;
+      font-weight: 900;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+    .taxi-pin.busy { background: #fb923c; }
+    .taxi-pin.stale { background: #d1d5db; color: #4b5563; }
+    .pickup-pin {
+      background: #fff;
+      border: 2.5px solid #dc2626;
+      color: #dc2626;
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 0.62rem;
+      font-weight: 900;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
+    }
     @keyframes rise {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: none; }
@@ -435,6 +507,7 @@
         </div>
       </div>
       <button type="button" class="nav-btn active" data-panel="tenants">Mandanten</button>
+      <button type="button" class="nav-btn" data-panel="map">Karte</button>
       <button type="button" class="nav-btn" data-panel="inquiries">Anfragen</button>
       <button type="button" class="nav-btn" data-panel="create">Neu anlegen</button>
       <button type="button" class="nav-btn" data-panel="audit">Login-Protokoll</button>
@@ -466,6 +539,40 @@
         </div>
         <div id="tenants-grid" class="tenant-grid"></div>
         <p id="tenants-empty" class="empty-hint hidden">Noch keine Mandanten.</p>
+      </section>
+
+      <section id="panel-map" class="panel">
+        <div class="stats" id="map-stats">
+          <div class="stat"><strong id="map-n-drivers">0</strong><span>Fahrer</span></div>
+          <div class="stat"><strong id="map-n-live">0</strong><span>GPS live</span></div>
+          <div class="stat"><strong id="map-n-busy">0</strong><span>Unterwegs</span></div>
+          <div class="stat"><strong id="map-n-jobs">0</strong><span>Offene Aufträge</span></div>
+        </div>
+        <div class="map-board">
+          <div class="card map-side">
+            <div class="card-head">
+              <h2>Live-Karte</h2>
+              <button type="button" class="btn btn-ghost btn-sm" id="refresh-map">Aktualisieren</button>
+            </div>
+            <div class="field">
+              <label for="map-operator">Betrieb</label>
+              <select id="map-operator">
+                <option value="all">Alle Betriebe</option>
+              </select>
+            </div>
+            <p id="map-status" class="meta">Karte wird geladen…</p>
+            <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Fahrer</p>
+            <div id="map-drivers" class="map-list"></div>
+            <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Offene Aufträge</p>
+            <div id="map-bookings" class="map-list"></div>
+            <p class="meta" style="margin:0">
+              Gelb = frei, orange = unterwegs, grau = Standort älter als 2 Minuten. Rotes Label = Abholung.
+              Karte: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
+              Die Leitstelle eines Betriebs bleibt unter ihrem eigenen Link.
+            </p>
+          </div>
+          <div id="admin-map" role="application" aria-label="Live-Karte der Fahrer"></div>
+        </div>
       </section>
 
       <section id="panel-inquiries" class="panel">
@@ -549,6 +656,7 @@
     </main>
   </div>
 
-  <script src="admin.js?v=20261027-audit4"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="admin.js?v=20261028-karte1"></script>
 </body>
 </html>
