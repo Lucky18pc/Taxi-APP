@@ -1208,7 +1208,8 @@ function verifyRequestPin(req, pin) {
 /** Plattform-Admin MFA (TOTP) — nur ADMIN_PIN, nicht Betriebs-PIN. */
 const adminMfaPath = path.join(dataDir, "admin-mfa.json");
 const adminSessionsPath = path.join(dataDir, "admin-sessions.json");
-const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+/** Eingeloggt bleiben: 30 Tage (Leitstelle/Admin — MFA nicht bei jedem Tab-Schließen). */
+const ADMIN_SESSION_TTL_MS = Number(process.env.ADMIN_SESSION_TTL_MS || 30 * 24 * 60 * 60 * 1000);
 /** @type {Map<string, { expires: number }>} */
 const adminSessions = new Map();
 
@@ -1287,7 +1288,11 @@ function isValidAdminSession(token) {
     loadAdminSessionsFromDisk();
     meta = adminSessions.get(token);
   }
-  return Boolean(meta && meta.expires > Date.now());
+  if (!meta || meta.expires <= Date.now()) return false;
+  // Sliding window: bei Nutzung Session verlängern (weiterhin max. TTL).
+  meta.expires = Date.now() + ADMIN_SESSION_TTL_MS;
+  saveAdminSessionsToDisk();
+  return true;
 }
 
 function isPlatformAdminPin(pin) {

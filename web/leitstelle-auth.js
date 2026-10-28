@@ -43,39 +43,49 @@
     return String(params.get("o") || params.get("operator") || "").trim().toLowerCase();
   }
 
+  /** Dauerhaft speichern (localStorage) — sonst nach Tab-Schließen wieder MFA. */
+  function storeGet(key) {
+    return localStorage.getItem(key) || sessionStorage.getItem(key) || "";
+  }
+
+  function storeSet(key, value) {
+    if (value) {
+      localStorage.setItem(key, value);
+      sessionStorage.removeItem(key);
+    } else {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    }
+  }
+
   function getOperatorSlug() {
-    return sessionStorage.getItem(OPERATOR_KEY) || operatorSlugFromPage() || "";
+    return storeGet(OPERATOR_KEY) || operatorSlugFromPage() || "";
   }
 
   function setOperatorSlug(slug) {
     const normalized = String(slug || "").trim().toLowerCase();
-    if (normalized) {
-      sessionStorage.setItem(OPERATOR_KEY, normalized);
-    } else {
-      sessionStorage.removeItem(OPERATOR_KEY);
-    }
+    storeSet(OPERATOR_KEY, normalized);
   }
 
   function getPin() {
-    return sessionStorage.getItem(STORAGE_KEY) || "";
+    return storeGet(STORAGE_KEY);
   }
 
   function getSession() {
-    return sessionStorage.getItem(SESSION_KEY) || "";
+    return storeGet(SESSION_KEY);
   }
 
   function setPin(pin) {
-    sessionStorage.setItem(STORAGE_KEY, pin);
+    storeSet(STORAGE_KEY, pin);
   }
 
   function setSession(token) {
-    if (token) sessionStorage.setItem(SESSION_KEY, token);
-    else sessionStorage.removeItem(SESSION_KEY);
+    storeSet(SESSION_KEY, token || "");
   }
 
   function clearPin() {
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
+    storeSet(STORAGE_KEY, "");
+    storeSet(SESSION_KEY, "");
     pendingPin = "";
     mfaStep = false;
   }
