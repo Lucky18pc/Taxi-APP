@@ -19,6 +19,13 @@ const { createAutoDispatch, OFFER_TIMEOUT_MS } = require("./auto-dispatch");
 const dispatchPresence = require("./dispatch-presence");
 const { createAdminLoginAudit } = require("./admin-login-audit");
 const { mountMapsServiceRoutes, calculateFareFromKm } = require("./maps-services");
+const {
+  statusAfterTripCompleted,
+  statusTripStarted,
+  statusArrivedAtBase,
+  normalizeDutyStatus,
+  DUTY,
+} = require("./pbefg-dispatch");
 const { createReceiptStore, mountReceiptRoutes } = require("./gobd-receipts");
 const {
   createUploadMiddleware,
@@ -123,9 +130,37 @@ function shouldApplyBrokerageFee(booking) {
   return allowed.map((x) => String(x).toLowerCase()).includes(raw) || raw === "online";
 }
 
-function resolveRideFeeBreakdown(amountCents, { applyBrokerage }) {
+function resolveRideFeeBreakdown(amountCents, { applyBrokerage, operator = null } = {}) {
   const ops = offering.operators || {};
   const plan = (ops.plans || []).find((p) => p.id === "fleet") || ops.plans?.[0];
+
+  // Marketplace-Cut pro Betrieb (z. B. Mietwagen 15–20 %) überschreibt Split-Defaults.
+  const cutRaw =
+    operator?.platformCutPercent ??
+    operator?.pricing?.platformCutPercent ??
+    null;
+  const marketplaceCut = Number(cutRaw);
+  if (Number.isFinite(marketplaceCut) && marketplaceCut > 0) {
+    const platformFeePercent = marketplaceCut;
+    const brokerageFeePercent = 0;
+    let applicationFeeCents = Math.max(
+      0,
+      Math.round((amountCents * platformFeePercent) / 100)
+    );
+    if (applicationFeeCents >= amountCents) {
+      applicationFeeCents = Math.max(0, amountCents - 1);
+    }
+    return {
+      platformFeePercent,
+      brokerageFeePercent,
+      totalFeePercent: platformFeePercent,
+      platformFeeCents: applicationFeeCents,
+      brokerageFeeCents: 0,
+      applicationFeeCents,
+      feeMode: "marketplace_cut",
+    };
+  }
+
   const platformRaw = Number(ops.platformFeePercent ?? plan?.cardPlatformFeePercent);
   const brokerageRaw = Number(ops.brokerageFeePercent ?? plan?.brokerageFeePercent);
   const platformFeePercent = Number.isFinite(platformRaw) ? platformRaw : 1.9;
@@ -145,6 +180,7 @@ function resolveRideFeeBreakdown(amountCents, { applyBrokerage }) {
     platformFeeCents,
     brokerageFeeCents,
     applicationFeeCents,
+    feeMode: "platform_plus_brokerage",
   };
 }
 
@@ -198,6 +234,7 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
   const planId = String(fleetOp?.planId || "fleet").trim() || "fleet";
   const fees = resolveRideFeeBreakdown(amountCents, {
     applyBrokerage: shouldApplyBrokerageFee(booking),
+    operator: fleetOp,
   });
   const {
     platformFeePercent,
@@ -206,13 +243,19 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
     platformFeeCents,
     brokerageFeeCents,
     applicationFeeCents,
+    feeMode,
   } = fees;
   const connectAccountId = String(fleetOp?.stripeConnectAccountId || "").trim();
+  const businessType = String(
+    booking.businessType || fleetOp?.businessType || "taxi"
+  ).trim();
 
   const metadata = {
     ...STRIPE_PRODUCT_META,
     bookingId: booking.bookingId,
     operatorId: booking.operatorId || "",
+    businessType,
+    feeMode: feeMode || "platform_plus_brokerage",
     channel: wantTerminal ? "terminal" : "online",
     mediationChannel: String(booking.mediationChannel || "web"),
     platformFeePercent: String(platformFeePercent),
@@ -221,6 +264,7 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
     brokerageFeeCents: String(brokerageFeeCents),
     totalFeePercent: String(totalFeePercent),
     applicationFeeCents: String(applicationFeeCents),
+    operatorPayoutCents: String(Math.max(0, amountCents - applicationFeeCents)),
   };
 
   const params = wantTerminal
@@ -260,6 +304,9 @@ async function ensureRidePaymentIntent(booking, { receiptEmail, channel = "onlin
   booking.brokerageFeeCents = brokerageFeeCents;
   booking.totalFeePercent = totalFeePercent;
   booking.applicationFeeCents = applicationFeeCents;
+  booking.operatorPayoutCents = Math.max(0, amountCents - applicationFeeCents);
+  booking.feeMode = feeMode || "platform_plus_brokerage";
+  booking.businessType = businessType;
   booking.stripeConnectAccountId = connectAccountId || null;
   booking.updatedAt = new Date().toISOString();
   saveBookings();
@@ -500,6 +547,7 @@ const autoDispatch = createAutoDispatch({
   getDrivers: () => drivers,
   findBooking: (id) => findBooking(id),
   findDriver: (id) => findDriver(id),
+  findOperator: (id) => fleet.findById(id) || fleet.findBySlug(id) || null,
   saveBookings: () => saveBookings(),
   saveDrivers: () => saveDriversConfig(),
   syncCoreBooking: (booking, extra) => syncCoreBooking(booking, extra),
@@ -846,6 +894,10 @@ function createDriverFromBody(body, operator, req, { status = "available" } = {}
     licenseNumber: String(body.licenseNumber || body.driverLicenseNumber || "").trim(),
     documents: {},
     status: DRIVER_STATUSES.has(status) ? status : "available",
+    dutyStatus:
+      (operator?.businessType || "taxi") === "rentalCar"
+        ? normalizeDutyStatus(body.dutyStatus || DUTY.FREE)
+        : undefined,
     trackingPin: generateTrackingPin(),
     activeBookingId: null,
     lastLat: null,
@@ -1388,26 +1440,35 @@ function findBooking(bookingId) {
   return bookings.find((b) => b.bookingId === bookingId);
 }
 
-function releaseDriver(driverId) {
+function releaseDriver(driverId, businessTypeHint) {
   const driver = findDriver(driverId);
   if (!driver) return;
   if (driver.status === "busy") {
     driver.status = "available";
   }
   driver.activeBookingId = null;
-  driver.lastLat = null;
-  driver.lastLng = null;
-  driver.lastLocationAt = null;
+  // GPS behalten — PBefG braucht Position für „am Betriebssitz?“
+  const operator = driver.operatorId ? fleet.findById(driver.operatorId) : null;
+  const nextDuty = statusAfterTripCompleted(
+    businessTypeHint || operator?.businessType || "taxi"
+  );
+  if (nextDuty) {
+    driver.dutyStatus = nextDuty;
+  }
 }
 
 function releaseDriverFromBooking(booking) {
   if (!booking) return;
+  const businessType =
+    booking.businessType ||
+    (booking.operatorId ? fleet.findById(booking.operatorId)?.businessType : null) ||
+    "taxi";
   if (booking.assignedDriverId) {
-    releaseDriver(booking.assignedDriverId);
+    releaseDriver(booking.assignedDriverId, businessType);
   }
   if (booking.assignedFirebaseUid) {
     const byUid = findDriverByFirebaseUid(booking.assignedFirebaseUid);
-    if (byUid) releaseDriver(byUid.driverId);
+    if (byUid) releaseDriver(byUid.driverId, businessType);
   }
 }
 
@@ -1677,8 +1738,14 @@ app.use(
         base === "luckys-taxi-qr-scan.png"
       ) {
         res.setHeader("Cache-Control", "public, max-age=600, s-maxage=86400");
-      } else if (base === "admin.js" || base === "admin.html") {
-        // Admin-UI ändert sich oft (Login-Protokoll etc.) — kein Sticky-Cache.
+      } else if (
+        base === "admin.js" ||
+        base === "admin.html" ||
+        base === "leitstelle-auth.js" ||
+        base === "dispatch.html" ||
+        base === "settings.html"
+      ) {
+        // Admin/Leitstelle-Login ändert sich oft (MFA) — kein Sticky-Cache.
         res.setHeader("Cache-Control", "no-cache");
       } else if (/\.(css|js|png|jpg|jpeg|webp|svg|ico)$/i.test(base)) {
         res.setHeader("Cache-Control", "public, max-age=300, s-maxage=3600");
@@ -1690,7 +1757,10 @@ app.use(
 mountOtpRoutes(app);
 mountPlatformPhase1Routes(app, { intervalMs: LOCATION_STREAM_INTERVAL_MS });
 mountCoreModelRoutes(app, { store: coreStore, requireAdmin });
-mountMapsServiceRoutes(app, { nominatimSearch });
+mountMapsServiceRoutes(app, {
+  nominatimSearch,
+  findOperator: (id) => fleet.findById(id) || fleet.findBySlug(id) || null,
+});
 mountReceiptRoutes(app, { store: receiptStore, requireAdmin });
 
 /** Phase 3 — Spatial Matching & Auto-Dispatch */
@@ -3410,9 +3480,23 @@ app.post("/api/bookings", (req, res) => {
       ? pickupHour >= fromHour || pickupHour < toHour
       : pickupHour >= fromHour && pickupHour < toHour);
 
+  const businessType = String(
+    req.body.businessType || fleetOperator?.businessType || "taxi"
+  ).trim() === "rentalCar"
+    ? "rentalCar"
+    : "taxi";
+  const isBindingFixedPrice =
+    businessType === "rentalCar" || Boolean(req.body.isBindingFixedPrice);
+
   const booking = {
     bookingId: crypto.randomUUID(),
     ...(fleetOperator ? { operatorId: fleetOperator.operatorId } : {}),
+    businessType,
+    isBindingFixedPrice,
+    surgeMultiplier:
+      businessType === "rentalCar"
+        ? Number(req.body.surgeMultiplier) || fleetOperator?.pricing?.surgeMultiplier || 1
+        : 1,
     pickupDate: req.body.pickupDate || new Date().toISOString(),
     latitude,
     longitude,
@@ -3577,6 +3661,18 @@ app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
   booking.status = "assigned";
   driver.status = "busy";
   driver.activeBookingId = booking.bookingId;
+  {
+    const op = booking.operatorId
+      ? fleet.findById(booking.operatorId)
+      : driver.operatorId
+        ? fleet.findById(driver.operatorId)
+        : null;
+    const started = statusTripStarted(booking.businessType || op?.businessType);
+    if (started) driver.dutyStatus = started;
+    if (!booking.businessType && op?.businessType) {
+      booking.businessType = op.businessType;
+    }
+  }
   booking.updatedAt = new Date().toISOString();
 
   console.log(`Buchung ${booking.bookingId} → Fahrer ${driver.name}`);
@@ -3871,6 +3967,46 @@ app.patch("/api/driver/bookings/:id/complete", requireDriverApp, async (req, res
           netAmount: receipt.netAmount,
         }
       : null,
+  });
+});
+
+/**
+ * Mietwagen PBefG: Pflichtstatus setzen (Frei / Rückfahrt / Im Auftrag).
+ * „arrivedAtBase: true“ setzt Frei am Betriebssitz.
+ */
+app.patch("/api/driver/duty-status", requireDriverApp, (req, res) => {
+  const driverUid = String(req.body.driverUid || req.body.firebaseUid || "").trim();
+  const driverId = String(req.body.driverId || "").trim();
+  let driver = driverId ? findDriver(driverId) : null;
+  if (!driver && driverUid) driver = findDriverByFirebaseUid(driverUid);
+  if (!driver) {
+    return res.status(404).json({ error: "Driver not found" });
+  }
+
+  const operator = driver.operatorId ? fleet.findById(driver.operatorId) : null;
+  const businessType = operator?.businessType || "taxi";
+  if (businessType !== "rentalCar") {
+    return res.status(400).json({
+      error: "dutyStatus only applies to rentalCar operators",
+      businessType,
+    });
+  }
+
+  if (req.body.arrivedAtBase === true || req.body.arrivedAtBase === "true") {
+    driver.dutyStatus = statusArrivedAtBase(businessType) || DUTY.FREE;
+    if (!driver.activeBookingId) driver.status = "available";
+  } else if (req.body.dutyStatus != null) {
+    driver.dutyStatus = normalizeDutyStatus(req.body.dutyStatus);
+  } else {
+    return res.status(400).json({ error: "dutyStatus or arrivedAtBase required" });
+  }
+
+  saveDriversConfig();
+  res.json({
+    ok: true,
+    driverId: driver.driverId,
+    dutyStatus: driver.dutyStatus,
+    status: driver.status,
   });
 });
 
