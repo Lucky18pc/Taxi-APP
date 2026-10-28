@@ -27,6 +27,10 @@
       title: "Analytics",
       sub: "Primär: Tarif-Anfragen. Zusätzlich Website-Besucher in Google Analytics.",
     },
+    settings: {
+      title: "Einstellungen",
+      sub: "Dein Überblick als Plattform-Inhaber. Betriebe sehen diese Seite nicht.",
+    },
   };
 
   let pendingPin = "";
@@ -304,6 +308,9 @@
       csvBtn.classList.toggle("hidden", id !== "tenants" && id !== "inquiries");
     }
     if (id === "audit") loadLoginAudit();
+    if (id === "settings") {
+      loadPlatformSettings().catch((err) => setSettingsStatus(err.message || "Einstellungen nicht ladbar", true));
+    }
     if (id === "map") startAdminMap();
     else stopAdminMap();
   }
@@ -314,6 +321,43 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function setSettingsStatus(text, isError) {
+    const el = document.getElementById("settings-status");
+    if (!el) return;
+    el.textContent = text || "";
+    el.style.color = isError ? "#b91c1c" : "";
+  }
+
+  async function loadPlatformSettings() {
+    setSettingsStatus("Lade…");
+    const [configRes, opsRes] = await Promise.all([
+      apiFetch("/api/config"),
+      apiFetch("/api/fleet/operators"),
+    ]);
+    const config = await configRes.json().catch(() => ({}));
+    const opsData = await opsRes.json().catch(() => ({}));
+    if (!configRes.ok) throw new Error(config.error || "Plattform nicht ladbar");
+    if (!opsRes.ok) throw new Error(opsData.error || "Betriebe nicht ladbar");
+    const ops = opsData.operators || [];
+    document.getElementById("set-stat-tenants").textContent = String(ops.length);
+    document.getElementById("set-stat-active").textContent = String(ops.filter((op) => op.status === "active").length);
+    document.getElementById("set-stat-pending").textContent = String(ops.filter((op) => op.status === "pending").length);
+    document.getElementById("set-stat-gaps").textContent = String(ops.filter((op) => !op.complianceComplete).length);
+    for (const key of [
+      "platformCompanyName",
+      "platformOwner",
+      "platformEmail",
+      "platformPhone",
+      "platformStreet",
+      "platformCity",
+      "platformVatId",
+    ]) {
+      const input = document.getElementById(`set-${key}`);
+      if (input) input.value = config[key] || "";
+    }
+    setSettingsStatus("");
   }
 
   function setAuditStatus(text, isError) {
@@ -1528,6 +1572,35 @@
   });
   document.getElementById("refresh-map")?.addEventListener("click", () => {
     loadLiveMap(false).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
+  });
+
+  document.getElementById("platform-settings-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {};
+    for (const key of [
+      "platformCompanyName",
+      "platformOwner",
+      "platformEmail",
+      "platformPhone",
+      "platformStreet",
+      "platformCity",
+      "platformVatId",
+    ]) {
+      body[key] = document.getElementById(`set-${key}`)?.value || "";
+    }
+    setSettingsStatus("Speichere…");
+    try {
+      const res = await apiFetch("/api/config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Speichern fehlgeschlagen");
+      setSettingsStatus("Gespeichert.");
+    } catch (err) {
+      setSettingsStatus(err.message || "Speichern fehlgeschlagen", true);
+    }
   });
 
   document.getElementById("refresh-inquiries").addEventListener("click", async () => {

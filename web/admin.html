@@ -208,6 +208,7 @@
       .map-board { grid-template-columns: 1fr; }
     }
     .map-side { margin-bottom: 0; max-height: min(72vh, 720px); overflow: auto; }
+    #platform-settings-form input,
     #map-operator {
       width: 100%;
       padding: 0.7rem 0.75rem;
@@ -514,6 +515,7 @@
       <button type="button" class="nav-btn" data-panel="create">Neu anlegen</button>
       <button type="button" class="nav-btn" data-panel="audit">Login-Protokoll</button>
       <button type="button" class="nav-btn" data-panel="analytics">Analytics</button>
+      <button type="button" class="nav-btn" data-panel="settings">Einstellungen</button>
       <div class="side-foot">
         <button type="button" class="btn btn-ghost btn-sm" id="admin-setup-mfa" style="width:100%;color:#fff;border-color:rgba(255,255,255,0.35);margin-bottom:0.5rem">MFA einrichten</button>
         <button type="button" class="btn btn-ghost btn-sm" id="admin-logout" style="width:100%;color:#fff;border-color:rgba(255,255,255,0.35)">Abmelden</button>
@@ -656,11 +658,46 @@
           </div>
         </div>
       </section>
+
+      <section id="panel-settings" class="panel">
+        <div class="stats">
+          <div class="stat"><strong id="set-stat-tenants">0</strong><span>Betriebe</span></div>
+          <div class="stat"><strong id="set-stat-active">0</strong><span>Aktiv</span></div>
+          <div class="stat"><strong id="set-stat-pending">0</strong><span>Pending</span></div>
+          <div class="stat"><strong id="set-stat-gaps">0</strong><span>Nachweise fehlen</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Dein Überblick</h2>
+            <button type="button" class="btn btn-navy btn-sm" data-panel-jump="map">Zur Karte</button>
+          </div>
+          <p class="meta" style="margin:0">
+            Nur für dich in der Plattform. Die Betriebe sehen diese Seite nicht.
+            Die Karte verschiebst du mit dem Finger, ohne Zoom.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Deine Plattform</h2></div>
+          <form id="platform-settings-form">
+            <div class="grid-2">
+              <div class="field"><label for="set-platformCompanyName">Plattform-Name</label><input id="set-platformCompanyName" name="platformCompanyName"></div>
+              <div class="field"><label for="set-platformOwner">Inhaber</label><input id="set-platformOwner" name="platformOwner"></div>
+              <div class="field"><label for="set-platformEmail">E-Mail</label><input id="set-platformEmail" name="platformEmail" type="email"></div>
+              <div class="field"><label for="set-platformPhone">Telefon</label><input id="set-platformPhone" name="platformPhone"></div>
+              <div class="field"><label for="set-platformStreet">Straße</label><input id="set-platformStreet" name="platformStreet"></div>
+              <div class="field"><label for="set-platformCity">Ort</label><input id="set-platformCity" name="platformCity"></div>
+              <div class="field"><label for="set-platformVatId">USt-IdNr.</label><input id="set-platformVatId" name="platformVatId"></div>
+            </div>
+            <button type="submit" class="btn btn-navy">Speichern</button>
+            <p id="settings-status" class="meta" style="margin:0.75rem 0 0"></p>
+          </form>
+        </div>
+      </section>
     </main>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261028-karte3"></script>
+  <script src="admin.js?v=20261028-karte4"></script>
 </body>
 </html>

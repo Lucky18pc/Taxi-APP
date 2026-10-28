@@ -234,6 +234,7 @@ async function api(pathname, options = {}) {
     if (!html.includes('data-panel="map"') || !html.includes('id="admin-map"')) {
       fail("admin.html enthält die Karten-Ansicht nicht");
     }
+    if (!html.includes('data-panel="settings"')) fail("Einstellungen fehlen im Admin");
     if (!html.includes("/socket.io/socket.io.js")) {
       fail("admin.html lädt die Live-Verbindung nicht");
     }
