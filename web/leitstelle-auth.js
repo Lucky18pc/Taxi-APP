@@ -1,14 +1,19 @@
 /**
  * PIN-Schutz für Leitstelle & Einstellungen (ADMIN_PIN oder Betriebs-dispatchPin).
  * Multi-Mandant: ?o=mannheim oder ?operator=mannheim in der URL.
+ * Plattform-ADMIN_PIN mit MFA: zweites Feld für Authenticator-Code + Session-Token.
  *
  * API-Basis: bei file://, Surge, Netlify o. Ä. → Live-Backend auf Render,
  * damit Login nicht mit „Load failed“ scheitert.
  */
 (function () {
   const STORAGE_KEY = "taxiapp_admin_pin";
+  const SESSION_KEY = "taxiapp_admin_session";
   const OPERATOR_KEY = "taxiapp_operator_slug";
   const LIVE_API = "https://taxiapp-api.onrender.com";
+
+  let pendingPin = "";
+  let mfaStep = false;
 
   function resolveApiBase() {
     const origin = String(window.location.origin || "");
@@ -19,11 +24,9 @@
     if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
       return origin;
     }
-    // Gleiche Origin, wenn die Seite vom Render-Backend kommt
-    if (origin.includes("taxiapp-api.onrender.com")) {
+    if (origin.includes("taxiapp-api.onrender.com") || origin.includes("luckystaxiapp.de")) {
       return origin;
     }
-    // Statisches Hosting (Surge/Netlify/…) → Live-API
     return LIVE_API;
   }
 
@@ -57,12 +60,24 @@
     return sessionStorage.getItem(STORAGE_KEY) || "";
   }
 
+  function getSession() {
+    return sessionStorage.getItem(SESSION_KEY) || "";
+  }
+
   function setPin(pin) {
     sessionStorage.setItem(STORAGE_KEY, pin);
   }
 
+  function setSession(token) {
+    if (token) sessionStorage.setItem(SESSION_KEY, token);
+    else sessionStorage.removeItem(SESSION_KEY);
+  }
+
   function clearPin() {
     sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    pendingPin = "";
+    mfaStep = false;
   }
 
   function withOperatorQuery(url) {
@@ -73,9 +88,15 @@
   }
 
   function authHeaders() {
-    const pin = getPin();
+    const session = getSession();
+    const pin = getPin() || pendingPin || "";
     const headers = {};
-    if (pin) headers.Authorization = `Bearer ${pin}`;
+    if (session) {
+      headers.Authorization = `Bearer ${session}`;
+    } else if (pin) {
+      headers.Authorization = `Bearer ${pin}`;
+    }
+    if (pin) headers["X-Admin-Pin"] = pin;
     const slug = getOperatorSlug();
     if (slug) headers["X-Operator-Slug"] = slug;
     return headers;
@@ -93,11 +114,32 @@
     return msg || "Anmeldung fehlgeschlagen";
   }
 
+  function showMfaStep(show) {
+    mfaStep = Boolean(show);
+    const wrap = document.getElementById("leitstelle-totp-wrap");
+    const pinInput = document.getElementById("leitstelle-pin");
+    const totpInput = document.getElementById("leitstelle-totp");
+    const hint = document.getElementById("leitstelle-login-hint");
+    if (wrap) wrap.hidden = !mfaStep;
+    if (pinInput) pinInput.readOnly = mfaStep;
+    if (mfaStep) {
+      if (hint) {
+        hint.textContent =
+          "ADMIN_PIN ok. Jetzt 6-stelligen Authenticator-Code (Terminal: luckys-mfa).";
+      }
+      if (totpInput) {
+        totpInput.value = "";
+        totpInput.focus();
+      }
+    } else if (totpInput) {
+      totpInput.value = "";
+    }
+  }
+
   async function authRequired() {
     try {
       const res = await fetch(withOperatorQuery(apiUrl("/api/auth/required")));
       if (!res.ok) {
-        // Fail closed: bei Fehler Login verlangen (nicht offen lassen)
         return true;
       }
       const data = await res.json();
@@ -107,7 +149,7 @@
     }
   }
 
-  async function verifyPin(pin) {
+  async function verifyPin(pin, totp) {
     const slug = getOperatorSlug();
     let res;
     try {
@@ -115,23 +157,35 @@
         (typeof location !== "undefined" && location.pathname
           ? location.pathname.split("/").pop()
           : "") || "leitstelle";
+      const body = {
+        pin,
+        operator: slug || undefined,
+        source: page || "leitstelle",
+      };
+      const code = String(totp || "").replace(/\D/g, "").slice(0, 6);
+      if (code) body.totp = code;
+
       res = await fetch(apiUrl("/api/auth/verify"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pin,
-          operator: slug || undefined,
-          source: page || "leitstelle",
-        }),
+        body: JSON.stringify(body),
       });
     } catch (err) {
       throw new Error(networkErrorMessage(err));
     }
+
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || "PIN ungültig");
+      const err = new Error(data.error || "PIN ungültig");
+      err.mfaRequired = Boolean(data.mfaRequired);
+      throw err;
     }
+
     setPin(pin);
+    if (data.sessionToken) setSession(data.sessionToken);
+    else setSession("");
+    pendingPin = "";
+    mfaStep = false;
     return true;
   }
 
@@ -146,6 +200,9 @@
         <p id="leitstelle-login-hint">Bitte PIN eingeben.</p>
         <form id="leitstelle-login-form">
           <input type="password" id="leitstelle-pin" inputmode="numeric" autocomplete="current-password" placeholder="PIN" required>
+          <div id="leitstelle-totp-wrap" hidden>
+            <input type="tel" id="leitstelle-totp" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="one-time-code" placeholder="Authenticator-Code (6 Ziffern)" style="letter-spacing:0.12em">
+          </div>
           <button type="submit" class="btn-primary">Anmelden</button>
         </form>
         <p id="leitstelle-login-error" class="login-error" hidden></p>
@@ -172,7 +229,9 @@
       .leitstelle-login-card input {
         width: 100%; padding: 0.65rem; margin-bottom: 0.75rem;
         border: 2px solid #0c1c34; border-radius: 10px; font: inherit; background: #fffdf0;
+        box-sizing: border-box;
       }
+      .leitstelle-login-card input[readonly] { opacity: 0.75; }
       .login-error { color: #991b1b; font-size: 0.85rem; font-weight: 600; }
     `;
     document.head.appendChild(style);
@@ -180,13 +239,27 @@
     document.getElementById("leitstelle-login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const errEl = document.getElementById("leitstelle-login-error");
-      const pin = document.getElementById("leitstelle-pin").value.trim();
+      const pinInput = document.getElementById("leitstelle-pin");
+      const totpInput = document.getElementById("leitstelle-totp");
+      const pin = (mfaStep ? pendingPin : pinInput.value).trim();
+      const totp = totpInput ? totpInput.value.trim() : "";
       errEl.hidden = true;
       try {
-        await verifyPin(pin);
+        if (mfaStep && !/^\d{6}$/.test(String(totp).replace(/\D/g, "").slice(0, 6))) {
+          throw new Error("Bitte 6-stelligen Authenticator-Code eingeben.");
+        }
+        await verifyPin(pin, mfaStep ? totp : undefined);
+        showMfaStep(false);
         overlay.classList.remove("visible");
         document.dispatchEvent(new CustomEvent("leitstelle-auth-ok"));
       } catch (err) {
+        if (err.mfaRequired) {
+          pendingPin = pin;
+          showMfaStep(true);
+          errEl.textContent = err.message || "Authenticator-Code erforderlich";
+          errEl.hidden = false;
+          return;
+        }
         errEl.textContent = networkErrorMessage(err);
         errEl.hidden = false;
       }
@@ -195,12 +268,22 @@
 
   function showLogin() {
     ensureLoginOverlay();
+    showMfaStep(false);
+    pendingPin = "";
     const slug = getOperatorSlug();
     const hint = document.getElementById("leitstelle-login-hint");
+    const pinInput = document.getElementById("leitstelle-pin");
+    if (pinInput) {
+      pinInput.value = "";
+      pinInput.readOnly = false;
+    }
     if (hint) {
       const offHost =
         window.location.protocol === "file:" ||
-        !String(window.location.origin || "").includes("taxiapp-api.onrender.com");
+        !(
+          String(window.location.origin || "").includes("taxiapp-api.onrender.com") ||
+          String(window.location.origin || "").includes("luckystaxiapp.de")
+        );
       if (slug) {
         hint.textContent = `PIN für Betrieb „${slug}“ eingeben.`;
       } else if (offHost) {
@@ -225,11 +308,26 @@
       required = true;
     }
     if (!required) return true;
-    if (getPin()) {
+    if (getSession() || getPin()) {
       try {
+        // Session bevorzugt; sonst PIN (Betriebs-PIN ohne MFA).
+        if (getSession()) return true;
         await verifyPin(getPin());
         return true;
-      } catch {
+      } catch (err) {
+        if (err.mfaRequired) {
+          pendingPin = getPin();
+          showLogin();
+          showMfaStep(true);
+          const errEl = document.getElementById("leitstelle-login-error");
+          if (errEl) {
+            errEl.textContent = "Authenticator-Code erforderlich";
+            errEl.hidden = false;
+          }
+          return new Promise((resolve) => {
+            document.addEventListener("leitstelle-auth-ok", () => resolve(true), { once: true });
+          });
+        }
         clearPin();
       }
     }
