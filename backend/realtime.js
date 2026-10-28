@@ -18,6 +18,8 @@ function createRealtimeHub(httpServer, deps) {
     transports: ["websocket", "polling"],
   });
 
+  const FLEET_ROOM = "fleet:admin";
+
   io.on("connection", (socket) => {
     socket.on("subscribe:booking", (bookingId) => {
       const id = String(bookingId || "").trim();
@@ -34,6 +36,22 @@ function createRealtimeHub(httpServer, deps) {
       if (!id) return;
       socket.leave(bookingRoom(id));
     });
+
+    // Dieselbe GPS-Leitung wie die Fahrer-App, nur für den Plattform-Admin auf der Karte.
+    socket.on("subscribe:fleet", (auth) => {
+      const token = String(auth?.token || "").trim();
+      const allowed = typeof deps.isPlatformAdminToken === "function" && deps.isPlatformAdminToken(token);
+      if (!allowed) {
+        socket.emit("fleet:denied");
+        return;
+      }
+      socket.join(FLEET_ROOM);
+      socket.emit("fleet:ready", { ok: true });
+    });
+
+    socket.on("unsubscribe:fleet", () => {
+      socket.leave(FLEET_ROOM);
+    });
   });
 
   function bookingRoom(bookingId) {
@@ -48,13 +66,17 @@ function createRealtimeHub(httpServer, deps) {
     io.to(bookingRoom(id)).emit("tracking:update", payload);
   }
 
-  /** Nach GPS-Update: aktive Buchung des Fahrers + optional explizite bookingId. */
+  /** Nach GPS-Update: aktive Buchung des Fahrers + die Admin-Karte. */
   function publishDriverLocation(driver, explicitBookingId) {
     const ids = new Set();
     if (explicitBookingId) ids.add(String(explicitBookingId));
     if (driver?.activeBookingId) ids.add(String(driver.activeBookingId));
     for (const id of ids) {
       publishBookingTracking(id);
+    }
+    if (typeof deps.fleetDriverPayload === "function") {
+      const payload = deps.fleetDriverPayload(driver);
+      if (payload) io.to(FLEET_ROOM).emit("fleet:driver", payload);
     }
   }
 

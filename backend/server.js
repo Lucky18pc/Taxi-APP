@@ -1317,17 +1317,21 @@ function operatorById(operatorId) {
   return fleet.findById(operatorId) || fleet.list(true).find((op) => op.operatorId === operatorId) || null;
 }
 
+function finiteCoord(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
 function publicLiveDriver(driver, operator) {
-  const lat = Number(driver.lastLat);
-  const lng = Number(driver.lastLng);
   return {
     driverId: driver.driverId,
     name: driver.name || "",
     vehicle: driver.vehicle || "",
     phone: driver.phone || "",
     status: driver.status || "offline",
-    latitude: Number.isFinite(lat) ? lat : null,
-    longitude: Number.isFinite(lng) ? lng : null,
+    latitude: finiteCoord(driver.lastLat),
+    longitude: finiteCoord(driver.lastLng),
     locationUpdatedAt: driver.lastLocationAt || null,
     locationFresh: driverHasFreshLocation(driver),
     operatorSlug: operator?.slug || "",
@@ -1337,15 +1341,13 @@ function publicLiveDriver(driver, operator) {
 
 function publicLiveBooking(booking, operator) {
   if (booking.status === "completed" || booking.status === "cancelled") return null;
-  const lat = Number(booking.latitude);
-  const lng = Number(booking.longitude);
   return {
     bookingId: booking.bookingId,
     status: booking.status || "confirmed",
     addressLine: booking.addressLine || "",
     destinationAddressLine: booking.destinationAddressLine || "",
-    latitude: Number.isFinite(lat) ? lat : null,
-    longitude: Number.isFinite(lng) ? lng : null,
+    latitude: finiteCoord(booking.latitude),
+    longitude: finiteCoord(booking.longitude),
     pickupDate: booking.pickupDate || null,
     assignedDriverId: booking.assignedDriverId || null,
     operatorSlug: operator?.slug || "",
@@ -4516,7 +4518,16 @@ app.post("/create-payment-intent", async (req, res) => {
 const host = process.env.HOST || "0.0.0.0";
 
 const httpServer = http.createServer(app);
-realtimeHub = createRealtimeHub(httpServer, { buildTrackingPayload });
+realtimeHub = createRealtimeHub(httpServer, {
+  buildTrackingPayload,
+  isPlatformAdminToken(token) {
+    return isValidAdminSession(token) || isPlatformAdminPin(token);
+  },
+  fleetDriverPayload(driver) {
+    if (!driver) return null;
+    return publicLiveDriver(driver, operatorById(driver.operatorId));
+  },
+});
 
 httpServer.listen(port, host, () => {
   const publicUrl = process.env.PUBLIC_BASE_URL || `http://${host}:${port}`;

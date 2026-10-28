@@ -9,7 +9,7 @@
     },
     map: {
       title: "Live-Karte",
-      sub: "Fahrer und offene Abholungen aller Betriebe. Die Leitstelle jedes Betriebs bleibt separat.",
+      sub: "Live verbunden mit dem Standort der Fahrer-App. Die Leitstelle jedes Betriebs bleibt separat.",
     },
     inquiries: {
       title: "Anfragen",
@@ -34,8 +34,12 @@
   let mfaPendingSecret = "";
   let adminMap = null;
   let adminMapTimer = null;
+  let adminSocket = null;
+  let liveConnected = false;
   let pendingMapSlug = "";
   let mapFittedFor = "";
+  let mapDrivers = [];
+  let mapBookings = [];
   const driverMarkers = new Map();
   const bookingMarkers = new Map();
   const DRIVER_STATUS_LABELS = {
@@ -1026,17 +1030,74 @@
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "Karte nicht ladbar");
-    const drivers = Array.isArray(data.drivers) ? data.drivers : [];
-    const bookings = Array.isArray(data.bookings) ? data.bookings : [];
+    mapDrivers = Array.isArray(data.drivers) ? data.drivers : [];
+    mapBookings = Array.isArray(data.bookings) ? data.bookings : [];
     fillMapOperators(data.operators, data.operator || slug);
-    document.getElementById("map-n-drivers").textContent = String(drivers.length);
-    document.getElementById("map-n-live").textContent = String(drivers.filter((d) => d.locationFresh).length);
-    document.getElementById("map-n-busy").textContent = String(drivers.filter((d) => d.status === "busy").length);
-    document.getElementById("map-n-jobs").textContent = String(bookings.length);
-    renderMapLists(drivers, bookings);
-    syncAdminMarkers(drivers, bookings, refit, data.center);
+    paintMapStats();
+    renderMapLists(mapDrivers, mapBookings);
+    syncAdminMarkers(mapDrivers, mapBookings, refit, data.center);
+    paintMapStatus();
+  }
+
+  function paintMapStats() {
+    const driversEl = document.getElementById("map-n-drivers");
+    if (!driversEl) return;
+    driversEl.textContent = String(mapDrivers.length);
+    document.getElementById("map-n-live").textContent = String(mapDrivers.filter((d) => d.locationFresh).length);
+    document.getElementById("map-n-busy").textContent = String(mapDrivers.filter((d) => d.status === "busy").length);
+    document.getElementById("map-n-jobs").textContent = String(mapBookings.length);
+  }
+
+  function paintMapStatus() {
     const stamp = new Date().toLocaleTimeString("de-DE", { timeZone: "Europe/Berlin" });
-    setMapStatus(`Aktualisiert ${stamp} Uhr (Berlin) · ${drivers.length} Fahrer · ${bookings.length} Aufträge`);
+    const link = liveConnected ? "Live verbunden" : "Abruf";
+    setMapStatus(`${link} · ${stamp} Uhr (Berlin) · ${mapDrivers.length} Fahrer · ${mapBookings.length} Aufträge`);
+  }
+
+  function applyLiveDriver(update) {
+    if (!update?.driverId) return;
+    const slug = document.getElementById("map-operator")?.value || "all";
+    if (slug !== "all" && update.operatorSlug && update.operatorSlug !== slug) return;
+    const index = mapDrivers.findIndex((driver) => driver.driverId === update.driverId);
+    if (index === -1) mapDrivers.push(update);
+    else mapDrivers[index] = { ...mapDrivers[index], ...update };
+    paintMapStats();
+    renderMapLists(mapDrivers, mapBookings);
+    syncAdminMarkers(mapDrivers, mapBookings, false, null);
+    paintMapStatus();
+  }
+
+  function connectAdminMapSocket() {
+    if (typeof io !== "function" || adminSocket) return;
+    const token = getSession() || getPin();
+    if (!token) return;
+    adminSocket = io({ path: "/socket.io", transports: ["websocket", "polling"] });
+    const subscribe = () => adminSocket.emit("subscribe:fleet", { token: getSession() || getPin() });
+    adminSocket.on("connect", subscribe);
+    adminSocket.on("fleet:ready", () => {
+      liveConnected = true;
+      paintMapStatus();
+    });
+    adminSocket.on("fleet:denied", () => {
+      liveConnected = false;
+      setMapStatus("Live-Verbindung abgelehnt. Bitte neu anmelden.", true);
+    });
+    adminSocket.on("fleet:driver", (driver) => {
+      if (activePanelId() !== "map") return;
+      applyLiveDriver(driver);
+    });
+    adminSocket.on("disconnect", () => {
+      liveConnected = false;
+      if (activePanelId() === "map") paintMapStatus();
+    });
+  }
+
+  function disconnectAdminMapSocket() {
+    liveConnected = false;
+    if (!adminSocket) return;
+    adminSocket.emit("unsubscribe:fleet");
+    adminSocket.close();
+    adminSocket = null;
   }
 
   function startAdminMap() {
@@ -1045,6 +1106,7 @@
       setMapStatus("Kartenbibliothek nicht geladen. Seite neu laden.", true);
       return;
     }
+    connectAdminMapSocket();
     loadLiveMap(true).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
     if (!adminMapTimer) {
       adminMapTimer = setInterval(() => {
@@ -1057,6 +1119,7 @@
   }
 
   function stopAdminMap() {
+    disconnectAdminMapSocket();
     if (adminMapTimer) {
       clearInterval(adminMapTimer);
       adminMapTimer = null;

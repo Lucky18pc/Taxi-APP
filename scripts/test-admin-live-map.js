@@ -35,6 +35,44 @@ child.stderr.on("data", (chunk) => {
   logs += chunk.toString();
 });
 
+const SEP = String.fromCharCode(30);
+
+async function eio(pathname, options = {}) {
+  const res = await fetch(`${base}${pathname}`, options);
+  const text = await res.text();
+  return { res, text, packets: text ? text.split(SEP) : [] };
+}
+
+async function subscribeFleet(token) {
+  const open = await eio("/socket.io/?EIO=4&transport=polling");
+  const openPacket = open.packets.find((packet) => packet.startsWith("0"));
+  if (!openPacket) {
+    return { ready: false, denied: false, packets: open.packets, nextPacket: async () => [], close: () => {} };
+  }
+  const sid = JSON.parse(openPacket.slice(1)).sid;
+  const q = `/socket.io/?EIO=4&transport=polling&sid=${encodeURIComponent(sid)}`;
+  await eio(q, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    body: "40",
+  });
+  await eio(q);
+  await eio(q, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    body: `42${JSON.stringify(["subscribe:fleet", { token }])}`,
+  });
+  const reply = await eio(q);
+  const packets = reply.packets;
+  return {
+    ready: packets.some((packet) => packet.includes("fleet:ready")),
+    denied: packets.some((packet) => packet.includes("fleet:denied")),
+    packets,
+    nextPacket: () => eio(q).then((result) => result.packets),
+    close: () => {},
+  };
+}
+
 function fail(message) {
   console.error(message);
   console.error(logs.slice(-4000));
@@ -172,6 +210,10 @@ async function api(pathname, options = {}) {
     if (names.join(",") !== "Anna Speyer,Ben Berlin") fail(`Fahrerliste falsch: ${names.join(",")}`);
     const anna = all.body.drivers.find((d) => d.name === "Anna Speyer");
     if (!anna.locationFresh || anna.latitude !== 49.319) fail(`Anna ohne frisches GPS: ${JSON.stringify(anna)}`);
+    const ben = all.body.drivers.find((d) => d.name === "Ben Berlin");
+    if (ben.latitude !== null || ben.longitude !== null) {
+      fail(`Fahrer ohne GPS darf nicht bei 0,0 liegen: ${JSON.stringify(ben)}`);
+    }
     if (JSON.stringify(all.body).includes("trackingPin")) fail("trackingPin darf nicht in der Karten-Antwort stehen");
     const jobs = all.body.bookings || [];
     if (!jobs.some((b) => b.addressLine === "Domplatz Speyer" && b.operatorSlug === "speyer-test")) {
@@ -192,8 +234,32 @@ async function api(pathname, options = {}) {
     if (!html.includes('data-panel="map"') || !html.includes('id="admin-map"')) {
       fail("admin.html enthält die Karten-Ansicht nicht");
     }
+    if (!html.includes("/socket.io/socket.io.js")) {
+      fail("admin.html lädt die Live-Verbindung nicht");
+    }
 
-    console.log("OK admin live-map: alle Betriebe, Filter, 403 für Betriebs-PIN, kein trackingPin");
+    const live = await subscribeFleet(adminPin);
+    if (!live.ready) fail(`Live-Verbindung nicht bereit: ${JSON.stringify(live.packets)}`);
+    const stranger = await subscribeFleet("kein-admin");
+    if (!stranger.denied) fail(`Fremde Verbindung sollte abgelehnt werden: ${JSON.stringify(stranger.packets)}`);
+
+    const moved = await api(`/api/drivers/${driverSpeyer.body.driverId}/location`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        trackingPin: driverSpeyer.body.trackingPin,
+        latitude: 49.33,
+        longitude: 8.45,
+      }),
+    });
+    if (!moved.res.ok) fail(`GPS-Update: ${moved.res.status}`);
+    const pushed = await live.nextPacket(4000);
+    const driverEvent = pushed.find((packet) => packet.includes("fleet:driver") && packet.includes("49.33"));
+    if (!driverEvent) fail(`Kein Live-Punkt auf der Admin-Karte: ${JSON.stringify(pushed)}`);
+    live.close();
+    stranger.close();
+
+    console.log("OK admin live-map: alle Betriebe, Filter, 403 für Betriebs-PIN, Live-Verbindung");
     child.kill("SIGTERM");
     process.exit(0);
   } catch (error) {
