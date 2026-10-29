@@ -1225,6 +1225,9 @@
 
   function formatRouteQuoteShort(quote) {
     if (!quote) return "";
+    if (quote.pending && quoteTaxiFare(quote) == null && quoteRentalFare(quote) == null) {
+      return "berechne Taxi + Mietwagen…";
+    }
     const km =
       quote.distanceText ||
       (Number.isFinite(Number(quote.distanceKm))
@@ -1244,6 +1247,94 @@
     return parts.join(" · ");
   }
 
+  function bookingCanPrice(booking) {
+    if (!booking) return false;
+    const hasPickup =
+      hasCoords(booking.latitude, booking.longitude) ||
+      String(booking.addressLine || "").trim().length >= 3;
+    const hasDest =
+      hasCoords(booking.destinationLatitude, booking.destinationLongitude) ||
+      String(booking.destinationAddressLine || "").trim().length >= 3;
+    return hasPickup && hasDest;
+  }
+
+  function bookingHasDualFare(booking) {
+    return quoteTaxiFare(booking?.routeQuote) != null && quoteRentalFare(booking?.routeQuote) != null;
+  }
+
+  async function resolveBookingLatLng(booking, which) {
+    if (which === "origin") {
+      if (hasCoords(booking.latitude, booking.longitude)) {
+        return [Number(booking.latitude), Number(booking.longitude)];
+      }
+      return geocodeAddress(booking.addressLine);
+    }
+    if (hasCoords(booking.destinationLatitude, booking.destinationLongitude)) {
+      return [Number(booking.destinationLatitude), Number(booking.destinationLongitude)];
+    }
+    return geocodeAddress(booking.destinationAddressLine);
+  }
+
+  /** Füllt Taxi + Mietwagen-Festpreis in die Auftragsliste nach, falls der Server nichts liefert. */
+  async function ensureListDualFares(requestId) {
+    const targets = mapBookings.filter((b) => bookingCanPrice(b) && !bookingHasDualFare(b));
+    if (!targets.length) return;
+    for (const booking of targets) {
+      booking.routeQuote = { ...(booking.routeQuote || {}), pending: true };
+    }
+    renderMapLists(mapDrivers, mapBookings);
+
+    await Promise.all(
+      targets.map(async (booking) => {
+        try {
+          const origin = await resolveBookingLatLng(booking, "origin");
+          const destination = await resolveBookingLatLng(booking, "dest");
+          if (requestId !== liveMapRequestId) return;
+          if (!origin || !destination) {
+            const index = mapBookings.findIndex((b) => b.bookingId === booking.bookingId);
+            if (index !== -1) {
+              const q = { ...(mapBookings[index].routeQuote || {}) };
+              delete q.pending;
+              mapBookings[index] = { ...mapBookings[index], routeQuote: Object.keys(q).length ? q : null };
+            }
+            return;
+          }
+          let quote;
+          try {
+            const res = await fetch("/api/fare/quote", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                origin: { latitude: origin[0], longitude: origin[1] },
+                destination: { latitude: destination[0], longitude: destination[1] },
+              }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || "quote");
+            quote = data;
+          } catch (_) {
+            quote = localRouteEstimate(origin, destination);
+          }
+          if (requestId !== liveMapRequestId) return;
+          rememberBookingQuote(booking.bookingId, quote, {
+            latitude: origin[0],
+            longitude: origin[1],
+            destinationLatitude: destination[0],
+            destinationLongitude: destination[1],
+          });
+        } catch (_) {
+          const index = mapBookings.findIndex((b) => b.bookingId === booking.bookingId);
+          if (index !== -1 && mapBookings[index].routeQuote) {
+            const q = { ...mapBookings[index].routeQuote };
+            delete q.pending;
+            mapBookings[index] = { ...mapBookings[index], routeQuote: q };
+          }
+        }
+      })
+    );
+    if (requestId === liveMapRequestId) renderMapLists(mapDrivers, mapBookings);
+  }
+
   function rememberBookingQuote(bookingId, quote, destExtras) {
     const id = String(bookingId || "").trim();
     if (!id || !quote) return;
@@ -1261,6 +1352,7 @@
         formula: quote.formula,
         taxi: quote.taxi,
         rentalCar: quote.rentalCar,
+        pending: false,
       },
     };
     renderMapLists(mapDrivers, mapBookings);
@@ -1517,18 +1609,20 @@
             : "";
           const quoteLine = formatRouteQuoteShort(booking.routeQuote);
           let routeHint;
-          if (quoteLine) {
+          if (quoteLine && !booking.routeQuote?.pending) {
             routeHint = "";
           } else if (hasDestCoords || hasDestText) {
-            routeHint = " · tippen: Route + km/€";
+            routeHint = quoteLine ? "" : " · Preise werden geladen…";
           } else {
-            routeHint = " · kein Ziel (keine Route)";
+            routeHint = " · kein Ziel — oben Ende eintragen";
           }
           const fareBlock = quoteLine
             ? `<div class="map-item-fare"><span class="map-item-fare-label">km / Taxi + Mietwagen</span> ${escapeHtml(
                 quoteLine
               )}</div>`
-            : "";
+            : hasDestCoords || hasDestText
+              ? `<div class="map-item-fare"><span class="map-item-fare-label">km / Taxi + Mietwagen</span> wird berechnet…</div>`
+              : `<div class="map-item-fare is-empty"><span class="map-item-fare-label">km / Taxi + Mietwagen</span> noch kein Ziel</div>`;
           return `<div class="map-item-row">
             <button type="button" class="map-item" data-focus-booking="${escapeHtml(booking.bookingId)}">
               <strong>${escapeHtml(booking.addressLine || "Abholung")}${escapeHtml(destHint)}</strong>
@@ -1658,6 +1752,8 @@
     renderMapLists(mapDrivers, mapBookings);
     syncAdminMarkers(mapDrivers, mapBookings, refit, data.center);
     paintMapStatus();
+    // Taxi + Mietwagen-Festpreis immer in die Liste nachziehen (auch wenn Server-Quote fehlt).
+    ensureListDualFares(requestId).catch(() => {});
   }
 
   function paintMapStats() {
