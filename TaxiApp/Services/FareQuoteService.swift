@@ -42,23 +42,12 @@ enum FareQuoteService {
             )
         }
 
-        // Server liefert Distance Matrix + Formel; lokal zusätzlich absichern
-        let distanceMeters = 0.0
-        if let n = json["distanceMeters"] as? Double {
-            distanceMeters = n
-        } else if let n = json["distanceMeters"] as? Int {
-            distanceMeters = Double(n)
-        }
-        let serverFare = json["fare"] as? Double
+        // Server liefert Strecke A→B (Distance Matrix) + Tarifformel; lokal absichern.
+        let distanceMeters = Self.number(json["distanceMeters"]) ?? 0
+        let durationSeconds = Self.number(json["durationSeconds"]) ?? 0
+        let serverFare = Self.number(json["fare"])
         let local = FareCalculator().calculateFare(distanceInMeters: distanceMeters)
         let fare = serverFare ?? local.price
-
-        var durationSeconds = 0.0
-        if let n = json["durationSeconds"] as? Double {
-            durationSeconds = n
-        } else if let n = json["durationSeconds"] as? Int {
-            durationSeconds = Double(n)
-        }
 
         return FareQuote(
             fare: fare,
@@ -67,10 +56,18 @@ enum FareQuoteService {
             distanceText: json["distanceText"] as? String ?? String(format: "%.1f km", distanceMeters / 1000),
             durationText: json["durationText"] as? String ?? "",
             isNight: json["isNight"] as? Bool ?? local.isNight,
-            basePrice: json["basePrice"] as? Double ?? (local.isNight ? 4.9 : 3.9),
-            pricePerKm: json["pricePerKm"] as? Double ?? (local.isNight ? 2.6 : 2.3),
+            basePrice: Self.number(json["basePrice"]) ?? (local.isNight ? 4.9 : 3.9),
+            pricePerKm: Self.number(json["pricePerKm"]) ?? (local.isNight ? 2.6 : 2.3),
             provider: json["provider"] as? String ?? "unknown",
             formula: json["formula"] as? String ?? "Grundpreis + (Kilometer * Kilometertarif)"
         )
+    }
+
+    /// JSON-Zahlen kommen oft als NSNumber/Int — nicht nur als Double.
+    private static func number(_ value: Any?) -> Double? {
+        if let n = value as? Double { return n }
+        if let n = value as? Int { return Double(n) }
+        if let n = value as? NSNumber { return n.doubleValue }
+        return nil
     }
 }
