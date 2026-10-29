@@ -34,8 +34,11 @@ const DEFAULTS = {
   },
   rentalCar: {
     base: Number(process.env.RENTAL_FARE_BASE || 5.0),
+    // Listenpreis vor Nachlass; effektiver km-Satz = perKm × (1 − kmDiscountPercent/100).
     perKm: Number(process.env.RENTAL_FARE_PER_KM || 1.8),
     perMinute: Number(process.env.RENTAL_FARE_PER_MINUTE || 0.35),
+    // Längere Strecken: 10 % Nachlass auf den Mietwagen-Kilometerpreis.
+    kmDiscountPercent: Number(process.env.RENTAL_PER_KM_DISCOUNT_PERCENT || 10),
     surgeMin: 1.0,
     surgeMax: 2.0,
   },
@@ -77,6 +80,15 @@ function pricingFromOperator(operator) {
     rentalBaseFare: Number(p.rentalBaseFare ?? DEFAULTS.rentalCar.base),
     rentalPerKm: Number(p.rentalPerKm ?? DEFAULTS.rentalCar.perKm),
     rentalPerMinute: Number(p.rentalPerMinute ?? DEFAULTS.rentalCar.perMinute),
+    rentalKmDiscountPercent: clamp(
+      Number(
+        p.rentalKmDiscountPercent ??
+          p.kmDiscountPercent ??
+          DEFAULTS.rentalCar.kmDiscountPercent
+      ) || 0,
+      0,
+      50
+    ),
     surgeMultiplier: Number(p.surgeMultiplier ?? 1),
     surgeMultiplierMin: Number(p.surgeMultiplierMin ?? DEFAULTS.rentalCar.surgeMin),
     surgeMultiplierMax: Number(p.surgeMultiplierMax ?? DEFAULTS.rentalCar.surgeMax),
@@ -140,13 +152,17 @@ function computeFare(opts = {}) {
   }
 
   // Mietwagen: verbindlicher Festpreis + optional Surge (nie bei Taxi).
+  // Längere Strecken: Nachlass auf den Kilometerpreis (Standard 10 %).
   const surge = clamp(
     Number(opts.surgeMultiplier ?? fromOp.surgeMultiplier ?? 1) || 1,
     fromOp.surgeMultiplierMin,
     fromOp.surgeMultiplierMax
   );
   const base = fromOp.rentalBaseFare;
-  const distancePart = distanceKm * fromOp.rentalPerKm;
+  const listPerKm = fromOp.rentalPerKm;
+  const kmDiscountPercent = fromOp.rentalKmDiscountPercent;
+  const effectivePerKm = roundEuro(listPerKm * (1 - kmDiscountPercent / 100));
+  const distancePart = distanceKm * effectivePerKm;
   const durationPart = durationMinutes * fromOp.rentalPerMinute;
   const subtotal = base + distancePart + durationPart;
   const fare = roundEuro(subtotal * surge);
@@ -155,7 +171,9 @@ function computeFare(opts = {}) {
     businessType: "rentalCar",
     fare,
     basePrice: base,
-    pricePerKm: fromOp.rentalPerKm,
+    pricePerKm: effectivePerKm,
+    pricePerKmList: listPerKm,
+    kmDiscountPercent,
     pricePerMinute: fromOp.rentalPerMinute,
     surgeMultiplier: surge,
     isNight: night,
@@ -164,12 +182,18 @@ function computeFare(opts = {}) {
     distanceKm: round3(distanceKm),
     durationSeconds: Math.round(durationSeconds),
     durationMinutes: round3(durationMinutes),
-    formula: "(Basis + km×Satz + Min×Satz) × Surge — verbindlicher Festpreis",
+    formula:
+      kmDiscountPercent > 0
+        ? `(Basis + km×Satz×${100 - kmDiscountPercent}% + Min×Satz) × Surge — Festpreis inkl. ${kmDiscountPercent}% km-Nachlass`
+        : "(Basis + km×Satz + Min×Satz) × Surge — verbindlicher Festpreis",
     breakdown: {
       base,
       distance: roundEuro(distancePart),
       duration: roundEuro(durationPart),
       surge,
+      kmDiscountPercent,
+      pricePerKmList: listPerKm,
+      pricePerKmEffective: effectivePerKm,
     },
     timeZone: FARE_TIMEZONE,
   };
