@@ -1056,21 +1056,24 @@
   }
 
   function paintRouteFare(text, isError) {
+    // Immer auch in der Statuszeile — sonst wirkt ein Klick „tot“.
+    setMapStatus(text || "", Boolean(isError));
     const bar = document.getElementById("map-route-fare");
     const label = document.getElementById("map-route-fare-label");
     const overlay = document.getElementById("map-route-overlay");
-    if (!bar || !label) return;
-    bar.classList.toggle("is-error", Boolean(isError));
-    bar.classList.remove("hidden");
-    label.textContent = text || "";
+    if (bar && label) {
+      bar.classList.toggle("is-error", Boolean(isError));
+      bar.classList.remove("hidden");
+      label.textContent = text || "";
+      try {
+        bar.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch (_) {}
+    }
     if (overlay) {
       overlay.textContent = text || "";
       overlay.classList.toggle("is-error", Boolean(isError));
       overlay.classList.remove("hidden");
     }
-    try {
-      bar.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    } catch (_) {}
   }
 
   function destIcon() {
@@ -1178,20 +1181,37 @@
   }
 
   async function showBookingRoute(booking) {
+    try {
+      await showBookingRouteInner(booking);
+    } catch (err) {
+      paintRouteFare(err?.message || "Route A→B fehlgeschlagen.", true);
+    }
+  }
+
+  async function showBookingRouteInner(booking) {
     clearRoutePreview();
+    // Sofort sichtbar, bevor irgendein await läuft.
+    paintRouteFare("Auftrag erkannt — bereite Route A→B vor…");
     if (!adminMap) {
       paintRouteFare("Karte noch nicht bereit — bitte kurz warten und erneut tippen.", true);
       return;
     }
     if (!booking) {
-      paintRouteFare("Auftrag nicht gefunden.", true);
+      paintRouteFare("Auftrag nicht in der Live-Liste gefunden (bitte Aktualisieren tippen).", true);
       return;
     }
-    stopFollowDriver();
+    // Follow beenden, aber Liste nicht neu zeichnen (sonst wirkt der Klick tot).
+    if (followDriverId) {
+      followDriverId = null;
+      paintFollowBar();
+    }
 
     const pickupOk = hasCoords(booking.latitude, booking.longitude);
     if (!pickupOk) {
-      paintRouteFare("Keine Abhol-Koordinaten — Route A→B nicht möglich.", true);
+      paintRouteFare(
+        `Auftrag „${booking.addressLine || booking.bookingId || "?"}“ hat keine Abhol-GPS — keine Route.`,
+        true
+      );
       return;
     }
 
@@ -1389,20 +1409,36 @@
         })
         .join("");
     }
-    driverRoot.querySelectorAll("[data-focus-driver]").forEach((btn) => {
-      btn.addEventListener("click", () => {
+    // Klicks laufen über Delegation an #map-drivers / #map-bookings (bindMapListClicks).
+  }
+
+  function bindMapListClicks() {
+    const driverRoot = document.getElementById("map-drivers");
+    const bookingRoot = document.getElementById("map-bookings");
+    if (driverRoot && !driverRoot.dataset.clickBound) {
+      driverRoot.dataset.clickBound = "1";
+      driverRoot.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-focus-driver]");
+        if (!btn || !driverRoot.contains(btn)) return;
+        event.preventDefault();
         clearRoutePreview();
-        const id = btn.getAttribute("data-focus-driver");
-        startFollowDriver(id);
+        startFollowDriver(btn.getAttribute("data-focus-driver"));
       });
-    });
-    bookingRoot.querySelectorAll("[data-focus-booking]").forEach((btn) => {
-      btn.addEventListener("click", () => {
+    }
+    if (bookingRoot && !bookingRoot.dataset.clickBound) {
+      bookingRoot.dataset.clickBound = "1";
+      bookingRoot.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-focus-booking]");
+        if (!btn || !bookingRoot.contains(btn)) return;
+        event.preventDefault();
         const id = btn.getAttribute("data-focus-booking");
-        const booking = mapBookings.find((b) => b.bookingId === id);
-        showBookingRoute(booking);
+        paintRouteFare(`Tippe Auftrag ${id || ""}…`);
+        const booking =
+          mapBookings.find((b) => b.bookingId === id) ||
+          mapBookings.find((b) => String(b.bookingId) === String(id));
+        showBookingRoute(booking || { bookingId: id, addressLine: btn.textContent.trim() });
       });
-    });
+    }
   }
 
   function fillMapOperators(operators, selected) {
@@ -1514,6 +1550,7 @@
 
   function startAdminMap() {
     initAdminMap();
+    bindMapListClicks();
     if (typeof L === "undefined") {
       setMapStatus("Kartenbibliothek nicht geladen. Seite neu laden.", true);
       return;
