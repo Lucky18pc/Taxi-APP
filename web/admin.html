@@ -701,7 +701,10 @@
           <div class="card map-side">
             <div class="card-head">
               <h2>Live-Karte</h2>
-              <button type="button" class="btn btn-ghost btn-sm" id="refresh-map">Aktualisieren</button>
+              <div style="display:flex;gap:0.35rem;flex-wrap:wrap">
+                <button type="button" class="btn btn-ghost btn-sm" id="purge-test-bookings" style="color:#b91c1c;border-color:#fca5a5">Testaufträge löschen</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="refresh-map">Aktualisieren</button>
+              </div>
             </div>
             <div class="field">
               <label for="map-operator">Betrieb</label>
@@ -866,6 +869,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261029-karte17"></script>
+  <script src="admin.js?v=20261029-karte18"></script>
 </body>
 </html>

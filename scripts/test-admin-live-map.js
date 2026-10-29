@@ -318,8 +318,11 @@ async function api(pathname, options = {}) {
     stranger.close();
 
     const pageHtml = await fetch(`${base}/admin.html`).then((r) => r.text());
-    if (!pageHtml.includes("admin.js?v=20261029-karte17")) {
-      fail("admin.html muss Cache-Buster karte17 laden");
+    if (!pageHtml.includes("admin.js?v=20261029-karte18")) {
+      fail("admin.html muss Cache-Buster karte18 laden");
+    }
+    if (!pageHtml.includes("purge-test-bookings")) {
+      fail("admin.html braucht Button Testaufträge löschen");
     }
     if (!pageHtml.includes(".map-item-delete")) {
       fail("admin.html fehlt CSS für den Löschbutton");
@@ -334,7 +337,7 @@ async function api(pathname, options = {}) {
       fail("Start/Ziel-Box darf nicht standardmäßig versteckt sein");
     }
 
-    const script = await fetch(`${base}/admin.js?v=20261029-karte16`);
+    const script = await fetch(`${base}/admin.js?v=20261029-karte18`);
     const source = await script.text();
     if (!source.includes("dragging: true")) {
       fail("Karte muss sich verschieben lassen");
@@ -342,8 +345,8 @@ async function api(pathname, options = {}) {
     if (!source.includes("data-delete-booking") || !source.includes("deleteMapBooking")) {
       fail("admin.js fehlt Löschbutton für Live-Karte-Aufträge");
     }
-    if (!source.includes('status: "cancelled"')) {
-      fail("Löschen muss den Auftrag per Status cancelled stornieren");
+    if (!source.includes('method: "DELETE"') || !source.includes("purgeTestBookings")) {
+      fail("admin.js muss Testaufträge endgültig löschen/bereinigen");
     }
     if (!source.includes("formatRouteQuoteShort") || !source.includes("map-item-fare")) {
       fail("admin.js muss km und Fahrpreis im Auftragsfeld anzeigen");
