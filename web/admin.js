@@ -878,7 +878,13 @@
   }
 
   function hasCoords(lat, lng) {
-    return Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
+    const la = Number(lat);
+    const ln = Number(lng);
+    if (!Number.isFinite(la) || !Number.isFinite(ln)) return false;
+    if (Math.abs(la) > 90 || Math.abs(ln) > 180) return false;
+    // Fehlendes GPS landet oft bei 0,0 (Atlantik) und sprengt fitBounds.
+    if (Math.abs(la) < 0.01 && Math.abs(ln) < 0.01) return false;
+    return true;
   }
 
   function setMapStatus(text, isError) {
@@ -1002,7 +1008,7 @@
       } else if (center && hasCoords(center.latitude, center.longitude)) {
         adminMap.setView([Number(center.latitude), Number(center.longitude)], 12);
       } else {
-        adminMap.setView([51.1657, 10.4515], 6);
+        adminMap.setView([50.8, 10.5], 6);
       }
       mapFittedFor = scope;
     }

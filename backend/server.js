@@ -1323,15 +1323,30 @@ function finiteCoord(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+/** Echte Kartenposition — 0,0 (Null Island) zählt als fehlendes GPS. */
+function plottableCoords(lat, lng) {
+  const latitude = finiteCoord(lat);
+  const longitude = finiteCoord(lng);
+  if (latitude === null || longitude === null) return { latitude: null, longitude: null };
+  if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+    return { latitude: null, longitude: null };
+  }
+  if (Math.abs(latitude) < 0.01 && Math.abs(longitude) < 0.01) {
+    return { latitude: null, longitude: null };
+  }
+  return { latitude, longitude };
+}
+
 function publicLiveDriver(driver, operator) {
+  const coords = plottableCoords(driver.lastLat, driver.lastLng);
   return {
     driverId: driver.driverId,
     name: driver.name || "",
     vehicle: driver.vehicle || "",
     phone: driver.phone || "",
     status: driver.status || "offline",
-    latitude: finiteCoord(driver.lastLat),
-    longitude: finiteCoord(driver.lastLng),
+    latitude: coords.latitude,
+    longitude: coords.longitude,
     locationUpdatedAt: driver.lastLocationAt || null,
     locationFresh: driverHasFreshLocation(driver),
     operatorSlug: operator?.slug || "",
@@ -1341,13 +1356,14 @@ function publicLiveDriver(driver, operator) {
 
 function publicLiveBooking(booking, operator) {
   if (booking.status === "completed" || booking.status === "cancelled") return null;
+  const coords = plottableCoords(booking.latitude, booking.longitude);
   return {
     bookingId: booking.bookingId,
     status: booking.status || "confirmed",
     addressLine: booking.addressLine || "",
     destinationAddressLine: booking.destinationAddressLine || "",
-    latitude: finiteCoord(booking.latitude),
-    longitude: finiteCoord(booking.longitude),
+    latitude: coords.latitude,
+    longitude: coords.longitude,
     pickupDate: booking.pickupDate || null,
     assignedDriverId: booking.assignedDriverId || null,
     operatorSlug: operator?.slug || "",
