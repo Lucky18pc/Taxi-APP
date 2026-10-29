@@ -4723,3 +4723,5 @@ httpServer.listen(port, host, () => {
 // redeploy: live-map start+ziel fields always visible karte15 2026-10-29T18:50:00Z
 
 // redeploy: live-map taxi + mietwagen festpreis karte16 2026-10-29T18:55:00Z
+
+// redeploy: live-map list dual fares karte17 2026-10-29T19:05:00Z
