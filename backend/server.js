@@ -4708,3 +4708,5 @@ httpServer.listen(port, host, () => {
 // redeploy: live-map route quote null-gps fix 2026-10-29T17:40:00Z
 
 // redeploy: live-map A-B route null-gps + quote 2026-10-29T17:45:00Z
+
+// redeploy: live-map fare in booking field karte14 2026-10-29T18:40:00Z
