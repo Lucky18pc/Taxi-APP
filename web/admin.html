@@ -231,6 +231,20 @@
       color: var(--navy);
       cursor: pointer;
     }
+    .map-item-row {
+      display: flex;
+      gap: 0.4rem;
+      align-items: stretch;
+    }
+    .map-item-row .map-item { flex: 1; min-width: 0; }
+    .map-item-delete {
+      flex: 0 0 auto;
+      align-self: center;
+      color: #b91c1c !important;
+      border-color: #b91c1c !important;
+      font-weight: 800;
+      white-space: nowrap;
+    }
     .map-item:hover { background: var(--cream); }
     .map-item.is-following {
       background: #fff8d6;
@@ -810,6 +824,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261029-karte12"></script>
+  <script src="admin.js?v=20261029-karte13"></script>
 </body>
 </html>

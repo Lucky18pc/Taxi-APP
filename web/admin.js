@@ -1425,16 +1425,53 @@
           const routeHint = hasDestCoords || hasDestText
             ? " · tippen: Route + km/€"
             : " · kein Ziel (keine Route)";
-          return `<button type="button" class="map-item" data-focus-booking="${escapeHtml(booking.bookingId)}">
-            <strong>${escapeHtml(booking.addressLine || "Abholung")}${escapeHtml(destHint)}</strong>
-            <div class="meta">${escapeHtml(booking.operatorName || "")} · ${
-              BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")
-            }${routeHint}</div>
-          </button>`;
+          return `<div class="map-item-row">
+            <button type="button" class="map-item" data-focus-booking="${escapeHtml(booking.bookingId)}">
+              <strong>${escapeHtml(booking.addressLine || "Abholung")}${escapeHtml(destHint)}</strong>
+              <div class="meta">${escapeHtml(booking.operatorName || "")} · ${
+                BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")
+              }${routeHint}</div>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm map-item-delete" data-delete-booking="${escapeHtml(
+              booking.bookingId
+            )}" title="Auftrag löschen/stornieren">Löschen</button>
+          </div>`;
         })
         .join("");
     }
     // Klicks laufen über Delegation an #map-drivers / #map-bookings (bindMapListClicks).
+  }
+
+  async function deleteMapBooking(bookingId) {
+    const id = String(bookingId || "").trim();
+    if (!id) return;
+    const booking = mapBookings.find((b) => b.bookingId === id);
+    const label = booking?.addressLine || id;
+    if (!window.confirm(`Auftrag wirklich löschen?\n${label}`)) return;
+    try {
+      setMapStatus("Lösche Auftrag…");
+      const res = await apiFetch(`/api/bookings/${encodeURIComponent(id)}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled" }),
+        resetOn401: true,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Löschen fehlgeschlagen");
+      mapBookings = mapBookings.filter((b) => b.bookingId !== id);
+      if (routeContextBookingId === id) clearRoutePreview();
+      const marker = bookingMarkers.get(id);
+      if (marker && adminMap) {
+        adminMap.removeLayer(marker);
+        bookingMarkers.delete(id);
+      }
+      paintMapStats();
+      renderMapLists(mapDrivers, mapBookings);
+      syncAdminMarkers(mapDrivers, mapBookings, false, null);
+      setMapStatus(`Auftrag gelöscht: ${label}`);
+    } catch (err) {
+      setMapStatus(err.message || "Löschen fehlgeschlagen", true);
+    }
   }
 
   function bindMapListClicks() {
@@ -1453,6 +1490,13 @@
     if (bookingRoot && !bookingRoot.dataset.clickBound) {
       bookingRoot.dataset.clickBound = "1";
       bookingRoot.addEventListener("click", (event) => {
+        const del = event.target.closest("[data-delete-booking]");
+        if (del && bookingRoot.contains(del)) {
+          event.preventDefault();
+          event.stopPropagation();
+          deleteMapBooking(del.getAttribute("data-delete-booking"));
+          return;
+        }
         const btn = event.target.closest("[data-focus-booking]");
         if (!btn || !bookingRoot.contains(btn)) return;
         event.preventDefault();
