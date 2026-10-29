@@ -1357,6 +1357,7 @@ function publicLiveDriver(driver, operator) {
 function publicLiveBooking(booking, operator) {
   if (booking.status === "completed" || booking.status === "cancelled") return null;
   const coords = plottableCoords(booking.latitude, booking.longitude);
+  const dest = plottableCoords(booking.destinationLatitude, booking.destinationLongitude);
   return {
     bookingId: booking.bookingId,
     status: booking.status || "confirmed",
@@ -1364,6 +1365,8 @@ function publicLiveBooking(booking, operator) {
     destinationAddressLine: booking.destinationAddressLine || "",
     latitude: coords.latitude,
     longitude: coords.longitude,
+    destinationLatitude: dest.latitude,
+    destinationLongitude: dest.longitude,
     pickupDate: booking.pickupDate || null,
     assignedDriverId: booking.assignedDriverId || null,
     operatorSlug: operator?.slug || "",

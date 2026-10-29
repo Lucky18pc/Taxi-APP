@@ -48,6 +48,9 @@
   /** Fahrer-ID, der die Karte live folgt (Straßenebene). */
   let followDriverId = null;
   let followIgnoreMove = false;
+  let routeLine = null;
+  let routeDestMarker = null;
+  let routeFareRequestId = 0;
   const driverMarkers = new Map();
   const bookingMarkers = new Map();
   const DRIVER_STATUS_LABELS = {
@@ -1031,6 +1034,110 @@
     }, 650);
   }
 
+  function clearRoutePreview() {
+    routeFareRequestId += 1;
+    if (routeLine && adminMap) {
+      adminMap.removeLayer(routeLine);
+      routeLine = null;
+    }
+    if (routeDestMarker && adminMap) {
+      adminMap.removeLayer(routeDestMarker);
+      routeDestMarker = null;
+    }
+    const bar = document.getElementById("map-route-fare");
+    const label = document.getElementById("map-route-fare-label");
+    if (bar) bar.classList.add("hidden");
+    if (label) label.textContent = "";
+  }
+
+  function paintRouteFare(text, isError) {
+    const bar = document.getElementById("map-route-fare");
+    const label = document.getElementById("map-route-fare-label");
+    if (!bar || !label) return;
+    bar.classList.toggle("is-error", Boolean(isError));
+    bar.classList.remove("hidden");
+    label.textContent = text || "";
+  }
+
+  function destIcon() {
+    return L.divIcon({
+      className: "",
+      html: '<div class="dest-pin">ZIEL</div>',
+      iconSize: [48, 22],
+      iconAnchor: [24, 11],
+    });
+  }
+
+  async function showBookingRoute(booking) {
+    clearRoutePreview();
+    if (!booking || !adminMap) return;
+    stopFollowDriver();
+
+    const pickupOk = hasCoords(booking.latitude, booking.longitude);
+    const destOk = hasCoords(booking.destinationLatitude, booking.destinationLongitude);
+    if (!pickupOk) {
+      paintRouteFare("Keine Abhol-Koordinaten für diese Fahrt.", true);
+      return;
+    }
+
+    const origin = [Number(booking.latitude), Number(booking.longitude)];
+    focusMarker(bookingMarkers.get(booking.bookingId));
+
+    if (!destOk) {
+      paintRouteFare(
+        `${booking.addressLine || "Abholung"} → Ziel fehlt — keine km/Preis-Berechnung.`,
+        true
+      );
+      return;
+    }
+
+    const destination = [Number(booking.destinationLatitude), Number(booking.destinationLongitude)];
+    routeLine = L.polyline([origin, destination], {
+      color: "#0c1c34",
+      weight: 4,
+      opacity: 0.85,
+      dashArray: "8 6",
+    }).addTo(adminMap);
+    routeDestMarker = L.marker(destination, { icon: destIcon() })
+      .addTo(adminMap)
+      .bindPopup(`<strong>Ziel</strong><br>${escapeHtml(booking.destinationAddressLine || "Ziel")}`);
+    followIgnoreMove = true;
+    adminMap.fitBounds([origin, destination], { padding: [48, 48], maxZoom: STREET_ZOOM });
+    setTimeout(() => {
+      followIgnoreMove = false;
+    }, 500);
+
+    const from = booking.addressLine || "A";
+    const to = booking.destinationAddressLine || "B";
+    paintRouteFare(`Route ${from} → ${to}: berechne km und Preis…`);
+
+    const requestId = ++routeFareRequestId;
+    try {
+      const res = await fetch("/api/fare/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          origin: { latitude: origin[0], longitude: origin[1] },
+          destination: { latitude: destination[0], longitude: destination[1] },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (requestId !== routeFareRequestId) return;
+      if (!res.ok) throw new Error(data.error || "Tarif nicht verfügbar");
+      const km = data.distanceText || `${Number(data.distanceKm || 0).toFixed(1)} km`;
+      const mins = data.durationText || "";
+      const fare = Number(data.fare);
+      const fareText = Number.isFinite(fare) ? `${fare.toFixed(2)} €` : "—";
+      const night = data.isNight ? " · Nachttarif" : "";
+      paintRouteFare(
+        `A→B: ${km}${mins ? ` · ${mins}` : ""} · Schätzung ${fareText}${night} (Grundpreis + km×Tarif)`
+      );
+    } catch (err) {
+      if (requestId !== routeFareRequestId) return;
+      paintRouteFare(err.message || "km/Preis nicht berechenbar", true);
+    }
+  }
+
   function syncAdminMarkers(drivers, bookings, refit, center) {
     if (!adminMap) return;
     const bounds = [];
@@ -1076,6 +1183,11 @@
         marker.setPopupContent(popup);
       } else {
         const marker = L.marker(latLng, { icon: pickupIcon() }).addTo(adminMap).bindPopup(popup);
+        const bookingId = booking.bookingId;
+        marker.on("click", () => {
+          const current = mapBookings.find((b) => b.bookingId === bookingId);
+          showBookingRoute(current);
+        });
         bookingMarkers.set(booking.bookingId, marker);
       }
     }
@@ -1130,25 +1242,33 @@
     } else {
       bookingRoot.innerHTML = bookings
         .map((booking) => {
+          const hasDest = hasCoords(booking.destinationLatitude, booking.destinationLongitude);
+          const destHint = hasDest
+            ? ` → ${booking.destinationAddressLine || "Ziel"}`
+            : booking.destinationAddressLine
+              ? ` → ${booking.destinationAddressLine}`
+              : "";
           return `<button type="button" class="map-item" data-focus-booking="${escapeHtml(booking.bookingId)}">
-            <strong>${escapeHtml(booking.addressLine || "Abholung")}</strong>
+            <strong>${escapeHtml(booking.addressLine || "Abholung")}${escapeHtml(destHint)}</strong>
             <div class="meta">${escapeHtml(booking.operatorName || "")} · ${
               BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")
-            }</div>
+            }${hasDest ? " · A→B Preis tippen" : ""}</div>
           </button>`;
         })
         .join("");
     }
     driverRoot.querySelectorAll("[data-focus-driver]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        clearRoutePreview();
         const id = btn.getAttribute("data-focus-driver");
         startFollowDriver(id);
       });
     });
     bookingRoot.querySelectorAll("[data-focus-booking]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        stopFollowDriver();
-        focusMarker(bookingMarkers.get(btn.getAttribute("data-focus-booking")));
+        const id = btn.getAttribute("data-focus-booking");
+        const booking = mapBookings.find((b) => b.bookingId === id);
+        showBookingRoute(booking);
       });
     });
   }
@@ -1281,6 +1401,7 @@
   function stopAdminMap() {
     followDriverId = null;
     paintFollowBar();
+    clearRoutePreview();
     disconnectAdminMapSocket();
     if (adminMapTimer) {
       clearInterval(adminMapTimer);
@@ -1686,6 +1807,9 @@
   });
   document.getElementById("map-follow-stop")?.addEventListener("click", () => {
     stopFollowDriver();
+  });
+  document.getElementById("map-route-fare-clear")?.addEventListener("click", () => {
+    clearRoutePreview();
   });
 
   document.getElementById("platform-settings-form")?.addEventListener("submit", async (e) => {
