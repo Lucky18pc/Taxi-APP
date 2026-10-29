@@ -941,9 +941,22 @@
     });
   }
 
+  /** OSM zeigt Straßennamen typisch ab Zoom ~16–17. */
+  const STREET_ZOOM = 17;
+
+  function fitToPoints(points) {
+    if (!adminMap || !points.length) return;
+    if (points.length === 1) {
+      adminMap.setView(points[0], STREET_ZOOM);
+      return;
+    }
+    adminMap.fitBounds(points, { padding: [40, 40], maxZoom: STREET_ZOOM });
+  }
+
   function focusMarker(marker) {
     if (!marker || !adminMap) return;
-    adminMap.flyTo(marker.getLatLng(), Math.max(adminMap.getZoom(), 14), { animate: true, duration: 0.6 });
+    // Immer auf Straßenebene: Namen und genauer Einstiegspunkt sichtbar.
+    adminMap.flyTo(marker.getLatLng(), STREET_ZOOM, { animate: true, duration: 0.55 });
     marker.openPopup();
   }
 
@@ -1004,9 +1017,9 @@
     const scope = document.getElementById("map-operator")?.value || "all";
     if (refit && mapFittedFor !== scope) {
       if (bounds.length) {
-        adminMap.fitBounds(bounds, { padding: [36, 36], maxZoom: 14 });
+        fitToPoints(bounds);
       } else if (center && hasCoords(center.latitude, center.longitude)) {
-        adminMap.setView([Number(center.latitude), Number(center.longitude)], 12);
+        adminMap.setView([Number(center.latitude), Number(center.longitude)], 15);
       } else {
         adminMap.setView([50.8, 10.5], 6);
       }
