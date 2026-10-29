@@ -1037,20 +1037,21 @@
   }
 
   function setDestBoxVisible(show, booking) {
-    const box = document.getElementById("map-dest-box");
-    const input = document.getElementById("map-dest-input");
-    if (!box) return;
+    // Start/Ziel-Felder bleiben immer sichtbar; show steuert nur Vorausfüllen.
+    const startInput = document.getElementById("map-start-input");
+    const destInput = document.getElementById("map-dest-input");
     if (!show) {
-      box.classList.add("hidden");
       routeContextBookingId = null;
       return;
     }
     routeContextBookingId = booking?.bookingId || null;
-    box.classList.remove("hidden");
-    if (input) {
-      input.value = String(booking?.destinationAddressLine || "").trim();
+    if (startInput) {
+      startInput.value = String(booking?.addressLine || "").trim();
+    }
+    if (destInput) {
+      destInput.value = String(booking?.destinationAddressLine || "").trim();
       try {
-        input.focus();
+        destInput.focus();
       } catch (_) {}
     }
   }
@@ -1074,7 +1075,7 @@
       overlay.classList.add("hidden");
       overlay.textContent = "";
     }
-    setDestBoxVisible(false);
+    routeContextBookingId = null;
   }
 
   function paintRouteFare(text, isError) {
@@ -1290,6 +1291,8 @@
 
     const requestId = ++routeFareRequestId;
     const from = booking.addressLine || "A";
+    // Start/Ziel-Felder immer mit dem Auftrag füllen (sichtbar oben links).
+    setDestBoxVisible(true, booking);
 
     // Server hat Route oft schon vorbereitet (routeQuote + Ziel-GPS).
     if (
@@ -1318,16 +1321,13 @@
     if (requestId !== routeFareRequestId) return;
 
     if (!dest || dest.error || !dest.latLng) {
-      setDestBoxVisible(true, booking);
       paintRouteFare(
         dest?.error ||
-          "Kein Ziel in diesem Auftrag. Unten Zieladresse eintragen und „Route + Preis“ tippen.",
+          "Kein Ziel in diesem Auftrag. Oben unter „Ende“ die Zielstraße eintragen und „Route + Preis“ tippen.",
         true
       );
       return;
     }
-
-    setDestBoxVisible(false);
 
     const destination = dest.latLng;
     const to = dest.label || "B";
@@ -2116,44 +2116,101 @@
   document.getElementById("map-route-fare-clear")?.addEventListener("click", () => {
     clearRoutePreview();
   });
+  async function showManualAbRoute(startLine, destLine) {
+    const requestId = ++routeFareRequestId;
+    if (!adminMap) {
+      paintRouteFare("Karte noch nicht bereit — bitte kurz warten.", true);
+      return;
+    }
+    paintRouteFare(`Suche Start „${startLine}“…`);
+    const origin = await geocodeAddress(startLine);
+    if (requestId !== routeFareRequestId) return;
+    if (!origin) {
+      paintRouteFare(`Start „${startLine}“ nicht gefunden — Stadt dazu schreiben.`, true);
+      return;
+    }
+    paintRouteFare(`Suche Ziel „${destLine}“…`);
+    const destination = await geocodeAddress(destLine);
+    if (requestId !== routeFareRequestId) return;
+    if (!destination) {
+      paintRouteFare(`Ziel „${destLine}“ nicht gefunden — Stadt dazu schreiben.`, true);
+      return;
+    }
+    drawBookingRoute(origin, destination, destLine);
+    paintRouteFare(`Route ${startLine} → ${destLine}: berechne km und Preis…`);
+    try {
+      const res = await fetch("/api/fare/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          origin: { latitude: origin[0], longitude: origin[1] },
+          destination: { latitude: destination[0], longitude: destination[1] },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (requestId !== routeFareRequestId) return;
+      if (!res.ok) throw new Error(data.error || "Tarif nicht verfügbar");
+      paintQuoteResult(startLine, destLine, data);
+    } catch (_) {
+      if (requestId !== routeFareRequestId) return;
+      paintQuoteResult(startLine, destLine, localRouteEstimate(origin, destination));
+    }
+  }
+
   document.getElementById("map-dest-apply")?.addEventListener("click", async () => {
-    const input = document.getElementById("map-dest-input");
-    const line = String(input?.value || "").trim();
-    if (!routeContextBookingId) {
-      paintRouteFare("Bitte zuerst einen Auftrag in der Liste tippen.", true);
+    const startLine = String(document.getElementById("map-start-input")?.value || "").trim();
+    const destLine = String(document.getElementById("map-dest-input")?.value || "").trim();
+    if (startLine.length < 3) {
+      paintRouteFare("Bitte Start-Straße eintragen (mind. 3 Zeichen).", true);
       return;
     }
-    if (line.length < 3) {
-      paintRouteFare("Bitte eine Zieladresse eingeben (mind. 3 Zeichen).", true);
+    if (destLine.length < 3) {
+      paintRouteFare("Bitte Ziel-Straße eintragen (mind. 3 Zeichen).", true);
       return;
     }
-    paintRouteFare(`Suche Ziel „${line}“…`);
-    const latLng = await geocodeAddress(line);
-    if (!latLng) {
-      paintRouteFare(`Ziel „${line}“ nicht gefunden — bitte genauer schreiben (Stadt dazu).`, true);
-      return;
+
+    // Mit Auftragskontext: Ziel am Auftrag speichern und Route wie bisher.
+    if (routeContextBookingId) {
+      const index = mapBookings.findIndex((b) => b.bookingId === routeContextBookingId);
+      if (index !== -1) {
+        paintRouteFare(`Suche Ziel „${destLine}“…`);
+        const latLng = await geocodeAddress(destLine);
+        if (!latLng) {
+          paintRouteFare(`Ziel „${destLine}“ nicht gefunden — bitte genauer schreiben (Stadt dazu).`, true);
+          return;
+        }
+        const startCoords = hasCoords(mapBookings[index].latitude, mapBookings[index].longitude)
+          ? [Number(mapBookings[index].latitude), Number(mapBookings[index].longitude)]
+          : await geocodeAddress(startLine);
+        mapBookings[index] = {
+          ...mapBookings[index],
+          addressLine: startLine || mapBookings[index].addressLine,
+          ...(startCoords
+            ? { latitude: startCoords[0], longitude: startCoords[1] }
+            : {}),
+          destinationAddressLine: destLine,
+          destinationLatitude: latLng[0],
+          destinationLongitude: latLng[1],
+          routeQuote: null,
+        };
+        renderMapLists(mapDrivers, mapBookings);
+        await showBookingRoute(mapBookings[index]);
+        return;
+      }
     }
-    const index = mapBookings.findIndex((b) => b.bookingId === routeContextBookingId);
-    if (index === -1) {
-      paintRouteFare("Auftrag nicht mehr in der Liste — bitte Aktualisieren.", true);
-      return;
-    }
-    mapBookings[index] = {
-      ...mapBookings[index],
-      destinationAddressLine: line,
-      destinationLatitude: latLng[0],
-      destinationLongitude: latLng[1],
-      routeQuote: null,
-    };
-    renderMapLists(mapDrivers, mapBookings);
-    await showBookingRoute(mapBookings[index]);
+
+    await showManualAbRoute(startLine, destLine);
   });
-  document.getElementById("map-dest-input")?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      document.getElementById("map-dest-apply")?.click();
-    }
-  });
+  const bindEnterToRoute = (id) => {
+    document.getElementById(id)?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        document.getElementById("map-dest-apply")?.click();
+      }
+    });
+  };
+  bindEnterToRoute("map-start-input");
+  bindEnterToRoute("map-dest-input");
 
   document.getElementById("platform-settings-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();

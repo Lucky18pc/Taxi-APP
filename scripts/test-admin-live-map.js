@@ -309,8 +309,8 @@ async function api(pathname, options = {}) {
     stranger.close();
 
     const pageHtml = await fetch(`${base}/admin.html`).then((r) => r.text());
-    if (!pageHtml.includes("admin.js?v=20261029-karte14")) {
-      fail("admin.html muss Cache-Buster karte14 laden");
+    if (!pageHtml.includes("admin.js?v=20261029-karte15")) {
+      fail("admin.html muss Cache-Buster karte15 laden");
     }
     if (!pageHtml.includes(".map-item-delete")) {
       fail("admin.html fehlt CSS für den Löschbutton");
@@ -318,8 +318,14 @@ async function api(pathname, options = {}) {
     if (!pageHtml.includes(".map-item-fare")) {
       fail("admin.html fehlt CSS für km/Fahrpreis im Auftragsfeld");
     }
+    if (!pageHtml.includes('id="map-start-input"') || !pageHtml.includes('id="map-dest-input"')) {
+      fail("admin.html braucht dauerhafte Start- und Ziel-Felder");
+    }
+    if (pageHtml.includes('map-dest-box hidden') || /id="map-dest-box"[^>]*hidden/.test(pageHtml)) {
+      fail("Start/Ziel-Box darf nicht standardmäßig versteckt sein");
+    }
 
-    const script = await fetch(`${base}/admin.js?v=20261029-karte14`);
+    const script = await fetch(`${base}/admin.js?v=20261029-karte15`);
     const source = await script.text();
     if (!source.includes("dragging: true")) {
       fail("Karte muss sich verschieben lassen");
@@ -332,6 +338,9 @@ async function api(pathname, options = {}) {
     }
     if (!source.includes("formatRouteQuoteShort") || !source.includes("map-item-fare")) {
       fail("admin.js muss km und Fahrpreis im Auftragsfeld anzeigen");
+    }
+    if (!source.includes("showManualAbRoute")) {
+      fail("admin.js muss manuelle Start→Ziel-Route unterstützen");
     }
 
     console.log("OK admin live-map: alle Betriebe, Filter, Storno, 403 für Betriebs-PIN, Live-Verbindung");
