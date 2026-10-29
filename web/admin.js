@@ -1125,16 +1125,31 @@
       }).format(new Date())
     );
     const isNight = berlinHour >= 22 || berlinHour < 6;
-    const base = isNight ? 4.9 : 3.9;
-    const perKm = isNight ? 2.6 : 2.3;
-    const fare = Math.round((base + km * perKm) * 100) / 100;
+    const taxiBase = isNight ? 4.9 : 3.9;
+    const taxiPerKm = isNight ? 2.6 : 2.3;
+    const taxiFare = Math.round((taxiBase + km * taxiPerKm) * 100) / 100;
+    const mins = Math.max(1, Math.round((km / 30) * 60));
+    const rentalListPerKm = 1.8;
+    const rentalPerKm = Math.round(rentalListPerKm * 0.9 * 100) / 100; // 10 % km-Nachlass
+    const rentalFare = Math.round((5 + km * rentalPerKm + mins * 0.35) * 100) / 100;
     return {
       distanceKm: Math.round(km * 1000) / 1000,
       distanceText: `${km.toFixed(1)} km`,
-      durationText: `${Math.max(1, Math.round((km / 30) * 60))} Min.`,
-      fare,
+      durationText: `${mins} Min.`,
+      fare: taxiFare,
       isNight,
-      formula: "Grundpreis + (Kilometer * Kilometertarif)",
+      formula: "Taxi Taxameter + Mietwagen Festpreis",
+      taxi: {
+        fare: taxiFare,
+        label: "Taxi (Taxameter-Schätzung)",
+        isBindingFixedPrice: false,
+      },
+      rentalCar: {
+        fare: rentalFare,
+        label: "Mietwagen (Festpreis)",
+        isBindingFixedPrice: true,
+        kmDiscountPercent: 10,
+      },
     };
   }
 
@@ -1198,6 +1213,16 @@
     return `${n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
   }
 
+  function quoteTaxiFare(quote) {
+    const n = Number(quote?.taxi?.fare ?? quote?.fare);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function quoteRentalFare(quote) {
+    const n = Number(quote?.rentalCar?.fare);
+    return Number.isFinite(n) ? n : null;
+  }
+
   function formatRouteQuoteShort(quote) {
     if (!quote) return "";
     const km =
@@ -1205,11 +1230,18 @@
       (Number.isFinite(Number(quote.distanceKm))
         ? `${Number(quote.distanceKm).toLocaleString("de-DE", { maximumFractionDigits: 1 })} km`
         : "");
-    const fareText = formatFareEuro(quote.fare);
-    if (!km && fareText === "—") return "";
-    if (!km) return fareText;
-    if (fareText === "—") return km;
-    return `${km} · ${fareText}`;
+    const taxi = quoteTaxiFare(quote);
+    const rental = quoteRentalFare(quote);
+    const parts = [];
+    if (km) parts.push(km);
+    if (taxi != null) parts.push(`Taxi ${formatFareEuro(taxi)}`);
+    if (rental != null) parts.push(`Mietwagen ${formatFareEuro(rental)}`);
+    if (!parts.length) return "";
+    if (taxi == null && rental == null) {
+      const fareText = formatFareEuro(quote.fare);
+      return fareText === "—" ? km || "" : `${km} · ${fareText}`.replace(/^ · /, "");
+    }
+    return parts.join(" · ");
   }
 
   function rememberBookingQuote(bookingId, quote, destExtras) {
@@ -1227,6 +1259,8 @@
         fare: quote.fare,
         isNight: quote.isNight,
         formula: quote.formula,
+        taxi: quote.taxi,
+        rentalCar: quote.rentalCar,
       },
     };
     renderMapLists(mapDrivers, mapBookings);
@@ -1235,10 +1269,14 @@
   function paintQuoteResult(from, to, quote, bookingId) {
     const km = quote.distanceText || `${Number(quote.distanceKm || 0).toFixed(1)} km`;
     const mins = quote.durationText || "";
-    const fareText = formatFareEuro(quote.fare);
+    const taxi = quoteTaxiFare(quote);
+    const rental = quoteRentalFare(quote);
     const night = quote.isNight ? " · Nachttarif" : "";
+    const taxiText = taxi != null ? `Taxi ${formatFareEuro(taxi)}` : `Taxi ${formatFareEuro(quote.fare)}`;
+    const rentalText =
+      rental != null ? ` · Mietwagen-Festpreis ${formatFareEuro(rental)}` : "";
     paintRouteFare(
-      `A→B ${from} → ${to}: ${km}${mins ? ` · ${mins}` : ""} · Fahrpreis ${fareText}${night}`
+      `A→B ${from} → ${to}: ${km}${mins ? ` · ${mins}` : ""} · ${taxiText}${rentalText}${night}`
     );
     if (bookingId) rememberBookingQuote(bookingId, quote);
   }
@@ -1487,7 +1525,7 @@
             routeHint = " · kein Ziel (keine Route)";
           }
           const fareBlock = quoteLine
-            ? `<div class="map-item-fare"><span class="map-item-fare-label">km / Fahrpreis</span> ${escapeHtml(
+            ? `<div class="map-item-fare"><span class="map-item-fare-label">km / Taxi + Mietwagen</span> ${escapeHtml(
                 quoteLine
               )}</div>`
             : "";

@@ -248,6 +248,15 @@ async function api(pathname, options = {}) {
     if (!(Number(priced.routeQuote.distanceKm) > 0)) {
       fail(`routeQuote.distanceKm fehlt: ${JSON.stringify(priced.routeQuote)}`);
     }
+    if (!Number.isFinite(Number(priced.routeQuote.taxi?.fare))) {
+      fail(`routeQuote.taxi.fare fehlt: ${JSON.stringify(priced.routeQuote)}`);
+    }
+    if (!Number.isFinite(Number(priced.routeQuote.rentalCar?.fare))) {
+      fail(`routeQuote.rentalCar.fare (Mietwagen-Festpreis) fehlt: ${JSON.stringify(priced.routeQuote)}`);
+    }
+    if (priced.routeQuote.rentalCar.isBindingFixedPrice !== true) {
+      fail("Mietwagen muss isBindingFixedPrice=true haben");
+    }
 
     const bookingId = booking.body.bookingId;
     const cancelled = await api(`/api/bookings/${encodeURIComponent(bookingId)}/status`, {
@@ -309,8 +318,8 @@ async function api(pathname, options = {}) {
     stranger.close();
 
     const pageHtml = await fetch(`${base}/admin.html`).then((r) => r.text());
-    if (!pageHtml.includes("admin.js?v=20261029-karte15")) {
-      fail("admin.html muss Cache-Buster karte15 laden");
+    if (!pageHtml.includes("admin.js?v=20261029-karte16")) {
+      fail("admin.html muss Cache-Buster karte16 laden");
     }
     if (!pageHtml.includes(".map-item-delete")) {
       fail("admin.html fehlt CSS für den Löschbutton");
@@ -325,7 +334,7 @@ async function api(pathname, options = {}) {
       fail("Start/Ziel-Box darf nicht standardmäßig versteckt sein");
     }
 
-    const script = await fetch(`${base}/admin.js?v=20261029-karte15`);
+    const script = await fetch(`${base}/admin.js?v=20261029-karte16`);
     const source = await script.text();
     if (!source.includes("dragging: true")) {
       fail("Karte muss sich verschieben lassen");
@@ -341,6 +350,9 @@ async function api(pathname, options = {}) {
     }
     if (!source.includes("showManualAbRoute")) {
       fail("admin.js muss manuelle Start→Ziel-Route unterstützen");
+    }
+    if (!source.includes("Mietwagen-Festpreis") || !source.includes("quoteRentalFare")) {
+      fail("admin.js muss Taxi und Mietwagen-Festpreis anzeigen");
     }
 
     console.log("OK admin live-map: alle Betriebe, Filter, Storno, 403 für Betriebs-PIN, Live-Verbindung");
