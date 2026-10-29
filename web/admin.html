@@ -252,6 +252,33 @@
       color: var(--navy);
     }
     .map-follow-bar.hidden { display: none; }
+    .map-route-fare {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin: 0 0 0.65rem;
+      padding: 0.55rem 0.7rem;
+      border: 2px solid var(--navy);
+      border-radius: 12px;
+      background: #eef4ff;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .map-route-fare.hidden { display: none; }
+    .map-route-fare.is-error { border-color: #b91c1c; background: #fef2f2; color: #991b1b; }
+    .dest-pin {
+      background: #0c1c34;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0.45rem;
+      border-radius: 6px;
+      border: 2px solid #f5c518;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
+    }
     #admin-map {
       width: 100%;
       height: min(72vh, 720px);
@@ -587,14 +614,18 @@
               <span id="map-follow-label"></span>
               <button type="button" class="btn btn-ghost btn-sm" id="map-follow-stop">Follow aus</button>
             </div>
+            <div id="map-route-fare" class="map-route-fare hidden" role="status">
+              <span id="map-route-fare-label"></span>
+              <button type="button" class="btn btn-ghost btn-sm" id="map-route-fare-clear">Route aus</button>
+            </div>
             <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Fahrer</p>
             <div id="map-drivers" class="map-list"></div>
             <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Offene Aufträge</p>
             <div id="map-bookings" class="map-list"></div>
             <p class="meta" style="margin:0">
               Gelb = frei, orange = unterwegs, grau = Standort älter als 2 Minuten. Rotes Label = Abholung.
-              Fahrer antippen = Live-Follow (Karte bleibt am Auto auf Straßenebene). Scroll/Pinch/+- zum Zoomen.
-              Verschieben oder „Follow aus“ beendet das Folgen. Auftrag tippen = nur Fokus ohne Follow.
+              Fahrer antippen = Live-Follow. Auftrag tippen = Route A→B mit km und Preisschätzung.
+              Scroll/Pinch/+- zum Zoomen. „Follow aus“ / „Route aus“ beendet die Ansicht.
               Die Karte verbindet sich live mit dem Standort, den die Fahrer-App schickt.
               © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
             </p>
@@ -721,6 +752,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261029-karte7"></script>
+  <script src="admin.js?v=20261029-karte8"></script>
 </body>
 </html>
