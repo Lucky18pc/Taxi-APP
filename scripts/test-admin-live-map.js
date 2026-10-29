@@ -220,6 +220,25 @@ async function api(pathname, options = {}) {
       fail(`Auftrag fehlt: ${JSON.stringify(jobs)}`);
     }
 
+    const bookingId = booking.body.bookingId;
+    const cancelled = await api(`/api/bookings/${encodeURIComponent(bookingId)}/status`, {
+      method: "PATCH",
+      admin: true,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "cancelled" }),
+    });
+    if (!cancelled.res.ok) {
+      fail(`Plattform-Admin darf Auftrag nicht stornieren: ${cancelled.res.status} ${JSON.stringify(cancelled.body)}`);
+    }
+    if (cancelled.body.status !== "cancelled") {
+      fail(`Status nach Storno falsch: ${JSON.stringify(cancelled.body)}`);
+    }
+    const afterCancel = await api("/api/fleet/live-map", { admin: true });
+    if (!afterCancel.res.ok) fail(`Live-Karte nach Storno: ${afterCancel.res.status}`);
+    if ((afterCancel.body.bookings || []).some((b) => b.bookingId === bookingId)) {
+      fail("Stornierter Auftrag darf nicht mehr auf der Live-Karte stehen");
+    }
+
     const only = await api("/api/fleet/live-map?operator=berlin-test", { admin: true });
     if (!only.res.ok) fail(`Berlin-Karte: ${only.res.status}`);
     if ((only.body.drivers || []).length !== 1 || only.body.drivers[0].name !== "Ben Berlin") {
@@ -260,14 +279,27 @@ async function api(pathname, options = {}) {
     live.close();
     stranger.close();
 
-    const script = await fetch(`${base}/admin.js?v=20261028-karte3`);
-    const source = await script.text();
-    if (!source.includes("scrollWheelZoom: false") || !source.includes("dragging: true")) {
-      fail("Karte lässt sich noch zoomen statt nur verschieben");
+    const pageHtml = await fetch(`${base}/admin.html`).then((r) => r.text());
+    if (!pageHtml.includes("admin.js?v=20261029-karte13")) {
+      fail("admin.html muss Cache-Buster karte13 laden");
     }
-    if (source.includes("zoomControl: true")) fail("Zoom-Buttons sind noch an");
+    if (!pageHtml.includes(".map-item-delete")) {
+      fail("admin.html fehlt CSS für den Löschbutton");
+    }
 
-    console.log("OK admin live-map: alle Betriebe, Filter, 403 für Betriebs-PIN, Live-Verbindung");
+    const script = await fetch(`${base}/admin.js?v=20261029-karte13`);
+    const source = await script.text();
+    if (!source.includes("dragging: true")) {
+      fail("Karte muss sich verschieben lassen");
+    }
+    if (!source.includes("data-delete-booking") || !source.includes("deleteMapBooking")) {
+      fail("admin.js fehlt Löschbutton für Live-Karte-Aufträge");
+    }
+    if (!source.includes('status: "cancelled"')) {
+      fail("Löschen muss den Auftrag per Status cancelled stornieren");
+    }
+
+    console.log("OK admin live-map: alle Betriebe, Filter, Storno, 403 für Betriebs-PIN, Live-Verbindung");
     child.kill("SIGTERM");
     process.exit(0);
   } catch (error) {

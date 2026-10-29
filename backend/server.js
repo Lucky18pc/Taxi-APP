@@ -1488,6 +1488,8 @@ function filterDriversForRequest(req) {
 }
 
 function bookingMatchesRequest(req, booking) {
+  // Plattform-Admin darf alle Aufträge sehen/stornieren (Live-Karte).
+  if (isPlatformAdminRequest(req)) return true;
   const operator = resolveFleetOperatorFromRequest(req);
   if (!operator) return !fleet.enabled();
   return booking.operatorId === operator.operatorId;
