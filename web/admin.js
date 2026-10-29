@@ -1191,15 +1191,55 @@
     }, 500);
   }
 
-  function paintQuoteResult(from, to, quote) {
+  function formatFareEuro(fare) {
+    const n = Number(fare);
+    if (!Number.isFinite(n)) return "—";
+    return `${n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+  }
+
+  function formatRouteQuoteShort(quote) {
+    if (!quote) return "";
+    const km =
+      quote.distanceText ||
+      (Number.isFinite(Number(quote.distanceKm))
+        ? `${Number(quote.distanceKm).toLocaleString("de-DE", { maximumFractionDigits: 1 })} km`
+        : "");
+    const fareText = formatFareEuro(quote.fare);
+    if (!km && fareText === "—") return "";
+    if (!km) return fareText;
+    if (fareText === "—") return km;
+    return `${km} · ${fareText}`;
+  }
+
+  function rememberBookingQuote(bookingId, quote, destExtras) {
+    const id = String(bookingId || "").trim();
+    if (!id || !quote) return;
+    const index = mapBookings.findIndex((b) => b.bookingId === id);
+    if (index === -1) return;
+    mapBookings[index] = {
+      ...mapBookings[index],
+      ...(destExtras || {}),
+      routeQuote: {
+        distanceText: quote.distanceText,
+        durationText: quote.durationText,
+        distanceKm: quote.distanceKm,
+        fare: quote.fare,
+        isNight: quote.isNight,
+        formula: quote.formula,
+      },
+    };
+    renderMapLists(mapDrivers, mapBookings);
+  }
+
+  function paintQuoteResult(from, to, quote, bookingId) {
     const km = quote.distanceText || `${Number(quote.distanceKm || 0).toFixed(1)} km`;
     const mins = quote.durationText || "";
-    const fare = Number(quote.fare);
-    const fareText = Number.isFinite(fare) ? `${fare.toFixed(2)} €` : "—";
+    const fareText = formatFareEuro(quote.fare);
     const night = quote.isNight ? " · Nachttarif" : "";
     paintRouteFare(
-      `A→B ${from} → ${to}: ${km}${mins ? ` · ${mins}` : ""} · Schätzung ${fareText}${night}`
+      `A→B ${from} → ${to}: ${km}${mins ? ` · ${mins}` : ""} · Fahrpreis ${fareText}${night}`
     );
+    if (bookingId) rememberBookingQuote(bookingId, quote);
   }
 
   async function showBookingRoute(booking) {
@@ -1263,7 +1303,7 @@
       ];
       const to = booking.destinationAddressLine || "B";
       drawBookingRoute(origin, destination, to);
-      paintQuoteResult(from, to, booking.routeQuote);
+      paintQuoteResult(from, to, booking.routeQuote, booking.bookingId);
       return;
     }
 
@@ -1306,10 +1346,21 @@
       const data = await res.json().catch(() => ({}));
       if (requestId !== routeFareRequestId) return;
       if (!res.ok) throw new Error(data.error || "Tarif nicht verfügbar");
-      paintQuoteResult(from, to, data);
+      paintQuoteResult(from, to, data, booking.bookingId);
+      rememberBookingQuote(booking.bookingId, data, {
+        destinationLatitude: destination[0],
+        destinationLongitude: destination[1],
+        destinationAddressLine: to,
+      });
     } catch (_) {
       if (requestId !== routeFareRequestId) return;
-      paintQuoteResult(from, to, localRouteEstimate(origin, destination));
+      const local = localRouteEstimate(origin, destination);
+      paintQuoteResult(from, to, local, booking.bookingId);
+      rememberBookingQuote(booking.bookingId, local, {
+        destinationLatitude: destination[0],
+        destinationLongitude: destination[1],
+        destinationAddressLine: to,
+      });
     }
   }
 
@@ -1349,9 +1400,13 @@
       const latLng = [Number(booking.latitude), Number(booking.longitude)];
       seenBookings.add(booking.bookingId);
       bounds.push(latLng);
-      const popup = `<strong>${escapeHtml(booking.addressLine || "Abholung")}</strong><br>${escapeHtml(
-        booking.operatorName || ""
-      )}<br>${BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")}`;
+      const quoteLine = formatRouteQuoteShort(booking.routeQuote);
+      const destLine = String(booking.destinationAddressLine || "").trim();
+      const popup = `<strong>${escapeHtml(booking.addressLine || "Abholung")}</strong>${
+        destLine ? `<br>→ ${escapeHtml(destLine)}` : ""
+      }<br>${escapeHtml(booking.operatorName || "")}<br>${
+        BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")
+      }${quoteLine ? `<br><strong>${escapeHtml(quoteLine)}</strong>` : ""}`;
       if (bookingMarkers.has(booking.bookingId)) {
         const marker = bookingMarkers.get(booking.bookingId);
         marker.setLatLng(latLng);
@@ -1422,15 +1477,27 @@
           const destHint = hasDestText
             ? ` → ${booking.destinationAddressLine}`
             : "";
-          const routeHint = hasDestCoords || hasDestText
-            ? " · tippen: Route + km/€"
-            : " · kein Ziel (keine Route)";
+          const quoteLine = formatRouteQuoteShort(booking.routeQuote);
+          let routeHint;
+          if (quoteLine) {
+            routeHint = "";
+          } else if (hasDestCoords || hasDestText) {
+            routeHint = " · tippen: Route + km/€";
+          } else {
+            routeHint = " · kein Ziel (keine Route)";
+          }
+          const fareBlock = quoteLine
+            ? `<div class="map-item-fare"><span class="map-item-fare-label">km / Fahrpreis</span> ${escapeHtml(
+                quoteLine
+              )}</div>`
+            : "";
           return `<div class="map-item-row">
             <button type="button" class="map-item" data-focus-booking="${escapeHtml(booking.bookingId)}">
               <strong>${escapeHtml(booking.addressLine || "Abholung")}${escapeHtml(destHint)}</strong>
               <div class="meta">${escapeHtml(booking.operatorName || "")} · ${
                 BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")
               }${routeHint}</div>
+              ${fareBlock}
             </button>
             <button type="button" class="btn btn-ghost btn-sm map-item-delete" data-delete-booking="${escapeHtml(
               booking.bookingId

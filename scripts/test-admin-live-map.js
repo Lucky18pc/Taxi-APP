@@ -196,6 +196,27 @@ async function api(pathname, options = {}) {
     });
     if (booking.res.status !== 201) fail(`Buchung: ${booking.res.status} ${JSON.stringify(booking.body)}`);
 
+    const bookingWithDest = await api("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pickupDate: new Date().toISOString(),
+        latitude: 49.317,
+        longitude: 8.441,
+        addressLine: "Asternweg 21, 67346 Speyer",
+        destinationAddressLine: "Köln",
+        destinationLatitude: 50.9375,
+        destinationLongitude: 6.9603,
+        postalCode: "67346",
+        paymentMethod: "Bar",
+        operatorSlug: "speyer-test",
+        totalAmount: 0,
+      }),
+    });
+    if (bookingWithDest.res.status !== 201) {
+      fail(`Buchung mit Ziel: ${bookingWithDest.res.status} ${JSON.stringify(bookingWithDest.body)}`);
+    }
+
     const denied = await api("/api/fleet/live-map?operator=speyer-test", { pin: "111111" });
     if (denied.res.status !== 403) {
       fail(`Betriebs-PIN sollte 403 sein, war ${denied.res.status} ${JSON.stringify(denied.body)}`);
@@ -218,6 +239,14 @@ async function api(pathname, options = {}) {
     const jobs = all.body.bookings || [];
     if (!jobs.some((b) => b.addressLine === "Domplatz Speyer" && b.operatorSlug === "speyer-test")) {
       fail(`Auftrag fehlt: ${JSON.stringify(jobs)}`);
+    }
+    const priced = jobs.find((b) => b.bookingId === bookingWithDest.body.bookingId);
+    if (!priced) fail(`Auftrag mit Ziel fehlt auf Live-Karte: ${JSON.stringify(jobs)}`);
+    if (!priced.routeQuote || !Number.isFinite(Number(priced.routeQuote.fare))) {
+      fail(`Live-Karte muss km+Fahrpreis (routeQuote.fare) liefern: ${JSON.stringify(priced.routeQuote)}`);
+    }
+    if (!(Number(priced.routeQuote.distanceKm) > 0)) {
+      fail(`routeQuote.distanceKm fehlt: ${JSON.stringify(priced.routeQuote)}`);
     }
 
     const bookingId = booking.body.bookingId;
@@ -280,14 +309,17 @@ async function api(pathname, options = {}) {
     stranger.close();
 
     const pageHtml = await fetch(`${base}/admin.html`).then((r) => r.text());
-    if (!pageHtml.includes("admin.js?v=20261029-karte13")) {
-      fail("admin.html muss Cache-Buster karte13 laden");
+    if (!pageHtml.includes("admin.js?v=20261029-karte14")) {
+      fail("admin.html muss Cache-Buster karte14 laden");
     }
     if (!pageHtml.includes(".map-item-delete")) {
       fail("admin.html fehlt CSS für den Löschbutton");
     }
+    if (!pageHtml.includes(".map-item-fare")) {
+      fail("admin.html fehlt CSS für km/Fahrpreis im Auftragsfeld");
+    }
 
-    const script = await fetch(`${base}/admin.js?v=20261029-karte13`);
+    const script = await fetch(`${base}/admin.js?v=20261029-karte14`);
     const source = await script.text();
     if (!source.includes("dragging: true")) {
       fail("Karte muss sich verschieben lassen");
@@ -297,6 +329,9 @@ async function api(pathname, options = {}) {
     }
     if (!source.includes('status: "cancelled"')) {
       fail("Löschen muss den Auftrag per Status cancelled stornieren");
+    }
+    if (!source.includes("formatRouteQuoteShort") || !source.includes("map-item-fare")) {
+      fail("admin.js muss km und Fahrpreis im Auftragsfeld anzeigen");
     }
 
     console.log("OK admin live-map: alle Betriebe, Filter, Storno, 403 für Betriebs-PIN, Live-Verbindung");
