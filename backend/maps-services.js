@@ -4,11 +4,12 @@
  */
 
 const { haversineKm } = require("./geohash");
+const { computeFare, DEFAULTS: FARE_DEFAULTS } = require("./fare-engine");
 
-const BASE_FARE_DAY = Number(process.env.FARE_BASE_DAY || 3.9);
-const PER_KM_DAY = Number(process.env.FARE_PER_KM_DAY || 2.3);
-const BASE_FARE_NIGHT = Number(process.env.FARE_BASE_NIGHT || 4.9);
-const PER_KM_NIGHT = Number(process.env.FARE_PER_KM_NIGHT || 2.6);
+const BASE_FARE_DAY = Number(process.env.FARE_BASE_DAY || FARE_DEFAULTS.taxi.baseDay || 3.9);
+const PER_KM_DAY = Number(process.env.FARE_PER_KM_DAY || FARE_DEFAULTS.taxi.perKmDay || 2.3);
+const BASE_FARE_NIGHT = Number(process.env.FARE_BASE_NIGHT || FARE_DEFAULTS.taxi.baseNight || 4.9);
+const PER_KM_NIGHT = Number(process.env.FARE_PER_KM_NIGHT || FARE_DEFAULTS.taxi.perKmNight || 2.6);
 /** Tarif-Fenster 22–6 Uhr Ortszeit (nicht UTC auf Render). */
 const FARE_TIMEZONE = String(process.env.FARE_TIMEZONE || "Europe/Berlin").trim() || "Europe/Berlin";
 
@@ -170,14 +171,60 @@ async function distanceMatrix(origin, destination) {
   };
 }
 
+function dualFaresFromKm(distanceKm, durationSeconds, at = new Date()) {
+  const taxi = computeFare({
+    distanceKm,
+    durationSeconds,
+    at,
+    businessType: "taxi",
+  });
+  const rentalCar = computeFare({
+    distanceKm,
+    durationSeconds,
+    at,
+    businessType: "rentalCar",
+  });
+  return {
+    // Rückwärtskompatibel: fare = Taxi-Taxameter-Schätzung
+    fare: taxi.fare,
+    basePrice: taxi.basePrice,
+    pricePerKm: taxi.pricePerKm,
+    isNight: taxi.isNight,
+    formula: taxi.formula,
+    distanceKm: taxi.distanceKm,
+    businessType: "taxi",
+    isBindingFixedPrice: false,
+    taxi: {
+      fare: taxi.fare,
+      basePrice: taxi.basePrice,
+      pricePerKm: taxi.pricePerKm,
+      isNight: taxi.isNight,
+      formula: taxi.formula,
+      isBindingFixedPrice: false,
+      label: "Taxi (Taxameter-Schätzung)",
+    },
+    rentalCar: {
+      fare: rentalCar.fare,
+      basePrice: rentalCar.basePrice,
+      pricePerKm: rentalCar.pricePerKm,
+      pricePerMinute: rentalCar.pricePerMinute,
+      kmDiscountPercent: rentalCar.kmDiscountPercent,
+      isNight: rentalCar.isNight,
+      formula: rentalCar.formula,
+      isBindingFixedPrice: true,
+      label: "Mietwagen (Festpreis)",
+    },
+  };
+}
+
 async function fareQuote(origin, destination) {
   const matrix = await distanceMatrix(origin, destination);
   const distanceKm = matrix.distanceMeters / 1000;
-  const fare = calculateFareFromKm(distanceKm);
+  const dual = dualFaresFromKm(distanceKm, matrix.durationSeconds);
   return {
     ...matrix,
-    ...fare,
-    estimatedEarnings: fare.fare,
+    ...dual,
+    estimatedEarnings: dual.fare,
   };
 }
 
@@ -288,10 +335,17 @@ function mountMapsServiceRoutes(app, deps = {}) {
 
   app.get("/api/fare/tariff", (_req, res) => {
     res.json({
-      formula: "Grundpreis + (Kilometer * Kilometertarif)",
+      formula: "Taxi: Taxameter-Schätzung · Mietwagen: Festpreis",
       day: { base: BASE_FARE_DAY, perKm: PER_KM_DAY },
       night: { base: BASE_FARE_NIGHT, perKm: PER_KM_NIGHT },
       nightHours: "22:00–06:00",
+      rentalCar: {
+        base: FARE_DEFAULTS.rentalCar.base,
+        perKm: FARE_DEFAULTS.rentalCar.perKm,
+        perMinute: FARE_DEFAULTS.rentalCar.perMinute,
+        kmDiscountPercent: FARE_DEFAULTS.rentalCar.kmDiscountPercent,
+        isBindingFixedPrice: true,
+      },
       googleMapsConfigured: Boolean(googleKey()),
     });
   });
@@ -304,6 +358,7 @@ module.exports = {
   distanceMatrix,
   fareQuote,
   calculateFareFromKm,
+  dualFaresFromKm,
   isNightHour,
   googleKey,
   FARE_TIMEZONE,

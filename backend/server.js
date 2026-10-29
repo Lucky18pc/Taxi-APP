@@ -18,7 +18,12 @@ const { rankAvailableDrivers, DEFAULT_RADIUS_KM, DEFAULT_PRECISION } = require("
 const { createAutoDispatch, OFFER_TIMEOUT_MS } = require("./auto-dispatch");
 const dispatchPresence = require("./dispatch-presence");
 const { createAdminLoginAudit } = require("./admin-login-audit");
-const { mountMapsServiceRoutes, calculateFareFromKm, fareQuote } = require("./maps-services");
+const {
+  mountMapsServiceRoutes,
+  calculateFareFromKm,
+  dualFaresFromKm,
+  fareQuote,
+} = require("./maps-services");
 const { haversineKm } = require("./geohash");
 const {
   statusAfterTripCompleted,
@@ -1448,6 +1453,8 @@ async function enrichLiveBookingRoute(pub) {
       fare: quote.fare,
       isNight: quote.isNight,
       formula: quote.formula,
+      taxi: quote.taxi,
+      rentalCar: quote.rentalCar,
     };
   } catch (err) {
     const distanceKm = haversineKm(
@@ -1456,14 +1463,16 @@ async function enrichLiveBookingRoute(pub) {
       Number(destLat),
       Number(destLng)
     );
-    const km = calculateFareFromKm(Math.max(0, distanceKm || 0));
+    const dual = dualFaresFromKm(Math.max(0, distanceKm || 0), (Math.max(0, distanceKm || 0) / 30) * 3600);
     pub.routeQuote = {
-      distanceText: `${km.distanceKm} km`,
+      distanceText: `${dual.distanceKm} km`,
       durationText: "",
-      distanceKm: km.distanceKm,
-      fare: km.fare,
-      isNight: km.isNight,
-      formula: km.formula,
+      distanceKm: dual.distanceKm,
+      fare: dual.fare,
+      isNight: dual.isNight,
+      formula: dual.formula,
+      taxi: dual.taxi,
+      rentalCar: dual.rentalCar,
     };
   }
   return pub;
@@ -4712,3 +4721,5 @@ httpServer.listen(port, host, () => {
 // redeploy: live-map fare in booking field karte14 2026-10-29T18:40:00Z
 
 // redeploy: live-map start+ziel fields always visible karte15 2026-10-29T18:50:00Z
+
+// redeploy: live-map taxi + mietwagen festpreis karte16 2026-10-29T18:55:00Z
