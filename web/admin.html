@@ -267,6 +267,30 @@
     }
     .map-route-fare.hidden { display: none; }
     .map-route-fare.is-error { border-color: #b91c1c; background: #fef2f2; color: #991b1b; }
+    .map-dest-box {
+      margin: 0 0 0.65rem;
+      padding: 0.65rem 0.75rem;
+      border: 2px solid var(--navy);
+      border-radius: 12px;
+      background: #fff8d6;
+    }
+    .map-dest-box.hidden { display: none; }
+    .map-dest-box label {
+      display: block;
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+      color: var(--navy);
+    }
+    .map-dest-row { display: flex; gap: 0.45rem; align-items: stretch; }
+    .map-dest-row input {
+      flex: 1;
+      min-width: 0;
+      border: 2px solid var(--navy);
+      border-radius: 10px;
+      padding: 0.45rem 0.6rem;
+      font: inherit;
+      font-weight: 700;
+    }
     .map-stage { position: relative; }
     #map-route-overlay {
       position: absolute;
@@ -641,6 +665,14 @@
               <span id="map-route-fare-label"></span>
               <button type="button" class="btn btn-ghost btn-sm" id="map-route-fare-clear">Route aus</button>
             </div>
+            <div id="map-dest-box" class="map-dest-box hidden">
+              <label for="map-dest-input">Ziel für Route A→B (km/Preis)</label>
+              <div class="map-dest-row">
+                <input id="map-dest-input" type="text" placeholder="z. B. Mannheim Hauptbahnhof" autocomplete="street-address" />
+                <button type="button" class="btn btn-sm" id="map-dest-apply">Route + Preis</button>
+              </div>
+              <p class="meta" style="margin:0.35rem 0 0">Dieser Testauftrag hat noch kein Ziel — Adresse eingeben, dann Linie und € sehen.</p>
+            </div>
             <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Fahrer</p>
             <div id="map-drivers" class="map-list"></div>
             <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Offene Aufträge</p>
@@ -778,6 +810,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261029-karte11"></script>
+  <script src="admin.js?v=20261029-karte12"></script>
 </body>
 </html>

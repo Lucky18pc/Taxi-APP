@@ -51,6 +51,8 @@
   let routeLine = null;
   let routeDestMarker = null;
   let routeFareRequestId = 0;
+  /** Auftrag, für den gerade Ziel/Route gesetzt wird. */
+  let routeContextBookingId = null;
   const driverMarkers = new Map();
   const bookingMarkers = new Map();
   const DRIVER_STATUS_LABELS = {
@@ -1034,6 +1036,25 @@
     }, 650);
   }
 
+  function setDestBoxVisible(show, booking) {
+    const box = document.getElementById("map-dest-box");
+    const input = document.getElementById("map-dest-input");
+    if (!box) return;
+    if (!show) {
+      box.classList.add("hidden");
+      routeContextBookingId = null;
+      return;
+    }
+    routeContextBookingId = booking?.bookingId || null;
+    box.classList.remove("hidden");
+    if (input) {
+      input.value = String(booking?.destinationAddressLine || "").trim();
+      try {
+        input.focus();
+      } catch (_) {}
+    }
+  }
+
   function clearRoutePreview() {
     routeFareRequestId += 1;
     if (routeLine && adminMap) {
@@ -1053,6 +1074,7 @@
       overlay.classList.add("hidden");
       overlay.textContent = "";
     }
+    setDestBoxVisible(false);
   }
 
   function paintRouteFare(text, isError) {
@@ -1256,13 +1278,16 @@
     if (requestId !== routeFareRequestId) return;
 
     if (!dest || dest.error || !dest.latLng) {
+      setDestBoxVisible(true, booking);
       paintRouteFare(
         dest?.error ||
-          "Kein Ziel in diesem Auftrag — keine Linie A→B. Bitte Buchung mit Zieladresse anlegen.",
+          "Kein Ziel in diesem Auftrag. Unten Zieladresse eintragen und „Route + Preis“ tippen.",
         true
       );
       return;
     }
+
+    setDestBoxVisible(false);
 
     const destination = dest.latLng;
     const to = dest.label || "B";
@@ -1979,6 +2004,44 @@
   });
   document.getElementById("map-route-fare-clear")?.addEventListener("click", () => {
     clearRoutePreview();
+  });
+  document.getElementById("map-dest-apply")?.addEventListener("click", async () => {
+    const input = document.getElementById("map-dest-input");
+    const line = String(input?.value || "").trim();
+    if (!routeContextBookingId) {
+      paintRouteFare("Bitte zuerst einen Auftrag in der Liste tippen.", true);
+      return;
+    }
+    if (line.length < 3) {
+      paintRouteFare("Bitte eine Zieladresse eingeben (mind. 3 Zeichen).", true);
+      return;
+    }
+    paintRouteFare(`Suche Ziel „${line}“…`);
+    const latLng = await geocodeAddress(line);
+    if (!latLng) {
+      paintRouteFare(`Ziel „${line}“ nicht gefunden — bitte genauer schreiben (Stadt dazu).`, true);
+      return;
+    }
+    const index = mapBookings.findIndex((b) => b.bookingId === routeContextBookingId);
+    if (index === -1) {
+      paintRouteFare("Auftrag nicht mehr in der Liste — bitte Aktualisieren.", true);
+      return;
+    }
+    mapBookings[index] = {
+      ...mapBookings[index],
+      destinationAddressLine: line,
+      destinationLatitude: latLng[0],
+      destinationLongitude: latLng[1],
+      routeQuote: null,
+    };
+    renderMapLists(mapDrivers, mapBookings);
+    await showBookingRoute(mapBookings[index]);
+  });
+  document.getElementById("map-dest-input")?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      document.getElementById("map-dest-apply")?.click();
+    }
   });
 
   document.getElementById("platform-settings-form")?.addEventListener("submit", async (e) => {
