@@ -455,7 +455,7 @@
         keyboard: true,
         dragging: true,
         inertia: true,
-      }).setView(operatorCenter || DEFAULT_CENTER, 13);
+      }).setView(operatorCenter || DEFAULT_CENTER, 16);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap",
@@ -561,7 +561,8 @@
       }
 
       if (!mapFitted && bounds.length) {
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+        if (bounds.length === 1) map.setView(bounds[0], 17);
+        else map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
         mapFitted = true;
       }
     }
@@ -569,14 +570,14 @@
     function focusDriver(driverId) {
       const m = driverMarkers.get(driverId);
       if (!m || !map) return;
-      map.flyTo(m.getLatLng(), Math.max(map.getZoom(), 15), { animate: true, duration: 0.55 });
+      map.flyTo(m.getLatLng(), 17, { animate: true, duration: 0.55 });
       m.openPopup();
     }
 
     function focusBooking(bookingId) {
       const m = bookingMarkers.get(bookingId);
       if (!m || !map) return;
-      map.flyTo(m.getLatLng(), Math.max(map.getZoom(), 15), { animate: true, duration: 0.55 });
+      map.flyTo(m.getLatLng(), 17, { animate: true, duration: 0.55 });
       m.openPopup();
     }
 
@@ -610,7 +611,7 @@
         const center = centerFromConfig(cfg);
         if (center) {
           operatorCenter = center;
-          if (map && !mapFitted) map.setView(center, 13);
+          if (map && !mapFitted) map.setView(center, 16);
         }
       } catch {
         /* offline */
