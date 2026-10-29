@@ -897,16 +897,17 @@
     if (adminMap || typeof L === "undefined") return;
     const el = document.getElementById("admin-map");
     if (!el) return;
+    // Normale Straßenkarte (OSM): Zoom + Schieben, Start Europa/DE.
     adminMap = L.map(el, {
-      zoomControl: false,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      touchZoom: false,
-      boxZoom: false,
-      keyboard: false,
+      zoomControl: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      touchZoom: true,
+      boxZoom: true,
+      keyboard: true,
       dragging: true,
       inertia: true,
-    }).setView([51.1657, 10.4515], 6);
+    }).setView([50.8, 10.5], 6);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -936,7 +937,7 @@
 
   function focusMarker(marker) {
     if (!marker || !adminMap) return;
-    adminMap.panTo(marker.getLatLng(), { animate: true, duration: 0.45 });
+    adminMap.flyTo(marker.getLatLng(), Math.max(adminMap.getZoom(), 14), { animate: true, duration: 0.6 });
     marker.openPopup();
   }
 

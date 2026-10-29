@@ -217,7 +217,7 @@
     .workflow { font-size: 0.78rem; margin: 0.5rem 0; }
     .workflow ol { margin: 0.35rem 0 0 1rem; padding: 0; }
     .workflow li { margin: 0.25rem 0; }
-    #dispatch-map { height: 100%; width: 100%; background: #dbe3ef; touch-action: none; cursor: grab; }
+    #dispatch-map { height: 100%; width: 100%; background: #dbe3ef; cursor: grab; }
     .taxi-pin {
       background: #f5c518;
       border: 2.5px solid #0c1c34;
@@ -441,12 +441,12 @@
     function initMap() {
       if (map) return;
       map = L.map("dispatch-map", {
-        zoomControl: false,
-        scrollWheelZoom: false,
-        doubleClickZoom: false,
-        touchZoom: false,
-        boxZoom: false,
-        keyboard: false,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        touchZoom: true,
+        boxZoom: true,
+        keyboard: true,
         dragging: true,
         inertia: true,
       }).setView(operatorCenter || DEFAULT_CENTER, 13);
@@ -563,14 +563,14 @@
     function focusDriver(driverId) {
       const m = driverMarkers.get(driverId);
       if (!m || !map) return;
-      map.panTo(m.getLatLng(), { animate: true, duration: 0.5 });
+      map.flyTo(m.getLatLng(), Math.max(map.getZoom(), 15), { animate: true, duration: 0.55 });
       m.openPopup();
     }
 
     function focusBooking(bookingId) {
       const m = bookingMarkers.get(bookingId);
       if (!m || !map) return;
-      map.panTo(m.getLatLng(), { animate: true, duration: 0.5 });
+      map.flyTo(m.getLatLng(), Math.max(map.getZoom(), 15), { animate: true, duration: 0.55 });
       m.openPopup();
     }
 
