@@ -309,22 +309,34 @@
       border-radius: 12px;
       background: #fff8d6;
     }
-    .map-dest-box.hidden { display: none; }
     .map-dest-box label {
       display: block;
       font-weight: 800;
-      margin-bottom: 0.35rem;
+      margin: 0.45rem 0 0.3rem;
       color: var(--navy);
     }
+    .map-dest-box > label:first-child { margin-top: 0; }
+    .map-dest-title {
+      font-weight: 900;
+      color: var(--navy);
+      margin: 0 0 0.35rem;
+      font-size: 0.95rem;
+    }
     .map-dest-row { display: flex; gap: 0.45rem; align-items: stretch; }
-    .map-dest-row input {
-      flex: 1;
-      min-width: 0;
+    .map-dest-box input {
+      width: 100%;
+      box-sizing: border-box;
       border: 2px solid var(--navy);
       border-radius: 10px;
       padding: 0.45rem 0.6rem;
       font: inherit;
       font-weight: 700;
+    }
+    .map-dest-actions {
+      display: flex;
+      gap: 0.45rem;
+      margin-top: 0.55rem;
+      flex-wrap: wrap;
     }
     .map-stage { position: relative; }
     #map-route-overlay {
@@ -700,13 +712,16 @@
               <span id="map-route-fare-label"></span>
               <button type="button" class="btn btn-ghost btn-sm" id="map-route-fare-clear">Route aus</button>
             </div>
-            <div id="map-dest-box" class="map-dest-box hidden">
-              <label for="map-dest-input">Ziel für Route A→B (km/Preis)</label>
-              <div class="map-dest-row">
-                <input id="map-dest-input" type="text" placeholder="z. B. Mannheim Hauptbahnhof" autocomplete="street-address" />
+            <div id="map-dest-box" class="map-dest-box">
+              <p class="map-dest-title">Route manuell: Start → Ende</p>
+              <label for="map-start-input">Start (Abholung / Straße)</label>
+              <input id="map-start-input" type="text" placeholder="z. B. Asternweg 21, Speyer" autocomplete="street-address" />
+              <label for="map-dest-input">Ende (Ziel / Straße)</label>
+              <input id="map-dest-input" type="text" placeholder="z. B. Mannheim Hauptbahnhof" autocomplete="street-address" />
+              <div class="map-dest-actions">
                 <button type="button" class="btn btn-sm" id="map-dest-apply">Route + Preis</button>
               </div>
-              <p class="meta" style="margin:0.35rem 0 0">Dieser Testauftrag hat noch kein Ziel — Adresse eingeben, dann Linie und € sehen.</p>
+              <p class="meta" style="margin:0.35rem 0 0">Beide Straßen eintragen und tippen — dann Linie, Kilometer und Fahrpreis.</p>
             </div>
             <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Fahrer</p>
             <div id="map-drivers" class="map-list"></div>
@@ -714,8 +729,8 @@
             <div id="map-bookings" class="map-list"></div>
             <p class="meta" style="margin:0">
               Gelb = frei, orange = unterwegs, grau = Standort älter als 2 Minuten. Rotes Label = Abholung.
-              Fahrer antippen = Live-Follow. Auftrag mit Ziel zeigt km und Fahrpreis im Feld; tippen = Route A→B.
-              Scroll/Pinch/+- zum Zoomen. „Follow aus“ / „Route aus“ beendet die Ansicht.
+              Oben Start- und End-Straße eintragen → „Route + Preis“. Fahrer antippen = Live-Follow.
+              Auftrag tippen füllt Start/Ziel. Scroll/Pinch/+- zum Zoomen. „Follow aus“ / „Route aus“ beendet.
               Die Karte verbindet sich live mit dem Standort, den die Fahrer-App schickt.
               © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
             </p>
@@ -845,6 +860,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261029-karte14"></script>
+  <script src="admin.js?v=20261029-karte15"></script>
 </body>
 </html>
