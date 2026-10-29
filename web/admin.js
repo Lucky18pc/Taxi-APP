@@ -7,6 +7,10 @@
       title: "Mandanten",
       sub: "Betriebe prüfen, Logo speichern, Nachweise öffnen, freischalten und Links kopieren.",
     },
+    map: {
+      title: "Live-Karte",
+      sub: "Live verbunden mit dem Standort der Fahrer-App. Die Leitstelle jedes Betriebs bleibt separat.",
+    },
     inquiries: {
       title: "Anfragen",
       sub: "Tarif-Anfragen von der Startseite: antworten oder als Mandant übernehmen.",
@@ -23,11 +27,37 @@
       title: "Analytics",
       sub: "Primär: Tarif-Anfragen. Zusätzlich Website-Besucher in Google Analytics.",
     },
+    settings: {
+      title: "Einstellungen",
+      sub: "Dein Überblick als Plattform-Inhaber. Betriebe sehen diese Seite nicht.",
+    },
   };
 
   let pendingPin = "";
   let mfaStep = false;
   let mfaPendingSecret = "";
+  let adminMap = null;
+  let adminMapTimer = null;
+  let adminSocket = null;
+  let liveConnected = false;
+  let pendingMapSlug = "";
+  let mapFittedFor = "";
+  let liveMapRequestId = 0;
+  let mapDrivers = [];
+  let mapBookings = [];
+  const driverMarkers = new Map();
+  const bookingMarkers = new Map();
+  const DRIVER_STATUS_LABELS = {
+    available: "Frei",
+    busy: "Unterwegs",
+    offline: "Offline",
+    pending: "Prüfung",
+  };
+  const BOOKING_STATUS_LABELS = {
+    confirmed: "Neu",
+    accepted: "Angenommen",
+    assigned: "Zugewiesen",
+  };
 
   function getSession() {
     return localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY) || "";
@@ -279,6 +309,11 @@
       csvBtn.classList.toggle("hidden", id !== "tenants" && id !== "inquiries");
     }
     if (id === "audit") loadLoginAudit();
+    if (id === "settings") {
+      loadPlatformSettings().catch((err) => setSettingsStatus(err.message || "Einstellungen nicht ladbar", true));
+    }
+    if (id === "map") startAdminMap();
+    else stopAdminMap();
   }
 
   function escapeHtml(value) {
@@ -287,6 +322,43 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function setSettingsStatus(text, isError) {
+    const el = document.getElementById("settings-status");
+    if (!el) return;
+    el.textContent = text || "";
+    el.style.color = isError ? "#b91c1c" : "";
+  }
+
+  async function loadPlatformSettings() {
+    setSettingsStatus("Lade…");
+    const [configRes, opsRes] = await Promise.all([
+      apiFetch("/api/config"),
+      apiFetch("/api/fleet/operators"),
+    ]);
+    const config = await configRes.json().catch(() => ({}));
+    const opsData = await opsRes.json().catch(() => ({}));
+    if (!configRes.ok) throw new Error(config.error || "Plattform nicht ladbar");
+    if (!opsRes.ok) throw new Error(opsData.error || "Betriebe nicht ladbar");
+    const ops = opsData.operators || [];
+    document.getElementById("set-stat-tenants").textContent = String(ops.length);
+    document.getElementById("set-stat-active").textContent = String(ops.filter((op) => op.status === "active").length);
+    document.getElementById("set-stat-pending").textContent = String(ops.filter((op) => op.status === "pending").length);
+    document.getElementById("set-stat-gaps").textContent = String(ops.filter((op) => !op.complianceComplete).length);
+    for (const key of [
+      "platformCompanyName",
+      "platformOwner",
+      "platformEmail",
+      "platformPhone",
+      "platformStreet",
+      "platformCity",
+      "platformVatId",
+    ]) {
+      const input = document.getElementById(`set-${key}`);
+      if (input) input.value = config[key] || "";
+    }
+    setSettingsStatus("");
   }
 
   function setAuditStatus(text, isError) {
@@ -632,6 +704,7 @@
           <a href="${links.driverOnboard || "#"}" target="_blank" rel="noopener">Fahrer-Reg.</a>
         </div>
         <div class="actions">
+          <button type="button" class="btn btn-navy btn-sm open-map">Live-Karte</button>
           <button type="button" class="btn btn-ghost btn-sm copy-links"${
             op.complianceComplete
               ? ""
@@ -671,6 +744,7 @@
         }
       });
       wireLogoUpload(card, op);
+      card.querySelector(".open-map")?.addEventListener("click", () => openOperatorOnMap(op.slug));
       card.querySelector(".activate")?.addEventListener("click", () => {
         if (op.complianceGaps?.length) {
           const ok = confirm(
@@ -803,10 +877,322 @@
     return active.id.replace(/^panel-/, "");
   }
 
+  function hasCoords(lat, lng) {
+    return Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
+  }
+
+  function setMapStatus(text, isError) {
+    const el = document.getElementById("map-status");
+    if (!el) return;
+    el.textContent = text || "";
+    el.style.color = isError ? "#b91c1c" : "";
+  }
+
+  function openOperatorOnMap(slug) {
+    pendingMapSlug = String(slug || "all");
+    showPanel("map");
+  }
+
+  function initAdminMap() {
+    if (adminMap || typeof L === "undefined") return;
+    const el = document.getElementById("admin-map");
+    if (!el) return;
+    adminMap = L.map(el, {
+      zoomControl: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      dragging: true,
+      inertia: true,
+    }).setView([51.1657, 10.4515], 6);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(adminMap);
+  }
+
+  function taxiIcon(driver) {
+    let cls = "taxi-pin";
+    if (!driver.locationFresh) cls += " stale";
+    else if (driver.status === "busy") cls += " busy";
+    return L.divIcon({
+      className: "",
+      html: `<div class="${cls}">TX</div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+  }
+
+  function pickupIcon() {
+    return L.divIcon({
+      className: "",
+      html: '<div class="pickup-pin">ABHOL</div>',
+      iconSize: [52, 22],
+      iconAnchor: [26, 11],
+    });
+  }
+
+  function focusMarker(marker) {
+    if (!marker || !adminMap) return;
+    adminMap.panTo(marker.getLatLng(), { animate: true, duration: 0.45 });
+    marker.openPopup();
+  }
+
+  function syncAdminMarkers(drivers, bookings, refit, center) {
+    if (!adminMap) return;
+    const bounds = [];
+    const seenDrivers = new Set();
+    for (const driver of drivers) {
+      if (!hasCoords(driver.latitude, driver.longitude)) continue;
+      const latLng = [Number(driver.latitude), Number(driver.longitude)];
+      seenDrivers.add(driver.driverId);
+      bounds.push(latLng);
+      const popup = `<strong>${escapeHtml(driver.name)}</strong><br>${escapeHtml(driver.operatorName || "")}<br>${escapeHtml(driver.vehicle || "")}<br>${
+        DRIVER_STATUS_LABELS[driver.status] || escapeHtml(driver.status)
+      }${driver.locationFresh ? "" : "<br><em>Standort älter als 2 Min.</em>"}`;
+      if (driverMarkers.has(driver.driverId)) {
+        const marker = driverMarkers.get(driver.driverId);
+        marker.setLatLng(latLng);
+        marker.setIcon(taxiIcon(driver));
+        marker.setPopupContent(popup);
+      } else {
+        const marker = L.marker(latLng, { icon: taxiIcon(driver) }).addTo(adminMap).bindPopup(popup);
+        driverMarkers.set(driver.driverId, marker);
+      }
+    }
+    for (const [id, marker] of [...driverMarkers.entries()]) {
+      if (!seenDrivers.has(id)) {
+        adminMap.removeLayer(marker);
+        driverMarkers.delete(id);
+      }
+    }
+
+    const seenBookings = new Set();
+    for (const booking of bookings) {
+      if (!hasCoords(booking.latitude, booking.longitude)) continue;
+      const latLng = [Number(booking.latitude), Number(booking.longitude)];
+      seenBookings.add(booking.bookingId);
+      bounds.push(latLng);
+      const popup = `<strong>${escapeHtml(booking.addressLine || "Abholung")}</strong><br>${escapeHtml(
+        booking.operatorName || ""
+      )}<br>${BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")}`;
+      if (bookingMarkers.has(booking.bookingId)) {
+        const marker = bookingMarkers.get(booking.bookingId);
+        marker.setLatLng(latLng);
+        marker.setPopupContent(popup);
+      } else {
+        const marker = L.marker(latLng, { icon: pickupIcon() }).addTo(adminMap).bindPopup(popup);
+        bookingMarkers.set(booking.bookingId, marker);
+      }
+    }
+    for (const [id, marker] of [...bookingMarkers.entries()]) {
+      if (!seenBookings.has(id)) {
+        adminMap.removeLayer(marker);
+        bookingMarkers.delete(id);
+      }
+    }
+
+    const scope = document.getElementById("map-operator")?.value || "all";
+    if (refit && mapFittedFor !== scope) {
+      if (bounds.length) {
+        adminMap.fitBounds(bounds, { padding: [36, 36], maxZoom: 14 });
+      } else if (center && hasCoords(center.latitude, center.longitude)) {
+        adminMap.setView([Number(center.latitude), Number(center.longitude)], 12);
+      } else {
+        adminMap.setView([51.1657, 10.4515], 6);
+      }
+      mapFittedFor = scope;
+    }
+  }
+
+  function renderMapLists(drivers, bookings) {
+    const driverRoot = document.getElementById("map-drivers");
+    const bookingRoot = document.getElementById("map-bookings");
+    if (!driverRoot || !bookingRoot) return;
+    if (!drivers.length) {
+      driverRoot.innerHTML = '<p class="meta">Keine Fahrer in dieser Ansicht.</p>';
+    } else {
+      driverRoot.innerHTML = drivers
+        .map((driver) => {
+          const gps = !hasCoords(driver.latitude, driver.longitude)
+            ? "kein GPS"
+            : driver.locationFresh
+              ? "GPS live"
+              : "GPS alt";
+          return `<button type="button" class="map-item" data-focus-driver="${escapeHtml(driver.driverId)}">
+            <strong>${escapeHtml(driver.name)}</strong>
+            <div class="meta">${escapeHtml(driver.operatorName || "ohne Betrieb")} · ${
+              DRIVER_STATUS_LABELS[driver.status] || escapeHtml(driver.status)
+            } · ${gps}</div>
+            <div class="meta">${escapeHtml(driver.vehicle || "")}</div>
+          </button>`;
+        })
+        .join("");
+    }
+    if (!bookings.length) {
+      bookingRoot.innerHTML = '<p class="meta">Keine offenen Aufträge.</p>';
+    } else {
+      bookingRoot.innerHTML = bookings
+        .map((booking) => {
+          return `<button type="button" class="map-item" data-focus-booking="${escapeHtml(booking.bookingId)}">
+            <strong>${escapeHtml(booking.addressLine || "Abholung")}</strong>
+            <div class="meta">${escapeHtml(booking.operatorName || "")} · ${
+              BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")
+            }</div>
+          </button>`;
+        })
+        .join("");
+    }
+    driverRoot.querySelectorAll("[data-focus-driver]").forEach((btn) => {
+      btn.addEventListener("click", () => focusMarker(driverMarkers.get(btn.getAttribute("data-focus-driver"))));
+    });
+    bookingRoot.querySelectorAll("[data-focus-booking]").forEach((btn) => {
+      btn.addEventListener("click", () => focusMarker(bookingMarkers.get(btn.getAttribute("data-focus-booking"))));
+    });
+  }
+
+  function fillMapOperators(operators, selected) {
+    const select = document.getElementById("map-operator");
+    if (!select) return;
+    const current = selected || select.value || "all";
+    const options = ['<option value="all">Alle Betriebe</option>'];
+    for (const op of operators || []) {
+      const city = op.legalCity ? ` · ${op.legalCity}` : "";
+      options.push(
+        `<option value="${escapeHtml(op.slug)}">${escapeHtml(op.companyName || op.slug)}${escapeHtml(city)}</option>`
+      );
+    }
+    select.innerHTML = options.join("");
+    const known = [...select.options].some((option) => option.value === current);
+    select.value = known ? current : "all";
+  }
+
+  async function loadLiveMap(refit) {
+    const select = document.getElementById("map-operator");
+    let slug = select?.value || "all";
+    if (pendingMapSlug) {
+      slug = pendingMapSlug;
+      pendingMapSlug = "";
+      refit = true;
+      mapFittedFor = "";
+    }
+    const requestId = ++liveMapRequestId;
+    const requestedSlug = slug;
+    setMapStatus("Verbinde…");
+    const res = await apiFetch(`/api/fleet/live-map?operator=${encodeURIComponent(slug)}`, {
+      resetOn401: true,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (requestId !== liveMapRequestId) return;
+    if (!res.ok) throw new Error(data.error || "Karte nicht ladbar");
+    const responseSlug = data.operator || "all";
+    if (responseSlug !== requestedSlug) return;
+    mapDrivers = Array.isArray(data.drivers) ? data.drivers : [];
+    mapBookings = Array.isArray(data.bookings) ? data.bookings : [];
+    fillMapOperators(data.operators, requestedSlug);
+    paintMapStats();
+    renderMapLists(mapDrivers, mapBookings);
+    syncAdminMarkers(mapDrivers, mapBookings, refit, data.center);
+    paintMapStatus();
+  }
+
+  function paintMapStats() {
+    const driversEl = document.getElementById("map-n-drivers");
+    if (!driversEl) return;
+    driversEl.textContent = String(mapDrivers.length);
+    document.getElementById("map-n-live").textContent = String(mapDrivers.filter((d) => d.locationFresh).length);
+    document.getElementById("map-n-busy").textContent = String(mapDrivers.filter((d) => d.status === "busy").length);
+    document.getElementById("map-n-jobs").textContent = String(mapBookings.length);
+  }
+
+  function paintMapStatus() {
+    const stamp = new Date().toLocaleTimeString("de-DE", { timeZone: "Europe/Berlin" });
+    const link = liveConnected ? "Live verbunden" : "Abruf";
+    setMapStatus(`${link} · ${stamp} Uhr (Berlin) · ${mapDrivers.length} Fahrer · ${mapBookings.length} Aufträge`);
+  }
+
+  function applyLiveDriver(update) {
+    if (!update?.driverId) return;
+    const slug = document.getElementById("map-operator")?.value || "all";
+    if (slug !== "all" && update.operatorSlug !== slug) return;
+    const index = mapDrivers.findIndex((driver) => driver.driverId === update.driverId);
+    if (index === -1) mapDrivers.push(update);
+    else mapDrivers[index] = { ...mapDrivers[index], ...update };
+    paintMapStats();
+    renderMapLists(mapDrivers, mapBookings);
+    syncAdminMarkers(mapDrivers, mapBookings, false, null);
+    paintMapStatus();
+  }
+
+  function connectAdminMapSocket() {
+    if (typeof io !== "function" || adminSocket) return;
+    const token = getSession() || getPin();
+    if (!token) return;
+    adminSocket = io({ path: "/socket.io", transports: ["websocket", "polling"] });
+    const subscribe = () => adminSocket.emit("subscribe:fleet", { token: getSession() || getPin() });
+    adminSocket.on("connect", subscribe);
+    adminSocket.on("fleet:ready", () => {
+      liveConnected = true;
+      paintMapStatus();
+    });
+    adminSocket.on("fleet:denied", () => {
+      liveConnected = false;
+      setMapStatus("Live-Verbindung abgelehnt. Bitte neu anmelden.", true);
+    });
+    adminSocket.on("fleet:driver", (driver) => {
+      if (activePanelId() !== "map") return;
+      applyLiveDriver(driver);
+    });
+    adminSocket.on("disconnect", () => {
+      liveConnected = false;
+      if (activePanelId() === "map") paintMapStatus();
+    });
+  }
+
+  function disconnectAdminMapSocket() {
+    liveConnected = false;
+    if (!adminSocket) return;
+    adminSocket.emit("unsubscribe:fleet");
+    adminSocket.close();
+    adminSocket = null;
+  }
+
+  function startAdminMap() {
+    initAdminMap();
+    if (typeof L === "undefined") {
+      setMapStatus("Kartenbibliothek nicht geladen. Seite neu laden.", true);
+      return;
+    }
+    connectAdminMapSocket();
+    loadLiveMap(true).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
+    if (!adminMapTimer) {
+      adminMapTimer = setInterval(() => {
+        if (document.hidden || activePanelId() !== "map") return;
+        loadLiveMap(false).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
+      }, 8000);
+    }
+    setTimeout(() => adminMap?.invalidateSize(), 60);
+    setTimeout(() => adminMap?.invalidateSize(), 280);
+  }
+
+  function stopAdminMap() {
+    disconnectAdminMapSocket();
+    if (adminMapTimer) {
+      clearInterval(adminMapTimer);
+      adminMapTimer = null;
+    }
+  }
+
   async function refreshAll() {
     const panel = activePanelId();
     if (panel === "audit") {
       await loadLoginAudit();
+      return;
+    }
+    if (panel === "map") {
+      await loadLiveMap(false);
       return;
     }
     const errors = [];
@@ -1182,8 +1568,46 @@
   });
 
   document.getElementById("admin-logout").addEventListener("click", () => {
+    stopAdminMap();
     clearAuth();
     showLogin();
+  });
+
+  document.getElementById("map-operator")?.addEventListener("change", () => {
+    mapFittedFor = "";
+    loadLiveMap(true).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
+  });
+  document.getElementById("refresh-map")?.addEventListener("click", () => {
+    loadLiveMap(false).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
+  });
+
+  document.getElementById("platform-settings-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {};
+    for (const key of [
+      "platformCompanyName",
+      "platformOwner",
+      "platformEmail",
+      "platformPhone",
+      "platformStreet",
+      "platformCity",
+      "platformVatId",
+    ]) {
+      body[key] = document.getElementById(`set-${key}`)?.value || "";
+    }
+    setSettingsStatus("Speichere…");
+    try {
+      const res = await apiFetch("/api/config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Speichern fehlgeschlagen");
+      setSettingsStatus("Gespeichert.");
+    } catch (err) {
+      setSettingsStatus(err.message || "Speichern fehlgeschlagen", true);
+    }
   });
 
   document.getElementById("refresh-inquiries").addEventListener("click", async () => {

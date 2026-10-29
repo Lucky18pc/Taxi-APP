@@ -1299,6 +1299,62 @@ function isPlatformAdminPin(pin) {
   return Boolean(adminPin && pin && pin === adminPin);
 }
 
+function requestBearerToken(req) {
+  const header = String(req.headers.authorization || "");
+  return header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+}
+
+/** Session-Token gibt es nur nach ADMIN_PIN (optional mit MFA), nie nach Betriebs-PIN. */
+function isPlatformAdminRequest(req) {
+  const bearer = requestBearerToken(req);
+  const pinHeader = String(req.headers["x-admin-pin"] || "").trim();
+  if (isValidAdminSession(bearer) || isValidAdminSession(pinHeader)) return true;
+  return isPlatformAdminPin(bearer) || isPlatformAdminPin(pinHeader);
+}
+
+function operatorById(operatorId) {
+  if (!operatorId) return null;
+  return fleet.findById(operatorId) || fleet.list(true).find((op) => op.operatorId === operatorId) || null;
+}
+
+function finiteCoord(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function publicLiveDriver(driver, operator) {
+  return {
+    driverId: driver.driverId,
+    name: driver.name || "",
+    vehicle: driver.vehicle || "",
+    phone: driver.phone || "",
+    status: driver.status || "offline",
+    latitude: finiteCoord(driver.lastLat),
+    longitude: finiteCoord(driver.lastLng),
+    locationUpdatedAt: driver.lastLocationAt || null,
+    locationFresh: driverHasFreshLocation(driver),
+    operatorSlug: operator?.slug || "",
+    operatorName: operator?.companyName || "",
+  };
+}
+
+function publicLiveBooking(booking, operator) {
+  if (booking.status === "completed" || booking.status === "cancelled") return null;
+  return {
+    bookingId: booking.bookingId,
+    status: booking.status || "confirmed",
+    addressLine: booking.addressLine || "",
+    destinationAddressLine: booking.destinationAddressLine || "",
+    latitude: finiteCoord(booking.latitude),
+    longitude: finiteCoord(booking.longitude),
+    pickupDate: booking.pickupDate || null,
+    assignedDriverId: booking.assignedDriverId || null,
+    operatorSlug: operator?.slug || "",
+    operatorName: operator?.companyName || "",
+  };
+}
+
 function filterBookingsForRequest(req) {
   const operator = resolveFleetOperatorFromRequest(req);
   if (operator) {
@@ -2404,6 +2460,50 @@ app.get("/api/fleet/operators", requireAdmin, (req, res) => {
   const baseUrl = resolvePublicBaseUrl(req);
   res.json({
     operators: fleet.list(true).map((op) => fleet.toAdminSummary(op, baseUrl)),
+  });
+});
+
+/** Plattform-Admin: Fahrer-GPS und offene Abholungen, optional ein Betrieb oder alle. */
+app.get("/api/fleet/live-map", requireAdmin, (req, res) => {
+  if (!isPlatformAdminRequest(req)) {
+    return res.status(403).json({
+      error: "Live-Karte nur für den Plattform-Admin. Die Betriebs-PIN nutzt die Leitstelle.",
+    });
+  }
+
+  const raw = String(req.query.operator || req.query.o || "all").trim().toLowerCase();
+  const slug = !raw || raw === "all" || raw === "*" ? "" : raw;
+  const selected = slug ? fleet.findBySlug(slug) : null;
+  if (slug && !selected) {
+    return res.status(404).json({ error: "Betrieb nicht gefunden" });
+  }
+
+  const operators = fleet.list(true);
+  const inScope = (entity) => {
+    if (!selected) return true;
+    return entity.operatorId === selected.operatorId;
+  };
+  const centerLat = Number(selected?.serviceArea?.centerLat);
+  const centerLng = Number(selected?.serviceArea?.centerLng);
+
+  res.json({
+    operator: selected ? selected.slug : "all",
+    center:
+      Number.isFinite(centerLat) && Number.isFinite(centerLng)
+        ? { latitude: centerLat, longitude: centerLng }
+        : null,
+    operators: operators.map((op) => ({
+      slug: op.slug,
+      companyName: op.companyName,
+      legalCity: op.legalCity || "",
+      status: op.status,
+    })),
+    drivers: drivers.filter(inScope).map((driver) => publicLiveDriver(driver, operatorById(driver.operatorId))),
+    bookings: bookings
+      .filter(inScope)
+      .map((booking) => publicLiveBooking(booking, operatorById(booking.operatorId)))
+      .filter(Boolean),
+    updatedAt: new Date().toISOString(),
   });
 });
 
@@ -4418,7 +4518,16 @@ app.post("/create-payment-intent", async (req, res) => {
 const host = process.env.HOST || "0.0.0.0";
 
 const httpServer = http.createServer(app);
-realtimeHub = createRealtimeHub(httpServer, { buildTrackingPayload });
+realtimeHub = createRealtimeHub(httpServer, {
+  buildTrackingPayload,
+  isPlatformAdminToken(token) {
+    return isValidAdminSession(token) || isPlatformAdminPin(token);
+  },
+  fleetDriverPayload(driver) {
+    if (!driver) return null;
+    return publicLiveDriver(driver, operatorById(driver.operatorId));
+  },
+});
 
 httpServer.listen(port, host, () => {
   const publicUrl = process.env.PUBLIC_BASE_URL || `http://${host}:${port}`;

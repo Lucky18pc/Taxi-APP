@@ -217,7 +217,7 @@
     .workflow { font-size: 0.78rem; margin: 0.5rem 0; }
     .workflow ol { margin: 0.35rem 0 0 1rem; padding: 0; }
     .workflow li { margin: 0.25rem 0; }
-    #dispatch-map { height: 100%; width: 100%; background: #dbe3ef; }
+    #dispatch-map { height: 100%; width: 100%; background: #dbe3ef; touch-action: none; cursor: grab; }
     .taxi-pin {
       background: #f5c518;
       border: 2.5px solid #0c1c34;
@@ -328,6 +328,7 @@
     };
 
     const LOCATION_FRESH_MS = 2 * 60 * 1000;
+    /** Fallback nur wenn die Config kein Betriebszentrum liefert (z. B. Speyer-Einzelbetrieb). */
     const DEFAULT_CENTER = [49.317, 8.431];
 
     let cachedDrivers = [];
@@ -336,6 +337,7 @@
     let bookingsSoundReady = false;
     let map = null;
     let mapFitted = false;
+    let operatorCenter = null;
     const driverMarkers = new Map();
     const bookingMarkers = new Map();
 
@@ -429,9 +431,25 @@
       return Date.now() - new Date(driver.lastLocationAt).getTime() <= LOCATION_FRESH_MS;
     }
 
+    function centerFromConfig(cfg) {
+      const centerLat = Number(cfg?.serviceArea?.centerLat);
+      const centerLng = Number(cfg?.serviceArea?.centerLng);
+      if (!Number.isFinite(centerLat) || !Number.isFinite(centerLng)) return null;
+      return [centerLat, centerLng];
+    }
+
     function initMap() {
       if (map) return;
-      map = L.map("dispatch-map", { zoomControl: true }).setView(DEFAULT_CENTER, 13);
+      map = L.map("dispatch-map", {
+        zoomControl: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        touchZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        dragging: true,
+        inertia: true,
+      }).setView(operatorCenter || DEFAULT_CENTER, 13);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap",
@@ -545,14 +563,14 @@
     function focusDriver(driverId) {
       const m = driverMarkers.get(driverId);
       if (!m || !map) return;
-      map.flyTo(m.getLatLng(), 15, { duration: 0.5 });
+      map.panTo(m.getLatLng(), { animate: true, duration: 0.5 });
       m.openPopup();
     }
 
     function focusBooking(bookingId) {
       const m = bookingMarkers.get(bookingId);
       if (!m || !map) return;
-      map.flyTo(m.getLatLng(), 15, { duration: 0.5 });
+      map.panTo(m.getLatLng(), { animate: true, duration: 0.5 });
       m.openPopup();
     }
 
@@ -582,6 +600,11 @@
         if (slug) {
           document.getElementById("company-subtitle").textContent =
             `Leitstelle · ${slug}`;
+        }
+        const center = centerFromConfig(cfg);
+        if (center) {
+          operatorCenter = center;
+          if (map && !mapFitted) map.setView(center, 13);
         }
       } catch {
         /* offline */
@@ -835,14 +858,15 @@
       }
     });
 
-    LeitstelleAuth.init().then(() => {
+    LeitstelleAuth.init().then(async () => {
       const settingsHref = LeitstelleAuth.operatorLink("settings.html");
       const settingsLink = document.getElementById("settings-link");
       const settingsNav = document.getElementById("settings-nav-link");
       if (settingsLink) settingsLink.href = settingsHref;
       if (settingsNav) settingsNav.href = settingsHref;
+      // Config zuerst: Karte startet im Betriebsgebiet, nicht in Speyer.
+      await loadConfig();
       initMap();
-      loadConfig();
       refresh();
       setInterval(refresh, 5000);
     });

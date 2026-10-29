@@ -349,6 +349,8 @@ function createFleetOperatorsStore({ dataDir, seedFilePath }) {
         postalCodes: operator.serviceArea?.postalCodes || [],
         postalPrefixes: operator.serviceArea?.postalPrefixes || [],
         radiusKm: operator.serviceArea?.radiusKm,
+        centerLat: operator.serviceArea?.centerLat,
+        centerLng: operator.serviceArea?.centerLng,
       },
     };
     for (const key of CONFIG_KEYS) {
