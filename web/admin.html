@@ -267,6 +267,29 @@
     }
     .map-route-fare.hidden { display: none; }
     .map-route-fare.is-error { border-color: #b91c1c; background: #fef2f2; color: #991b1b; }
+    .map-stage { position: relative; }
+    #map-route-overlay {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 12px;
+      z-index: 500;
+      padding: 0.7rem 0.85rem;
+      border-radius: 12px;
+      border: 2px solid var(--navy);
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 0.92rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      pointer-events: none;
+    }
+    #map-route-overlay.hidden { display: none; }
+    #map-route-overlay.is-error {
+      border-color: #b91c1c;
+      color: #991b1b;
+      background: rgba(254, 242, 242, 0.97);
+    }
     .dest-pin {
       background: #0c1c34;
       color: #fff;
@@ -630,7 +653,10 @@
               © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
             </p>
           </div>
-          <div id="admin-map" role="application" aria-label="Live-Karte der Fahrer"></div>
+          <div class="map-stage">
+            <div id="map-route-overlay" class="hidden" role="status"></div>
+            <div id="admin-map" role="application" aria-label="Live-Karte der Fahrer"></div>
+          </div>
         </div>
       </section>
 
@@ -752,6 +778,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261029-karte8"></script>
+  <script src="admin.js?v=20261029-karte9"></script>
 </body>
 </html>

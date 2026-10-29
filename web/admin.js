@@ -1046,17 +1046,31 @@
     }
     const bar = document.getElementById("map-route-fare");
     const label = document.getElementById("map-route-fare-label");
+    const overlay = document.getElementById("map-route-overlay");
     if (bar) bar.classList.add("hidden");
     if (label) label.textContent = "";
+    if (overlay) {
+      overlay.classList.add("hidden");
+      overlay.textContent = "";
+    }
   }
 
   function paintRouteFare(text, isError) {
     const bar = document.getElementById("map-route-fare");
     const label = document.getElementById("map-route-fare-label");
+    const overlay = document.getElementById("map-route-overlay");
     if (!bar || !label) return;
     bar.classList.toggle("is-error", Boolean(isError));
     bar.classList.remove("hidden");
     label.textContent = text || "";
+    if (overlay) {
+      overlay.textContent = text || "";
+      overlay.classList.toggle("is-error", Boolean(isError));
+      overlay.classList.remove("hidden");
+    }
+    try {
+      bar.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (_) {}
   }
 
   function destIcon() {
@@ -1068,39 +1082,92 @@
     });
   }
 
+  async function geocodeAddress(query) {
+    const q = String(query || "").trim();
+    if (q.length < 3) return null;
+    const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}&country=de`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return null;
+    const lat = Number(data.latitude ?? data.lat);
+    const lng = Number(data.longitude ?? data.lon ?? data.lng);
+    if (!hasCoords(lat, lng)) return null;
+    return [lat, lng];
+  }
+
+  async function resolveBookingDestination(booking) {
+    if (hasCoords(booking.destinationLatitude, booking.destinationLongitude)) {
+      return {
+        latLng: [Number(booking.destinationLatitude), Number(booking.destinationLongitude)],
+        label: booking.destinationAddressLine || "Ziel",
+        source: "coords",
+      };
+    }
+    const line = String(booking.destinationAddressLine || "").trim();
+    if (!line) return null;
+    paintRouteFare(`Ziel „${line}“ wird gesucht (Geocoding)…`);
+    const latLng = await geocodeAddress(line);
+    if (!latLng) return null;
+    return { latLng, label: line, source: "geocode" };
+  }
+
   async function showBookingRoute(booking) {
     clearRoutePreview();
-    if (!booking || !adminMap) return;
+    if (!adminMap) {
+      paintRouteFare("Karte noch nicht bereit — bitte kurz warten und erneut tippen.", true);
+      return;
+    }
+    if (!booking) {
+      paintRouteFare("Auftrag nicht gefunden.", true);
+      return;
+    }
     stopFollowDriver();
 
     const pickupOk = hasCoords(booking.latitude, booking.longitude);
-    const destOk = hasCoords(booking.destinationLatitude, booking.destinationLongitude);
     if (!pickupOk) {
-      paintRouteFare("Keine Abhol-Koordinaten für diese Fahrt.", true);
+      paintRouteFare("Keine Abhol-Koordinaten — Route A→B nicht möglich.", true);
       return;
     }
 
     const origin = [Number(booking.latitude), Number(booking.longitude)];
-    focusMarker(bookingMarkers.get(booking.bookingId));
+    const pickupMarker = bookingMarkers.get(booking.bookingId);
+    if (pickupMarker) focusMarker(pickupMarker);
+    else {
+      followIgnoreMove = true;
+      adminMap.setView(origin, STREET_ZOOM);
+      setTimeout(() => {
+        followIgnoreMove = false;
+      }, 400);
+    }
 
-    if (!destOk) {
+    paintRouteFare(`Auftrag: ${booking.addressLine || "Abholung"} — prüfe Ziel für km/Preis…`);
+
+    const requestId = ++routeFareRequestId;
+    let dest;
+    try {
+      dest = await resolveBookingDestination(booking);
+    } catch (_) {
+      dest = null;
+    }
+    if (requestId !== routeFareRequestId) return;
+
+    if (!dest) {
       paintRouteFare(
-        `${booking.addressLine || "Abholung"} → Ziel fehlt — keine km/Preis-Berechnung.`,
+        "Kein Ziel in diesem Auftrag — deshalb keine Route und keine km/€. In der App beim Buchen ein Ziel setzen (nicht nur Abholung).",
         true
       );
       return;
     }
 
-    const destination = [Number(booking.destinationLatitude), Number(booking.destinationLongitude)];
+    const destination = dest.latLng;
     routeLine = L.polyline([origin, destination], {
       color: "#0c1c34",
-      weight: 4,
-      opacity: 0.85,
+      weight: 5,
+      opacity: 0.9,
       dashArray: "8 6",
     }).addTo(adminMap);
     routeDestMarker = L.marker(destination, { icon: destIcon() })
       .addTo(adminMap)
-      .bindPopup(`<strong>Ziel</strong><br>${escapeHtml(booking.destinationAddressLine || "Ziel")}`);
+      .bindPopup(`<strong>Ziel</strong><br>${escapeHtml(dest.label)}`);
     followIgnoreMove = true;
     adminMap.fitBounds([origin, destination], { padding: [48, 48], maxZoom: STREET_ZOOM });
     setTimeout(() => {
@@ -1108,10 +1175,9 @@
     }, 500);
 
     const from = booking.addressLine || "A";
-    const to = booking.destinationAddressLine || "B";
+    const to = dest.label || "B";
     paintRouteFare(`Route ${from} → ${to}: berechne km und Preis…`);
 
-    const requestId = ++routeFareRequestId;
     try {
       const res = await fetch("/api/fare/quote", {
         method: "POST",
@@ -1242,17 +1308,19 @@
     } else {
       bookingRoot.innerHTML = bookings
         .map((booking) => {
-          const hasDest = hasCoords(booking.destinationLatitude, booking.destinationLongitude);
-          const destHint = hasDest
-            ? ` → ${booking.destinationAddressLine || "Ziel"}`
-            : booking.destinationAddressLine
-              ? ` → ${booking.destinationAddressLine}`
-              : "";
+          const hasDestCoords = hasCoords(booking.destinationLatitude, booking.destinationLongitude);
+          const hasDestText = Boolean(String(booking.destinationAddressLine || "").trim());
+          const destHint = hasDestText
+            ? ` → ${booking.destinationAddressLine}`
+            : "";
+          const routeHint = hasDestCoords || hasDestText
+            ? " · tippen: Route + km/€"
+            : " · kein Ziel (keine Route)";
           return `<button type="button" class="map-item" data-focus-booking="${escapeHtml(booking.bookingId)}">
             <strong>${escapeHtml(booking.addressLine || "Abholung")}${escapeHtml(destHint)}</strong>
             <div class="meta">${escapeHtml(booking.operatorName || "")} · ${
               BOOKING_STATUS_LABELS[booking.status] || escapeHtml(booking.status || "")
-            }${hasDest ? " · A→B Preis tippen" : ""}</div>
+            }${routeHint}</div>
           </button>`;
         })
         .join("");
