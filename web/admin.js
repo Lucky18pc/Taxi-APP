@@ -45,6 +45,9 @@
   let liveMapRequestId = 0;
   let mapDrivers = [];
   let mapBookings = [];
+  /** Fahrer-ID, der die Karte live folgt (Straßenebene). */
+  let followDriverId = null;
+  let followIgnoreMove = false;
   const driverMarkers = new Map();
   const bookingMarkers = new Map();
   const DRIVER_STATUS_LABELS = {
@@ -918,6 +921,13 @@
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(adminMap);
+    // Manuelles Schieben/Zoomen beendet Auto-Follow.
+    adminMap.on("dragstart", () => {
+      if (!followIgnoreMove) stopFollowDriver();
+    });
+    adminMap.on("zoomstart", () => {
+      if (!followIgnoreMove) stopFollowDriver();
+    });
   }
 
   function taxiIcon(driver) {
@@ -953,11 +963,72 @@
     adminMap.fitBounds(points, { padding: [40, 40], maxZoom: STREET_ZOOM });
   }
 
+  function paintFollowBar() {
+    const bar = document.getElementById("map-follow-bar");
+    const label = document.getElementById("map-follow-label");
+    if (!bar || !label) return;
+    if (!followDriverId) {
+      bar.classList.add("hidden");
+      label.textContent = "";
+      return;
+    }
+    const driver = mapDrivers.find((d) => d.driverId === followDriverId);
+    const name = driver?.name || "Taxi";
+    bar.classList.remove("hidden");
+    label.textContent = `Live-Follow: ${name} — Karte bleibt am Auto`;
+  }
+
+  function stopFollowDriver() {
+    if (!followDriverId) return;
+    followDriverId = null;
+    paintFollowBar();
+    renderMapLists(mapDrivers, mapBookings);
+  }
+
+  function startFollowDriver(driverId) {
+    if (!driverId) return;
+    followDriverId = driverId;
+    paintFollowBar();
+    renderMapLists(mapDrivers, mapBookings);
+    const marker = driverMarkers.get(driverId);
+    if (marker) {
+      followIgnoreMove = true;
+      adminMap.flyTo(marker.getLatLng(), STREET_ZOOM, { animate: true, duration: 0.55 });
+      marker.openPopup();
+      setTimeout(() => {
+        followIgnoreMove = false;
+      }, 650);
+    }
+  }
+
+  function followDriverIfNeeded() {
+    if (!followDriverId || !adminMap) return;
+    const marker = driverMarkers.get(followDriverId);
+    if (!marker) {
+      stopFollowDriver();
+      return;
+    }
+    const target = marker.getLatLng();
+    followIgnoreMove = true;
+    if (adminMap.getZoom() < STREET_ZOOM - 0.2) {
+      adminMap.setView(target, STREET_ZOOM, { animate: true });
+    } else {
+      adminMap.panTo(target, { animate: true, duration: 0.35 });
+    }
+    setTimeout(() => {
+      followIgnoreMove = false;
+    }, 400);
+  }
+
   function focusMarker(marker) {
     if (!marker || !adminMap) return;
     // Immer auf Straßenebene: Namen und genauer Einstiegspunkt sichtbar.
+    followIgnoreMove = true;
     adminMap.flyTo(marker.getLatLng(), STREET_ZOOM, { animate: true, duration: 0.55 });
     marker.openPopup();
+    setTimeout(() => {
+      followIgnoreMove = false;
+    }, 650);
   }
 
   function syncAdminMarkers(drivers, bookings, refit, center) {
@@ -979,6 +1050,7 @@
         marker.setPopupContent(popup);
       } else {
         const marker = L.marker(latLng, { icon: taxiIcon(driver) }).addTo(adminMap).bindPopup(popup);
+        marker.on("click", () => startFollowDriver(driver.driverId));
         driverMarkers.set(driver.driverId, marker);
       }
     }
@@ -1025,6 +1097,7 @@
       }
       mapFittedFor = scope;
     }
+    followDriverIfNeeded();
   }
 
   function renderMapLists(drivers, bookings) {
@@ -1041,8 +1114,9 @@
             : driver.locationFresh
               ? "GPS live"
               : "GPS alt";
-          return `<button type="button" class="map-item" data-focus-driver="${escapeHtml(driver.driverId)}">
-            <strong>${escapeHtml(driver.name)}</strong>
+          const following = followDriverId === driver.driverId;
+          return `<button type="button" class="map-item${following ? " is-following" : ""}" data-focus-driver="${escapeHtml(driver.driverId)}">
+            <strong>${escapeHtml(driver.name)}${following ? " · Follow" : ""}</strong>
             <div class="meta">${escapeHtml(driver.operatorName || "ohne Betrieb")} · ${
               DRIVER_STATUS_LABELS[driver.status] || escapeHtml(driver.status)
             } · ${gps}</div>
@@ -1066,10 +1140,16 @@
         .join("");
     }
     driverRoot.querySelectorAll("[data-focus-driver]").forEach((btn) => {
-      btn.addEventListener("click", () => focusMarker(driverMarkers.get(btn.getAttribute("data-focus-driver"))));
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-focus-driver");
+        startFollowDriver(id);
+      });
     });
     bookingRoot.querySelectorAll("[data-focus-booking]").forEach((btn) => {
-      btn.addEventListener("click", () => focusMarker(bookingMarkers.get(btn.getAttribute("data-focus-booking"))));
+      btn.addEventListener("click", () => {
+        stopFollowDriver();
+        focusMarker(bookingMarkers.get(btn.getAttribute("data-focus-booking")));
+      });
     });
   }
 
@@ -1144,6 +1224,7 @@
     renderMapLists(mapDrivers, mapBookings);
     syncAdminMarkers(mapDrivers, mapBookings, false, null);
     paintMapStatus();
+    paintFollowBar();
   }
 
   function connectAdminMapSocket() {
@@ -1198,6 +1279,8 @@
   }
 
   function stopAdminMap() {
+    followDriverId = null;
+    paintFollowBar();
     disconnectAdminMapSocket();
     if (adminMapTimer) {
       clearInterval(adminMapTimer);
@@ -1594,11 +1677,15 @@
   });
 
   document.getElementById("map-operator")?.addEventListener("change", () => {
+    stopFollowDriver();
     mapFittedFor = "";
     loadLiveMap(true).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
   });
   document.getElementById("refresh-map")?.addEventListener("click", () => {
     loadLiveMap(false).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
+  });
+  document.getElementById("map-follow-stop")?.addEventListener("click", () => {
+    stopFollowDriver();
   });
 
   document.getElementById("platform-settings-form")?.addEventListener("submit", async (e) => {

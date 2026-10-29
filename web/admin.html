@@ -232,7 +232,26 @@
       cursor: pointer;
     }
     .map-item:hover { background: var(--cream); }
+    .map-item.is-following {
+      background: #fff8d6;
+      border-color: #c9a227;
+      box-shadow: 0 0 0 2px rgba(245, 197, 24, 0.35);
+    }
     .map-item .meta { font-weight: 600; }
+    .map-follow-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin: 0 0 0.65rem;
+      padding: 0.55rem 0.7rem;
+      border: 2px solid #c9a227;
+      border-radius: 12px;
+      background: #fff8d6;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .map-follow-bar.hidden { display: none; }
     #admin-map {
       width: 100%;
       height: min(72vh, 720px);
@@ -564,13 +583,18 @@
               </select>
             </div>
             <p id="map-status" class="meta">Karte wird geladen…</p>
+            <div id="map-follow-bar" class="map-follow-bar hidden" role="status">
+              <span id="map-follow-label"></span>
+              <button type="button" class="btn btn-ghost btn-sm" id="map-follow-stop">Follow aus</button>
+            </div>
             <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Fahrer</p>
             <div id="map-drivers" class="map-list"></div>
             <p class="meta" style="margin:0.2rem 0 0.55rem;font-weight:800">Offene Aufträge</p>
             <div id="map-bookings" class="map-list"></div>
             <p class="meta" style="margin:0">
               Gelb = frei, orange = unterwegs, grau = Standort älter als 2 Minuten. Rotes Label = Abholung.
-              Verschieben und zoomen (Scroll, Pinch, +/-). Auftrag oder Fahrer antippen → Straßennamen und genauer Punkt.
+              Fahrer antippen = Live-Follow (Karte bleibt am Auto auf Straßenebene). Scroll/Pinch/+- zum Zoomen.
+              Verschieben oder „Follow aus“ beendet das Folgen. Auftrag tippen = nur Fokus ohne Follow.
               Die Karte verbindet sich live mit dem Standort, den die Fahrer-App schickt.
               © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
             </p>
@@ -697,6 +721,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261029-karte6"></script>
+  <script src="admin.js?v=20261029-karte7"></script>
 </body>
 </html>
