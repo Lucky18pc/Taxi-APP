@@ -592,6 +592,16 @@
           document.getElementById("company-subtitle").textContent =
             `Leitstelle · ${slug}`;
         }
+        const centerLat = Number(cfg.serviceArea?.centerLat);
+        const centerLng = Number(cfg.serviceArea?.centerLng);
+        if (
+          map &&
+          !mapFitted &&
+          Number.isFinite(centerLat) &&
+          Number.isFinite(centerLng)
+        ) {
+          map.setView([centerLat, centerLng], 13);
+        }
       } catch {
         /* offline */
       }

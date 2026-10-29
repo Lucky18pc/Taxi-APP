@@ -42,6 +42,7 @@
   let liveConnected = false;
   let pendingMapSlug = "";
   let mapFittedFor = "";
+  let liveMapRequestId = 0;
   let mapDrivers = [];
   let mapBookings = [];
   const driverMarkers = new Map();
@@ -1077,15 +1078,20 @@
       refit = true;
       mapFittedFor = "";
     }
+    const requestId = ++liveMapRequestId;
+    const requestedSlug = slug;
     setMapStatus("Verbinde…");
     const res = await apiFetch(`/api/fleet/live-map?operator=${encodeURIComponent(slug)}`, {
       resetOn401: true,
     });
     const data = await res.json().catch(() => ({}));
+    if (requestId !== liveMapRequestId) return;
     if (!res.ok) throw new Error(data.error || "Karte nicht ladbar");
+    const responseSlug = data.operator || "all";
+    if (responseSlug !== requestedSlug) return;
     mapDrivers = Array.isArray(data.drivers) ? data.drivers : [];
     mapBookings = Array.isArray(data.bookings) ? data.bookings : [];
-    fillMapOperators(data.operators, data.operator || slug);
+    fillMapOperators(data.operators, requestedSlug);
     paintMapStats();
     renderMapLists(mapDrivers, mapBookings);
     syncAdminMarkers(mapDrivers, mapBookings, refit, data.center);
@@ -1110,7 +1116,7 @@
   function applyLiveDriver(update) {
     if (!update?.driverId) return;
     const slug = document.getElementById("map-operator")?.value || "all";
-    if (slug !== "all" && update.operatorSlug && update.operatorSlug !== slug) return;
+    if (slug !== "all" && update.operatorSlug !== slug) return;
     const index = mapDrivers.findIndex((driver) => driver.driverId === update.driverId);
     if (index === -1) mapDrivers.push(update);
     else mapDrivers[index] = { ...mapDrivers[index], ...update };
@@ -1562,6 +1568,7 @@
   });
 
   document.getElementById("admin-logout").addEventListener("click", () => {
+    stopAdminMap();
     clearAuth();
     showLogin();
   });
