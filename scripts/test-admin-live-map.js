@@ -318,8 +318,11 @@ async function api(pathname, options = {}) {
     stranger.close();
 
     const pageHtml = await fetch(`${base}/admin.html`).then((r) => r.text());
-    if (!pageHtml.includes("admin.js?v=20261029-karte17")) {
-      fail("admin.html muss Cache-Buster karte17 laden");
+    if (!pageHtml.includes("admin.js?v=20261029-karte18")) {
+      fail("admin.html muss Cache-Buster karte18 laden");
+    }
+    if (!pageHtml.includes("purge-test-bookings")) {
+      fail("admin.html braucht Button Testaufträge löschen");
     }
     if (!pageHtml.includes(".map-item-delete")) {
       fail("admin.html fehlt CSS für den Löschbutton");

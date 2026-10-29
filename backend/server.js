@@ -3863,6 +3863,69 @@ app.patch("/api/bookings/:id/status", requireAdmin, (req, res) => {
   res.json(booking);
 });
 
+/** Endgültig löschen (Plattform-Admin) — Test-/Storno-Müll aus bookings.json. */
+app.delete("/api/bookings/:id", requireAdmin, (req, res) => {
+  if (!isPlatformAdminRequest(req)) {
+    return res.status(403).json({ error: "Nur Plattform-Admin darf Aufträge endgültig löschen." });
+  }
+  const booking = findBooking(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: "Booking not found" });
+  }
+  releaseDriverFromBooking(booking);
+  const index = bookings.findIndex((b) => b.bookingId === booking.bookingId);
+  if (index >= 0) bookings.splice(index, 1);
+  saveBookings();
+  try {
+    syncCoreBooking(booking, { rideStatus: RIDE_STATUSES.CANCELLED });
+  } catch (_) {
+    /* Core-Eintrag optional */
+  }
+  res.json({ ok: true, deleted: booking.bookingId });
+});
+
+/**
+ * Test-/Demo-Aufträge bereinigen (Asternweg, storniert, Mannheim-Testadressen).
+ * Plattform-Admin only.
+ */
+app.post("/api/admin/bookings/purge-tests", requireAdmin, (req, res) => {
+  if (!isPlatformAdminRequest(req)) {
+    return res.status(403).json({ error: "Nur Plattform-Admin." });
+  }
+  const patterns = [
+    /asternweg/i,
+    /68159\s*mannheim/i,
+    /\bdomplatz\s*speyer\b/i,
+    /\btest\b/i,
+  ];
+  const alsoCancelled = req.body?.includeCancelled !== false;
+  const removed = [];
+  for (let i = bookings.length - 1; i >= 0; i -= 1) {
+    const booking = bookings[i];
+    const hay = [
+      booking.addressLine,
+      booking.destinationAddressLine,
+      booking.postalCode,
+      booking.notes,
+      booking.customerName,
+    ]
+      .map((v) => String(v || ""))
+      .join(" ");
+    const matchPattern = patterns.some((re) => re.test(hay));
+    const matchCancelled = alsoCancelled && booking.status === "cancelled";
+    if (!matchPattern && !matchCancelled) continue;
+    // Bei „nur storniert“ ohne Muster: alle cancelled; mit Muster: Testadressen immer.
+    if (!matchPattern && matchCancelled) {
+      /* keep: purge cancelled */
+    }
+    releaseDriverFromBooking(booking);
+    bookings.splice(i, 1);
+    removed.push(booking.bookingId);
+  }
+  saveBookings();
+  res.json({ ok: true, deletedCount: removed.length, deleted: removed });
+});
+
 app.patch("/api/bookings/:id/assign", requireAdmin, (req, res) => {
   const booking = findBooking(req.params.id);
   if (!booking) {
@@ -4725,3 +4788,5 @@ httpServer.listen(port, host, () => {
 // redeploy: live-map taxi + mietwagen festpreis karte16 2026-10-29T18:55:00Z
 
 // redeploy: live-map list dual fares karte17 2026-10-29T19:05:00Z
+
+// redeploy: purge test bookings karte18 2026-10-29T19:20:00Z

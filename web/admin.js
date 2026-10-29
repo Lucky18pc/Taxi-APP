@@ -1646,16 +1646,24 @@
     if (!id) return;
     const booking = mapBookings.find((b) => b.bookingId === id);
     const label = booking?.addressLine || id;
-    if (!window.confirm(`Auftrag wirklich löschen?\n${label}`)) return;
+    if (!window.confirm(`Auftrag endgültig löschen?\n${label}`)) return;
     try {
       setMapStatus("Lösche Auftrag…");
-      const res = await apiFetch(`/api/bookings/${encodeURIComponent(id)}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "cancelled" }),
+      let res = await apiFetch(`/api/bookings/${encodeURIComponent(id)}`, {
+        method: "DELETE",
         resetOn401: true,
       });
-      const data = await res.json().catch(() => ({}));
+      let data = await res.json().catch(() => ({}));
+      // Fallback: alte Server-Version → nur stornieren
+      if (res.status === 404 || res.status === 405) {
+        res = await apiFetch(`/api/bookings/${encodeURIComponent(id)}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "cancelled" }),
+          resetOn401: true,
+        });
+        data = await res.json().catch(() => ({}));
+      }
       if (!res.ok) throw new Error(data.error || "Löschen fehlgeschlagen");
       mapBookings = mapBookings.filter((b) => b.bookingId !== id);
       if (routeContextBookingId === id) clearRoutePreview();
@@ -1670,6 +1678,37 @@
       setMapStatus(`Auftrag gelöscht: ${label}`);
     } catch (err) {
       setMapStatus(err.message || "Löschen fehlgeschlagen", true);
+    }
+  }
+
+  async function purgeTestBookings() {
+    if (
+      !window.confirm(
+        "Test-/Demo-Aufträge und alle stornierten Aufträge endgültig löschen?\n(Asternweg, Mannheim-Tests, Domplatz Speyer, Status cancelled)"
+      )
+    ) {
+      return;
+    }
+    try {
+      setMapStatus("Bereinige Testaufträge…");
+      const res = await apiFetch("/api/admin/bookings/purge-tests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ includeCancelled: true }),
+        resetOn401: true,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Bereinigen fehlgeschlagen");
+      const removed = new Set(data.deleted || []);
+      mapBookings = mapBookings.filter((b) => !removed.has(b.bookingId));
+      clearRoutePreview();
+      paintMapStats();
+      renderMapLists(mapDrivers, mapBookings);
+      syncAdminMarkers(mapDrivers, mapBookings, false, null);
+      setMapStatus(`${Number(data.deletedCount) || 0} Test-/Storno-Aufträge gelöscht`);
+      await loadLiveMap(false);
+    } catch (err) {
+      setMapStatus(err.message || "Bereinigen fehlgeschlagen", true);
     }
   }
 
@@ -2243,6 +2282,9 @@
   });
   document.getElementById("refresh-map")?.addEventListener("click", () => {
     loadLiveMap(false).catch((err) => setMapStatus(err.message || "Karte nicht ladbar", true));
+  });
+  document.getElementById("purge-test-bookings")?.addEventListener("click", () => {
+    purgeTestBookings().catch((err) => setMapStatus(err.message || "Bereinigen fehlgeschlagen", true));
   });
   document.getElementById("map-follow-stop")?.addEventListener("click", () => {
     stopFollowDriver();
