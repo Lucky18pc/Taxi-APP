@@ -245,6 +245,27 @@
       font-weight: 800;
       white-space: nowrap;
     }
+    .map-item-fare {
+      margin-top: 0.35rem;
+      padding: 0.35rem 0.45rem;
+      border-radius: 8px;
+      background: #eef4ff;
+      border: 1px solid #93c5fd;
+      color: var(--navy);
+      font-weight: 900;
+      font-size: 0.92rem;
+      line-height: 1.25;
+    }
+    .map-item-fare-label {
+      display: inline-block;
+      margin-right: 0.25rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: #1e3a5f;
+      opacity: 0.85;
+    }
     .map-item:hover { background: var(--cream); }
     .map-item.is-following {
       background: #fff8d6;
@@ -693,7 +714,7 @@
             <div id="map-bookings" class="map-list"></div>
             <p class="meta" style="margin:0">
               Gelb = frei, orange = unterwegs, grau = Standort älter als 2 Minuten. Rotes Label = Abholung.
-              Fahrer antippen = Live-Follow. Auftrag tippen = Route A→B mit km und Preisschätzung.
+              Fahrer antippen = Live-Follow. Auftrag mit Ziel zeigt km und Fahrpreis im Feld; tippen = Route A→B.
               Scroll/Pinch/+- zum Zoomen. „Follow aus“ / „Route aus“ beendet die Ansicht.
               Die Karte verbindet sich live mit dem Standort, den die Fahrer-App schickt.
               © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
@@ -824,6 +845,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js?v=20261029-karte13"></script>
+  <script src="admin.js?v=20261029-karte14"></script>
 </body>
 </html>
