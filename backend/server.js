@@ -18,7 +18,8 @@ const { rankAvailableDrivers, DEFAULT_RADIUS_KM, DEFAULT_PRECISION } = require("
 const { createAutoDispatch, OFFER_TIMEOUT_MS } = require("./auto-dispatch");
 const dispatchPresence = require("./dispatch-presence");
 const { createAdminLoginAudit } = require("./admin-login-audit");
-const { mountMapsServiceRoutes, calculateFareFromKm } = require("./maps-services");
+const { mountMapsServiceRoutes, calculateFareFromKm, fareQuote } = require("./maps-services");
+const { haversineKm } = require("./geohash");
 const {
   statusAfterTripCompleted,
   statusTripStarted,
@@ -1374,6 +1375,100 @@ function publicLiveBooking(booking, operator) {
   };
 }
 
+/** Geocode-Cache für Live-Karte (Zieladressen ohne GPS). */
+const liveGeocodeCache = new Map();
+
+async function geocodeCached(query) {
+  const key = String(query || "")
+    .trim()
+    .toLowerCase();
+  if (key.length < 3) return null;
+  if (liveGeocodeCache.has(key)) return liveGeocodeCache.get(key);
+  try {
+    const data = await nominatimSearch(key, { countrycodes: "de", limit: 1 });
+    if (!Array.isArray(data) || !data.length) {
+      liveGeocodeCache.set(key, null);
+      return null;
+    }
+    const latitude = Number(data[0].lat);
+    const longitude = Number(data[0].lon);
+    const result =
+      Number.isFinite(latitude) && Number.isFinite(longitude) && !(Math.abs(latitude) < 0.01 && Math.abs(longitude) < 0.01)
+        ? { latitude, longitude }
+        : null;
+    liveGeocodeCache.set(key, result);
+    return result;
+  } catch (err) {
+    console.warn("live geocode", err.message || err);
+    return null;
+  }
+}
+
+function isPlottablePair(lat, lng) {
+  // Wichtig: Number(null) === 0 — darf nicht als GPS zählen (sonst Route zum Atlantik).
+  if (lat === null || lat === undefined || lat === "") return false;
+  if (lng === null || lng === undefined || lng === "") return false;
+  const la = Number(lat);
+  const ln = Number(lng);
+  if (!Number.isFinite(la) || !Number.isFinite(ln)) return false;
+  if (Math.abs(la) > 90 || Math.abs(ln) > 180) return false;
+  if (Math.abs(la) < 0.01 && Math.abs(ln) < 0.01) return false;
+  return true;
+}
+
+async function enrichLiveBookingRoute(pub) {
+  if (!pub) return pub;
+  let destLat = pub.destinationLatitude;
+  let destLng = pub.destinationLongitude;
+  if (!isPlottablePair(destLat, destLng)) {
+    const line = String(pub.destinationAddressLine || "").trim();
+    if (line) {
+      const geo = await geocodeCached(line);
+      if (geo && isPlottablePair(geo.latitude, geo.longitude)) {
+        destLat = geo.latitude;
+        destLng = geo.longitude;
+        pub.destinationLatitude = destLat;
+        pub.destinationLongitude = destLng;
+        pub.destinationGeocoded = true;
+      }
+    }
+  }
+  if (!isPlottablePair(pub.latitude, pub.longitude) || !isPlottablePair(destLat, destLng)) {
+    return pub;
+  }
+  try {
+    const quote = await fareQuote(
+      { latitude: Number(pub.latitude), longitude: Number(pub.longitude) },
+      { latitude: Number(destLat), longitude: Number(destLng) }
+    );
+    pub.routeQuote = {
+      distanceText: quote.distanceText,
+      durationText: quote.durationText,
+      distanceKm: quote.distanceKm,
+      fare: quote.fare,
+      isNight: quote.isNight,
+      formula: quote.formula,
+    };
+  } catch (err) {
+    const distanceKm = haversineKm(
+      Number(pub.latitude),
+      Number(pub.longitude),
+      Number(destLat),
+      Number(destLng)
+    );
+    const km = calculateFareFromKm(Math.max(0, distanceKm || 0));
+    pub.routeQuote = {
+      distanceText: `${km.distanceKm} km`,
+      durationText: "",
+      distanceKm: km.distanceKm,
+      fare: km.fare,
+      isNight: km.isNight,
+      formula: km.formula,
+    };
+  }
+  return pub;
+}
+
 function filterBookingsForRequest(req) {
   const operator = resolveFleetOperatorFromRequest(req);
   if (operator) {
@@ -2483,7 +2578,7 @@ app.get("/api/fleet/operators", requireAdmin, (req, res) => {
 });
 
 /** Plattform-Admin: Fahrer-GPS und offene Abholungen, optional ein Betrieb oder alle. */
-app.get("/api/fleet/live-map", requireAdmin, (req, res) => {
+app.get("/api/fleet/live-map", requireAdmin, async (req, res) => {
   if (!isPlatformAdminRequest(req)) {
     return res.status(403).json({
       error: "Live-Karte nur für den Plattform-Admin. Die Betriebs-PIN nutzt die Leitstelle.",
@@ -2505,6 +2600,13 @@ app.get("/api/fleet/live-map", requireAdmin, (req, res) => {
   const centerLat = Number(selected?.serviceArea?.centerLat);
   const centerLng = Number(selected?.serviceArea?.centerLng);
 
+  const baseBookings = bookings
+    .filter(inScope)
+    .map((booking) => publicLiveBooking(booking, operatorById(booking.operatorId)))
+    .filter(Boolean);
+  // Ziel-GPS + km/Preis serverseitig anreichern, damit die Karte Linie/€ sicher zeichnen kann.
+  const enrichedBookings = await Promise.all(baseBookings.map((b) => enrichLiveBookingRoute(b)));
+
   res.json({
     operator: selected ? selected.slug : "all",
     center:
@@ -2518,10 +2620,7 @@ app.get("/api/fleet/live-map", requireAdmin, (req, res) => {
       status: op.status,
     })),
     drivers: drivers.filter(inScope).map((driver) => publicLiveDriver(driver, operatorById(driver.operatorId))),
-    bookings: bookings
-      .filter(inScope)
-      .map((booking) => publicLiveBooking(booking, operatorById(booking.operatorId)))
-      .filter(Boolean),
+    bookings: enrichedBookings,
     updatedAt: new Date().toISOString(),
   });
 });
@@ -3552,7 +3651,7 @@ app.patch("/api/drivers/:id/status", requireAdmin, (req, res) => {
   res.json(driver);
 });
 
-app.post("/api/bookings", (req, res) => {
+app.post("/api/bookings", async (req, res) => {
   const latitude = Number(req.body.latitude);
   const longitude = Number(req.body.longitude);
   const addressLine = String(req.body.addressLine || "").trim();
@@ -3580,10 +3679,18 @@ app.post("/api/bookings", (req, res) => {
   }
 
   const destinationAddressLine = String(req.body.destinationAddressLine || "").trim();
-  const destinationLatitude = Number(req.body.destinationLatitude);
-  const destinationLongitude = Number(req.body.destinationLongitude);
-  const hasDestCoords =
-    Number.isFinite(destinationLatitude) && Number.isFinite(destinationLongitude);
+  let destinationLatitude = Number(req.body.destinationLatitude);
+  let destinationLongitude = Number(req.body.destinationLongitude);
+  let hasDestCoords = isPlottablePair(destinationLatitude, destinationLongitude);
+  // Zieladresse ohne GPS → einmal geocoden und speichern (für Live-Karte A→B).
+  if (!hasDestCoords && destinationAddressLine) {
+    const geo = await geocodeCached(destinationAddressLine);
+    if (geo && isPlottablePair(geo.latitude, geo.longitude)) {
+      destinationLatitude = geo.latitude;
+      destinationLongitude = geo.longitude;
+      hasDestCoords = true;
+    }
+  }
   const configSource = operatorConfigForNightSurcharge(fleetOperator);
 
   const nightEnabled = Boolean(configSource.nightSurchargeEnabled);
@@ -4595,3 +4702,7 @@ httpServer.listen(port, host, () => {
 // redeploy: legal pages agb-betriebe 2026-09-08T20:19:00Z
 
 // redeploy: impressum insurance section 2026-09-08T20:30:00Z
+
+// redeploy: live-map route quote null-gps fix 2026-10-29T17:40:00Z
+
+// redeploy: live-map A-B route null-gps + quote 2026-10-29T17:45:00Z

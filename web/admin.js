@@ -1082,16 +1082,51 @@
     });
   }
 
+  function localRouteEstimate(origin, destination) {
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(destination[0] - origin[0]);
+    const dLng = toRad(destination[1] - origin[1]);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(origin[0])) * Math.cos(toRad(destination[0])) * Math.sin(dLng / 2) ** 2;
+    const km = 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+    const berlinHour = Number(
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Berlin",
+        hour: "numeric",
+        hour12: false,
+      }).format(new Date())
+    );
+    const isNight = berlinHour >= 22 || berlinHour < 6;
+    const base = isNight ? 4.9 : 3.9;
+    const perKm = isNight ? 2.6 : 2.3;
+    const fare = Math.round((base + km * perKm) * 100) / 100;
+    return {
+      distanceKm: Math.round(km * 1000) / 1000,
+      distanceText: `${km.toFixed(1)} km`,
+      durationText: `${Math.max(1, Math.round((km / 30) * 60))} Min.`,
+      fare,
+      isNight,
+      formula: "Grundpreis + (Kilometer * Kilometertarif)",
+    };
+  }
+
   async function geocodeAddress(query) {
     const q = String(query || "").trim();
     if (q.length < 3) return null;
-    const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}&country=de`);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) return null;
-    const lat = Number(data.latitude ?? data.lat);
-    const lng = Number(data.longitude ?? data.lon ?? data.lng);
-    if (!hasCoords(lat, lng)) return null;
-    return [lat, lng];
+    const variants = [q, `${q}, Deutschland`, `${q}, Germany`];
+    for (const variant of variants) {
+      try {
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(variant)}&country=de`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) continue;
+        const lat = Number(data.latitude ?? data.lat);
+        const lng = Number(data.longitude ?? data.lon ?? data.lng);
+        if (hasCoords(lat, lng)) return [lat, lng];
+      } catch (_) {}
+    }
+    return null;
   }
 
   async function resolveBookingDestination(booking) {
@@ -1106,8 +1141,40 @@
     if (!line) return null;
     paintRouteFare(`Ziel „${line}“ wird gesucht (Geocoding)…`);
     const latLng = await geocodeAddress(line);
-    if (!latLng) return null;
+    if (!latLng) return { error: `Zieladresse „${line}“ konnte nicht gefunden werden.` };
     return { latLng, label: line, source: "geocode" };
+  }
+
+  function drawBookingRoute(origin, destination, label) {
+    if (routeLine && adminMap) adminMap.removeLayer(routeLine);
+    if (routeDestMarker && adminMap) adminMap.removeLayer(routeDestMarker);
+    routeLine = L.polyline([origin, destination], {
+      color: "#c9a227",
+      weight: 6,
+      opacity: 1,
+    }).addTo(adminMap);
+    routeDestMarker = L.marker(destination, { icon: destIcon() })
+      .addTo(adminMap)
+      .bindPopup(`<strong>Ziel</strong><br>${escapeHtml(label || "Ziel")}`);
+    followIgnoreMove = true;
+    adminMap.fitBounds(L.latLngBounds([origin, destination]), {
+      padding: [56, 56],
+      maxZoom: STREET_ZOOM,
+    });
+    setTimeout(() => {
+      followIgnoreMove = false;
+    }, 500);
+  }
+
+  function paintQuoteResult(from, to, quote) {
+    const km = quote.distanceText || `${Number(quote.distanceKm || 0).toFixed(1)} km`;
+    const mins = quote.durationText || "";
+    const fare = Number(quote.fare);
+    const fareText = Number.isFinite(fare) ? `${fare.toFixed(2)} €` : "—";
+    const night = quote.isNight ? " · Nachttarif" : "";
+    paintRouteFare(
+      `A→B ${from} → ${to}: ${km}${mins ? ` · ${mins}` : ""} · Schätzung ${fareText}${night}`
+    );
   }
 
   async function showBookingRoute(booking) {
@@ -1139,43 +1206,47 @@
       }, 400);
     }
 
-    paintRouteFare(`Auftrag: ${booking.addressLine || "Abholung"} — prüfe Ziel für km/Preis…`);
-
     const requestId = ++routeFareRequestId;
+    const from = booking.addressLine || "A";
+
+    // Server hat Route oft schon vorbereitet (routeQuote + Ziel-GPS).
+    if (
+      hasCoords(booking.destinationLatitude, booking.destinationLongitude) &&
+      booking.routeQuote &&
+      Number.isFinite(Number(booking.routeQuote.fare))
+    ) {
+      const destination = [
+        Number(booking.destinationLatitude),
+        Number(booking.destinationLongitude),
+      ];
+      const to = booking.destinationAddressLine || "B";
+      drawBookingRoute(origin, destination, to);
+      paintQuoteResult(from, to, booking.routeQuote);
+      return;
+    }
+
+    paintRouteFare(`Auftrag: ${from} — prüfe Ziel für Route/km/Preis…`);
+
     let dest;
     try {
       dest = await resolveBookingDestination(booking);
-    } catch (_) {
-      dest = null;
+    } catch (err) {
+      dest = { error: err.message || "Zielauflösung fehlgeschlagen" };
     }
     if (requestId !== routeFareRequestId) return;
 
-    if (!dest) {
+    if (!dest || dest.error || !dest.latLng) {
       paintRouteFare(
-        "Kein Ziel in diesem Auftrag — deshalb keine Route und keine km/€. In der App beim Buchen ein Ziel setzen (nicht nur Abholung).",
+        dest?.error ||
+          "Kein Ziel in diesem Auftrag — keine Linie A→B. Bitte Buchung mit Zieladresse anlegen.",
         true
       );
       return;
     }
 
     const destination = dest.latLng;
-    routeLine = L.polyline([origin, destination], {
-      color: "#0c1c34",
-      weight: 5,
-      opacity: 0.9,
-      dashArray: "8 6",
-    }).addTo(adminMap);
-    routeDestMarker = L.marker(destination, { icon: destIcon() })
-      .addTo(adminMap)
-      .bindPopup(`<strong>Ziel</strong><br>${escapeHtml(dest.label)}`);
-    followIgnoreMove = true;
-    adminMap.fitBounds([origin, destination], { padding: [48, 48], maxZoom: STREET_ZOOM });
-    setTimeout(() => {
-      followIgnoreMove = false;
-    }, 500);
-
-    const from = booking.addressLine || "A";
     const to = dest.label || "B";
+    drawBookingRoute(origin, destination, to);
     paintRouteFare(`Route ${from} → ${to}: berechne km und Preis…`);
 
     try {
@@ -1190,17 +1261,10 @@
       const data = await res.json().catch(() => ({}));
       if (requestId !== routeFareRequestId) return;
       if (!res.ok) throw new Error(data.error || "Tarif nicht verfügbar");
-      const km = data.distanceText || `${Number(data.distanceKm || 0).toFixed(1)} km`;
-      const mins = data.durationText || "";
-      const fare = Number(data.fare);
-      const fareText = Number.isFinite(fare) ? `${fare.toFixed(2)} €` : "—";
-      const night = data.isNight ? " · Nachttarif" : "";
-      paintRouteFare(
-        `A→B: ${km}${mins ? ` · ${mins}` : ""} · Schätzung ${fareText}${night} (Grundpreis + km×Tarif)`
-      );
-    } catch (err) {
+      paintQuoteResult(from, to, data);
+    } catch (_) {
       if (requestId !== routeFareRequestId) return;
-      paintRouteFare(err.message || "km/Preis nicht berechenbar", true);
+      paintQuoteResult(from, to, localRouteEstimate(origin, destination));
     }
   }
 
