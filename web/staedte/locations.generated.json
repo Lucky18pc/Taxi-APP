@@ -126,6 +126,18 @@
     "type": "city"
   },
   {
+    "slug": "bretten",
+    "name": "Bretten",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "bruchsal",
+    "name": "Bruchsal",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "castrop-rauxel",
     "name": "Castrop-Rauxel",
     "country": "DE",
