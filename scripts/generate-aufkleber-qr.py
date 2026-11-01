@@ -26,6 +26,7 @@ TRANSPARENT = (0, 0, 0, 0)
 
 def font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     for path in (
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf" if bold else "/System/Library/Fonts/Supplemental/Arial.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/croscore/Arimo-Bold.ttf" if bold else "/usr/share/fonts/truetype/croscore/Arimo-Regular.ttf",
     ):
