@@ -33,6 +33,12 @@ const RN_SLUGS = new Set([
   "mutterstadt",
   "limburgerhof",
   "waldsee",
+  "roemerberg",
+  "berghausen",
+  "schwegenheim",
+  "bellheim",
+  "woerth-am-rhein",
+  "jockgrim",
 ]);
 
 function slugify(name) {
@@ -112,6 +118,12 @@ const DE_CITIES = [
   ["Ludwigshafen", "Rheinland-Pfalz, Rhein-Neckar, Bahnhof, Rheinübergang Mannheim"],
   ["Altrip", "Rhein, Fähre, Ludwigshafen-Umland"],
   ["Waldsee", "Rheinauen, Bahnhof, Speyer-Umland"],
+  ["Römerberg", "Berghausen, Mechtersheim, Speyer-Süd"],
+  ["Berghausen", "Römerberg, Speyer-Süd, Ortsmitte"],
+  ["Schwegenheim", "Ortsmitte, Speyer-West, Lingenfeld"],
+  ["Bellheim", "Bahnhof, Ortsmitte, Bellheimer Wald"],
+  ["Wörth am Rhein", "Daimler-Werk, Rheinbrücke, Bahnhof"],
+  ["Jockgrim", "Zehnthaus, Bahnhof, Bienwald"],
   ["Schifferstadt", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
   ["Mutterstadt", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
   ["Maxdorf", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
@@ -413,10 +425,10 @@ const FOREIGN_CITIES = [
 
 const SPECIAL = {
   speyer: {
-    title: "Taxi Speyer bestellen | Dom, Bahnhof, Altstadt | Luckys Taxi",
+    title: "Taxi – Mietwagen in Speyer | Dom, Bahnhof, Altstadt | Luckys Taxi",
     desc:
       "Taxi in Speyer online bestellen: Dom, Hauptbahnhof, Altstadt, Technik-Museum. Sofort oder Termin — Preis nach Taxameter. Luckys Taxi App von Code & Grow Speyer.",
-    h1: "Taxi Speyer bestellen",
+    h1: "Taxi – Mietwagen in Speyer",
     guest:
       "Taxi in Speyer online bestellen: Abholadresse am Dom, Hauptbahnhof, in der Altstadt oder am Technik-Museum eintragen — Sofortfahrt oder Termin. Den Fahrpreis zeigt das Taxameter; Zahlung bar beim Fahrer. Auf dem iPhone die Luckys Taxi App, sonst die Web-Buchung unter luckystaxiapp.de/book.html. Firmensitz der Plattform: Speyer (Asternweg 21).",
     operator:
@@ -510,6 +522,42 @@ const SPECIAL = {
       "Waldsee bei Speyer / Rheinauen: online buchen, wenn ein Partner aktiv ist. Preis nach Taxameter; App oder Browser.",
     operator:
       "Taxibetriebe in Waldsee und Speyer-Umland: Luckys Taxi App mieten — Buchung, Leitstelle, QR. Firmensitz der Plattform: Speyer. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  roemerberg: {
+    guest:
+      "Römerberg südlich von Speyer, mit Berghausen und Mechtersheim: online buchen, wenn ein Partner aktiv ist. Preis nach Taxameter; iPhone-App oder Browser.",
+    operator:
+      "Taxibetriebe in Römerberg und Speyer-Süd: Buchung, Leitstelle und QR unter Ihrem Namen. Firmensitz der Plattform: Speyer. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  berghausen: {
+    guest:
+      "Berghausen, Ortsteil von Römerberg direkt südlich von Speyer: online bestellen, sobald ein Partner angebunden ist. Taxameter-Preis; App oder Web.",
+    operator:
+      "Betriebe in Berghausen und Römerberg: eigene digitale Buchung und Leitstelle. Ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar.",
+  },
+  schwegenheim: {
+    guest:
+      "Schwegenheim westlich von Speyer, Richtung Lingenfeld: online buchen, wenn ein Partner aktiv ist. iPhone-App oder Web-Buchung; Preis nach Taxameter.",
+    operator:
+      "Taxibetriebe in Schwegenheim und der Südpfalz vor Speyer: Plattform mieten — Online-Buchung und QR. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  bellheim: {
+    guest:
+      "Bellheim zwischen Speyer und Germersheim: Bahnhof und Ortsmitte online anfragen, sobald ein Partner angebunden ist. Preis nach Taxameter.",
+    operator:
+      "Betriebe in Bellheim: Leitstelle und Fahrgast-Buchung unter Ihrem Namen, parallel zur Zentrale. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  "woerth-am-rhein": {
+    guest:
+      "Wörth am Rhein — Daimler-Werk, Rheinbrücke, Bahnhof: online bestellen, wenn ein Partner aktiv ist. Taxameter-Preis; iPhone-App oder Browser.",
+    operator:
+      "Taxi-Betriebe in Wörth am Rhein und am Rheinübergang nach Karlsruhe: digitale Buchung und Leitstelle. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  jockgrim: {
+    guest:
+      "Jockgrim bei Wörth am Rhein, Zehnthaus und Bienwald: online buchen, sobald ein Partner angebunden ist. Preis nach Taxameter.",
+    operator:
+      "Betriebe in Jockgrim und Wörth: eigene Online-Buchung und QR für Stammkunden. Ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar.",
   },
 };
 
@@ -739,6 +787,57 @@ const NEARBY = {
   karlsruhe: ["bruchsal", "bretten", "speyer", "mannheim", "heidelberg", "ludwigshafen", "baden-baden"],
   bruchsal: ["karlsruhe", "bretten", "heidelberg", "speyer", "mannheim", "pforzheim"],
   bretten: ["bruchsal", "karlsruhe", "pforzheim", "heidelberg", "speyer"],
+  roemerberg: [
+    "berghausen",
+    "speyer",
+    "schwegenheim",
+    "schifferstadt",
+    "bellheim",
+    "waldsee",
+    "woerth-am-rhein",
+  ],
+  berghausen: [
+    "roemerberg",
+    "speyer",
+    "schwegenheim",
+    "schifferstadt",
+    "bellheim",
+    "waldsee",
+  ],
+  schwegenheim: [
+    "speyer",
+    "roemerberg",
+    "berghausen",
+    "bellheim",
+    "schifferstadt",
+    "woerth-am-rhein",
+    "jockgrim",
+  ],
+  bellheim: [
+    "speyer",
+    "schwegenheim",
+    "woerth-am-rhein",
+    "jockgrim",
+    "roemerberg",
+    "berghausen",
+    "landau",
+  ],
+  "woerth-am-rhein": [
+    "jockgrim",
+    "bellheim",
+    "karlsruhe",
+    "speyer",
+    "schwegenheim",
+    "roemerberg",
+  ],
+  jockgrim: [
+    "woerth-am-rhein",
+    "bellheim",
+    "speyer",
+    "karlsruhe",
+    "schwegenheim",
+    "landau",
+  ],
   "neustadt-an-der-weinstrasse": [
     "speyer",
     "ludwigshafen",
@@ -783,8 +882,8 @@ function renderPage(loc, all) {
   const title =
     special.title ||
     (isRn
-      ? `Taxi ${loc.name} bestellen | ${loc.landmarks.split(",")[0].trim()} | Luckys Taxi`
-      : `Taxi bestellen in ${loc.name} | Luckys Taxi App`);
+      ? `Taxi – Mietwagen in ${loc.name} | ${loc.landmarks.split(",")[0].trim()} | Luckys Taxi`
+      : `Taxi – Mietwagen in ${loc.name} | Luckys Taxi App`);
   const desc =
     special.desc ||
     (isRn
@@ -792,7 +891,7 @@ function renderPage(loc, all) {
       : loc.type === "country"
         ? `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Für Taxi-Betriebe: Leitstelle und Fahrgast-App ab 9,90 €/Monat pro Fahrzeug.`
         : `Taxi in ${loc.name} online bestellen — ${loc.landmarks}. Bar bzw. nach lokalem Tarif. Taxi-Betriebe: eigene Leitstelle ab 9,90 €/Monat pro Fahrzeug.`);
-  const h1 = special.h1 || `Taxi in ${loc.name}`;
+  const h1 = special.h1 || `Taxi – Mietwagen in ${loc.name}`;
 
   const areaType = loc.type === "country" ? "Country" : "City";
   const orgBlock = special.orgAddress

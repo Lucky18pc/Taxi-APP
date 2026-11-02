@@ -60,6 +60,18 @@
     "type": "city"
   },
   {
+    "slug": "bellheim",
+    "name": "Bellheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "berghausen",
+    "name": "Berghausen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "bergisch-gladbach",
     "name": "Bergisch Gladbach",
     "country": "DE",
@@ -450,6 +462,12 @@
     "type": "city"
   },
   {
+    "slug": "jockgrim",
+    "name": "Jockgrim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "kaiserslautern",
     "name": "Kaiserslautern",
     "country": "DE",
@@ -798,6 +816,12 @@
     "type": "city"
   },
   {
+    "slug": "roemerberg",
+    "name": "Römerberg",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "rosenheim",
     "name": "Rosenheim",
     "country": "DE",
@@ -842,6 +866,12 @@
   {
     "slug": "schwaebisch-gmuend",
     "name": "Schwäbisch Gmünd",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "schwegenheim",
+    "name": "Schwegenheim",
     "country": "DE",
     "type": "city"
   },
@@ -974,6 +1004,12 @@
   {
     "slug": "worms",
     "name": "Worms",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "woerth-am-rhein",
+    "name": "Wörth am Rhein",
     "country": "DE",
     "type": "city"
   },
