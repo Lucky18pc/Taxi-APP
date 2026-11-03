@@ -36,6 +36,12 @@
     "type": "city"
   },
   {
+    "slug": "bad-duerkheim",
+    "name": "Bad Dürkheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "bad-homburg-vor-der-hoehe",
     "name": "Bad Homburg vor der Höhe",
     "country": "DE",
@@ -264,6 +270,12 @@
     "type": "city"
   },
   {
+    "slug": "ettlingen",
+    "name": "Ettlingen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "euskirchen",
     "name": "Euskirchen",
     "country": "DE",
@@ -320,6 +332,12 @@
   {
     "slug": "gera",
     "name": "Gera",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "germersheim",
+    "name": "Germersheim",
     "country": "DE",
     "type": "city"
   },
@@ -402,6 +420,12 @@
     "type": "city"
   },
   {
+    "slug": "hassloch",
+    "name": "Haßloch",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "heidelberg",
     "name": "Heidelberg",
     "country": "DE",
@@ -434,6 +458,12 @@
   {
     "slug": "hildesheim",
     "name": "Hildesheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "hockenheim",
+    "name": "Hockenheim",
     "country": "DE",
     "type": "city"
   },
@@ -888,6 +918,12 @@
     "type": "city"
   },
   {
+    "slug": "schwetzingen",
+    "name": "Schwetzingen",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "siegen",
     "name": "Siegen",
     "country": "DE",
@@ -972,6 +1008,12 @@
     "type": "city"
   },
   {
+    "slug": "weinheim",
+    "name": "Weinheim",
+    "country": "DE",
+    "type": "city"
+  },
+  {
     "slug": "wesel",
     "name": "Wesel",
     "country": "DE",
@@ -986,6 +1028,12 @@
   {
     "slug": "wiesbaden",
     "name": "Wiesbaden",
+    "country": "DE",
+    "type": "city"
+  },
+  {
+    "slug": "wiesloch",
+    "name": "Wiesloch",
     "country": "DE",
     "type": "city"
   },

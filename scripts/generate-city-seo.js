@@ -39,6 +39,14 @@ const RN_SLUGS = new Set([
   "bellheim",
   "woerth-am-rhein",
   "jockgrim",
+  "schwetzingen",
+  "hockenheim",
+  "weinheim",
+  "wiesloch",
+  "germersheim",
+  "hassloch",
+  "bad-duerkheim",
+  "ettlingen",
 ]);
 
 function slugify(name) {
@@ -124,6 +132,14 @@ const DE_CITIES = [
   ["Bellheim", "Bahnhof, Ortsmitte, Bellheimer Wald"],
   ["Wörth am Rhein", "Daimler-Werk, Rheinbrücke, Bahnhof"],
   ["Jockgrim", "Zehnthaus, Bahnhof, Bienwald"],
+  ["Schwetzingen", "Schloss, Bahnhof, Innenstadt"],
+  ["Hockenheim", "Ring, Bahnhof, Innenstadt"],
+  ["Weinheim", "Bahnhof, Altstadt, Wachenburg"],
+  ["Wiesloch", "Bahnhof, Innenstadt, Walldorf-Umland"],
+  ["Germersheim", "Festung, Bahnhof, Rhein"],
+  ["Haßloch", "Holiday Park, Bahnhof, Ortsmitte"],
+  ["Bad Dürkheim", "Kurhaus, Wurstmarkt, Bahnhof"],
+  ["Ettlingen", "Schloss, Bahnhof, Albtal"],
   ["Schifferstadt", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
   ["Mutterstadt", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
   ["Maxdorf", "Bahnhof, Innenstadt, Rhein-Pfalz-Kreis"],
@@ -558,6 +574,54 @@ const SPECIAL = {
       "Jockgrim bei Wörth am Rhein, Zehnthaus und Bienwald: online buchen, sobald ein Partner angebunden ist. Preis nach Taxameter.",
     operator:
       "Betriebe in Jockgrim und Wörth: eigene Online-Buchung und QR für Stammkunden. Ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar.",
+  },
+  schwetzingen: {
+    guest:
+      "Schwetzingen — Schloss, Bahnhof, Innenstadt: online bestellen, sobald ein Partner angebunden ist. Taxameter-Preis; iPhone-App oder Web-Buchung.",
+    operator:
+      "Taxibetriebe in Schwetzingen und der Metropolregion Rhein-Neckar: digitale Buchung und Leitstelle unter Ihrem Namen. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  hockenheim: {
+    guest:
+      "Hockenheim — Ring, Bahnhof, Innenstadt: online buchen, wenn ein Partner aktiv ist. Preis nach Taxameter; App Store (iPhone) oder Browser.",
+    operator:
+      "Betriebe in Hockenheim und am Hockenheimring: Online-Buchung, Leitstelle und QR. Ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar.",
+  },
+  weinheim: {
+    guest:
+      "Weinheim an der Bergstraße — Bahnhof, Altstadt, Wachenburg: online anfragen, sobald ein Partner angebunden ist. Taxameter-Preis.",
+    operator:
+      "Taxi-Betriebe in Weinheim und an der Bergstraße: Plattform mieten für Buchung und Leitstelle. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  wiesloch: {
+    guest:
+      "Wiesloch und Walldorf-Umland: online bestellen, wenn ein Partner aktiv ist. iPhone-App oder Web; Preis nach Taxameter.",
+    operator:
+      "Betriebe in Wiesloch und Walldorf: eigene digitale Buchung und QR für Stammkunden. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  germersheim: {
+    guest:
+      "Germersheim — Festung, Bahnhof, Rhein: online buchen, sobald ein Partner angebunden ist. Taxameter-Preis; App oder Browser.",
+    operator:
+      "Taxibetriebe in Germersheim und der Südpfalz: Leitstelle und Fahrgast-Buchung unter Ihrem Namen. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  hassloch: {
+    guest:
+      "Haßloch — Holiday Park, Bahnhof, Ortsmitte: online bestellen, wenn ein Partner aktiv ist. Preis nach Taxameter.",
+    operator:
+      "Betriebe in Haßloch und Umgebung: Online-Buchung und Leitstelle unter Ihrem Firmennamen. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  "bad-duerkheim": {
+    guest:
+      "Bad Dürkheim — Kurhaus, Wurstmarkt, Bahnhof: online anfragen, sobald ein Partner angebunden ist. Taxameter-Preis; iPhone-App oder Web.",
+    operator:
+      "Taxi-Betriebe in Bad Dürkheim und an der Weinstraße: digitale Buchung parallel zur Zentrale. Ab 9,90 €/Monat pro Fahrzeug.",
+  },
+  ettlingen: {
+    guest:
+      "Ettlingen bei Karlsruhe — Schloss, Bahnhof, Albtal: online buchen, wenn ein Partner aktiv ist. Preis nach Taxameter.",
+    operator:
+      "Betriebe in Ettlingen und Karlsruhe-Süd: Plattform mieten — Buchung, Leitstelle, QR. Ab 9,90 €/Monat pro Fahrzeug, monatlich kündbar.",
   },
 };
 
