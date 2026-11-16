@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Capri Island Slot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="sea" aria-hidden="true">
+    <div class="wave wave-a"></div>
+    <div class="wave wave-b"></div>
+  </div>
+  <div class="island-silhouette" aria-hidden="true"></div>
+
+  <main class="shell">
+    <header class="brand">
+      <p class="eyebrow">La Dolce Vita</p>
+      <h1>Capri Island</h1>
+      <p class="tagline">Sonnenwalzen · Monte Solaro · Gianluca &amp; Isabella</p>
+    </header>
+
+    <section class="hud" aria-label="Spielstand">
+      <div class="hud-card">
+        <span class="hud-label">Portemonnaie</span>
+        <strong id="balance">150,00 €</strong>
+      </div>
+      <div class="hud-card">
+        <span class="hud-label">Einsatz</span>
+        <strong id="stake">1,00 €</strong>
+      </div>
+      <div class="hud-card">
+        <span class="hud-label">Letzter Gewinn</span>
+        <strong id="lastWin">0,00 €</strong>
+      </div>
+    </section>
+
+    <p id="message" class="message" role="status">Willkommen auf Capri. Dreh die Walzen — Gianluca &amp; Isabella warten.</p>
+
+    <section id="reelsView" class="panel reels-panel">
+      <div id="reels" class="reels" aria-label="Walzen 3 mal 3"></div>
+      <div class="actions">
+        <button id="riskBtn" class="btn btn-risk" type="button" hidden>Gewinn auf die Klippentreppe</button>
+        <button id="spinBtn" class="btn btn-spin" type="button">Spin — La Dolce Vita</button>
+      </div>
+    </section>
+
+    <section id="ladderView" class="panel ladder-panel" hidden>
+      <h2>Monte Solaro · Klippentreppe</h2>
+      <div id="ladder" class="ladder" aria-live="polite"></div>
+      <div class="actions">
+        <button id="climbBtn" class="btn btn-spin" type="button">Risiko klettern</button>
+        <button id="collectBtn" class="btn btn-safe" type="button">Sichern</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Wellenrauschen</span>
+      <span>Gianluca online</span>
+      <span>Wild aktiv</span>
+    </footer>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
