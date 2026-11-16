@@ -1147,13 +1147,13 @@ function renderPage(loc, all) {
       </div>
       <figure class="city-flyer-promo city-flyer-promo--drei city-flyer-promo--hero">
         <img
-          src="startseite-drei-bilder.png"
+          src="startseite-drei-bilder.png?v=20261116"
           width="1400"
           height="900"
-          alt="Luckys Taxi App — drei App-Screens: Fahrgast mit Profilfoto, Fahrer-Login und Fahrer-Home"
+          alt="Luckys Taxi App — drei App-Screens: Fahrgast-Start, Anmeldung und Abholort"
           loading="eager"
         >
-        <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Fahrer-Login und Fahrer-Home</figcaption>
+        <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Anmeldung und Abholort</figcaption>
       </figure>
     </div>
   </header>
@@ -1293,13 +1293,13 @@ function renderHub(all) {
       </div>
       <figure class="city-flyer-promo city-flyer-promo--drei city-flyer-promo--hero">
         <img
-          src="startseite-drei-bilder.png"
+          src="startseite-drei-bilder.png?v=20261116"
           width="1400"
           height="900"
-          alt="Luckys Taxi App — drei App-Screens: Fahrgast mit Profilfoto, Fahrer-Login und Fahrer-Home"
+          alt="Luckys Taxi App — drei App-Screens: Fahrgast-Start, Anmeldung und Abholort"
           loading="eager"
         >
-        <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Fahrer-Login und Fahrer-Home</figcaption>
+        <figcaption class="city-flyer-caption">Luckys Taxi App: Fahrgast, Anmeldung und Abholort</figcaption>
       </figure>
     </div>
   </header>
