@@ -939,15 +939,33 @@ function relatedLinks(loc, all) {
   return picks;
 }
 
+function countryCityTitle(loc, all) {
+  if (loc.country === "DE") return "Berlin, Hamburg, München";
+  const names = all
+    .filter((x) => x.type === "city" && x.country === loc.country)
+    .map((x) => x.name);
+  const known = new Set(names);
+  const ordered = loc.landmarks
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => known.has(s));
+  for (const name of names) {
+    if (!ordered.includes(name)) ordered.push(name);
+  }
+  return ordered.join(", ");
+}
+
 function renderPage(loc, all) {
   const url = `${BASE}/staedte/${loc.slug}.html`;
   const special = SPECIAL[loc.slug] || {};
   const isRn = RN_SLUGS.has(loc.slug);
   const title =
     special.title ||
-    (isRn
-      ? `Taxi – Mietwagen in ${loc.name} | ${loc.landmarks.split(",")[0].trim()} | Luckys Taxi`
-      : `Taxi – Mietwagen in ${loc.name} | Luckys Taxi App`);
+    (loc.type === "country"
+      ? `Taxi – Mietwagen in ${loc.name} | ${countryCityTitle(loc, all)} | Luckys Taxi App`
+      : isRn
+        ? `Taxi – Mietwagen in ${loc.name} | ${loc.landmarks.split(",")[0].trim()} | Luckys Taxi`
+        : `Taxi – Mietwagen in ${loc.name} | Luckys Taxi App`);
   const desc =
     special.desc ||
     (isRn
